@@ -1,51 +1,75 @@
-// src/firebase/services.js
-// ─────────────────────────────────────────────────────────────
-// Placeholder per i servizi Firebase (da implementare nella fase 2)
-// ─────────────────────────────────────────────────────────────
-
-import { db } from './config'
+import { auth, db } from './config'
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+} from 'firebase/auth'
 import {
   collection,
   doc,
   getDocs,
-  getDoc,
   addDoc,
   updateDoc,
   query,
   where,
+  orderBy,
+  serverTimestamp,
 } from 'firebase/firestore'
 
-// ── Clienti ──────────────────────────────────────────────────
+// ── AUTH ─────────────────────────────────────────────────────
 
-/** Recupera tutti i clienti di un trainer */
+export const login = (email, password) =>
+  signInWithEmailAndPassword(auth, email, password)
+
+export const register = (email, password) =>
+  createUserWithEmailAndPassword(auth, email, password)
+
+export const logout = () => signOut(auth)
+
+export const onAuthChange = (callback) =>
+  onAuthStateChanged(auth, callback)
+
+// ── CLIENTI ──────────────────────────────────────────────────
+
 export async function getClients(trainerId) {
-  const q = query(collection(db, 'clients'), where('trainerId', '==', trainerId))
+  const q = query(
+    collection(db, 'clients'),
+    where('trainerId', '==', trainerId)
+  )
   const snapshot = await getDocs(q)
   return snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
 }
 
-/** Aggiunge un nuovo cliente */
 export async function addClient(trainerId, clientData) {
-  return addDoc(collection(db, 'clients'), { ...clientData, trainerId, createdAt: new Date() })
-}
-
-/** Aggiorna i dati di un cliente (stats, livello, xp…) */
-export async function updateClient(clientId, data) {
-  return updateDoc(doc(db, 'clients', clientId), data)
-}
-
-// ── Sessioni / Log ────────────────────────────────────────────
-
-/** Aggiunge una sessione al log del cliente */
-export async function addSession(clientId, sessionData) {
-  return addDoc(collection(db, 'clients', clientId, 'sessions'), {
-    ...sessionData,
-    date: new Date(),
+  return addDoc(collection(db, 'clients'), {
+    ...clientData,
+    trainerId,
+    createdAt: serverTimestamp(),
   })
 }
 
-/** Recupera lo storico sessioni di un cliente */
+export async function updateClient(clientId, data) {
+  return updateDoc(doc(db, 'clients', clientId), {
+    ...data,
+    updatedAt: serverTimestamp(),
+  })
+}
+
+// ── SESSIONI ─────────────────────────────────────────────────
+
+export async function addSession(clientId, sessionData) {
+  return addDoc(collection(db, 'clients', clientId, 'sessions'), {
+    ...sessionData,
+    date: serverTimestamp(),
+  })
+}
+
 export async function getSessions(clientId) {
-  const snapshot = await getDocs(collection(db, 'clients', clientId, 'sessions'))
+  const q = query(
+    collection(db, 'clients', clientId, 'sessions'),
+    orderBy('date', 'desc')
+  )
+  const snapshot = await getDocs(q)
   return snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
 }

@@ -1,20 +1,15 @@
-// src/firebase/config.js
-// ─────────────────────────────────────────────────────────────
-// TODO: sostituire con le credenziali del tuo progetto Firebase
-// https://console.firebase.google.com → Project Settings → Web App
-// ─────────────────────────────────────────────────────────────
-
 import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyABkp7d91Wb2JG0SsJzDIhrceH_cma0Qc0",
+  authDomain: "fitquest-60a09.firebaseapp.com",
+  projectId: "fitquest-60a09",
+  storageBucket: "fitquest-60a09.firebasestorage.app",
+  messagingSenderId: "684894217887",
+  appId: "1:684894217887:web:685adbbd3b67254de3e4aa",
+  measurementId: "G-GC1WDBJXVH"
 }
 
 const app = initializeApp(firebaseConfig)
