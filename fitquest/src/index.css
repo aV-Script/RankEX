@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap');
 @import "tailwindcss";
+
 @theme {
   --font-display: 'Orbitron', monospace;
   --font-body: 'Rajdhani', sans-serif;
@@ -12,6 +13,7 @@ body { margin: 0; background: #070b14; color: #fff; font-family: 'Rajdhani', san
 .font-body    { font-family: 'Rajdhani', sans-serif; }
 
 .input-base {
+  width: 100%;
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 0.625rem;

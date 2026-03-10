@@ -1,89 +1,75 @@
-import {
-  RANKS,
-  STAT_KEYS,
-  BASE_SESSION_XP,
-  XP_PER_STAT_POINT,
-  XP_PER_LEVEL_MULTIPLIER,
-  LOG_MAX_ENTRIES,
-  LEVEL_PER_RANK,
-} from '../constants'
+import { LOG_MAX_ENTRIES, XP_PER_LEVEL_MULTIPLIER, LEVEL_PER_RANK, getRankFromMedia } from '../constants'
+import { calcStatMedia } from './percentile'
 
-/**
- * Calcola l'XP guadagnato da una sessione in base ai delta delle stat.
- * Solo i delta positivi contribuiscono all'XP.
- */
-export function calcSessionXP(deltas) {
-  const statBonus = STAT_KEYS.reduce((sum, k) => sum + Math.max(0, deltas[k] ?? 0), 0)
-  return BASE_SESSION_XP + statBonus * XP_PER_STAT_POINT
-}
-
-/**
- * Applica i delta alle stat correnti, clampando tra 0 e 100.
- */
-export function applyStatDeltas(currentStats, deltas) {
-  return Object.fromEntries(
-    STAT_KEYS.map(k => [k, Math.min(100, Math.max(0, currentStats[k] + (deltas[k] ?? 0)))])
-  )
-}
-
-/**
- * Calcola il rank in base al livello.
- */
-export function calcRank(level) {
-  return RANKS[Math.min(Math.floor(level / LEVEL_PER_RANK), RANKS.length - 1)]
-}
-
-/**
- * Data la progressione XP corrente, calcola il nuovo stato dopo una sessione.
- * Gestisce il level-up ricorsivamente se l'XP supera la soglia più volte.
- */
 export function calcLevelProgression(xp, xpNext, level) {
-  let currentXp   = xp
-  let currentNext = xpNext
-  let currentLvl  = level
-
-  while (currentXp >= currentNext) {
-    currentXp  -= currentNext
-    currentNext = Math.round(currentNext * XP_PER_LEVEL_MULTIPLIER)
-    currentLvl += 1
+  let cur = xp, next = xpNext, lvl = level
+  while (cur >= next) {
+    cur  -= next
+    next  = Math.round(next * XP_PER_LEVEL_MULTIPLIER)
+    lvl  += 1
   }
-
-  return { xp: currentXp, xpNext: currentNext, level: currentLvl }
+  return { xp: cur, xpNext: next, level: lvl }
 }
 
-/**
- * Costruisce il nuovo stato completo del cliente dopo una sessione di aggiornamento.
- * Restituisce l'oggetto aggiornato e il log entry da salvare.
- */
-export function buildProgressUpdate(client, deltas, note) {
-  const xpGain    = calcSessionXP(deltas)
-  const newStats  = applyStatDeltas(client.stats, deltas)
-  const { xp, xpNext, level } = calcLevelProgression(
-    client.xp + xpGain, client.xpNext, client.level
-  )
-  const rank      = calcRank(level)
-  const today     = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
-  const logEntry  = { date: today, action: note || `Sessione aggiornamento (Lv.${level})`, xp: xpGain }
-  const log       = [logEntry, ...(client.log ?? [])].slice(0, LOG_MAX_ENTRIES)
+export function buildXPUpdate(client, xpToAdd, note) {
+  const { xp, xpNext, level } = calcLevelProgression(client.xp + xpToAdd, client.xpNext, client.level)
+  const today  = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
+  const entry  = { date: today, action: note || `+${xpToAdd} XP aggiunto dal trainer`, xp: xpToAdd }
+  const log    = [entry, ...(client.log ?? [])].slice(0, LOG_MAX_ENTRIES)
+  return { update: { xp, xpNext, level, log } }
+}
+
+export function buildCampionamentoUpdate(client, newStats, testValues, note) {
+  const media      = calcStatMedia(newStats)
+  const rankObj    = getRankFromMedia(media)
+  const today      = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
+
+  const campionamento = { date: today, stats: newStats, tests: testValues, note: note || '', media }
+  const campionamenti = [campionamento, ...(client.campionamenti ?? [])].slice(0, 50)
+
+  const entry = { date: today, action: note || 'Nuovo campionamento 📊', xp: 0 }
+  const log   = [entry, ...(client.log ?? [])].slice(0, LOG_MAX_ENTRIES)
+
+  // Badge per statistiche a 100
+  const newBadges = [...(client.badges ?? [])]
+  Object.entries(newStats).forEach(([key, val]) => {
+    const badge = `🏆 ${key} al 100%`
+    if (val >= 100 && !newBadges.includes(badge)) newBadges.push(badge)
+  })
+  // Badge rank
+  const rankBadge = `🎖️ Rank ${rankObj.label}`
+  if (!newBadges.includes(rankBadge) && rankObj.label !== (client.rank ?? 'F')) {
+    newBadges.push(rankBadge)
+  }
 
   return {
-    update:   { stats: newStats, xp, xpNext, level, rank, log },
-    logEntry,
-    xpGain,
-    leveledUp: level > client.level,
+    update: {
+      stats:      newStats,
+      rank:       rankObj.label,
+      rankColor:  rankObj.color,
+      media,
+      campionamenti,
+      log,
+      badges:     newBadges,
+    },
+    campionamento,
   }
 }
 
-/**
- * Costruisce il profilo iniziale di un nuovo cliente.
- */
-export function buildNewClient(trainerId, { name, avatar }, defaults) {
+export function buildNewClient(trainerId, formData, defaults) {
   const today = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
+  const { testValues, stats, ...anagrafica } = formData
+  const media   = calcStatMedia(stats)
+  const rankObj = getRankFromMedia(media)
   return {
     ...defaults,
-    name,
-    avatar,
+    ...anagrafica,
     trainerId,
-    log: [{ date: today, action: 'Benvenuto nel programma! 🎉', xp: 50 }],
+    stats,
+    rank:      rankObj.label,
+    rankColor: rankObj.color,
+    media,
+    campionamenti: [{ date: today, stats, tests: testValues, note: 'Campionamento iniziale', media }],
+    log: [{ date: today, action: 'Benvenuto nel programma! 🎉', xp: 0 }],
   }
 }
