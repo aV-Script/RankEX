@@ -1,13 +1,14 @@
-import { useState, useCallback } from 'react'
-import { useClients } from '../../hooks/useClients'
-import { useMissions } from '../../hooks/useMissions'
+import { useState } from 'react'
+import { useClients }    from '../../hooks/useClients'
+import { useMissions }   from '../../hooks/useMissions'
 import { CampionamentoModal } from '../modals/CampionamentoModal'
-import { MissionsPanel } from './MissionsPanel'
-import { StatsChart } from './StatsChart'
-import { Pentagon } from '../ui/Pentagon'
-import { Card, XPBar, SectionLabel } from '../ui'
-import { STATS } from '../../constants'
-import { calcStatMedia } from '../../utils/percentile'
+import { MissionsPanel }  from './MissionsPanel'
+import { StatsChart }     from './StatsChart'
+import { RankRing }       from '../ui/RankRing'
+import { Pentagon }       from '../ui/Pentagon'
+import { SectionLabel }   from '../ui'
+import { STATS }          from '../../constants'
+import { calcStatMedia }  from '../../utils/percentile'
 import { getRankFromMedia } from '../../constants'
 
 export function ClientDashboard({ client, trainerId }) {
@@ -18,161 +19,206 @@ export function ClientDashboard({ client, trainerId }) {
   const rankObj = getRankFromMedia(media)
   const color   = client.rankColor ?? rankObj.color
 
-  const { missions, customTemplates, handleAddMission, handleCompleteMission, handleDeleteMission } =
-    useMissions(client, trainerId, updateLocalClient)
+  const {
+    missions, customTemplates,
+    handleAddMission, handleCompleteMission, handleDeleteMission,
+  } = useMissions(client, trainerId, updateLocalClient)
+
+  const prevStats = client.campionamenti?.[1]?.stats ?? null
 
   return (
-    <div className="px-4 py-6 max-w-6xl mx-auto">
-      <button onClick={deselectClient}
-        className="bg-transparent border-none text-white/40 font-body text-[14px] cursor-pointer mb-5 flex items-center gap-1.5 hover:text-white/70 transition-colors">
-        ‹ Torna alla lista
-      </button>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Colonna 1 */}
-        <div className="flex flex-col gap-4">
-          <ClientInfoCard client={client} color={color} rankObj={rankObj} />
-          <Card className="flex items-center gap-6 px-5 py-6">
-            <RankBlock rankObj={rankObj} color={color} />
-            <StatsBlock client={client} color={color} />
-          </Card>
-        </div>
-
-        {/* Colonna 2 */}
-        <div className="flex flex-col gap-4">
-          <Card className="flex items-center justify-center py-6">
-            <Pentagon stats={client.stats} color={color} size={200} />
-          </Card>
-          <StatsChart campionamenti={client.campionamenti} color={color} />
-        </div>
-
-        {/* Colonna 3 */}
-        <div className="flex flex-col gap-4">
-          <MissionsPanel
-            client={{ ...client, missions }}
-            color={color}
-            onAddMission={handleAddMission}
-            onCompleteMission={handleCompleteMission}
-            onDeleteMission={handleDeleteMission}
-            onDeleteMission={handleDeleteMission}
-            customTemplates={customTemplates}
-          />
-          <ActivityLog log={client.log} />
-          <BadgeList badges={client.badges} />
-        </div>
-      </div>
-
-      {/* CTA */}
-      <div className="mt-4">
-        <button onClick={() => setShowCampionamento(true)}
-          className="w-full rounded-2xl py-4 text-white font-display text-[13px] font-bold cursor-pointer tracking-widest transition-opacity hover:opacity-90"
-          style={{ background: `linear-gradient(135deg, ${color}cc, ${color}44)`, border: `1px solid ${color}66`, boxShadow: `0 0 30px ${color}22` }}>
-          📊 NUOVO CAMPIONAMENTO
+    <div
+      className="min-h-screen text-white"
+      style={{ background: 'radial-gradient(ellipse at 20% 0%, #0f1f3d 0%, #070b14 60%)' }}
+    >
+      {/* Navbar */}
+      <nav className="px-6 py-4 border-b border-white/[.05] flex items-center justify-between">
+        <button
+          onClick={deselectClient}
+          className="bg-transparent border-none text-white/30 font-body text-[13px] cursor-pointer flex items-center gap-1.5 hover:text-white/60 transition-colors"
+        >
+          ‹ Lista
         </button>
+        <span
+          className="font-display font-black text-[16px]"
+          style={{ background: `linear-gradient(90deg, #60a5fa, ${color})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
+        >
+          FITQUEST
+        </span>
+        <button
+          onClick={() => setShowCampionamento(true)}
+          className="bg-transparent border border-white/10 rounded-xl px-3 py-1.5 text-white/40 font-display text-[11px] tracking-widest cursor-pointer hover:border-white/20 hover:text-white/60 transition-all"
+        >
+          REC ◎
+        </button>
+      </nav>
+
+      {/* Hero: Ring + Nome + XP */}
+      <div className="px-6 py-8 flex flex-col items-center text-center gap-4">
+        <RankRing rankObj={rankObj} xp={client.xp} xpNext={client.xpNext} size={160} />
+        <div>
+          <div className="font-display font-black text-[28px] leading-none tracking-wide text-white">
+            {client.name}
+          </div>
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <span
+              className="font-display text-[12px] rounded-lg px-3 py-1"
+              style={{ background: color + '22', color, border: `1px solid ${color}44` }}
+            >
+              LIVELLO {client.level}
+            </span>
+            {client.categoria && (
+              <span className="font-body text-[12px] text-white/30 border border-white/10 rounded-lg px-3 py-1">
+                {client.categoria}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="w-full max-w-sm">
+          <div className="flex justify-between mb-1.5">
+            <span className="font-display text-[10px] text-white/30 tracking-[0.2em]">EXP</span>
+            <span className="font-display text-[11px]" style={{ color }}>
+              {client.xp.toLocaleString()} / {client.xpNext.toLocaleString()}
+            </span>
+          </div>
+          <div className="h-3 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+            <div
+              className="h-full rounded-full transition-[width] duration-1000"
+              style={{
+                width: `${client.xpNext > 0 ? Math.round((client.xp / client.xpNext) * 100) : 0}%`,
+                background: color,
+              }}
+            />
+          </div>
+        </div>
       </div>
+
+      <Divider color={color} />
+
+      {/* Status Window */}
+      <section className="px-6 py-6">
+        <SectionLabel>◈ Status</SectionLabel>
+        <div className="flex gap-4 items-start">
+          <div className="flex-1 flex flex-col gap-3">
+            {STATS.map(({ key, icon, label }) => {
+              const val   = client.stats?.[key] ?? 0
+              const prev  = prevStats?.[key] ?? null
+              const delta = prev !== null ? val - prev : null
+              return (
+                <div key={key} className="flex items-center gap-3">
+                  <span className="text-[14px] w-5 shrink-0">{icon}</span>
+                  <span className="font-body text-[12px] text-white/50 w-24 shrink-0">{label}</span>
+                  <div className="flex-1 h-[5px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                    <div className="h-full rounded-full transition-[width] duration-700" style={{ width: `${val}%`, background: color }} />
+                  </div>
+                  <span className="font-display text-[12px] w-7 text-right tabular-nums" style={{ color }}>{val}</span>
+                  {delta !== null && (
+                    <span
+                      className="font-display text-[10px] w-8 text-right tabular-nums"
+                      style={{ color: delta > 0 ? '#34d399' : delta < 0 ? '#f87171' : 'rgba(255,255,255,0.2)' }}
+                    >
+                      {delta > 0 ? `+${delta}` : delta === 0 ? '—' : delta}
+                    </span>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+          <Pentagon stats={client.stats} color={color} size={100} />
+        </div>
+      </section>
+
+      <Divider color={color} />
+
+      {/* Quest Log */}
+      <section className="px-6 py-6">
+        <MissionsPanel
+          client={{ ...client, missions }}
+          color={color}
+          onAddMission={handleAddMission}
+          onCompleteMission={handleCompleteMission}
+          onDeleteMission={handleDeleteMission}
+          customTemplates={customTemplates}
+        />
+      </section>
+
+      <Divider color={color} />
+
+      {/* Grafico andamento */}
+      <section className="px-6 py-6">
+        <SectionLabel>◈ Andamento</SectionLabel>
+        <StatsChart campionamenti={client.campionamenti} color={color} />
+      </section>
+
+      <Divider color={color} />
+
+      {/* Activity + Badge */}
+      <section className="px-6 py-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <ActivityLog log={client.log} color={color} />
+          <BadgeList badges={client.badges} color={color} />
+        </div>
+      </section>
+
+      <div className="h-10" />
 
       {showCampionamento && (
-        <CampionamentoModal client={client} onClose={() => setShowCampionamento(false)}
-          onSave={async (s, t, n) => { await handleCampionamento(client, s, t, n) }} />
+        <CampionamentoModal
+          client={client}
+          onClose={() => setShowCampionamento(false)}
+          onSave={async (s, t, n) => { await handleCampionamento(client, s, t, n) }}
+        />
       )}
     </div>
   )
 }
 
-function ClientInfoCard({ client, color, rankObj }) {
+function Divider({ color }) {
   return (
-    <Card>
-      <div className="flex items-start gap-3">
-        <div className="flex flex-col items-center justify-center rounded-2xl w-14 h-14 shrink-0"
-          style={{ background: color + '22', border: `2px solid ${color}55` }}>
-          <span className="font-display font-black text-[18px] leading-none" style={{ color }}>{rankObj.label}</span>
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="font-body font-bold text-[20px] text-white truncate">{client.name}</div>
-          <div className="flex gap-2 mt-1 flex-wrap items-center">
-            <span className="rounded-full px-2.5 py-0.5 text-[11px] font-display" style={{ background: color + '22', color }}>
-              LVL {client.level}
-            </span>
-            {client.categoria && (
-              <span className="text-white/30 text-[11px] font-body border border-white/10 rounded-full px-2 py-0.5">
-                {client.categoria}
-              </span>
-            )}
-          </div>
-          <div className="flex gap-3 mt-1 text-[11px] text-white/30 font-body flex-wrap">
-            {client.eta   && <span>🎂 {client.eta} anni</span>}
-            {client.peso  && <span>⚖️ {client.peso} kg</span>}
-            {client.sesso && <span>{client.sesso === 'M' ? '♂' : '♀'}</span>}
-          </div>
-          <XPBar xp={client.xp} xpNext={client.xpNext} color={color} />
-        </div>
-      </div>
-    </Card>
-  )
-}
-
-function RankBlock({ rankObj, color }) {
-  return (
-    <div className="flex flex-col items-center gap-2 min-w-[80px]">
-      <div className="w-20 h-20 rounded-full flex items-center justify-center"
-        style={{ border: `3px solid ${color}`, background: color + '11', boxShadow: `0 0 24px ${color}44` }}>
-        <span className="font-display font-black text-[28px]" style={{ color }}>{rankObj.label}</span>
-      </div>
-      <div className="text-[10px] text-white/40 font-body tracking-[2px]">RANK</div>
+    <div className="px-6">
+      <div className="w-full h-px" style={{ background: `linear-gradient(90deg, transparent, ${color}33, transparent)` }} />
     </div>
   )
 }
 
-function StatsBlock({ client, color }) {
+function ActivityLog({ log = [], color }) {
   return (
-    <div className="flex-1">
-      <SectionLabel>STATISTICHE</SectionLabel>
-      {STATS.map(({ key, icon, label }) => {
-        const val = client.stats?.[key] ?? 0
-        return (
-          <div key={key} className="flex items-center gap-2 mb-2">
-            <span className="w-4 text-[13px]">{icon}</span>
-            <span className="w-20 text-white/50 font-body text-[12px]">{label}</span>
-            <div className="flex-1 bg-white/[.06] rounded-full h-[5px]">
-              <div className="h-full rounded-full transition-[width] duration-500"
-                style={{ width: `${val}%`, background: color }} />
-            </div>
-            <span className="w-7 text-right font-display text-[11px]" style={{ color }}>{val}</span>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-function ActivityLog({ log = [] }) {
-  return (
-    <Card>
-      <SectionLabel>📋 Attività Recenti</SectionLabel>
+    <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+      <SectionLabel>◈ Attività recenti</SectionLabel>
+      {log.length === 0 && <p className="m-0 font-body text-[13px] text-white/20">Nessuna attività ancora.</p>}
       {log.slice(0, 5).map((entry, i) => (
-        <div key={i} className="flex gap-2.5 items-start mb-2">
-          <span className="text-white/20 font-body text-[11px] whitespace-nowrap mt-0.5">{entry.date}</span>
-          <div>
-            <div className="text-white/70 font-body text-[13px]">{entry.action}</div>
-            {entry.xp > 0 && <div className="text-emerald-300 font-display text-[10px]">+{entry.xp} XP</div>}
+        <div key={i} className="flex gap-2.5 items-start mb-2.5">
+          <div className="flex flex-col items-center pt-1.5 gap-1">
+            <div className="w-[5px] h-[5px] rounded-full shrink-0" style={{ background: color + '88' }} />
+            {i < Math.min(log.length, 5) - 1 && <div className="w-px flex-1 min-h-[12px]" style={{ background: 'rgba(255,255,255,0.06)' }} />}
+          </div>
+          <div className="flex-1 pb-1">
+            <div className="font-body text-[13px] text-white/70">{entry.action}</div>
+            <div className="flex gap-2 mt-0.5">
+              <span className="font-body text-[11px] text-white/20">{entry.date}</span>
+              {entry.xp > 0 && <span className="font-display text-[10px] text-emerald-400">+{entry.xp} XP</span>}
+            </div>
           </div>
         </div>
       ))}
-      {log.length === 0 && <p className="m-0 text-white/20 font-body text-[13px]">Nessuna attività ancora.</p>}
-    </Card>
+    </div>
   )
 }
 
-function BadgeList({ badges = [] }) {
+function BadgeList({ badges = [], color }) {
   return (
-    <Card>
-      <SectionLabel>🏅 Badge Conquistati</SectionLabel>
+    <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+      <SectionLabel>◈ Badge conquistati</SectionLabel>
       <div className="flex flex-wrap gap-2">
         {badges.map((b, i) => (
-          <span key={i} className="bg-white/[.04] rounded-lg px-3 py-1.5 font-body text-[13px] text-white/70">{b}</span>
+          <span key={i} className="font-body text-[13px] rounded-lg px-3 py-1.5"
+            style={{ background: color + '11', border: `1px solid ${color}33`, color: 'rgba(255,255,255,0.7)' }}>
+            {b}
+          </span>
         ))}
-        {badges.length === 0 && <p className="m-0 text-white/20 font-body text-[13px]">Nessun badge ancora.</p>}
+        {badges.length === 0 && <p className="m-0 font-body text-[13px] text-white/20">Nessun badge ancora.</p>}
       </div>
-    </Card>
+    </div>
   )
 }

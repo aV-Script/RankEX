@@ -4,8 +4,8 @@ import { MissionModal } from '../modals/MissionModal'
 import { MISSION_STATUS } from '../../constants/missions'
 
 export function MissionsPanel({ client, color, onAddMission, onCompleteMission, onDeleteMission, customTemplates }) {
-  const [showModal, setShowModal] = useState(false)
-  const [activeTab, setActiveTab] = useState('active')
+  const [showModal, setShowModal]         = useState(false)
+  const [activeTab, setActiveTab]         = useState('active')
   const [confirmDelete, setConfirmDelete] = useState(null) // id missione da eliminare
 
   const missions  = client.missions ?? []
@@ -13,15 +13,14 @@ export function MissionsPanel({ client, color, onAddMission, onCompleteMission, 
   const completed = missions.filter(m => m.status === MISSION_STATUS.COMPLETED)
 
   const handleConfirmDelete = async () => {
-    if (!confirmDelete) return
     await onDeleteMission(confirmDelete)
     setConfirmDelete(null)
   }
 
   return (
-    <Card>
+    <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${color}22` }}>
       <div className="flex items-center justify-between mb-4">
-        <SectionLabel>🎯 Missioni</SectionLabel>
+        <SectionLabel>◈ Quest log</SectionLabel>
         <button onClick={() => setShowModal(true)}
           className="text-[11px] font-display px-3 py-1.5 rounded-lg cursor-pointer border transition-all"
           style={{ color, borderColor: color + '55', background: color + '11' }}
@@ -31,6 +30,7 @@ export function MissionsPanel({ client, color, onAddMission, onCompleteMission, 
         </button>
       </div>
 
+      {/* Tabs */}
       <div className="flex gap-2 mb-4">
         {[['active', `Attive (${active.length})`], ['history', `Completate (${completed.length})`]].map(([key, label]) => (
           <button key={key} onClick={() => setActiveTab(key)}
@@ -41,6 +41,7 @@ export function MissionsPanel({ client, color, onAddMission, onCompleteMission, 
         ))}
       </div>
 
+      {/* Active */}
       {activeTab === 'active' && (
         <div className="flex flex-col gap-2">
           {active.length === 0 && (
@@ -54,6 +55,7 @@ export function MissionsPanel({ client, color, onAddMission, onCompleteMission, 
         </div>
       )}
 
+      {/* Completed */}
       {activeTab === 'history' && (
         <div className="flex flex-col gap-2">
           {completed.length === 0 && (
@@ -65,19 +67,19 @@ export function MissionsPanel({ client, color, onAddMission, onCompleteMission, 
 
       {/* Confirm delete dialog */}
       {confirmDelete && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center px-4" onClick={() => setConfirmDelete(null)}>
-          <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 max-w-sm w-full" onClick={e => e.stopPropagation()}>
-            <div className="font-display text-white text-[15px] mb-2">Eliminare la missione?</div>
-            <div className="font-body text-white/40 text-[13px] mb-6">
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center px-4">
+          <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 max-w-xs w-full">
+            <div className="font-display text-white text-[15px] mb-2">🗑️ Elimina missione</div>
+            <div className="font-body text-white/50 text-[13px] mb-5">
               Questa azione è irreversibile. La missione verrà eliminata definitivamente.
             </div>
             <div className="flex gap-3">
               <button onClick={() => setConfirmDelete(null)}
-                className="flex-1 py-2.5 rounded-xl bg-transparent border border-white/10 text-white/50 font-display text-[12px] cursor-pointer hover:text-white/70 transition-all">
+                className="flex-1 py-2.5 rounded-xl bg-transparent border border-white/10 text-white/50 font-display text-[12px] cursor-pointer hover:text-white/70 transition-colors">
                 ANNULLA
               </button>
               <button onClick={handleConfirmDelete}
-                className="flex-1 py-2.5 rounded-xl bg-red-500/20 border border-red-500/40 text-red-400 font-display text-[12px] cursor-pointer hover:bg-red-500/30 transition-all">
+                className="flex-1 py-2.5 rounded-xl bg-red-500/20 border border-red-400/40 text-red-400 font-display text-[12px] cursor-pointer hover:bg-red-500/30 transition-colors">
                 ELIMINA
               </button>
             </div>
@@ -88,7 +90,7 @@ export function MissionsPanel({ client, color, onAddMission, onCompleteMission, 
       {showModal && (
         <MissionModal onClose={() => setShowModal(false)} onAdd={onAddMission} customTemplates={customTemplates} />
       )}
-    </Card>
+    </div>
   )
 }
 
@@ -114,7 +116,7 @@ function MissionCard({ mission, color, onComplete, onDelete }) {
         </button>
         <button onClick={onDelete}
           className="px-3 py-1.5 rounded-lg font-display text-[11px] cursor-pointer border border-white/10 bg-transparent text-white/30 hover:text-red-400 hover:border-red-400/30 transition-all">
-          🗑
+          🗑️
         </button>
       </div>
     </div>
