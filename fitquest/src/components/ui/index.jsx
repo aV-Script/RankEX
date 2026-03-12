@@ -19,7 +19,14 @@ export function SectionLabel({ children }) {
 }
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
-export function Modal({ title, onClose, children }) {
+// size: 'default' (420px) | 'lg' (720px) | 'xl' (960px)
+const MODAL_WIDTHS = {
+  default: 'w-[420px]',
+  lg:      'w-[420px] lg:w-[720px]',
+  xl:      'w-[420px] lg:w-[960px]',
+}
+
+export function Modal({ title, onClose, size = 'default', children }) {
   useEffect(() => {
     const handler = e => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', handler)
@@ -28,11 +35,11 @@ export function Modal({ title, onClose, children }) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center"
+      className="fixed inset-0 bg-black/80 z-50 flex items-start lg:items-center justify-center overflow-y-auto py-4 px-4"
       onClick={onClose}
     >
       <div
-        className="bg-gray-900 border border-white/10 rounded-2xl p-8 w-[420px] max-w-[90vw] max-h-[90vh] overflow-y-auto"
+        className={`bg-gray-900 border border-white/10 rounded-2xl p-6 lg:p-8 ${MODAL_WIDTHS[size]} max-w-[96vw] my-auto`}
         onClick={e => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-6">
