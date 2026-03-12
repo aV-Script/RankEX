@@ -10,9 +10,9 @@ export function Card({ className = '', children }) {
 }
 
 // ─── SectionLabel ─────────────────────────────────────────────────────────────
-export function SectionLabel({ children }) {
+export function SectionLabel({ children, className = '' }) {
   return (
-    <div className="font-display text-[10px] text-white/30 tracking-[3px] uppercase mb-3.5">
+    <div className={`font-display text-[10px] text-white/30 tracking-[3px] uppercase mb-3.5 ${className}`}>
       {children}
     </div>
   )

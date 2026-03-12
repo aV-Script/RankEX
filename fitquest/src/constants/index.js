@@ -24,11 +24,11 @@ export function getRankFromMedia(media) {
 }
 
 export const STATS = [
-  { key: 'forza',       icon: '⚡', label: 'Forza',       unit: 'kg',      test: 'Dinamometro Hand Grip',  desc: 'Misura la forza massima di presa della mano dominante.' },
-  { key: 'mobilita',    icon: '🤸', label: 'Mobilità',    unit: 'cm',      test: 'Sit and Reach',          desc: 'Misura la flessibilità della catena posteriore.' },
-  { key: 'equilibrio',  icon: '🧘', label: 'Equilibrio',  unit: 'cadute',  test: 'Flamingo Test',          desc: 'Numero di volte in cui si perde l\'equilibrio in 60 secondi.' },
-  { key: 'esplosivita', icon: '💨', label: 'Esplosività', unit: 'secondi', test: '5 Time Sit to Stand',    desc: 'Tempo per alzarsi e sedersi 5 volte dalla sedia.' },
-  { key: 'resistenza',  icon: '🫀', label: 'Resistenza',  unit: 'bpm',     test: 'YMCA Step Test',         desc: 'Frequenza cardiaca al termine del test a gradino YMCA.' },
+  { key: 'forza',       icon: '', label: 'Forza',       unit: 'kg',      test: 'Dinamometro Hand Grip',  desc: 'Misura la forza massima di presa della mano dominante.' },
+  { key: 'mobilita',    icon: '', label: 'Mobilità',    unit: 'cm',      test: 'Sit and Reach',          desc: 'Misura la flessibilità della catena posteriore.' },
+  { key: 'equilibrio',  icon: '', label: 'Equilibrio',  unit: 'cadute',  test: 'Flamingo Test',          desc: 'Numero di volte in cui si perde l\'equilibrio in 60 secondi.' },
+  { key: 'esplosivita', icon: '', label: 'Esplosività', unit: 'secondi', test: '5 Time Sit to Stand',    desc: 'Tempo per alzarsi e sedersi 5 volte dalla sedia.' },
+  { key: 'resistenza',  icon: '', label: 'Resistenza',  unit: 'bpm',     test: 'YMCA Step Test',         desc: 'Frequenza cardiaca al termine del test a gradino YMCA.' },
 ]
 
 export const STAT_KEYS = STATS.map(s => s.key)
@@ -42,7 +42,7 @@ export const NEW_CLIENT_DEFAULTS = {
   xp:       0,
   xpNext:   700,
   stats:    { forza: 0, mobilita: 0, equilibrio: 0, esplosivita: 0, resistenza: 0 },
-  badges:   ['🌱 New Challenger'],
+  badges:   ['New Challenger'],
   log:      [],
   campionamenti: [],
 }

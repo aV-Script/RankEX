@@ -27,17 +27,17 @@ export function buildCampionamentoUpdate(client, newStats, testValues, note) {
   const campionamento = { date: today, stats: newStats, tests: testValues, note: note || '', media }
   const campionamenti = [campionamento, ...(client.campionamenti ?? [])].slice(0, 50)
 
-  const entry = { date: today, action: note || 'Nuovo campionamento 📊', xp: 0 }
+  const entry = { date: today, action: note || 'Nuovo campionamento', xp: 0 }
   const log   = [entry, ...(client.log ?? [])].slice(0, LOG_MAX_ENTRIES)
 
   // Badge per statistiche a 100
   const newBadges = [...(client.badges ?? [])]
   Object.entries(newStats).forEach(([key, val]) => {
-    const badge = `🏆 ${key} al 100%`
+    const badge = `${key} al 100%`
     if (val >= 100 && !newBadges.includes(badge)) newBadges.push(badge)
   })
   // Badge rank
-  const rankBadge = `🎖️ Rank ${rankObj.label}`
+  const rankBadge = `️ Rank ${rankObj.label}`
   if (!newBadges.includes(rankBadge) && rankObj.label !== (client.rank ?? 'F')) {
     newBadges.push(rankBadge)
   }
@@ -70,6 +70,6 @@ export function buildNewClient(trainerId, formData, defaults) {
     rankColor: rankObj.color,
     media,
     campionamenti: [{ date: today, stats, tests: testValues, note: 'Campionamento iniziale', media }],
-    log: [{ date: today, action: 'Benvenuto nel programma! 🎉', xp: 0 }],
+    log: [{ date: today, action: 'Benvenuto nel programma! ', xp: 0 }],
   }
 }

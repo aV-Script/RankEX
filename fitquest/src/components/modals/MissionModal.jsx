@@ -40,14 +40,14 @@ export function MissionModal({ onClose, onAdd, customTemplates = [] }) {
   }
 
   return (
-    <Modal title="🎯 Nuova Missione" onClose={onClose}>
+    <Modal title="Nuova Missione" onClose={onClose}>
       {/* Tab switcher */}
       <div className="flex gap-2 mb-5">
         {['template', 'custom'].map(m => (
           <button key={m} onClick={() => setMode(m)}
             className={`flex-1 py-2 rounded-xl font-display text-[12px] border-2 cursor-pointer transition-all
               ${mode === m ? 'bg-blue-500/20 border-blue-400 text-white' : 'bg-white/[.04] border-transparent text-white/40 hover:text-white/60'}`}>
-            {m === 'template' ? '📋 Da Template' : '✏️ Personalizzata'}
+            {m === 'template' ? 'Da Template' : 'Personalizzata'}
           </button>
         ))}
       </div>
@@ -65,7 +65,7 @@ export function MissionModal({ onClose, onAdd, customTemplates = [] }) {
                     <div className="text-white/40 font-body text-[12px] mt-0.5">{tpl.description}</div>
                   )}
                 </div>
-                <span className="font-display text-[12px] text-yellow-400 whitespace-nowrap shrink-0">⭐ {tpl.xp} XP</span>
+                <span className="font-display text-[12px] text-yellow-400 whitespace-nowrap shrink-0">{tpl.xp} XP</span>
               </div>
             </button>
           ))}
@@ -91,11 +91,11 @@ export function MissionModal({ onClose, onAdd, customTemplates = [] }) {
 
           <div className="flex flex-col gap-2 mt-1">
             <Button variant="primary" className="w-full" loading={loading} onClick={() => handleSubmit(false)}>
-              🎯 AGGIUNGI MISSIONE
+              AGGIUNGI MISSIONE
             </Button>
             <button onClick={() => handleSubmit(true)} disabled={loading}
               className="w-full py-3 rounded-xl bg-transparent border border-white/10 text-white/50 font-display text-[12px] cursor-pointer hover:text-white/70 hover:border-white/20 transition-all">
-              💾 AGGIUNGI E SALVA COME TEMPLATE
+              AGGIUNGI E SALVA COME TEMPLATE
             </button>
           </div>
         </div>

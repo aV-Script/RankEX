@@ -71,26 +71,28 @@ export default function ClientView({ clientId }) {
       style={{ background: 'radial-gradient(ellipse at 20% 0%, #0f1f3d 0%, #070b14 60%)' }}
     >
       {/* Navbar */}
-      <nav className="px-6 py-4 border-b border-white/[.05] flex items-center justify-between sticky top-0 z-10"
+      <nav className="px-6 py-4 border-b border-white/[.05] flex items-center sticky top-0 z-10"
         style={{ background: 'rgba(7,11,20,0.9)', backdropFilter: 'blur(10px)' }}>
-        <button
-          onClick={() => setView('card')}
-          className="bg-transparent border-none text-white/30 font-body text-[13px] cursor-pointer flex items-center gap-1.5 hover:text-white/60 transition-colors"
-        >
-          ‹ Card
-        </button>
+        <div className="flex-1">
+          <button
+            onClick={() => setView('card')}
+            className="bg-transparent border-none text-white/30 font-body text-[13px] cursor-pointer flex items-center gap-1.5 hover:text-white/60 transition-colors"
+          >
+            ‹ Card
+          </button>
+        </div>
         <span
-          className="font-display font-black text-[16px]"
+          className="font-display font-black text-[18px] shrink-0"
           style={{ background: `linear-gradient(90deg, #60a5fa, ${color})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
         >
           FITQUEST
         </span>
-        <div className="flex items-center gap-2">
+        <div className="flex-1 flex justify-end items-center gap-2">
           <button
             onClick={handleOpenNotifs}
             className="relative bg-transparent border border-white/10 rounded-xl px-3 py-1.5 text-white/40 font-body text-[13px] cursor-pointer hover:text-white/70 transition-all"
           >
-            🔔
+            
             {unreadCount > 0 && (
               <span
                 className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full font-display text-[10px] flex items-center justify-center text-white"
@@ -154,8 +156,11 @@ export default function ClientView({ clientId }) {
       {/* Status Window */}
       <section className="px-6 py-6">
         <SectionLabel>◈ Status</SectionLabel>
-        <div className="flex gap-4 items-start">
-          <div className="flex-1 flex flex-col gap-3">
+        <div className="grid gap-6" style={{ gridTemplateColumns: '2fr 3fr' }}>
+          <div className="flex items-center justify-center">
+            <Pentagon stats={client.stats} color={color} fluid size={200} />
+          </div>
+          <div className="flex flex-col justify-center gap-3">
             {STATS.map(({ key, icon, label }) => {
               const val   = client.stats?.[key] ?? 0
               const prev  = prevStats?.[key] ?? null
@@ -178,7 +183,7 @@ export default function ClientView({ clientId }) {
               )
             })}
           </div>
-          <Pentagon stats={client.stats} color={color} size={100} />
+
         </div>
       </section>
 
@@ -201,7 +206,7 @@ export default function ClientView({ clientId }) {
                 {m.description && <div className="text-white/40 font-body text-[12px] mt-0.5">{m.description}</div>}
               </div>
               <span className="font-display text-[12px] whitespace-nowrap shrink-0" style={{ color: '#facc15' }}>
-                ★ {m.xp} XP
+                {m.xp} XP
               </span>
             </div>
           </div>

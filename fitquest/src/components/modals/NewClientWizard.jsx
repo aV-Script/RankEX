@@ -296,7 +296,7 @@ function AnagraficaStep({ data, onChange, errors }) {
               <button key={s} onClick={() => onChange('sesso', s)}
                 className={`flex-1 py-2.5 rounded-xl font-display text-[13px] border-2 transition-all cursor-pointer
                   ${data.sesso === s ? 'bg-blue-500/20 border-blue-400 text-white' : 'bg-white/[.05] border-transparent text-white/50 hover:bg-white/10'}`}>
-                {s === 'M' ? '♂ M' : '♀ F'}
+                {s === 'M' ? 'M' : 'F'}
               </button>
             ))}
           </div>

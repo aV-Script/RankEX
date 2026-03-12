@@ -48,7 +48,7 @@ export default function ChangePasswordScreen({ userId, onDone }) {
 
         <div className="bg-white/[.04] border border-white/[.08] rounded-3xl p-8">
           <div className="mb-6">
-            <div className="font-display text-white text-[16px] mb-1">🔑 Benvenuto!</div>
+            <div className="font-display text-white text-[16px] mb-1">Benvenuto!</div>
             <div className="font-body text-white/40 text-[13px]">
               Per accedere alla tua area personale, imposta una password sicura.
             </div>

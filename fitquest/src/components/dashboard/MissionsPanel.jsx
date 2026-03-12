@@ -69,7 +69,7 @@ export function MissionsPanel({ client, color, onAddMission, onCompleteMission, 
       {confirmDelete && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center px-4">
           <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 max-w-xs w-full">
-            <div className="font-display text-white text-[15px] mb-2">🗑️ Elimina missione</div>
+            <div className="font-display text-white text-[15px] mb-2">Elimina missione</div>
             <div className="font-body text-white/50 text-[13px] mb-5">
               Questa azione è irreversibile. La missione verrà eliminata definitivamente.
             </div>
@@ -104,7 +104,7 @@ function MissionCard({ mission, color, onComplete, onDelete }) {
             <div className="text-white/40 font-body text-[12px] mt-0.5">{mission.description}</div>
           )}
         </div>
-        <span className="font-display text-[12px] text-yellow-400 whitespace-nowrap shrink-0">⭐ {mission.xp} XP</span>
+        <span className="font-display text-[12px] text-yellow-400 whitespace-nowrap shrink-0">{mission.xp} XP</span>
       </div>
       <div className="flex gap-2">
         <button onClick={onComplete}
@@ -116,7 +116,7 @@ function MissionCard({ mission, color, onComplete, onDelete }) {
         </button>
         <button onClick={onDelete}
           className="px-3 py-1.5 rounded-lg font-display text-[11px] cursor-pointer border border-white/10 bg-transparent text-white/30 hover:text-red-400 hover:border-red-400/30 transition-all">
-          🗑️
+          ️
         </button>
       </div>
     </div>

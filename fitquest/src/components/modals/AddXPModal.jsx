@@ -20,7 +20,7 @@ export function AddXPModal({ client, onClose, onSave }) {
   }
 
   return (
-    <Modal title="⭐ Aggiungi XP" onClose={onClose}>
+    <Modal title="Aggiungi XP" onClose={onClose}>
       <div className="flex flex-col gap-4">
         <p className="m-0 text-white/50 text-[13px] font-body">
           Aggiungi XP manualmente a <strong className="text-white">{client.name}</strong>.
@@ -61,7 +61,7 @@ export function AddXPModal({ client, onClose, onSave }) {
         </div>
 
         <Button variant="primary" className="w-full" loading={loading} onClick={handleSave}>
-          ⭐ AGGIUNGI XP
+          AGGIUNGI XP
         </Button>
       </div>
     </Modal>

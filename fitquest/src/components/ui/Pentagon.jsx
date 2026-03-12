@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react'
 import { STATS } from '../../constants'
 
-export const Pentagon = memo(function Pentagon({ stats = {}, color = '#60a5fa', size = 180 }) {
+export const Pentagon = memo(function Pentagon({ stats = {}, color = '#60a5fa', size = 180, fluid = false }) {
   const cx = size / 2
   const cy = size / 2
   const R  = size * 0.42
@@ -22,8 +22,17 @@ export const Pentagon = memo(function Pentagon({ stats = {}, color = '#60a5fa', 
 
   const toPath = pts => pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ') + ' Z'
 
+  const svgSize = fluid ? 200 : size
+  const cx2 = svgSize / 2
+  const cy2 = svgSize / 2
+
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+    <svg
+      width={fluid ? '100%' : size}
+      height={fluid ? '100%' : size}
+      viewBox={`0 0 ${svgSize} ${svgSize}`}
+      style={fluid ? { display: 'block' } : undefined}
+    >
       {/* Grid rings */}
       {[0.25, 0.5, 0.75, 1].map(f => (
         <polygon key={f}
@@ -41,13 +50,14 @@ export const Pentagon = memo(function Pentagon({ stats = {}, color = '#60a5fa', 
         <circle key={i} cx={p.x} cy={p.y} r="3.5" fill={color} />
       ))}
       {/* Labels */}
-      {STATS.map(({ icon, label }, i) => {
-        const lx = cx + (R + 18) * Math.cos(angles[i])
-        const ly = cy + (R + 18) * Math.sin(angles[i])
+      {STATS.map(({ label }, i) => {
+        const lx = cx + (R + 22) * Math.cos(angles[i])
+        const ly = cy + (R + 22) * Math.sin(angles[i])
+        const abbr = label.slice(0, 3).toUpperCase()
         return (
           <text key={i} x={lx} y={ly} textAnchor="middle" dominantBaseline="middle"
-            fontSize={size > 160 ? 10 : 9} fill="rgba(255,255,255,0.45)" fontFamily="Rajdhani">
-            {icon}
+            fontSize={size > 160 ? 10 : 9} fill="rgba(255,255,255,0.5)" fontFamily="Rajdhani" fontWeight="600" letterSpacing="1">
+            {abbr}
           </text>
         )
       })}

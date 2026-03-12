@@ -168,9 +168,15 @@ export function TrainerArea({ trainerId }) {
 
           {/* Bottone aggiungi */}
           <div className="mt-auto">
-            <Button variant="primary" className="w-full" onClick={() => setShowWizard(true)}>
-              + NUOVO CLIENTE
-            </Button>
+            <button
+              onClick={() => setShowWizard(true)}
+              className="w-full rounded-xl py-3 font-display text-[12px] tracking-widest cursor-pointer transition-all border-0"
+              style={{ background: 'linear-gradient(135deg, #3b82f6cc, #8b5cf6cc)' }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+            >
+              <span style={{ color: '#fff' }}>+ NUOVO CLIENTE</span>
+            </button>
           </div>
         </aside>
 
@@ -184,9 +190,13 @@ export function TrainerArea({ trainerId }) {
                 <p className="font-display text-[10px] text-blue-400 tracking-[3px] m-0 mb-1">TRAINER DASHBOARD</p>
                 <h1 className="font-display font-black text-[26px] text-white m-0">I tuoi clienti</h1>
               </div>
-              <Button variant="primary" className="px-4 shrink-0" onClick={() => setShowWizard(true)}>
-                + AGGIUNGI
-              </Button>
+              <button
+                onClick={() => setShowWizard(true)}
+                className="shrink-0 rounded-xl px-5 py-2.5 font-display text-[12px] tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
+                style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', color: '#fff' }}
+              >
+                + NUOVO
+              </button>
             </div>
             {/* Ricerca + filtro su mobile */}
             <div className="grid grid-cols-[1fr_auto] gap-3 mb-3">

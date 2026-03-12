@@ -32,25 +32,25 @@ export function ClientDashboard({ client, trainerId }) {
       style={{ background: 'radial-gradient(ellipse at 20% 0%, #0f1f3d 0%, #070b14 60%)' }}
     >
       {/* Navbar */}
-      <nav className="px-6 py-4 border-b border-white/[.05] flex items-center justify-between">
-        <button
-          onClick={deselectClient}
-          className="bg-transparent border-none text-white/30 font-body text-[13px] cursor-pointer flex items-center gap-1.5 hover:text-white/60 transition-colors"
-        >
-          ‹ Lista
-        </button>
+      <nav className="px-6 py-4 border-b border-white/[.05] flex items-center">
+        {/* zona sinistra — stessa larghezza della destra per centrare il logo */}
+        <div className="flex-1">
+          <button
+            onClick={deselectClient}
+            className="bg-transparent border-none text-white/30 font-body text-[13px] cursor-pointer flex items-center gap-1.5 hover:text-white/60 transition-colors"
+          >
+            ‹ Lista
+          </button>
+        </div>
+        {/* logo centrato */}
         <span
-          className="font-display font-black text-[16px]"
+          className="font-display font-black text-[18px] shrink-0"
           style={{ background: `linear-gradient(90deg, #60a5fa, ${color})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
         >
           FITQUEST
         </span>
-        <button
-          onClick={() => setShowCampionamento(true)}
-          className="bg-transparent border border-white/10 rounded-xl px-3 py-1.5 text-white/40 font-display text-[11px] tracking-widest cursor-pointer hover:border-white/20 hover:text-white/60 transition-all"
-        >
-          REC ◎
-        </button>
+        {/* zona destra — bilanciamento */}
+        <div className="flex-1" />
       </nav>
 
       {/* Hero: Ring + Nome + XP */}
@@ -98,9 +98,21 @@ export function ClientDashboard({ client, trainerId }) {
 
       {/* Status Window */}
       <section className="px-6 py-6">
-        <SectionLabel>◈ Status</SectionLabel>
-        <div className="flex gap-4 items-start">
-          <div className="flex-1 flex flex-col gap-3">
+        <div className="flex items-center justify-between mb-3">
+          <SectionLabel className="mb-0">◈ Status</SectionLabel>
+          <button
+            onClick={() => setShowCampionamento(true)}
+            className="text-[11px] font-display px-3 py-1.5 rounded-lg cursor-pointer border transition-all"
+            style={{ color, borderColor: color + '55', background: color + '11' }}
+            onMouseEnter={e => e.currentTarget.style.background = color + '22'}
+            onMouseLeave={e => e.currentTarget.style.background = color + '11'}
+          >
+            + CAMPIONAMENTO
+          </button>
+        </div>
+        <div className="grid gap-6" style={{ gridTemplateColumns: '3fr 2fr' }}>
+          {/* Stat a sinistra */}
+          <div className="flex flex-col justify-center gap-3">
             {STATS.map(({ key, icon, label }) => {
               const val   = client.stats?.[key] ?? 0
               const prev  = prevStats?.[key] ?? null
@@ -108,7 +120,7 @@ export function ClientDashboard({ client, trainerId }) {
               return (
                 <div key={key} className="flex items-center gap-3">
                   <span className="text-[14px] w-5 shrink-0">{icon}</span>
-                  <span className="font-body text-[12px] text-white/50 w-24 shrink-0">{label}</span>
+                  <span className="font-body text-[12px] text-white/50 w-20 shrink-0">{label}</span>
                   <div className="flex-1 h-[5px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
                     <div className="h-full rounded-full transition-[width] duration-700" style={{ width: `${val}%`, background: color }} />
                   </div>
@@ -125,7 +137,10 @@ export function ClientDashboard({ client, trainerId }) {
               )
             })}
           </div>
-          <Pentagon stats={client.stats} color={color} size={100} />
+          {/* Pentagon a destra */}
+          <div className="flex items-center justify-center">
+            <Pentagon stats={client.stats} color={color} size={130} />
+          </div>
         </div>
       </section>
 
