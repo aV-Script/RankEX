@@ -7,7 +7,7 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-body { margin: 0; background: #070b14; color: #fff; font-family: 'Rajdhani', sans-serif; }
+body { margin: 0; background: radial-gradient(ellipse at 20% 0%, #0f1f3d 0%, #070b14 60%) fixed; color: #fff; font-family: 'Rajdhani', sans-serif; min-height: 100vh; }
 
 .font-display { font-family: 'Orbitron', monospace; }
 .font-body    { font-family: 'Rajdhani', sans-serif; }

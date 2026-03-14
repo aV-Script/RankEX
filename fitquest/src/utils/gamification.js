@@ -19,15 +19,22 @@ export function buildXPUpdate(client, xpToAdd, note) {
   return { update: { xp, xpNext, level, log } }
 }
 
-export function buildCampionamentoUpdate(client, newStats, testValues, note) {
-  const media      = calcStatMedia(newStats)
-  const rankObj    = getRankFromMedia(media)
-  const today      = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
+export function buildCampionamentoUpdate(client, newStats, testValues) {
+  const media   = calcStatMedia(newStats)
+  const rankObj = getRankFromMedia(media)
+  const today   = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
 
-  const campionamento = { date: today, stats: newStats, tests: testValues, note: note || '', media }
+  const campionamento = { date: today, stats: newStats, tests: testValues, media }
   const campionamenti = [campionamento, ...(client.campionamenti ?? [])].slice(0, 50)
 
-  const entry = { date: today, action: note || 'Nuovo campionamento', xp: 0 }
+  // Log entry con i valori grezzi campionati
+  const UNITS = { forza: 'kg', mobilita: 'cm', equilibrio: 'cad.', esplosivita: 's', resistenza: 'bpm' }
+  const valuesStr = Object.entries(testValues)
+    .map(([k, v]) => `${k.charAt(0).toUpperCase() + k.slice(1)} ${v}${UNITS[k] ?? ''}`)
+    .join(' · ')
+  const action = `Campionamento — ${valuesStr}`
+
+  const entry = { date: today, action, xp: 0 }
   const log   = [entry, ...(client.log ?? [])].slice(0, LOG_MAX_ENTRIES)
 
   // Badge per statistiche a 100
@@ -69,7 +76,7 @@ export function buildNewClient(trainerId, formData, defaults) {
     rank:      rankObj.label,
     rankColor: rankObj.color,
     media,
-    campionamenti: [{ date: today, stats, tests: testValues, note: 'Campionamento iniziale', media }],
+    campionamenti: [{ date: today, stats, tests: testValues, media }],
     log: [{ date: today, action: 'Benvenuto nel programma! ', xp: 0 }],
   }
 }

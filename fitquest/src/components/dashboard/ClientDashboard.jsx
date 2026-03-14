@@ -19,8 +19,7 @@ export function ClientDashboard({ client, trainerId }) {
   const prevStats = client.campionamenti?.[1]?.stats ?? null
 
   return (
-    <div className="min-h-screen text-white"
-      style={{ background: 'radial-gradient(ellipse at 20% 0%, #0f1f3d 0%, #070b14 60%)' }}>
+    <div className="min-h-screen text-white">
 
       <AppNav
         color={color}
@@ -57,19 +56,24 @@ export function ClientDashboard({ client, trainerId }) {
       <Divider color={color} />
 
       {/* Status */}
-      <section className="px-6 py-6">
-        <div className="flex items-center justify-between mb-3">
-          <SectionLabel className="mb-0">◈ Status</SectionLabel>
-          <button
-            onClick={() => setShowCampionamento(true)}
-            className="text-[11px] font-display px-3 py-1.5 rounded-lg cursor-pointer border transition-all"
-            style={{ color, borderColor: color + '55', background: color + '11' }}
-            onMouseEnter={e => e.currentTarget.style.background = color + '22'}
-            onMouseLeave={e => e.currentTarget.style.background = color + '11'}>
-            CAMPIONAMENTO
-          </button>
+      <section className="px-6 pt-6 pb-4">
+        <div
+          className="rounded-2xl p-5"
+          style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <SectionLabel className="mb-0">◈ Status</SectionLabel>
+            <button
+              onClick={() => setShowCampionamento(true)}
+              className="text-[11px] font-display px-3 py-1.5 rounded-lg cursor-pointer border transition-all"
+              style={{ color, borderColor: color + '55', background: color + '11' }}
+              onMouseEnter={e => e.currentTarget.style.background = color + '22'}
+              onMouseLeave={e => e.currentTarget.style.background = color + '11'}>
+              CAMPIONAMENTO
+            </button>
+          </div>
+          <StatsSection stats={client.stats} prevStats={prevStats} color={color} />
         </div>
-        <StatsSection stats={client.stats} prevStats={prevStats} color={color} />
       </section>
 
       <Divider color={color} />
@@ -90,7 +94,6 @@ export function ClientDashboard({ client, trainerId }) {
 
       {/* Andamento */}
       <section className="px-6 py-6">
-        <SectionLabel>◈ Andamento</SectionLabel>
         <StatsChart campionamenti={client.campionamenti} color={color} />
       </section>
 
@@ -110,7 +113,7 @@ export function ClientDashboard({ client, trainerId }) {
         <CampionamentoModal
           client={client}
           onClose={() => setShowCampionamento(false)}
-          onSave={async (s, t, n) => { await handleCampionamento(client, s, t, n) }}
+          onSave={async (s, t) => { await handleCampionamento(client, s, t) }}
         />
       )}
     </div>

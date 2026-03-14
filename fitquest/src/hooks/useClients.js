@@ -53,8 +53,8 @@ export function useClients(trainerId) {
     dispatch({ type: ACTIONS.ADD_CLIENT, payload: { id: ref.id, ...data, email, clientAuthUid: clientUid } })
   }, [trainerId])
 
-  const handleCampionamento = useCallback(async (client, newStats, testValues, note) => {
-    const { update } = buildCampionamentoUpdate(client, newStats, testValues, note)
+  const handleCampionamento = useCallback(async (client, newStats, testValues) => {
+    const { update } = buildCampionamentoUpdate(client, newStats, testValues)
     dispatch({ type: ACTIONS.UPDATE_CLIENT, payload: { id: client.id, ...update } })
     try {
       await updateClient(client.id, update)

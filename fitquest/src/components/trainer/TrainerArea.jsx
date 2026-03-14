@@ -51,8 +51,7 @@ export function TrainerArea({ trainerId }) {
   const SORT_OPTIONS = [['name', 'Nome A→Z'], ['rank', 'Rank migliore'], ['level', 'Livello più alto']]
 
   return (
-    <div className="min-h-screen text-white"
-      style={{ background: 'radial-gradient(ellipse at 20% 0%, #0f1f3d 0%, #070b14 60%)' }}>
+    <div className="min-h-screen text-white">
 
       <AppNav
         left={<span className="hidden sm:block font-display text-[11px] text-white/20 tracking-[2px]">TRAINER DASHBOARD</span>}

@@ -40,8 +40,7 @@ export default function ClientView({ clientId }) {
   if (view === 'card') return <PlayerCard client={client} onEnter={() => setView('dashboard')} />
 
   return (
-    <div className="min-h-screen text-white"
-      style={{ background: 'radial-gradient(ellipse at 20% 0%, #0f1f3d 0%, #070b14 60%)' }}>
+    <div className="min-h-screen text-white">
 
       <AppNav
         color={color}
@@ -86,36 +85,43 @@ export default function ClientView({ clientId }) {
 
       <Divider color={color} />
 
-      <Section bordered>
-        <SectionLabel>◈ Status</SectionLabel>
-        <StatsSection stats={client.stats} prevStats={prevStats} color={color} />
-      </Section>
+      {/* Status */}
+      <section className="px-6 py-6">
+        <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <SectionLabel>◈ Status</SectionLabel>
+          <StatsSection stats={client.stats} prevStats={prevStats} color={color} />
+        </div>
+      </section>
 
       <Divider color={color} />
 
-      <Section bordered>
-        <SectionLabel>◈ Quest attive</SectionLabel>
-        {activeMissions.length === 0
-          ? <p className="font-body text-[13px] text-white/20">Nessuna missione attiva.</p>
-          : activeMissions.map(m => <QuestItem key={m.id} mission={m} color={color} />)
-        }
-      </Section>
+      {/* Quest attive */}
+      <section className="px-6 py-6">
+        <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <SectionLabel>◈ Quest attive</SectionLabel>
+          {activeMissions.length === 0
+            ? <p className="font-body text-[13px] text-white/20">Nessuna missione attiva.</p>
+            : activeMissions.map(m => <QuestItem key={m.id} mission={m} color={color} />)
+          }
+        </div>
+      </section>
 
       <Divider color={color} />
 
-      <Section bordered>
-        <SectionLabel>◈ Andamento</SectionLabel>
+      {/* Andamento */}
+      <section className="px-6 py-6">
         <StatsChart campionamenti={client.campionamenti} color={color} />
-      </Section>
+      </section>
 
       <Divider color={color} />
 
-      <Section bordered>
+      {/* Attività + Badge */}
+      <section className="px-6 py-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ActivityLog log={client.log} color={color} />
           <BadgeList badges={client.badges} color={color} />
         </div>
-      </Section>
+      </section>
 
       <div className="h-10" />
 
@@ -133,20 +139,6 @@ export default function ClientView({ clientId }) {
 
 // ── Componenti locali leggeri ─────────────────────────────────────────────────
 
-function Section({ bordered = false, children }) {
-  return (
-    <section
-      className="px-6 py-6"
-      style={bordered ? {
-        background: 'rgba(255,255,255,0.01)',
-        borderTop: '1px solid rgba(255,255,255,0.04)',
-        borderBottom: '1px solid rgba(255,255,255,0.04)',
-      } : undefined}
-    >
-      {children}
-    </section>
-  )
-}
 
 function XPBar({ xp, xpNext, color }) {
   const pct = xpNext > 0 ? Math.round((xp / xpNext) * 100) : 0
@@ -207,7 +199,7 @@ function NotifBell({ count, color, onClick }) {
 
 function FullScreenMsg({ children }) {
   return (
-    <div className="min-h-screen bg-[#070b14] flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center">
       <div className="font-display text-white/30 tracking-[3px] text-[13px]">{children}</div>
     </div>
   )

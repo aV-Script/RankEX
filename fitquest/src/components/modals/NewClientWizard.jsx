@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Modal, Input, Button, Field } from '../ui' 
+import { Modal, Input, Button, Field } from '../ui'
 import { CATEGORIE, STATS } from '../../constants'
 import { calcPercentile, calcStatMedia } from '../../utils/percentile'
 import { getRankFromMedia } from '../../constants'

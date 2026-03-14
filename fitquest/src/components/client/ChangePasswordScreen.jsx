@@ -37,7 +37,7 @@ export default function ChangePasswordScreen({ userId, onDone }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4"
-      style={{ background: 'radial-gradient(ellipse at 20% 0%, #0f1f3d 0%, #070b14 60%)' }}>
+>
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">

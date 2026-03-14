@@ -9,7 +9,6 @@ import { Pentagon } from '../ui/Pentagon'
 export function CampionamentoModal({ client, onClose, onSave }) {
   const EMPTY = Object.fromEntries(STATS.map(s => [s.key, '']))
   const [tests,   setTests]   = useState(EMPTY)
-  const [note,    setNote]    = useState('')
   const [loading, setLoading] = useState(false)
   const [errors,  setErrors]  = useState({})
 
@@ -53,7 +52,7 @@ export function CampionamentoModal({ client, onClose, onSave }) {
     try {
       const newStats = {}
       STATS.forEach(s => { newStats[s.key] = liveStats[s.key] })
-      await onSave(newStats, { ...tests }, note.trim())
+      await onSave(newStats, { ...tests })
       onClose()
     } catch {
       setLoading(false)
@@ -157,13 +156,6 @@ export function CampionamentoModal({ client, onClose, onSave }) {
               )
             })}
           </div>
-
-          {/* Note */}
-          <Input
-            placeholder="Note sul campionamento (opzionale)..."
-            value={note}
-            onChange={e => setNote(e.target.value)}
-          />
 
           <Button variant="primary" className="w-full" loading={loading} onClick={handleSave}>
             SALVA CAMPIONAMENTO

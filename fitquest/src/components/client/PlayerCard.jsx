@@ -10,7 +10,7 @@ export function PlayerCard({ client, onEnter }) {
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center"
-      style={{ background: 'radial-gradient(ellipse at 20% 0%, #0f1f3d 0%, #070b14 60%)' }}
+
     >
       {/* Card — dimensioni fisse 340×520 per condivisibilità */}
       <div className="relative overflow-hidden select-none" style={{
