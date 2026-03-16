@@ -1,6 +1,5 @@
 /**
  * Script per creare clienti di test con profili statistici diversificati.
- * Copre tutti i casi: classi base, SPEC singole e combinazioni multiclasse.
  *
  * Prerequisito: crea prima il trainer con create-test-user.js
  *
@@ -54,47 +53,6 @@ const RANKS = [
 ]
 const getRank = (media) => RANKS.find(r => media >= r.min) ?? RANKS[RANKS.length - 1]
 
-const BASE_CLASSES = [
-  { id: 'guerriero',  name: 'Guerriero',  title: 'Il Guerriero',  color: '#ef4444', requires: { forza: 65 } },
-  { id: 'danzatore',  name: 'Danzatore',  title: 'Il Danzatore',  color: '#8b5cf6', requires: { mobilita: 65 } },
-  { id: 'sentinella', name: 'Sentinella', title: 'La Sentinella', color: '#10b981', requires: { equilibrio: 75 } },
-  { id: 'velocista',  name: 'Velocista',  title: 'Il Velocista',  color: '#f59e0b', requires: { esplosivita: 65 } },
-  { id: 'corridore',  name: 'Corridore',  title: 'Il Corridore',  color: '#3b82f6', requires: { resistenza: 65 } },
-]
-
-const SPECS = [
-  { id: 'predatore',        name: 'Predatore',         title: 'Il Predatore',        requires: { forza: 65, esplosivita: 65 } },
-  { id: 'acrobata',         name: 'Acrobata',          title: "L'Acrobata",           requires: { mobilita: 65, equilibrio: 75 } },
-  { id: 'guerriero_elite',  name: "Guerriero d'Élite", title: "Il Guerriero d'Élite", requires: { forza: 70, resistenza: 65 } },
-  { id: 'fantasma',         name: 'Fantasma',          title: 'Il Fantasma',          requires: { equilibrio: 75, esplosivita: 65 } },
-  { id: 'maratoneta',       name: 'Maratoneta',        title: 'Il Maratoneta',        requires: { resistenza: 70, mobilita: 60 } },
-  { id: 'titano',           name: 'Titano',            title: 'Il Titano',            requires: { forza: 75, equilibrio: 70 } },
-  { id: 'artista_marziale', name: 'Artista Marziale',  title: "L'Artista Marziale",   requires: { mobilita: 70, forza: 60, equilibrio: 70 } },
-  { id: 'atleta_completo',  name: 'Atleta Completo',   title: "L'Atleta Completo",    requires: { forza: 55, mobilita: 55, equilibrio: 65, esplosivita: 55, resistenza: 55 } },
-]
-
-const BADGE_MAP = {
-  'rank_b':  { type: 'progression', xp: 50,  name: 'Rank B' },
-  'rank_a':  { type: 'progression', xp: 100, name: 'Rank A' },
-  'rank_s':  { type: 'progression', xp: 200, name: 'Rank S' },
-  'rank_ss': { type: 'progression', xp: 300, name: 'Rank SS' },
-  'rank_ex': { type: 'progression', xp: 500, name: 'Rank EX' },
-}
-const RANK_BADGE_MAP = { 'B':'rank_b','B+':'rank_b','A':'rank_a','A+':'rank_a',
-  'S':'rank_s','S+':'rank_s','SS':'rank_ss','SS+':'rank_ss','EX':'rank_ex' }
-
-function getClasses(stats) {
-  return BASE_CLASSES
-    .filter(c => Object.entries(c.requires).every(([k, v]) => (stats[k] ?? 0) >= v))
-    .map(c => ({ id: c.id, unlockedAt: TODAY }))
-}
-
-function getSpecs(stats) {
-  return SPECS
-    .filter(s => Object.entries(s.requires).every(([k, v]) => (stats[k] ?? 0) >= v))
-    .map(s => ({ id: s.id, unlockedAt: TODAY, tests: {} }))
-}
-
 function calcSessionConfig(freq) {
   const monthly = Math.round(freq * 4.33)
   return { sessionsPerWeek: freq, monthlySessions: monthly, xpPerSession: Math.round(500 / monthly) }
@@ -112,52 +70,10 @@ function buildClient(trainerId, data) {
 
   const media   = calcStatMedia(stats)
   const rankObj = getRank(media)
-  const classes = getClasses(stats)
-  const specs   = getSpecs(stats)
   const xpBase  = Math.round(media * 8)
   const xpNext  = buildXPNext(level)
 
-  // ── Badge strutturati (oggetti, non stringhe) ────────────────────────────
-  const badges = [
-    { id: 'first_camp', type: 'cosmetic', name: 'Primo Campionamento',
-      title: "L'Inizio", unlockedAt: TODAY },
-  ]
-
-  // Badge rank
-  const rankBadgeId = RANK_BADGE_MAP[rankObj.label]
-  if (rankBadgeId) {
-    const def = BADGE_MAP[rankBadgeId]
-    badges.push({ id: rankBadgeId, type: def.type, name: def.name,
-      xpAwarded: def.xp, unlockedAt: TODAY })
-  }
-
-  // Badge classi
-  classes.forEach(({ id }) => {
-    const def = BASE_CLASSES.find(c => c.id === id)
-    if (def) badges.push({ id: `class_${id}`, type: 'cosmetic',
-      name: def.name, title: def.title, unlockedAt: TODAY })
-  })
-
-  // Badge SPEC
-  specs.forEach(({ id }) => {
-    const def = SPECS.find(s => s.id === id)
-    if (def) badges.push({ id: `spec_${id}`, type: 'cosmetic',
-      name: def.name, title: def.title, unlockedAt: TODAY })
-  })
-
-  // Badge tutte le classi
-  if (classes.length >= 5)
-    badges.push({ id: 'all_classes', type: 'cosmetic', name: 'Tutte le Classi',
-      title: 'Il Poliedrico', unlockedAt: TODAY })
-
   // ── Log ──────────────────────────────────────────────────────────────────
-  const specNames  = specs.map(s => s.id.replace('_', ' ')).join(', ')
-  const classNames = classes.map(c => c.id).join(', ')
-  const logMsg = specs.length > 0
-    ? `Profilo creato — SPEC: ${specNames}`
-    : classes.length > 0
-      ? `Profilo creato — Classi: ${classNames}`
-      : 'Benvenuto nel programma!'
 
   const { monthlySessions, xpPerSession } = calcSessionConfig(sessionsPerWeek)
 
@@ -170,9 +86,6 @@ function buildClient(trainerId, data) {
     level,
     xp:              xpBase,
     xpNext,
-    classes,
-    specs,
-    badges,
     sessionsPerWeek,
     campionamenti:   [{ date: TODAY, stats, tests: {}, media }],
     log:             [{ date: TODAY, action: logMsg, xp: 0 }],
@@ -378,7 +291,7 @@ if (!trainerId) {
   process.exit(1)
 }
 console.log(`Trainer: ${trainerId}\n`)
-console.log('Nome                    Freq  Gruppo          Rank  Media  Classi/SPEC')
+console.log('Nome                    Freq  Gruppo          Rank  Media  ')
 console.log('─'.repeat(80))
 
 let created = 0, skipped = 0
@@ -390,9 +303,7 @@ for (const clientData of TEST_CLIENTS) {
     const clientId = await createClient(trainerId, clientData)
     if (clientId) {
       const doc2    = buildClient(trainerId, clientData)
-      const classes = doc2.classes.map(c => c.id).join(', ') || '—'
-      const specs   = doc2.specs.map(s => s.id).join(', ')   || '—'
-      console.log(`${doc2.rank.padEnd(5)} ${String(doc2.media).padEnd(6)} ${classes}${specs !== '—' ? ' | ★ ' + specs : ''}`)
+      console.log(`${doc2.rank.padEnd(5)} ${String(doc2.media).padEnd(6)}`)
       created++
     } else {
       console.log('— saltato')

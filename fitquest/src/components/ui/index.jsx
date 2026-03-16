@@ -1,5 +1,4 @@
 import { useEffect, useState as _useState } from 'react'
-import { getBadgeById } from '../../constants/badges'
 import { Pentagon } from './Pentagon'
 import { STATS }    from '../../constants/index.js'
 
@@ -120,18 +119,6 @@ export function XPBar({ xp, xpNext, color }) {
   )
 }
 
-// ─── Badge ────────────────────────────────────────────────────────────────────
-export function Badge({ color, children }) {
-  return (
-    <span
-      className="rounded-full px-3 py-0.5 text-[11px] font-display"
-      style={{ background: color + '22', color }}
-    >
-      {children}
-    </span>
-  )
-}
-
 // ─── Divider ──────────────────────────────────────────────────────────────────
 export function Divider({ color }) {
   return (
@@ -188,98 +175,6 @@ export function ActivityLog({ log = [], color }) {
           </div>
         </div>
       ))}
-    </div>
-  )
-}
-
-// ─── BadgeList ────────────────────────────────────────────────────────────────
-export function BadgeList({ badges = [], color }) {
-  const [detail, setDetail] = _useState(null)
-
-  const normalized = badges.map(b =>
-    typeof b === 'string' ? { id: b, name: b, type: 'cosmetic', unlockedAt: '—' } : b
-  )
-
-  return (
-    <div
-      className="rounded-2xl p-5"
-      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
-    >
-      <SectionLabel>◈ Badge conquistati</SectionLabel>
-      {normalized.length === 0 && (
-        <p className="m-0 font-body text-[13px] text-white/20">Nessun badge ancora.</p>
-      )}
-      <div className="flex flex-wrap gap-2">
-        {normalized.map((b, i) => {
-          const def   = getBadgeById(b.id)
-          const isXP  = b.type === 'progression' || def?.type === 'progression'
-          return (
-            <button
-              key={i}
-              onClick={() => setDetail(b)}
-              className="font-body text-[12px] rounded-lg px-3 py-1.5 cursor-pointer transition-all border-none"
-              style={{
-                background: isXP ? 'rgba(52,211,153,0.1)' : color + '11',
-                border:     `1px solid ${isXP ? '#34d39933' : color + '33'}`,
-                color:      isXP ? '#34d399' : 'rgba(255,255,255,0.7)',
-              }}
-              onMouseEnter={e => e.currentTarget.style.opacity = '0.75'}
-              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-            >
-              {isXP && <span className="mr-1 text-[10px]">★</span>}
-              {b.name}
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Modale dettaglio badge */}
-      {detail && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center px-4"
-          onClick={() => setDetail(null)}>
-          <div className="rounded-2xl p-6 max-w-xs w-full"
-            style={{ background: '#0f1f3d', border: '1px solid rgba(255,255,255,0.1)' }}
-            onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-start mb-4">
-              <h3 className="font-display font-black text-[18px] text-white m-0">{detail.name}</h3>
-              <button onClick={() => setDetail(null)}
-                className="bg-transparent border-none text-white/40 text-xl cursor-pointer hover:text-white/70">✕</button>
-            </div>
-            <div className="flex flex-col gap-2 mb-4">
-              <div className="flex items-center gap-2">
-                <span className="font-display text-[10px] text-white/30 tracking-[2px]">TIPO</span>
-                <span className={`font-display text-[11px] px-2 py-0.5 rounded-md ${
-                  detail.type === 'progression' ? 'text-emerald-400' : 'text-blue-400'
-                }`}
-                  style={{ background: detail.type === 'progression' ? '#34d39918' : '#60a5fa18' }}>
-                  {detail.type === 'progression' ? 'Progressione' : 'Cosmetic'}
-                </span>
-              </div>
-              {detail.unlockedAt && (
-                <div className="flex items-center gap-2">
-                  <span className="font-display text-[10px] text-white/30 tracking-[2px]">SBLOCCATO</span>
-                  <span className="font-body text-[12px] text-white/60">{detail.unlockedAt}</span>
-                </div>
-              )}
-              {detail.xpAwarded && (
-                <div className="flex items-center gap-2">
-                  <span className="font-display text-[10px] text-white/30 tracking-[2px]">XP BONUS</span>
-                  <span className="font-display text-[12px] text-emerald-400">+{detail.xpAwarded} XP</span>
-                </div>
-              )}
-              {detail.title && (
-                <div className="flex items-center gap-2">
-                  <span className="font-display text-[10px] text-white/30 tracking-[2px]">TITOLO</span>
-                  <span className="font-body text-[12px] text-white/70 italic">"{detail.title}"</span>
-                </div>
-              )}
-            </div>
-            <p className="font-body text-[12px] text-white/30 m-0">
-              {getBadgeById(detail.id)?.desc ?? 'Badge speciale'}
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

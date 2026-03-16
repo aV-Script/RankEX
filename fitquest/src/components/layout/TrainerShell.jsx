@@ -63,7 +63,7 @@ export function TrainerShell({ page, setPage, children }) {
       {/* ── Sidebar desktop (solo icone + tooltip) ── */}
       <aside
         className="hidden lg:flex flex-col items-center py-6 gap-2 sticky top-0 h-screen shrink-0 z-30 border-r border-white/[.05]"
-        style={{ width: 64, background: 'rgba(7,11,20,0.95)', backdropFilter: 'blur(12px)' }}
+        style={{ width: 64, backdropFilter: 'blur(12px)' }}
       >
         {/* Logo */}
         <div className="mb-4 flex flex-col items-center">

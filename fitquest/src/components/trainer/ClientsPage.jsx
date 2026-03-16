@@ -3,7 +3,6 @@ import { useClients }      from '../../hooks/useClients'
 import { useClientSearch } from '../../hooks/useClientSearch'
 import { useClientRank }         from '../../hooks/useClientRank'
 import { useGroups }            from '../../hooks/useGroups'
-import { ClassesPillsCompact } from '../ui/ClassesSection'
 import { NewClientWizard } from '../modals/NewClientWizard'
 import { Input }           from '../ui'
 import { calcStatMedia }   from '../../utils/percentile'
@@ -295,7 +294,6 @@ function ClientCard({ client, onClick }) {
           ))}
         </div>
       )}
-      <ClassesPillsCompact classes={client.classes ?? []} specs={client.specs ?? []} />
     </button>
   )
 }

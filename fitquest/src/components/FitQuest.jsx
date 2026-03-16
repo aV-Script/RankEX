@@ -13,17 +13,19 @@ function FitQuestInner({ user }) {
   const { clients }         = useClients(user.uid)
   const [page, setPage]     = useState('clients')
 
-  // Se un cliente è selezionato mostra la sua dashboard (sovrasta la navigazione)
-  if (selectedClient) {
-    return <ClientDashboard client={selectedClient} trainerId={user.uid} />
-  }
-
+  // Sidebar sempre visibile, ClientDashboard come contenuto se selezionato
   return (
     <TrainerShell page={page} setPage={setPage}>
-      {page === 'clients'  && <ClientsPage  trainerId={user.uid} />}
-      {page === 'calendar' && <TrainerCalendar trainerId={user.uid} clients={clients} />}
-      {page === 'guide'    && <TestGuidePage />}
-      {page === 'profile'  && <ProfilePage user={user} />}
+      {selectedClient ? (
+        <ClientDashboard client={selectedClient} trainerId={user.uid} />
+      ) : (
+        <>
+          {page === 'clients'  && <ClientsPage  trainerId={user.uid} />}
+          {page === 'calendar' && <TrainerCalendar trainerId={user.uid} clients={clients} />}
+          {page === 'guide'    && <TestGuidePage />}
+          {page === 'profile'  && <ProfilePage user={user} />}
+        </>
+      )}
     </TrainerShell>
   )
 }
