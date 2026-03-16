@@ -1,25 +1,22 @@
 import { useState, useEffect, useMemo } from 'react'
-import { getClientSessions } from '../../firebase/calendar'
+import { getClientSlots } from '../../firebase/calendar'
 import { getMonthRange, calcMonthlyCompletion, calcSessionConfig, BONUS_XP_FULL_MONTH } from '../../hooks/useCalendar'
-import { SectionLabel } from '../ui'
 
-const MONTH_NAMES = [
-  'Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
-  'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre',
-]
+const MONTH_NAMES = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
+  'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
 const DAY_NAMES = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom']
 
 export function ClientCalendar({ clientId, sessionsPerWeek = 3 }) {
-  const { xpPerSession } = calcSessionConfig(sessionsPerWeek)
-  const [sessions,     setSessions]     = useState([])
+  const [slots,        setSlots]        = useState([])
   const [currentYear,  setCurrentYear]  = useState(new Date().getFullYear())
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1)
 
   const { from, to } = getMonthRange(currentYear, currentMonth)
+  const { xpPerSession, monthlySessions } = calcSessionConfig(sessionsPerWeek)
 
   useEffect(() => {
     if (!clientId) return
-    getClientSessions(clientId, from, to).then(setSessions)
+    getClientSlots(clientId, from, to).then(setSlots)
   }, [clientId, from, to])
 
   const calendarDays = useMemo(() => {
@@ -29,15 +26,13 @@ export function ClientCalendar({ clientId, sessionsPerWeek = 3 }) {
     const days = []
     for (let i = 0; i < startOffset; i++) days.push(null)
     for (let d = 1; d <= lastDay.getDate(); d++) {
-      const dateStr     = `${currentYear}-${String(currentMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`
-      const daySessions = sessions.filter(s => s.date === dateStr)
-      days.push({ day: d, dateStr, sessions: daySessions })
+      const dateStr = `${currentYear}-${String(currentMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+      days.push({ day: d, dateStr, slots: slots.filter(s => s.date === dateStr) })
     }
     return days
-  }, [currentYear, currentMonth, sessions])
+  }, [currentYear, currentMonth, slots])
 
-  // Con il nuovo modello le sessioni sono già del singolo cliente
-  const { planned, completed, pct } = calcMonthlyCompletion(sessions)
+  const { planned, completed, pct } = calcMonthlyCompletion(slots, clientId)
   const today = new Date().toISOString().slice(0, 10)
 
   const prevMonth = () => setCurrentMonth(m => { if (m === 1) { setCurrentYear(y => y-1); return 12 } return m-1 })
@@ -45,22 +40,18 @@ export function ClientCalendar({ clientId, sessionsPerWeek = 3 }) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Navigazione mese */}
+      {/* Navigazione */}
       <div className="flex items-center justify-between">
         <button onClick={prevMonth}
-          className="bg-transparent border border-white/10 rounded-xl w-8 h-8 flex items-center justify-center cursor-pointer hover:border-white/20 transition-all text-white/40 hover:text-white/70 text-[16px]">
-          ‹
-        </button>
+          className="bg-transparent border border-white/10 rounded-xl w-8 h-8 flex items-center justify-center cursor-pointer hover:border-white/20 transition-all text-white/40 hover:text-white/70 text-[16px]">‹</button>
         <span className="font-display font-black text-[15px] text-white">
           {MONTH_NAMES[currentMonth - 1]} {currentYear}
         </span>
         <button onClick={nextMonth}
-          className="bg-transparent border border-white/10 rounded-xl w-8 h-8 flex items-center justify-center cursor-pointer hover:border-white/20 transition-all text-white/40 hover:text-white/70 text-[16px]">
-          ›
-        </button>
+          className="bg-transparent border border-white/10 rounded-xl w-8 h-8 flex items-center justify-center cursor-pointer hover:border-white/20 transition-all text-white/40 hover:text-white/70 text-[16px]">›</button>
       </div>
 
-      {/* Barra completamento mensile */}
+      {/* Barra completamento */}
       {planned > 0 && (
         <div className="rounded-xl p-3.5"
           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -76,18 +67,16 @@ export function ClientCalendar({ clientId, sessionsPerWeek = 3 }) {
               style={{ width: `${pct}%`, background: pct === 100 ? '#34d399' : pct >= 50 ? '#f59e0b' : '#f87171' }} />
           </div>
           <div className="flex justify-between mt-1.5">
-            <span className="font-body text-[11px] text-white/30">
-              {xpPerSession * completed} XP guadagnati
-            </span>
+            <span className="font-body text-[11px] text-white/30">{xpPerSession * completed} XP guadagnati</span>
             {pct === 100
               ? <span className="font-display text-[10px] text-emerald-400">+{BONUS_XP_FULL_MONTH} XP bonus!</span>
-              : <span className="font-body text-[11px] text-white/20">Mese completo: +{BONUS_XP_FULL_MONTH} XP bonus</span>
+              : <span className="font-body text-[11px] text-white/20">Mese completo: +{BONUS_XP_FULL_MONTH} XP</span>
             }
           </div>
         </div>
       )}
 
-      {/* Griglia giorni */}
+      {/* Griglia */}
       <div>
         <div className="grid grid-cols-7 gap-1 mb-1">
           {DAY_NAMES.map(d => (
@@ -97,10 +86,10 @@ export function ClientCalendar({ clientId, sessionsPerWeek = 3 }) {
         <div className="grid grid-cols-7 gap-1">
           {calendarDays.map((cell, i) => {
             if (!cell) return <div key={`e-${i}`} />
-            const isToday       = cell.dateStr === today
-            const hasSessions   = cell.sessions.length > 0
-            const isCompleted   = hasSessions && cell.sessions.every(s => s.completed)
-            const isPlanned     = hasSessions && !isCompleted
+            const isToday     = cell.dateStr === today
+            const hasSlots    = cell.slots.length > 0
+            const isCompleted = hasSlots && cell.slots.every(s => s.completedClientIds?.includes(clientId))
+            const isPlanned   = hasSlots && !isCompleted
 
             return (
               <div key={cell.dateStr}
@@ -113,6 +102,9 @@ export function ClientCalendar({ clientId, sessionsPerWeek = 3 }) {
                   style={{ color: isCompleted ? '#34d399' : isToday ? '#60a5fa' : 'rgba(255,255,255,0.5)' }}>
                   {cell.day}
                 </span>
+                {hasSlots && cell.slots[0].startTime && (
+                  <span className="font-display text-[8px] text-white/25">{cell.slots[0].startTime}</span>
+                )}
                 {isCompleted && <div className="w-1 h-1 rounded-full bg-emerald-400" />}
                 {isPlanned   && <div className="w-1 h-1 rounded-full bg-blue-400 opacity-60" />}
               </div>

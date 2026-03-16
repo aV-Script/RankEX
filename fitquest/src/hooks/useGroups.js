@@ -25,7 +25,7 @@ export function useGroups(trainerId) {
     setGroups(prev => prev.map(g => g.id === id ? { ...g, name } : g))
   }, [])
 
-  const handleToggleClient = useCallback(async (groupId, clientId) => {
+  const handleToggleClient = useCallback(async (groupId, clientId, onAdd, onRemove) => {
     setGroups(prev => {
       const group   = prev.find(g => g.id === groupId)
       const already = group.clientIds.includes(clientId)
@@ -33,6 +33,9 @@ export function useGroups(trainerId) {
         ? group.clientIds.filter(id => id !== clientId)
         : [...group.clientIds, clientId]
       updateGroup(groupId, { clientIds: newIds })
+      // Callback per aggiornare gli slot del calendario
+      if (already && onRemove) onRemove(groupId, clientId)
+      if (!already && onAdd)   onAdd(groupId, clientId)
       return prev.map(g => g.id === groupId ? { ...g, clientIds: newIds } : g)
     })
   }, [])

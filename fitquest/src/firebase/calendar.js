@@ -1,25 +1,16 @@
 import {
   collection, getDocs, addDoc, updateDoc, deleteDoc,
-  doc, query, where,
+  doc, query, where, arrayUnion, arrayRemove,
 } from 'firebase/firestore'
 import { db } from './db'
 
-/**
- * Modello sessione — 1 sessione per 1 cliente (mai condivisa):
- * {
- *   id, trainerId, clientId,
- *   date: 'YYYY-MM-DD',
- *   completed: bool,
- *   createdAt: ISO string
- * }
- *
- * Il gruppo è solo uno shortcut di selezione lato UI:
- * creare una sessione per un gruppo = creare N sessioni separate.
- */
+// ─── SLOTS ───────────────────────────────────────────────────────────────────
+// Un slot = un allenamento in una data/ora con N clienti.
+// Più clienti/gruppi possono condividere lo stesso slot.
 
-export const getTrainerSessions = async (trainerId, dateFrom, dateTo) => {
+export const getTrainerSlots = async (trainerId, dateFrom, dateTo) => {
   const q    = query(
-    collection(db, 'sessions'),
+    collection(db, 'slots'),
     where('trainerId', '==', trainerId),
     where('date', '>=', dateFrom),
     where('date', '<=', dateTo)
@@ -28,10 +19,10 @@ export const getTrainerSessions = async (trainerId, dateFrom, dateTo) => {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
 }
 
-export const getClientSessions = async (clientId, dateFrom, dateTo) => {
+export const getClientSlots = async (clientId, dateFrom, dateTo) => {
   const q    = query(
-    collection(db, 'sessions'),
-    where('clientId', '==', clientId),
+    collection(db, 'slots'),
+    where('clientIds', 'array-contains', clientId),
     where('date', '>=', dateFrom),
     where('date', '<=', dateTo)
   )
@@ -39,27 +30,72 @@ export const getClientSessions = async (clientId, dateFrom, dateTo) => {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
 }
 
-export const addSession    = (data) =>
-  addDoc(collection(db, 'sessions'), {
+export const getSlotsByGroup = async (trainerId, groupId, dateFrom) => {
+  const q    = query(
+    collection(db, 'slots'),
+    where('trainerId', '==', trainerId),
+    where('groupIds', 'array-contains', groupId),
+    where('date', '>=', dateFrom)
+  )
+  const snap = await getDocs(q)
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+}
+
+export const addSlot = (data) =>
+  addDoc(collection(db, 'slots'), {
+    clientIds:          [],
+    groupIds:           [],
+    completedClientIds: [],
+    recurrenceId:       null,
     ...data,
-    completed: false,
     createdAt: new Date().toISOString(),
   })
 
-export const updateSession = (id, data) => updateDoc(doc(db, 'sessions', id), data)
-export const deleteSession = (id)       => deleteDoc(doc(db, 'sessions', id))
+export const updateSlot = (id, data) => updateDoc(doc(db, 'slots', id), data)
+export const deleteSlot = (id)       => deleteDoc(doc(db, 'slots', id))
+
+// Aggiunge un cliente a uno slot esistente
+export const addClientToSlot = (slotId, clientId) =>
+  updateDoc(doc(db, 'slots', slotId), { clientIds: arrayUnion(clientId) })
+
+// Rimuove un cliente da uno slot esistente
+export const removeClientFromSlot = (slotId, clientId) =>
+  updateDoc(doc(db, 'slots', slotId), {
+    clientIds:          arrayRemove(clientId),
+    completedClientIds: arrayRemove(clientId),
+  })
+
+// ─── RECURRENCES ─────────────────────────────────────────────────────────────
+
+export const getRecurrences = async (trainerId) => {
+  const q    = query(collection(db, 'recurrences'), where('trainerId', '==', trainerId))
+  const snap = await getDocs(q)
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+}
+
+export const addRecurrence = (data) =>
+  addDoc(collection(db, 'recurrences'), {
+    ...data,
+    createdAt: new Date().toISOString(),
+  })
+
+export const deleteRecurrence = (id) => deleteDoc(doc(db, 'recurrences', id))
 
 /**
- * Crea una sessione per ogni clientId nell'array.
- * Usato per assegnare una data di allenamento a un gruppo intero.
- * Restituisce le sessioni create con i loro ID.
+ * Genera le date di una ricorrenza dati i giorni della settimana e il range.
+ * days: array di numeri 0-6 (0=Dom, 1=Lun, ..., 6=Sab)
  */
-export const addSessionsForClients = async (trainerId, date, clientIds) => {
-  const results = await Promise.all(
-    clientIds.map(clientId =>
-      addSession({ trainerId, clientId, date })
-        .then(ref => ({ id: ref.id, trainerId, clientId, date, completed: false }))
-    )
-  )
-  return results
+export function generateRecurrenceDates(startDate, endDate, days) {
+  const dates = []
+  const start = new Date(startDate + 'T12:00:00')
+  const end   = new Date(endDate   + 'T12:00:00')
+  const cur   = new Date(start)
+
+  while (cur <= end) {
+    if (days.includes(cur.getDay())) {
+      dates.push(cur.toISOString().slice(0, 10))
+    }
+    cur.setDate(cur.getDate() + 1)
+  }
+  return dates
 }

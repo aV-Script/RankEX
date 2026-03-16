@@ -1,19 +1,17 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
-  getTrainerSessions, addSessionsForClients,
-  updateSession, deleteSession,
+  getTrainerSlots, addSlot, updateSlot, deleteSlot,
+  addClientToSlot, removeClientFromSlot,
+  getSlotsByGroup, addRecurrence, deleteRecurrence,
+  generateRecurrenceDates,
 } from '../firebase/calendar'
 import { updateClient, addNotification } from '../firebase/services'
 import { buildXPUpdate } from '../utils/gamification'
 
-export const MONTHLY_XP_TARGET   = 500   // XP totali per 100% completamento mese
-export const BONUS_XP_FULL_MONTH = 200   // Bonus aggiuntivo per mese completato al 100%
-export const WEEKS_PER_MONTH     = 4.33  // Settimane medie per mese
+export const MONTHLY_XP_TARGET   = 500
+export const BONUS_XP_FULL_MONTH = 200
+export const WEEKS_PER_MONTH     = 4.33
 
-/**
- * Calcola sessioni mensili e XP per sessione data la frequenza settimanale.
- * Il totale mensile è sempre ~500 XP indipendentemente dalla frequenza.
- */
 export function calcSessionConfig(sessionsPerWeek) {
   const freq        = Math.max(1, Math.min(7, Math.round(sessionsPerWeek)))
   const monthlySess = Math.round(freq * WEEKS_PER_MONTH)
@@ -28,78 +26,167 @@ export function getMonthRange(year, month) {
   return { from, to }
 }
 
-export function calcMonthlyCompletion(clientSessions) {
-  const planned   = clientSessions.length
-  const completed = clientSessions.filter(s => s.completed).length
+export function calcMonthlyCompletion(clientSlots, clientId) {
+  const planned   = clientSlots.length
+  const completed = clientSlots.filter(s => s.completedClientIds?.includes(clientId)).length
   if (planned === 0) return { planned: 0, completed: 0, pct: 0 }
   return { planned, completed, pct: Math.round((completed / planned) * 100) }
 }
 
 export function useCalendar(trainerId) {
-  const [sessions,     setSessions]     = useState([])
+  const [slots,        setSlots]        = useState([])
   const [loading,      setLoading]      = useState(false)
   const [currentYear,  setCurrentYear]  = useState(new Date().getFullYear())
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1)
 
   const { from, to } = getMonthRange(currentYear, currentMonth)
 
-  useEffect(() => {
+  const refresh = useCallback(() => {
     if (!trainerId) return
     setLoading(true)
-    getTrainerSessions(trainerId, from, to)
-      .then(setSessions)
+    getTrainerSlots(trainerId, from, to)
+      .then(setSlots)
       .finally(() => setLoading(false))
   }, [trainerId, from, to])
 
-  const handleAddSessions = useCallback(async (date, clientIds) => {
-    const { addSessionsForClients: addFn } = await import('../firebase/calendar')
-    const newSessions = await addFn(trainerId, date, clientIds)
-    setSessions(prev => [...prev, ...newSessions])
-    return newSessions
-  }, [trainerId])
+  useEffect(() => { refresh() }, [refresh])
 
   /**
-   * Completa una singola sessione.
-   * Usa xpPerSession dal profilo cliente se disponibile, altrimenti calcola dalla frequenza.
+   * Crea uno slot per una data specifica.
+   * Se esiste già uno slot nella stessa data con stesso orario, aggiunge i clienti a quello.
+   * Altrimenti crea un nuovo slot.
    */
-  const handleCompleteSession = useCallback(async (sessionId, client) => {
-    const config     = calcSessionConfig(client.sessionsPerWeek ?? 3)
-    const xpToAssign = config.xpPerSession
+  const handleAddSlot = useCallback(async ({ date, startTime, endTime, clientIds, groupIds = [] }) => {
+    // Controlla se esiste già uno slot nella stessa data e orario
+    const existing = slots.find(s => s.date === date && s.startTime === startTime)
 
-    await updateSession(sessionId, { completed: true })
-    setSessions(prev => prev.map(s =>
-      s.id === sessionId ? { ...s, completed: true } : s
+    if (existing) {
+      // Aggiunge i nuovi clienti allo slot esistente
+      const newClientIds = clientIds.filter(id => !existing.clientIds.includes(id))
+      const newGroupIds  = groupIds.filter(id => !existing.groupIds.includes(id))
+      if (newClientIds.length === 0 && newGroupIds.length === 0) return existing
+
+      await updateSlot(existing.id, {
+        clientIds: [...existing.clientIds, ...newClientIds],
+        groupIds:  [...existing.groupIds,  ...newGroupIds],
+      })
+      const updated = {
+        ...existing,
+        clientIds: [...existing.clientIds, ...newClientIds],
+        groupIds:  [...existing.groupIds,  ...newGroupIds],
+      }
+      setSlots(prev => prev.map(s => s.id === existing.id ? updated : s))
+      return updated
+    }
+
+    // Crea nuovo slot
+    const ref    = await addSlot({ trainerId, date, startTime, endTime, clientIds, groupIds })
+    const newSlot = {
+      id: ref.id, trainerId, date, startTime, endTime,
+      clientIds, groupIds, completedClientIds: [], recurrenceId: null,
+    }
+    setSlots(prev => [...prev, newSlot])
+    return newSlot
+  }, [slots, trainerId])
+
+  /**
+   * Crea una ricorrenza e genera tutti gli slot corrispondenti.
+   */
+  const handleAddRecurrence = useCallback(async ({
+    clientIds, groupIds, days, startDate, endDate, startTime, endTime
+  }) => {
+    // Salva la ricorrenza
+    const recRef = await addRecurrence({
+      trainerId, clientIds, groupIds, days,
+      startDate, endDate, startTime, endTime,
+    })
+    const recurrenceId = recRef.id
+
+    // Genera tutte le date
+    const dates = generateRecurrenceDates(startDate, endDate, days)
+
+    // Crea uno slot per ogni data (o aggiorna esistente)
+    for (const date of dates) {
+      await handleAddSlot({ date, startTime, endTime, clientIds, groupIds })
+      // Aggiorna il recurrenceId sullo slot appena creato/modificato
+      const slot = slots.find(s => s.date === date && s.startTime === startTime)
+      if (slot) await updateSlot(slot.id, { recurrenceId })
+    }
+
+    refresh()
+    return recurrenceId
+  }, [slots, trainerId, handleAddSlot, refresh])
+
+  /**
+   * Completa uno slot per un cliente specifico.
+   */
+  const handleCompleteClient = useCallback(async (slotId, client) => {
+    const slot = slots.find(s => s.id === slotId)
+    if (!slot || slot.completedClientIds?.includes(client.id)) return
+
+    const newCompleted = [...(slot.completedClientIds ?? []), client.id]
+    await updateSlot(slotId, { completedClientIds: newCompleted })
+    setSlots(prev => prev.map(s =>
+      s.id === slotId ? { ...s, completedClientIds: newCompleted } : s
     ))
 
-    const { update } = buildXPUpdate(client, xpToAssign, 'Sessione di allenamento completata')
+    const config = calcSessionConfig(client.sessionsPerWeek ?? 3)
+    const { update } = buildXPUpdate(client, config.xpPerSession, 'Sessione di allenamento completata')
     await updateClient(client.id, update)
 
     if (client.clientAuthUid) {
-      const session = sessions.find(s => s.id === sessionId)
       await addNotification({
         clientId: client.id,
-        message:  `Sessione del ${session?.date ?? ''} completata! +${xpToAssign} XP`,
+        message:  `Sessione del ${slot.date} completata! +${config.xpPerSession} XP`,
         date:     new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }),
         type:     'session',
       })
     }
-  }, [sessions])
+  }, [slots])
 
-  const handleCompleteByDate = useCallback(async (date, clientsData) => {
-    const daySessions = sessions.filter(s => s.date === date && !s.completed)
-    await Promise.all(
-      daySessions.map(s => {
-        const client = clientsData.find(c => c.id === s.clientId)
-        if (client) return handleCompleteSession(s.id, client)
-        return Promise.resolve()
-      })
-    )
-  }, [sessions, handleCompleteSession])
+  /**
+   * Completa tutti i clienti di uno slot.
+   */
+  const handleCompleteAllClients = useCallback(async (slotId, clientsData) => {
+    const slot = slots.find(s => s.id === slotId)
+    if (!slot) return
+    const pending = slot.clientIds.filter(id => !slot.completedClientIds?.includes(id))
+    for (const clientId of pending) {
+      const client = clientsData.find(c => c.id === clientId)
+      if (client) await handleCompleteClient(slotId, client)
+    }
+  }, [slots, handleCompleteClient])
 
-  const handleDeleteSession = useCallback(async (sessionId) => {
-    await deleteSession(sessionId)
-    setSessions(prev => prev.filter(s => s.id !== sessionId))
+  const handleDeleteSlot = useCallback(async (slotId) => {
+    await deleteSlot(slotId)
+    setSlots(prev => prev.filter(s => s.id !== slotId))
   }, [])
+
+  /**
+   * Aggiunge un cliente a tutti gli slot futuri di un gruppo da una data.
+   */
+  const handleAddClientToGroupSlots = useCallback(async (groupId, clientId, fromDate) => {
+    const groupSlots = await getSlotsByGroup(trainerId, groupId, fromDate)
+    await Promise.all(
+      groupSlots
+        .filter(s => !s.clientIds.includes(clientId))
+        .map(s => addClientToSlot(s.id, clientId))
+    )
+    refresh()
+  }, [trainerId, refresh])
+
+  /**
+   * Rimuove un cliente da tutti gli slot futuri di un gruppo da una data.
+   */
+  const handleRemoveClientFromGroupSlots = useCallback(async (groupId, clientId, fromDate) => {
+    const groupSlots = await getSlotsByGroup(trainerId, groupId, fromDate)
+    await Promise.all(
+      groupSlots
+        .filter(s => s.clientIds.includes(clientId))
+        .map(s => removeClientFromSlot(s.id, clientId))
+    )
+    refresh()
+  }, [trainerId, refresh])
 
   const goToPrevMonth = useCallback(() =>
     setCurrentMonth(m => { if (m === 1) { setCurrentYear(y => y - 1); return 12 } return m - 1 }), [])
@@ -107,12 +194,16 @@ export function useCalendar(trainerId) {
     setCurrentMonth(m => { if (m === 12) { setCurrentYear(y => y + 1); return 1 } return m + 1 }), [])
 
   return {
-    sessions, loading,
+    slots, loading,
     currentYear, currentMonth,
     goToPrevMonth, goToNextMonth,
-    handleAddSessions,
-    handleCompleteSession,
-    handleCompleteByDate,
-    handleDeleteSession,
+    handleAddSlot,
+    handleAddRecurrence,
+    handleCompleteClient,
+    handleCompleteAllClients,
+    handleDeleteSlot,
+    handleAddClientToGroupSlots,
+    handleRemoveClientFromGroupSlots,
+    refresh,
   }
 }

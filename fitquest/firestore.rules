@@ -38,14 +38,20 @@ service cloud.firestore {
       allow create: if request.auth != null;
     }
 
-    // ── Sessioni calendario ───────────────────────────────────────────────────
-    // 1 sessione = 1 cliente. Il trainer scrive, il cliente legge la propria.
-    match /sessions/{sessionId} {
+    // ── Slot calendario ───────────────────────────────────────────────────────
+    match /slots/{slotId} {
       allow read: if request.auth != null && (
         resource.data.trainerId == request.auth.uid ||
-        resource.data.clientId  == request.auth.uid
+        request.auth.uid in resource.data.clientIds
       );
       allow write: if request.auth != null &&
+        resource.data.trainerId == request.auth.uid;
+      allow create: if request.auth != null;
+    }
+
+    // ── Ricorrenze ────────────────────────────────────────────────────────────
+    match /recurrences/{recId} {
+      allow read, write: if request.auth != null &&
         resource.data.trainerId == request.auth.uid;
       allow create: if request.auth != null;
     }
