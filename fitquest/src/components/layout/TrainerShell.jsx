@@ -58,12 +58,13 @@ export const NAV_ITEMS = [
 
 export function TrainerShell({ page, setPage, children }) {
   return (
-    <div className="min-h-screen text-white flex flex-col lg:flex-row">
+    <div className="min-h-screen text-white flex flex-col lg:flex-row" style={{ '--sidebar-active-bg': 'rgba(59,130,246,0.18)', '--sidebar-active-border': 'rgba(59,130,246,0.4)', '--sidebar-inactive-color': 'rgba(255,255,255,0.35)', '--sidebar-hover-bg': 'rgba(255,255,255,0.07)', '--sidebar-hover-border': 'rgba(255,255,255,0.1)', '--sidebar-hover-color': 'rgba(255,255,255,0.75)', '--tooltip-bg': 'rgba(15,31,61,0.97)', '--tooltip-border': 'rgba(255,255,255,0.1)', '--tab-active-color': '#60a5fa', '--tab-inactive-color': 'rgba(255,255,255,0.3)' }}>
 
       {/* ── Sidebar desktop (solo icone + tooltip) ── */}
       <aside
         className="hidden lg:flex flex-col items-center py-6 gap-2 sticky top-0 h-screen shrink-0 z-30 border-r border-white/[.05]"
         style={{ width: 64, backdropFilter: 'blur(12px)' }}
+        aria-label="Sidebar di navigazione trainer"
       >
         {/* Logo */}
         <div className="mb-4 flex flex-col items-center">
@@ -74,7 +75,7 @@ export function TrainerShell({ page, setPage, children }) {
         </div>
 
         {/* Voci nav */}
-        <nav className="flex flex-col items-center gap-1 flex-1">
+        <nav className="flex flex-col items-center gap-1 flex-1" aria-label="Navigazione principale">
           {NAV_ITEMS.map(item => (
             <SidebarIcon
               key={item.id}
@@ -91,6 +92,7 @@ export function TrainerShell({ page, setPage, children }) {
           title="Logout"
           className="w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-all border border-transparent hover:border-white/10 text-white/25 hover:text-white/60"
           style={{ background: 'transparent' }}
+          aria-label="Logout"
         >
           {Icons.logout}
         </button>
@@ -102,12 +104,13 @@ export function TrainerShell({ page, setPage, children }) {
         <header
           className="flex items-center justify-between px-5 py-3 border-b border-white/[.05] sticky top-0 z-30"
           style={{ backdropFilter: 'blur(12px)' }}
+          aria-label="Header mobile trainer"
         >
           <span className="font-display font-black text-[17px]"
             style={{ background: 'linear-gradient(135deg, #60a5fa, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             FITQUEST
           </span>
-          <button onClick={logout} className="text-white/30 hover:text-white/60 transition-colors">
+          <button onClick={logout} className="text-white/30 hover:text-white/60 transition-colors" aria-label="Logout">
             {Icons.logout}
           </button>
         </header>
@@ -116,6 +119,7 @@ export function TrainerShell({ page, setPage, children }) {
         <nav
           className="flex border-b border-white/[.05] sticky top-[49px] z-20"
           style={{ backdropFilter: 'blur(12px)' }}
+          aria-label="Tab bar mobile"
         >
           {NAV_ITEMS.map(item => (
             <TabItem
@@ -129,7 +133,7 @@ export function TrainerShell({ page, setPage, children }) {
       </div>
 
       {/* ── Contenuto ── */}
-      <main className="flex-1 min-w-0">
+      <main className="flex-1 min-w-0" tabIndex={0} aria-label="Contenuto principale">
         {children}
       </main>
     </div>
@@ -144,22 +148,29 @@ function SidebarIcon({ item, active, onClick }) {
         onClick={onClick}
         className="w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-all border"
         style={{
-          background:  active ? 'rgba(59,130,246,0.18)' : 'transparent',
-          borderColor: active ? 'rgba(59,130,246,0.4)'  : 'transparent',
-          color:       active ? '#60a5fa' : 'rgba(255,255,255,0.35)',
+          background:  active ? 'var(--sidebar-active-bg)' : 'transparent',
+          borderColor: active ? 'var(--sidebar-active-border)' : 'transparent',
+          color:       active ? 'var(--tab-active-color)' : 'var(--sidebar-inactive-color)',
         }}
         onMouseEnter={e => {
           if (!active) {
-            e.currentTarget.style.background   = 'rgba(255,255,255,0.07)'
-            e.currentTarget.style.borderColor  = 'rgba(255,255,255,0.1)'
-            e.currentTarget.style.color        = 'rgba(255,255,255,0.75)'
+            e.currentTarget.style.background   = 'var(--sidebar-hover-bg)'
+            e.currentTarget.style.borderColor  = 'var(--sidebar-hover-border)'
+            e.currentTarget.style.color        = 'var(--sidebar-hover-color)'
           }
         }}
         onMouseLeave={e => {
           if (!active) {
             e.currentTarget.style.background   = 'transparent'
             e.currentTarget.style.borderColor  = 'transparent'
-            e.currentTarget.style.color        = 'rgba(255,255,255,0.35)'
+            e.currentTarget.style.color        = 'var(--sidebar-inactive-color)'
+          }
+        }}
+        aria-label={item.label}
+        tabIndex={0}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            onClick()
           }
         }}
       >
@@ -170,12 +181,14 @@ function SidebarIcon({ item, active, onClick }) {
       <div
         className="absolute left-[52px] top-1/2 -translate-y-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50"
         style={{
-          background:   'rgba(15,31,61,0.97)',
-          border:       '1px solid rgba(255,255,255,0.1)',
+          background:   'var(--tooltip-bg)',
+          border:       '1px solid var(--tooltip-border)',
           borderRadius: 8,
           padding:      '5px 10px',
           whiteSpace:   'nowrap',
         }}
+        role="tooltip"
+        aria-label={item.label}
       >
         <span className="font-display text-[11px] text-white/80 tracking-[1px]">
           {item.label.toUpperCase()}
@@ -183,9 +196,9 @@ function SidebarIcon({ item, active, onClick }) {
         {/* Freccia sinistra */}
         <div style={{
           position: 'absolute', left: -5, top: '50%', transform: 'translateY(-50%)',
-          width: 8, height: 8, background: 'rgba(15,31,61,0.97)',
-          borderLeft: '1px solid rgba(255,255,255,0.1)',
-          borderBottom: '1px solid rgba(255,255,255,0.1)',
+          width: 8, height: 8, background: 'var(--tooltip-bg)',
+          borderLeft: '1px solid var(--tooltip-border)',
+          borderBottom: '1px solid var(--tooltip-border)',
           rotate: '45deg',
         }} />
       </div>
@@ -200,6 +213,13 @@ function TabItem({ item, active, onClick }) {
       onClick={onClick}
       className="flex-1 flex flex-col items-center gap-1 py-2.5 cursor-pointer transition-all relative border-none"
       style={{ background: 'transparent' }}
+      aria-label={item.label}
+      tabIndex={0}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          onClick()
+        }
+      }}
     >
       {/* Indicatore attivo (linea sotto, stile Twitter) */}
       {active && (
@@ -208,12 +228,12 @@ function TabItem({ item, active, onClick }) {
           style={{ width: 32, background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)' }}
         />
       )}
-      <span style={{ color: active ? '#60a5fa' : 'rgba(255,255,255,0.3)' }}>
+      <span style={{ color: active ? 'var(--tab-active-color)' : 'var(--tab-inactive-color)' }}>
         {item.icon}
       </span>
       <span
         className="font-display text-[9px] tracking-[0.5px]"
-        style={{ color: active ? '#60a5fa' : 'rgba(255,255,255,0.3)' }}
+        style={{ color: active ? 'var(--tab-active-color)' : 'var(--tab-inactive-color)' }}
       >
         {item.label.toUpperCase()}
       </span>

@@ -22,23 +22,41 @@ export default function App() {
     })
   }, [])
 
-  if (user === undefined) return <LoadingScreen />
-  if (!user)              return <LoginPage />
+  // Accessibility: Skip to content link
+  const skipToContent = (
+    <a href="#main-content" className="skip-to-content">Salta al contenuto principale</a>
+  )
+
+  if (user === undefined) return <>
+    {skipToContent}
+    <LoadingScreen />
+  </>
+  if (!user) return <>
+    {skipToContent}
+    <LoginPage />
+  </>
 
   if (profile?.role === 'client') {
     // Forza cambio password al primo accesso
     if (profile?.mustChangePassword) {
-      return (
+      return <>
+        {skipToContent}
         <ChangePasswordScreen
           userId={user.uid}
           onDone={() => refreshProfile(user.uid)}
         />
-      )
+      </>
     }
-    return <ClientView clientId={profile.clientId} />
+    return <>
+      {skipToContent}
+      <ClientView clientId={profile.clientId} />
+    </>
   }
 
-  return <FitQuest user={user} />
+  return <>
+    {skipToContent}
+    <FitQuest user={user} />
+  </>
 }
 
 function LoadingScreen() {

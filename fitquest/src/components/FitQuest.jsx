@@ -24,6 +24,8 @@ function FitQuestInner({ user }) {
 
   return (
     <TrainerShell page={page} setPage={handlePageChange}>
+      {/* Accessibility: main-content anchor for skip-to-content */}
+      <span id="main-content" tabIndex={-1} style={{ position: 'absolute', left: 0, top: 0 }} />
       {selectedClient ? (
         <ClientDashboard client={selectedClient} trainerId={user.uid} />
       ) : (
