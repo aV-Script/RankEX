@@ -101,7 +101,7 @@ export function TrainerShell({ page, setPage, children }) {
         {/* Header mobile */}
         <header
           className="flex items-center justify-between px-5 py-3 border-b border-white/[.05] sticky top-0 z-30"
-          style={{ background: 'rgba(7,11,20,0.95)', backdropFilter: 'blur(12px)' }}
+          style={{ backdropFilter: 'blur(12px)' }}
         >
           <span className="font-display font-black text-[17px]"
             style={{ background: 'linear-gradient(135deg, #60a5fa, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
@@ -115,7 +115,7 @@ export function TrainerShell({ page, setPage, children }) {
         {/* Tab bar mobile — stile Twitter/X */}
         <nav
           className="flex border-b border-white/[.05] sticky top-[49px] z-20"
-          style={{ background: 'rgba(7,11,20,0.95)', backdropFilter: 'blur(12px)' }}
+          style={{ backdropFilter: 'blur(12px)' }}
         >
           {NAV_ITEMS.map(item => (
             <TabItem

@@ -41,19 +41,25 @@ export function ClientsPage({ trainerId }) {
   }, [clients])
 
   const displayed = useMemo(() => {
-    let list = filterCategoria !== 'tutti'
-      ? filtered.filter(c => c.categoria === filterCategoria) : [...filtered]
+    let baseList = [...clients]
+    // Filtra per gruppo
     if (filterGroup) {
       const grp = groups.find(g => g.id === filterGroup)
-      if (grp) list = list.filter(c => grp.clientIds.includes(c.id))
+      if (grp) baseList = baseList.filter(c => grp.clientIds.includes(c.id))
     }
+    // Filtra per categoria
+    let list = filterCategoria !== 'tutti'
+      ? baseList.filter(c => c.categoria === filterCategoria) : baseList
+    // Filtra per ricerca
+    list = query ? list.filter(c => c.name.toLowerCase().includes(query.toLowerCase())) : list
+    // Ordina
     return list.sort((a, b) => {
       if (sortBy === 'name')  return a.name.localeCompare(b.name)
       if (sortBy === 'level') return (b.level ?? 1) - (a.level ?? 1)
       if (sortBy === 'rank')  return calcStatMedia(b.stats ?? {}) - calcStatMedia(a.stats ?? {})
       return 0
     })
-  }, [filtered, filterCategoria, sortBy])
+  }, [clients, groups, filterGroup, filterCategoria, query, sortBy])
 
   return (
     <div className="flex min-h-screen">

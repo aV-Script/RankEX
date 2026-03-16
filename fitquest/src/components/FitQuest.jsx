@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ClientProvider, useClientState } from '../context/ClientContext'
+import { ClientProvider, useClientState, useClientDispatch, ACTIONS } from '../context/ClientContext'
 import { TrainerShell }   from './layout/TrainerShell'
 import { ClientDashboard } from './dashboard/ClientDashboard'
 import { ClientsPage }     from './trainer/ClientsPage'
@@ -10,12 +10,20 @@ import { useClients }      from '../hooks/useClients'
 
 function FitQuestInner({ user }) {
   const { selectedClient }  = useClientState()
+  const dispatch            = useClientDispatch()
   const { clients }         = useClients(user.uid)
   const [page, setPage]     = useState('clients')
 
   // Sidebar sempre visibile, ClientDashboard come contenuto se selezionato
+  const handlePageChange = (newPage) => {
+    setPage(newPage)
+    if (selectedClient) {
+      dispatch({ type: ACTIONS.DESELECT_CLIENT })
+    }
+  }
+
   return (
-    <TrainerShell page={page} setPage={setPage}>
+    <TrainerShell page={page} setPage={handlePageChange}>
       {selectedClient ? (
         <ClientDashboard client={selectedClient} trainerId={user.uid} />
       ) : (

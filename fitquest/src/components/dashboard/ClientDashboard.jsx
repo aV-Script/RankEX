@@ -9,7 +9,7 @@ import { SectionLabel, Divider, ActivityLog, StatsSection } from '../ui'
 import { ClientCalendar } from '../client/ClientCalendar'
 
 export function ClientDashboard({ client, trainerId }) {
-  const { handleCampionamento, deselectClient, updateLocalClient } = useClients()
+  const { handleCampionamento, updateLocalClient } = useClients()
   const { rankObj, color } = useClientRank(client)
   const [showCampionamento, setShowCampionamento] = useState(false)
 
@@ -20,12 +20,7 @@ export function ClientDashboard({ client, trainerId }) {
 
       <AppNav
         color={color}
-        left={
-          <button onClick={deselectClient}
-            className="bg-transparent border-none text-white/30 font-body text-[13px] cursor-pointer flex items-center gap-1.5 hover:text-white/60 transition-colors">
-            ‹ Lista
-          </button>
-        }
+        left={null}
       />
 
       {/* Hero */}
