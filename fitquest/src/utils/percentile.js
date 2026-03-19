@@ -1,56 +1,60 @@
-import { TABLES, STAT_DIRECTION, getAgeGroup } from './tables'
+import { CATEGORY_TESTS } from '../constants/index.js';
+import { STAT_DIRECTION } from './tables.js'; 
+import { TABLES } from './tables.js';
+import { getAgeGroup } from './tables.js';
+
 
 /**
  * Calcola il percentile (0-100) dato un valore grezzo.
  * Funziona per tutte le statistiche di tutte le categorie.
  */
-export function calcPercentile(statKey, rawValue, sesso, age) {
-  const statTable = TABLES[statKey]
-  if (!statTable) return 0
+export function calcPercentile(stat, value, sex, age) {
+  // trova il test corrispondente usando stat
+  const testEntry = Object.values(CATEGORY_TESTS)
+    .flat()
+    .find(t => t.stat === stat);
 
-  const sexTable = statTable[sesso] ?? statTable['M']
-  const ageGroup = getAgeGroup(statKey, age)
-  let table = sexTable[ageGroup]
-  if (!table) {
-    const keys = Object.keys(sexTable)
-    table = sexTable[keys[0]]
-  }
-  if (!table) return 0
+  if (!testEntry) return null;
 
-  const direction = STAT_DIRECTION[statKey] ?? 'direct'
-  const val = Number(rawValue)
-  if (isNaN(val)) return 0
+  // usa la key per accedere a TABLES
+  const table = TABLES[testEntry.key];
+  if (!table || !table[sex]) return null;
 
-  const points = Object.entries(table)
-    .map(([p, v]) => ({ pct: Number(p), val: Number(v) }))
-    .sort((a, b) => a.pct - b.pct)
+  // determina la fascia d'età corretta
+  const ageGroup = getAgeGroup(testEntry.key, age);
+  const percentiles = table[sex][ageGroup];
+  if (!percentiles) return null;
 
+  // ordina i valori in base alla direzione del test
+  const direction = STAT_DIRECTION[testEntry.key] || 'direct';
+  const sorted = Object.entries(percentiles)
+    .map(([p, v]) => [parseFloat(p), parseFloat(v)])
+    .sort((a, b) => direction === 'direct' ? a[1] - b[1] : b[1] - a[1]);
+
+  // valori fuori scala
   if (direction === 'direct') {
-    const minVal = points[0].val
-    const maxVal = points[points.length - 1].val
-    if (val <= minVal) return points[0].pct
-    if (val >= maxVal) return points[points.length - 1].pct
-    for (let i = 0; i < points.length - 1; i++) {
-      const lo = points[i], hi = points[i + 1]
-      if (val >= lo.val && val <= hi.val) {
-        const ratio = (val - lo.val) / (hi.val - lo.val)
-        return Math.round(lo.pct + ratio * (hi.pct - lo.pct))
-      }
-    }
+    if (value <= sorted[0][1]) return sorted[0][0];
+    if (value >= sorted[sorted.length - 1][1]) return sorted[sorted.length - 1][0];
   } else {
-    const maxVal = points[0].val
-    const minVal = points[points.length - 1].val
-    if (val <= minVal) return points[points.length - 1].pct
-    if (val >= maxVal) return points[0].pct
-    for (let i = 0; i < points.length - 1; i++) {
-      const lo = points[i], hi = points[i + 1]
-      if (val <= lo.val && val >= hi.val) {
-        const ratio = (lo.val - val) / (lo.val - hi.val)
-        return Math.round(lo.pct + ratio * (hi.pct - lo.pct))
-      }
+    if (value >= sorted[0][1]) return sorted[0][0];
+    if (value <= sorted[sorted.length - 1][1]) return sorted[sorted.length - 1][0];
+  }
+
+  // interpolazione lineare tra i due percentili più vicini
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const [p1, v1] = sorted[i];
+    const [p2, v2] = sorted[i + 1];
+
+    const inRange = direction === 'direct' ? value >= v1 && value <= v2
+                                          : value <= v1 && value >= v2;
+
+    if (inRange) {
+      const ratio = (value - v1) / (v2 - v1);
+      return Math.round(p1 + ratio * (p2 - p1));
     }
   }
-  return 0
+
+  return 0; // fallback
 }
 
 /**

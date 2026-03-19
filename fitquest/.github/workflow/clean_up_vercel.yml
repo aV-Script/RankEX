@@ -1,0 +1,28 @@
+name: Keep only latest Vercel deployment
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete all but latest deployment
+        run: |
+          TOKEN=$VERCEL_TOKEN
+          PROJECT=$VERCEL_PROJECT_ID
+
+          # Get all deployment IDs (latest first)
+          IDS=$(curl -s -H "Authorization: Bearer $TOKEN" \
+            "https://api.vercel.com/v6/deployments?projectId=$PROJECT" \
+            | grep -o '"uid":"[^"]*"' | cut -d'"' -f4)
+
+          i=0
+          for ID in $IDS; do
+            if [ $i -gt 0 ]; then
+              curl -X DELETE -H "Authorization: Bearer $TOKEN" \
+                "https://api.vercel.com/v13/deployments/$ID"
+            fi
+            i=$((i+1))
+          done

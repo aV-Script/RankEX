@@ -67,29 +67,9 @@ export function ClientsPage({ trainerId }) {
       {/* ── Sidebar filtraggio — solo desktop ── */}
       <aside className="hidden lg:flex flex-col w-64 xl:w-72 shrink-0 border-r border-white/[.05] p-6 gap-5 sticky top-0 h-screen overflow-y-auto">
 
-        {/* Panoramica */}
         <div>
-          <p className="font-display text-[10px] text-white/30 tracking-[3px] mb-3">PANORAMICA</p>
-          <div className="grid grid-cols-2 gap-2">
-            <StatBox label="Totale"    value={stats.total}          color="#60a5fa" />
-            <StatBox label="Lv. medio" value={stats.avgLevel || '—'} color="#a78bfa" />
-          </div>
-          {stats.topRanks.length > 0 && (
-            <div className="mt-3 flex gap-1.5 flex-wrap">
-              {stats.topRanks.map(([rank, count]) => {
-                const r = RANKS.find(r => r.label === rank) ?? RANKS[RANKS.length - 1]
-                return (
-                  <span key={rank} className="font-display text-[11px] px-2 py-0.5 rounded-lg"
-                    style={{ background: r.color + '22', color: r.color, border: `1px solid ${r.color}33` }}>
-                    {rank} <span className="opacity-40">×{count}</span>
-                  </span>
-                )
-              })}
-            </div>
-          )}
+          <GradientBtn onClick={() => setShowWizard(true)}>NUOVO CLIENTE</GradientBtn>
         </div>
-
-        <Divider />
 
         {/* Ricerca */}
         <div>
@@ -139,10 +119,6 @@ export function ClientsPage({ trainerId }) {
               </FilterBtn>
             ))}
           </div>
-        </div>
-
-        <div className="mt-auto">
-          <GradientBtn onClick={() => setShowWizard(true)}>NUOVO CLIENTE</GradientBtn>
         </div>
       </aside>
 
@@ -205,15 +181,6 @@ export function ClientsPage({ trainerId }) {
 }
 
 // ── Componenti locali ─────────────────────────────────────────────────────────
-
-function StatBox({ label, value, color }) {
-  return (
-    <div className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-      <div className="font-display font-black text-[22px] leading-none" style={{ color }}>{value}</div>
-      <div className="font-body text-[10px] text-white/30 mt-1">{label}</div>
-    </div>
-  )
-}
 
 function FilterBtn({ active, onClick, children }) {
   return (

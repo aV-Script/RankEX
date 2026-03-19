@@ -210,12 +210,17 @@ function DashboardPage({ client, color, rankObj, prevStats }) {
       <section className="px-6 py-6">
         <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
           <SectionLabel>◈ Status</SectionLabel>
-          <StatsSection stats={client.stats} prevStats={prevStats} color={color} />
+          <StatsSection
+              stats={client.stats}
+              prevStats={prevStats}
+              color={color}
+              categoria={client.categoria}
+            />
         </div>
       </section>
       <Divider color={color} />
       <section className="px-6 py-6">
-        <StatsChart campionamenti={client.campionamenti} color={color} />
+        <StatsChart campionamenti={client.campionamenti} color={color}  categoria={client.categoria}/>
       </section>
       <Divider color={color} />
       <section className="px-6 py-6">

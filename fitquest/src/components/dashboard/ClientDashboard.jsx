@@ -87,7 +87,12 @@ export function ClientDashboard({ client, trainerId }) {
               CAMPIONAMENTO
             </button>
           </div>
-          <StatsSection stats={client.stats} prevStats={prevStats} color={color} />
+          <StatsSection
+              stats={client.stats}
+              prevStats={prevStats}
+              color={color}
+              categoria={client.categoria}
+            />
         </div>
       </section>
 
@@ -96,7 +101,7 @@ export function ClientDashboard({ client, trainerId }) {
 
       {/* Andamento */}
       <section className="px-6 py-6">
-        <StatsChart campionamenti={client.campionamenti} color={color} />
+        <StatsChart campionamenti={client.campionamenti} color={color} categoria={client.categoria}/>
       </section>
 
       <Divider color={color} />

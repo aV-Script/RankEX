@@ -38,7 +38,10 @@ export function buildCampionamentoUpdate(client, newStats, testValues) {
     .join(' · ')
   const logEntry = { date: today, action: `Campionamento — ${valStr}`, xp: 0 }
 
-  const log = [...logEntries, ...(client.log ?? [])].slice(0, LOG_MAX_ENTRIES)
+  const log = [logEntry, ...(client.log ?? [])].slice(0, LOG_MAX_ENTRIES)
+
+  // Aggiornamento XP se necessario (qui puoi calcolare xpUpdate se serve)
+  const xpUpdate = {} // oppure chiama buildXPUpdate se vuoi incrementare XP
 
   return {
     update: {
@@ -53,7 +56,6 @@ export function buildCampionamentoUpdate(client, newStats, testValues) {
     campionamento,
   }
 }
-
 export function buildNewClient(trainerId, formData, defaults) {
   const today = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
   const { testValues, stats, ...anagrafica } = formData

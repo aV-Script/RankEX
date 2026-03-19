@@ -6,15 +6,15 @@
  *   Active  — letteratura fitness (Alnahdi 2015, Plisky 2009, Nikolaidis 2016)
  *   Athlete — letteratura performance (Bangsbo 2008, Pauole 2000, Output Sports)
  *
- * Struttura: TABLES[statKey][sesso]['fascia_eta'] = { percentile: valore }
- * Direzione: STAT_DIRECTION[statKey] = 'direct' | 'inverse'
+ * Struttura: TABLES[test][sesso]['fascia_eta'] = { percentile: valore }
+ * Direzione: STAT_DIRECTION[test] = 'direct' | 'inverse'
  */
 export const TABLES = {
 
   // ── HEALTH ──────────────────────────────────────────────────────────────────
 
   // Sit and Reach (cm) — diretta
-  mobilita: {
+  sit_and_reach: {
     M: {
       '18-35': { 0:7,  5:10, 10:13, 20:16, 30:19, 40:22, 50:25, 60:28, 70:31, 80:34, 90:37, 95:40, 100:43 },
       '36-45': { 0:5,  5:8,  10:11, 20:14, 30:17, 40:20, 50:23, 60:26, 70:29, 80:32, 90:35, 95:38, 100:41 },
@@ -32,7 +32,7 @@ export const TABLES = {
   },
 
   // Flamingo Test (n° cadute in 60s) — inversa
-  equilibrio: {
+  flamingo_test: {
     M: {
       '18-35': { 100:0, 95:1, 90:2, 80:3, 70:4, 60:5, 50:6, 40:7, 30:9,  20:11, 10:14, 5:17, 0:20 },
       '36-45': { 100:1, 95:2, 90:3, 80:4, 70:5, 60:6, 50:7, 40:9, 30:11, 20:13, 10:16, 5:20, 0:24 },
@@ -50,7 +50,7 @@ export const TABLES = {
   },
 
   // YMCA Step Test (bpm) — inversa
-  resistenza: {
+  ymca_step_test: {
     M: {
       '18-35': { 100:77,  95:81,  90:85,  75:103, 50:120, 30:123, 15:127, 5:136, 0:140 },
       '36-45': { 100:80,  95:84,  90:88,  75:102, 50:120, 30:125, 15:129, 5:138, 0:142 },
@@ -64,7 +64,7 @@ export const TABLES = {
   },
 
   // Dinamometro Hand Grip (kg) — diretta
-  forza: {
+  dinamometro_hand_grip: {
     M: {
       '18-35': { 0:31, 5:34, 10:37, 20:40, 30:43, 40:46, 50:48, 60:50, 70:53, 80:56, 90:60, 95:64, 100:68 },
       '36-45': { 0:29, 5:32, 10:35, 20:38, 30:41, 40:43, 50:46, 60:48, 70:51, 80:54, 90:58, 95:62, 100:66 },
@@ -82,7 +82,7 @@ export const TABLES = {
   },
 
   // 5 Times Sit to Stand (secondi) — inversa
-  esplosivita: {
+  sit_to_stand: {
     M: {
       '18-35': { 100:5.0, 95:5.5,  90:6.0,  80:6.5,  70:7.0,  60:7.4,  50:7.8,  40:8.3,  30:8.9,  20:9.6,  10:10.7, 5:11.7, 0:12.7 },
       '36-45': { 100:5.3, 95:5.8,  90:6.3,  80:6.9,  70:7.4,  60:7.8,  50:8.3,  40:8.9,  30:9.6,  20:10.5, 10:11.6, 5:12.8, 0:14.0 },
@@ -208,17 +208,14 @@ export const TABLES = {
 
 // ── Direzioni ────────────────────────────────────────────────────────────────
 export const STAT_DIRECTION = {
-  // Health
-  mobilita:           'direct',
-  equilibrio:         'inverse',
-  resistenza:         'inverse',
-  forza:              'direct',
-  esplosivita:        'inverse',
-  // Active
+  sit_and_reach:       'direct',
+  flamingo_test:      'inverse',
+  ymca_step_test:     'inverse',
+  dinamometro_hand_grip: 'direct',
+  sit_to_stand:       'inverse',
   y_balance:          'direct',
   standing_long_jump: 'direct',
   sprint_10m:         'inverse',
-  // Athlete
   drop_jump_rsi:      'direct',
   t_test_agility:     'inverse',
   yo_yo_ir1:          'direct',
@@ -227,24 +224,47 @@ export const STAT_DIRECTION = {
 }
 
 // ── Fasce d'età ──────────────────────────────────────────────────────────────
+// ── Fasce d'età uniformate ──────────────────────────────────────────────
 export function getAgeGroup(stat, age) {
-  // Test con fascia semplificata (solo 3 gruppi)
-  if (stat === 'resistenza') {
+  // ── HEALTH ── 5 fasce
+  const healthTests = [
+    'sit_and_reach',
+    'flamingo_test',
+    'ymca_step_test',
+    'dinamometro_hand_grip',
+    'sit_to_stand'
+  ]
+  if (healthTests.includes(stat)) {
     if (age <= 35) return '18-35'
     if (age <= 45) return '36-45'
-    return '46+'
+    if (age <= 55) return '46-55'
+    if (age <= 65) return '56-65'
+    return '66+'
   }
-  // Test Active e Athlete (2 gruppi)
-  if (['y_balance','standing_long_jump','sprint_10m',
-       'drop_jump_rsi','yo_yo_ir1','sprint_20m','cmj'].includes(stat)) {
-    return age <= 35 ? '18-35' : '36-50'
+
+  // ── ACTIVE & ATHLETE ── 2 fasce
+  const activeAthleteTests = [
+    'y_balance',
+    'standing_long_jump',
+    'sprint_10m',
+    'drop_jump_rsi',
+    'yo_yo_ir1',
+    'sprint_20m',
+    'cmj'
+  ]
+  if (activeAthleteTests.includes(stat)) {
+    // Usa le stesse fasce delle tabelle
+    switch (stat) {
+      case 'y_balance':
+        return age <= 40 ? '18-40' : '41-60'
+      default:
+        return age <= 35 ? '18-35' : '36-50'
+    }
   }
-  // T-Test: un solo gruppo adulti
+
+  // ── T-Test Agility ── 1 fascia
   if (stat === 't_test_agility') return '18-40'
-  // Health standard (5 gruppi)
-  if (age <= 35) return '18-35'
-  if (age <= 45) return '36-45'
-  if (age <= 55) return '46-55'
-  if (age <= 65) return '56-65'
-  return '66+'
+
+  // ── Default fallback
+  return age <= 35 ? '18-35' : age <= 45 ? '36-45' : age <= 55 ? '46-55' : age <= 65 ? '56-65' : '66+'
 }

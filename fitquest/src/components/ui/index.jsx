@@ -1,7 +1,6 @@
 import { useEffect, useState as _useState } from 'react'
-import { Pentagon } from './Pentagon'
-import { STATS }    from '../../constants/index.js'
-
+import { Pentagon } from '../ui/Pentagon'
+import { getStatsConfig } from '../../constants'
 // ─── Card ─────────────────────────────────────────────────────────────────────
 export function Card({ className = '', children }) {
   return (
@@ -182,32 +181,28 @@ export function ActivityLog({ log = [], color }) {
 // ─── StatsSection ─────────────────────────────────────────────────────────────
 // Sezione Status riusabile: barre statistiche + Pentagon affiancati
 // Usato in ClientDashboard (trainer) e ClientView (cliente read-only)
-export function StatsSection({ stats = {}, prevStats = null, color, pentagonSize = 130 }) {
+
+export function StatsSection({ stats = {}, prevStats = null, categoria = 'health', color, pentagonSize = 130 }) {
+  const config    = getStatsConfig(categoria)
+  const statKeys  = config.map(t => t.stat)
+  const statLabels= config.map(t => t.label)
+
   return (
     <div className="grid gap-6" style={{ gridTemplateColumns: '3fr 2fr' }}>
+      {/* Colonna sinistra: barre */}
       <div className="flex flex-col justify-center gap-3">
-        {STATS.map(({ key, label }) => {
+        {statKeys.map((key, i) => {
           const val   = stats[key] ?? 0
           const prev  = prevStats?.[key] ?? null
           const delta = prev !== null ? val - prev : null
+
           return (
             <div key={key} className="flex items-center gap-3">
-              <span className="font-body text-[12px] text-white/50 w-20 shrink-0">{label}</span>
-              <div
-                className="flex-1 h-[5px] rounded-full overflow-hidden"
-                style={{ background: 'rgba(255,255,255,0.06)' }}
-              >
-                <div
-                  className="h-full rounded-full transition-[width] duration-700"
-                  style={{ width: `${val}%`, background: color }}
-                />
+              <span className="font-body text-[12px] text-white/50 w-20 shrink-0">{statLabels[i]}</span>
+              <div className="flex-1 h-[5px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <div className="h-full rounded-full transition-[width] duration-700" style={{ width: `${val}%`, background: color }} />
               </div>
-              <span
-                className="font-display text-[12px] w-7 text-right tabular-nums"
-                style={{ color }}
-              >
-                {val}
-              </span>
+              <span className="font-display text-[12px] w-7 text-right tabular-nums" style={{ color }}>{val}</span>
               {delta !== null && (
                 <span
                   className="font-display text-[10px] w-8 text-right tabular-nums"
@@ -220,8 +215,10 @@ export function StatsSection({ stats = {}, prevStats = null, color, pentagonSize
           )
         })}
       </div>
+
+      {/* Colonna destra: pentagono */}
       <div className="flex items-center justify-center">
-        <Pentagon stats={stats} color={color} size={pentagonSize} />
+        <Pentagon stats={stats} statKeys={statKeys} statLabels={statLabels} color={color} size={pentagonSize} />
       </div>
     </div>
   )
