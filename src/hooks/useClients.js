@@ -1,66 +1,75 @@
-import { useEffect, useCallback } from 'react'
-import { useClientState, useClientDispatch, ACTIONS } from '../context/ClientContext'
-import { getClients, addClient, updateClient } from '../firebase/clients'
-import { createClientAccount } from '../firebase/auth'
-import { addNotification } from '../firebase/notifications'
-import { getAuth } from 'firebase/auth'
-import { getFirestore, doc, setDoc } from 'firebase/firestore'
-import app from '../firebase/config'
+import { useState, useEffect, useCallback } from 'react'
+import { useTrainerDispatch, ACTIONS }       from '../context/TrainerContext'
+import { getClients, addClient, updateClient, deleteClient } from '../firebase/services/clients'
+import { createClientAccount }   from '../firebase/services/auth'
+import { addNotification }       from '../firebase/services/notifications'
+import { setDoc, doc }           from 'firebase/firestore'
+import { db }                    from '../firebase/services/db'
 import { buildNewClient, buildCampionamentoUpdate, buildXPUpdate } from '../utils/gamification'
-import { NEW_CLIENT_DEFAULTS } from '../constants'
-
-const db   = getFirestore(app)
-const auth = getAuth(app)
+import { NEW_CLIENT_DEFAULTS }   from '../constants'
+import { useToast }              from './useToast'
+import { getFirebaseErrorMessage } from '../utils/firebaseErrors'
 
 export function useClients(trainerId) {
-  const state    = useClientState()
-  const dispatch = useClientDispatch()
+  const [clients, setClients] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error,   setError]   = useState(null)
+  const dispatch              = useTrainerDispatch()
+  const toast                 = useToast()
 
+  // ── Fetch ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!trainerId) return
-    dispatch({ type: ACTIONS.SET_LOADING, payload: true })
+    setLoading(true)
+    setError(null)
     getClients(trainerId)
-      .then(clients => dispatch({ type: ACTIONS.SET_CLIENTS, payload: clients }))
-      .catch(err   => dispatch({ type: ACTIONS.SET_ERROR,   payload: err.message }))
+      .then(data => setClients(data))
+      .catch(err  => setError(err.message))
+      .finally(()  => setLoading(false))
   }, [trainerId])
 
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  const updateLocal = useCallback((id, updater) => {
+    setClients(prev => prev.map(c => c.id === id ? { ...c, ...updater } : c))
+  }, [])
+
+  const removeLocal = useCallback((id) => {
+    setClients(prev => prev.filter(c => c.id !== id))
+  }, [])
+
+  // ── Add client — non ottimistico per natura (richiede uid Firebase) ────────
   const handleAddClient = useCallback(async (formData) => {
     const { email, password, ...rest } = formData
-
-    // 1. Crea account Firebase Auth per il cliente
-    // Salviamo il trainer loggato per re-autenticarci dopo
-    const trainerUser = auth.currentUser
-    let clientUid
     try {
-      clientUid = await createClientAccount(email, password)
-    } finally {
-      // Non serve re-login: createClientAccount non fa logout del trainer
-      // perché usiamo un approccio diverso (vedi services.js)
+      const clientUid = await createClientAccount(email, password)
+      const data      = buildNewClient(trainerId, rest, NEW_CLIENT_DEFAULTS)
+      const ref       = await addClient(trainerId, { ...data, email, clientAuthUid: clientUid })
+      await setDoc(doc(db, 'users', clientUid), {
+        role:               'client',
+        clientId:           ref.id,
+        trainerId,
+        mustChangePassword: true,
+      })
+      const newClient = { id: ref.id, ...data, email, clientAuthUid: clientUid }
+      setClients(prev => [...prev, newClient])
+      toast.success('Cliente creato')
+      return newClient
+    } catch (err) {
+      toast.error(getFirebaseErrorMessage(err, 'Impossibile creare il cliente'))
+      throw err
     }
+  }, [trainerId, toast])
 
-    // 2. Crea documento cliente su Firestore
-    const data = buildNewClient(trainerId, rest, NEW_CLIENT_DEFAULTS)
-    const ref  = await addClient(trainerId, { ...data, email, clientAuthUid: clientUid })
-
-    // 3. Salva profilo utente con ruolo 'client'
-    await setDoc(doc(db, 'users', clientUid), {
-      role:               'client',
-      clientId:           ref.id,
-      trainerId,
-      mustChangePassword: true,
-    })
-
-    const newClient = { id: ref.id, ...data, email, clientAuthUid: clientUid }
-    dispatch({ type: ACTIONS.ADD_CLIENT, payload: newClient })
-    return newClient
-  }, [trainerId])
-
+  // ── Campionamento — ottimistico con rollback ───────────────────────────────
   const handleCampionamento = useCallback(async (client, newStats, testValues) => {
     const { update } = buildCampionamentoUpdate(client, newStats, testValues)
-    dispatch({ type: ACTIONS.UPDATE_CLIENT, payload: { id: client.id, ...update } })
+    const snapshot   = client
+
+    updateLocal(client.id, update)
+    dispatch({ type: ACTIONS.SELECT_CLIENT, payload: { ...client, ...update } })
+
     try {
       await updateClient(client.id, update)
-      // Notifica al cliente
       if (client.clientAuthUid) {
         await addNotification({
           clientId: client.id,
@@ -69,12 +78,22 @@ export function useClients(trainerId) {
           type:     'campionamento',
         })
       }
-    } catch { dispatch({ type: ACTIONS.UPDATE_CLIENT, payload: client }) }
-  }, [])
+      toast.success('Campionamento salvato')
+    } catch {
+      updateLocal(client.id, snapshot)
+      dispatch({ type: ACTIONS.SELECT_CLIENT, payload: snapshot })
+      toast.error('Impossibile salvare il campionamento')
+    }
+  }, [dispatch, updateLocal, toast])
 
+  // ── Add XP — ottimistico con rollback ─────────────────────────────────────
   const handleAddXP = useCallback(async (client, xpToAdd, note) => {
     const { update } = buildXPUpdate(client, xpToAdd, note)
-    dispatch({ type: ACTIONS.UPDATE_CLIENT, payload: { id: client.id, ...update } })
+    const snapshot   = client
+
+    updateLocal(client.id, update)
+    dispatch({ type: ACTIONS.SELECT_CLIENT, payload: { ...client, ...update } })
+
     try {
       await updateClient(client.id, update)
       if (client.clientAuthUid) {
@@ -85,19 +104,35 @@ export function useClients(trainerId) {
           type:     'xp',
         })
       }
-    } catch { dispatch({ type: ACTIONS.UPDATE_CLIENT, payload: client }) }
-  }, [])
-
-  const updateLocalClient = useCallback((id, data) => {
-    if (data === null) {
-      dispatch({ type: ACTIONS.REMOVE_CLIENT, payload: id })
-    } else {
-      dispatch({ type: ACTIONS.UPDATE_CLIENT, payload: { id, ...data } })
+    } catch {
+      updateLocal(client.id, snapshot)
+      dispatch({ type: ACTIONS.SELECT_CLIENT, payload: snapshot })
     }
-  }, [])
+  }, [dispatch, updateLocal])
 
-  const selectClient   = useCallback(client => dispatch({ type: ACTIONS.SELECT_CLIENT,   payload: client }), [])
-  const deselectClient = useCallback(()       => dispatch({ type: ACTIONS.DESELECT_CLIENT }), [])
+  // ── Delete client — ottimistico con rollback ──────────────────────────────
+  const handleDeleteClient = useCallback(async (clientId) => {
+    const snapshot = clients.find(c => c.id === clientId)
 
-  return { ...state, handleAddClient, handleCampionamento, handleAddXP, updateLocalClient, selectClient, deselectClient }
+    removeLocal(clientId)
+    dispatch({ type: ACTIONS.DESELECT_CLIENT })
+
+    try {
+      await deleteClient(clientId)
+      toast.success('Cliente eliminato')
+    } catch {
+      if (snapshot) setClients(prev => [...prev, snapshot])
+      toast.error('Impossibile eliminare il cliente')
+    }
+  }, [clients, dispatch, removeLocal, toast])
+
+  return {
+    clients,
+    loading,
+    error,
+    handleAddClient,
+    handleCampionamento,
+    handleAddXP,
+    handleDeleteClient,
+  }
 }

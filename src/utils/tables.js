@@ -1,10 +1,6 @@
 /**
  * Tabelle percentili per tutte le categorie.
  *
- * Fonti:
- *   Health  — letteratura clinica/riabilitativa (YMCA, Rikli & Jones, Mathiowetz)
- *   Active  — letteratura fitness (Alnahdi 2015, Plisky 2009, Nikolaidis 2016)
- *   Athlete — letteratura performance (Bangsbo 2008, Pauole 2000, Output Sports)
  *
  * Struttura: TABLES[test][sesso]['fascia_eta'] = { percentile: valore }
  * Direzione: STAT_DIRECTION[test] = 'direct' | 'inverse'
@@ -206,65 +202,10 @@ export const TABLES = {
   },
 }
 
-// ── Direzioni ────────────────────────────────────────────────────────────────
-export const STAT_DIRECTION = {
-  sit_and_reach:       'direct',
-  flamingo_test:      'inverse',
-  ymca_step_test:     'inverse',
-  dinamometro_hand_grip: 'direct',
-  sit_to_stand:       'inverse',
-  y_balance:          'direct',
-  standing_long_jump: 'direct',
-  sprint_10m:         'inverse',
-  drop_jump_rsi:      'direct',
-  t_test_agility:     'inverse',
-  yo_yo_ir1:          'direct',
-  sprint_20m:         'inverse',
-  cmj:                'direct',
-}
-
-// ── Fasce d'età ──────────────────────────────────────────────────────────────
-// ── Fasce d'età uniformate ──────────────────────────────────────────────
-export function getAgeGroup(stat, age) {
-  // ── HEALTH ── 5 fasce
-  const healthTests = [
-    'sit_and_reach',
-    'flamingo_test',
-    'ymca_step_test',
-    'dinamometro_hand_grip',
-    'sit_to_stand'
-  ]
-  if (healthTests.includes(stat)) {
-    if (age <= 35) return '18-35'
-    if (age <= 45) return '36-45'
-    if (age <= 55) return '46-55'
-    if (age <= 65) return '56-65'
-    return '66+'
+export function getAgeGroup(testKey, age) {
+  const test = ALL_TESTS.find(t => t.key === testKey)
+  if (!test?.ageGroup) {
+    return age <= 35 ? '18-35' : age <= 45 ? '36-45' : age <= 55 ? '46-55' : age <= 65 ? '56-65' : '66+'
   }
-
-  // ── ACTIVE & ATHLETE ── 2 fasce
-  const activeAthleteTests = [
-    'y_balance',
-    'standing_long_jump',
-    'sprint_10m',
-    'drop_jump_rsi',
-    'yo_yo_ir1',
-    'sprint_20m',
-    'cmj'
-  ]
-  if (activeAthleteTests.includes(stat)) {
-    // Usa le stesse fasce delle tabelle
-    switch (stat) {
-      case 'y_balance':
-        return age <= 40 ? '18-40' : '41-60'
-      default:
-        return age <= 35 ? '18-35' : '36-50'
-    }
-  }
-
-  // ── T-Test Agility ── 1 fascia
-  if (stat === 't_test_agility') return '18-40'
-
-  // ── Default fallback
-  return age <= 35 ? '18-35' : age <= 45 ? '36-45' : age <= 55 ? '46-55' : age <= 65 ? '56-65' : '66+'
+  return test.ageGroup(age)
 }

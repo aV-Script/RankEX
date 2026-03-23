@@ -1,0 +1,24 @@
+import { SectionLabel }  from '../../../components/ui'
+import { ClientCalendar } from '../ClientCalendar'
+
+/**
+ * Riepilogo sessioni del cliente — vista trainer.
+ * Mostra il calendario con lo stato delle sessioni pianificate
+ * e completate per il cliente selezionato.
+ */
+export function ClientSessionsSummary({ clientId, sessionsPerWeek }) {
+  return (
+    <section className="px-6 py-6">
+      <div
+        className="rounded-2xl p-5"
+        style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
+      >
+        <SectionLabel>◈ Calendario allenamenti</SectionLabel>
+        <ClientCalendar
+          clientId={clientId}
+          sessionsPerWeek={sessionsPerWeek}
+        />
+      </div>
+    </section>
+  )
+}

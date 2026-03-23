@@ -2,58 +2,106 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Profili utente ────────────────────────────────────────────────────────
+    // Restituisce il clientId Firestore dell'utente autenticato.
+    // I trainer non hanno clientId → restituisce null → tutti i check falliscono.
+    // Se il documento users/{uid} non esiste la regola viene negata (comportamento
+    // predefinito di Firestore quando un'espressione lancia eccezione).
+    function myClientId() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.clientId;
+    }
+
+    // ── Profili utente ─────────────────────────────────────────────────────────
+    // Lettura/aggiornamento solo al documento proprio.
+    // Creazione: self-signup (trainer) OPPURE il trainer crea il profilo del cliente
+    // (handleAddClient in useClients.js chiama setDoc con l'UID del cliente).
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, update, delete: if request.auth != null
+        && request.auth.uid == userId;
+
+      allow create: if request.auth != null && (
+        // Il trainer crea il proprio profilo al primo accesso
+        request.auth.uid == userId
+        ||
+        // Il trainer crea il profilo di un cliente appena registrato
+        (
+          request.resource.data.role      == 'client'
+          && request.resource.data.trainerId == request.auth.uid
+          && get(/databases/$(database)/documents/clients/$(request.resource.data.clientId))
+               .data.trainerId == request.auth.uid
+        )
+      );
     }
 
     // ── Clienti ───────────────────────────────────────────────────────────────
+    // Lettura: trainer proprietario O il cliente stesso (tramite clientAuthUid).
+    // Scrittura/cancellazione: solo il trainer proprietario.
+    // Creazione: il trainer deve essere il proprietario del documento.
     match /clients/{clientId} {
-      allow read, write: if request.auth != null && (
-        resource.data.trainerId == request.auth.uid ||
+      allow read: if request.auth != null && (
+        resource.data.trainerId     == request.auth.uid ||
         resource.data.clientAuthUid == request.auth.uid
       );
-      allow create: if request.auth != null;
-    }
 
-    // ── Missioni ──────────────────────────────────────────────────────────────
-    match /missions/{missionId} {
-      allow read, write: if request.auth != null;
-    }
+      allow update, delete: if request.auth != null
+        && resource.data.trainerId == request.auth.uid;
 
-    // ── Template missioni ─────────────────────────────────────────────────────
-    match /missionTemplates/{templateId} {
-      allow read, write: if request.auth != null;
-    }
-
-    // ── Notifiche ─────────────────────────────────────────────────────────────
-    match /notifications/{notifId} {
-      allow read, write: if request.auth != null;
-    }
-
-    // ── Gruppi clienti ────────────────────────────────────────────────────────
-    match /groups/{groupId} {
-      allow read, write: if request.auth != null &&
-        resource.data.trainerId == request.auth.uid;
-      allow create: if request.auth != null;
+      allow create: if request.auth != null
+        && request.resource.data.trainerId == request.auth.uid;
     }
 
     // ── Slot calendario ───────────────────────────────────────────────────────
+    // Lettura: trainer proprietario O cliente presente nello slot.
+    //   clientIds contiene Firestore IDs → si confronta con myClientId()
+    //   ricavato dal profilo users/{uid} del cliente autenticato.
+    // Scrittura/cancellazione: solo il trainer proprietario.
     match /slots/{slotId} {
       allow read: if request.auth != null && (
         resource.data.trainerId == request.auth.uid ||
-        request.auth.uid in resource.data.clientIds
+        myClientId() in resource.data.clientIds
       );
-      allow write: if request.auth != null &&
-        resource.data.trainerId == request.auth.uid;
-      allow create: if request.auth != null;
+
+      allow update, delete: if request.auth != null
+        && resource.data.trainerId == request.auth.uid;
+
+      allow create: if request.auth != null
+        && request.resource.data.trainerId == request.auth.uid;
+    }
+
+    // ── Gruppi clienti ─────────────────────────────────────────────────────────
+    // Accesso completo solo al trainer proprietario del gruppo.
+    match /groups/{groupId} {
+      allow read, update, delete: if request.auth != null
+        && resource.data.trainerId == request.auth.uid;
+
+      allow create: if request.auth != null
+        && request.resource.data.trainerId == request.auth.uid;
+    }
+
+    // ── Notifiche ─────────────────────────────────────────────────────────────
+    // Lettura/aggiornamento (mark read) /cancellazione: solo il cliente destinatario.
+    //   myClientId() confronta il clientId Firestore del cliente autenticato
+    //   con resource.data.clientId della notifica.
+    // Creazione: solo il trainer proprietario del cliente destinatario.
+    match /notifications/{notifId} {
+      allow read, update, delete: if request.auth != null
+        && myClientId() == resource.data.clientId;
+
+      allow create: if request.auth != null
+        && get(/databases/$(database)/documents/clients/$(request.resource.data.clientId))
+             .data.trainerId == request.auth.uid;
     }
 
     // ── Ricorrenze ────────────────────────────────────────────────────────────
+    // Accesso completo solo al trainer proprietario.
     match /recurrences/{recId} {
-      allow read, write: if request.auth != null &&
-        resource.data.trainerId == request.auth.uid;
-      allow create: if request.auth != null;
+      allow read, update, delete: if request.auth != null
+        && resource.data.trainerId == request.auth.uid;
+
+      allow create: if request.auth != null
+        && request.resource.data.trainerId == request.auth.uid;
     }
+
+    // Nota: le collection missions e missionTemplates sono state rimosse
+    // dall'applicazione. Nessuna regola → accesso negato per default.
   }
 }

@@ -1,6 +1,9 @@
-import { useEffect, useState as _useState } from 'react'
-import { Pentagon } from '../ui/Pentagon'
+import { useEffect }      from 'react'
+import { Pentagon }       from './Pentagon'
 import { getStatsConfig } from '../../constants'
+
+export { XPBar } from './XPBar'
+
 // ─── Card ─────────────────────────────────────────────────────────────────────
 export function Card({ className = '', children }) {
   return (
@@ -20,7 +23,6 @@ export function SectionLabel({ children, className = '' }) {
 }
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
-// size: 'default' (420px) | 'lg' (720px) | 'xl' (960px)
 const MODAL_WIDTHS = {
   default: 'w-[420px]',
   lg:      'w-[420px] lg:w-[720px]',
@@ -40,13 +42,17 @@ export function Modal({ title, onClose, disableOverlayClose, size = 'default', c
       onClick={disableOverlayClose ? undefined : onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
         className={`bg-gray-900 border border-white/10 rounded-2xl p-6 lg:p-8 ${MODAL_WIDTHS[size]} max-w-[96vw] my-auto`}
         onClick={e => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-6">
-          <h3 className="font-display text-white text-base m-0">{title}</h3>
+          <h3 id="modal-title" className="font-display text-white text-base m-0">{title}</h3>
           <button
             onClick={onClose}
+            aria-label="Chiudi"
             className="bg-transparent border-none text-white/40 text-xl cursor-pointer leading-none hover:text-white/70 transition-colors"
           >
             ✕
@@ -98,26 +104,6 @@ export function Button({ variant = 'primary', loading, disabled, className = '',
   )
 }
 
-// ─── XPBar ────────────────────────────────────────────────────────────────────
-export function XPBar({ xp, xpNext, color }) {
-  const pct = Math.min(100, Math.round(((xp ?? 0) / (xpNext ?? 1)) * 100))
-
-  return (
-    <div className="mt-2">
-      <div className="flex justify-between text-[11px] text-white/50 mb-1 font-body">
-        <span>XP {xp?.toLocaleString('it-IT')}</span>
-        <span>{xpNext?.toLocaleString('it-IT')}</span>
-      </div>
-      <div className="bg-white/[.08] rounded-full h-1.5 overflow-hidden">
-        <div
-          className="h-full rounded-full transition-[width] duration-700 ease-out"
-          style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${color}, #fff8)` }}
-        />
-      </div>
-    </div>
-  )
-}
-
 // ─── Divider ──────────────────────────────────────────────────────────────────
 export function Divider({ color }) {
   return (
@@ -131,15 +117,19 @@ export function Divider({ color }) {
 }
 
 // ─── Field ────────────────────────────────────────────────────────────────────
-// Wrapper label + input + messaggio di errore usato in tutti i form/modali
-export function Field({ label, error, children }) {
+export function Field({ label, error, htmlFor, children }) {
   return (
     <div>
-      <div className="text-white/40 text-[11px] font-display tracking-wider mb-1.5">
+      <label
+        htmlFor={htmlFor}
+        className="text-white/40 text-[11px] font-display tracking-wider mb-1.5 block"
+      >
         {label.toUpperCase()}
-      </div>
+      </label>
       {children}
-      {error && <p className="m-0 mt-1 text-red-400 font-body text-[12px]">{error}</p>}
+      {error && (
+        <p role="alert" className="m-0 mt-1 text-red-400 font-body text-[12px]">{error}</p>
+      )}
     </div>
   )
 }
@@ -179,17 +169,14 @@ export function ActivityLog({ log = [], color }) {
 }
 
 // ─── StatsSection ─────────────────────────────────────────────────────────────
-// Sezione Status riusabile: barre statistiche + Pentagon affiancati
-// Usato in ClientDashboard (trainer) e ClientView (cliente read-only)
-
 export function StatsSection({ stats = {}, prevStats = null, categoria = 'health', color, pentagonSize = 130 }) {
-  const config    = getStatsConfig(categoria)
-  const statKeys  = config.map(t => t.stat)
-  const statLabels= config.map(t => t.label)
+  const config     = getStatsConfig(categoria)
+  const statKeys   = config.map(t => t.stat)
+  const statLabels = config.map(t => t.label)
 
   return (
     <div className="grid gap-6" style={{ gridTemplateColumns: '3fr 2fr' }}>
-      {/* Colonna sinistra: barre */}
+      {/* Barre statistiche */}
       <div className="flex flex-col justify-center gap-3">
         {statKeys.map((key, i) => {
           const val   = stats[key] ?? 0
@@ -198,11 +185,24 @@ export function StatsSection({ stats = {}, prevStats = null, categoria = 'health
 
           return (
             <div key={key} className="flex items-center gap-3">
-              <span className="font-body text-[12px] text-white/50 w-20 shrink-0">{statLabels[i]}</span>
-              <div className="flex-1 h-[5px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                <div className="h-full rounded-full transition-[width] duration-700" style={{ width: `${val}%`, background: color }} />
+              <span className="font-body text-[12px] text-white/50 w-20 shrink-0">
+                {statLabels[i]}
+              </span>
+              <div
+                className="flex-1 h-[5px] rounded-full overflow-hidden"
+                style={{ background: 'rgba(255,255,255,0.06)' }}
+              >
+                <div
+                  className="h-full rounded-full transition-[width] duration-700"
+                  style={{ width: `${val}%`, background: color }}
+                />
               </div>
-              <span className="font-display text-[12px] w-7 text-right tabular-nums" style={{ color }}>{val}</span>
+              <span
+                className="font-display text-[12px] w-7 text-right tabular-nums"
+                style={{ color }}
+              >
+                {val}
+              </span>
               {delta !== null && (
                 <span
                   className="font-display text-[10px] w-8 text-right tabular-nums"
@@ -216,9 +216,15 @@ export function StatsSection({ stats = {}, prevStats = null, categoria = 'health
         })}
       </div>
 
-      {/* Colonna destra: pentagono */}
+      {/* Pentagon */}
       <div className="flex items-center justify-center">
-        <Pentagon stats={stats} statKeys={statKeys} statLabels={statLabels} color={color} size={pentagonSize} />
+        <Pentagon
+          stats={stats}
+          statKeys={statKeys}
+          statLabels={statLabels}
+          color={color}
+          size={pentagonSize}
+        />
       </div>
     </div>
   )

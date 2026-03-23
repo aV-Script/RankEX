@@ -1,242 +1,40 @@
+import { logout }    from '../../firebase/services/auth'
+import { Sidebar }   from './trainer-shell/Sidebar'
+import { MobileNav } from './trainer-shell/MobileNav'
+
 /**
- * TrainerShell — layout wrapper per tutta l'area trainer.
+ * Shell principale dell'area trainer.
+ * Compone sidebar desktop e navigazione mobile.
+ * È l'unico posto che conosce `logout` — lo passa ai figli come prop.
  *
- * Desktop: sidebar sinistra con icone (64px), label tooltip al hover.
- *          Logo FITQUEST in cima, voci di nav al centro, logout in fondo.
- *
- * Mobile:  header fisso con logo + logout in alto,
- *          tab bar con icone + label in cima sotto l'header (stile Twitter/X).
+ * Props:
+ *   page       — pagina attiva ('clients' | 'calendar' | 'guide' | 'profile')
+ *   onNavigate — callback chiamato al cambio pagina
+ *   children   — contenuto della pagina corrente
  */
-
-import { logout } from '../../firebase/services'
-
-// ── Icone SVG inline ──────────────────────────────────────────────────────────
-const Icons = {
-  clients: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-      <circle cx="9" cy="7" r="4"/>
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-    </svg>
-  ),
-  calendar: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-      <line x1="16" y1="2" x2="16" y2="6"/>
-      <line x1="8" y1="2" x2="8" y2="6"/>
-      <line x1="3" y1="10" x2="21" y2="10"/>
-    </svg>
-  ),
-  guide: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-    </svg>
-  ),
-  profile: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-      <circle cx="12" cy="7" r="4"/>
-    </svg>
-  ),
-  logout: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-      <polyline points="16 17 21 12 16 7"/>
-      <line x1="21" y1="12" x2="9" y2="12"/>
-    </svg>
-  ),
-}
-
-export const NAV_ITEMS = [
-  { id: 'clients',  label: 'Clienti',    icon: Icons.clients  },
-  { id: 'calendar', label: 'Calendario', icon: Icons.calendar },
-  { id: 'guide',    label: 'Guida Test', icon: Icons.guide    },
-  { id: 'profile',  label: 'Profilo',    icon: Icons.profile  },
-]
-
-export function TrainerShell({ page, setPage, children }) {
+export function TrainerShell({ page, onNavigate, children }) {
   return (
-    <div className="min-h-screen text-white flex flex-col lg:flex-row" style={{ '--sidebar-active-bg': 'rgba(59,130,246,0.18)', '--sidebar-active-border': 'rgba(59,130,246,0.4)', '--sidebar-inactive-color': 'rgba(255,255,255,0.35)', '--sidebar-hover-bg': 'rgba(255,255,255,0.07)', '--sidebar-hover-border': 'rgba(255,255,255,0.1)', '--sidebar-hover-color': 'rgba(255,255,255,0.75)', '--tooltip-bg': 'rgba(15,31,61,0.97)', '--tooltip-border': 'rgba(255,255,255,0.1)', '--tab-active-color': '#60a5fa', '--tab-inactive-color': 'rgba(255,255,255,0.3)' }}>
+    <div className="min-h-screen text-white flex flex-col lg:flex-row">
 
-      {/* ── Sidebar desktop (solo icone + tooltip) ── */}
-      <aside
-        className="hidden lg:flex flex-col items-center py-6 gap-2 sticky top-0 h-screen shrink-0 z-30 border-r border-white/[.05]"
-        style={{ width: 64, backdropFilter: 'blur(12px)' }}
-        aria-label="Sidebar di navigazione trainer"
+      <Sidebar
+        page={page}
+        onNavigate={onNavigate}
+        onLogout={logout}
+      />
+
+      <MobileNav
+        page={page}
+        onNavigate={onNavigate}
+        onLogout={logout}
+      />
+
+      <main
+        className="flex-1 min-w-0"
+        aria-label="Contenuto principale"
       >
-        {/* Logo */}
-        <div className="mb-4 flex flex-col items-center">
-          <span className="font-display font-black text-[13px] leading-none"
-            style={{ background: 'linear-gradient(135deg, #60a5fa, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            FQ
-          </span>
-        </div>
-
-        {/* Voci nav */}
-        <nav className="flex flex-col items-center gap-1 flex-1" aria-label="Navigazione principale">
-          {NAV_ITEMS.map(item => (
-            <SidebarIcon
-              key={item.id}
-              item={item}
-              active={page === item.id}
-              onClick={() => setPage(item.id)}
-            />
-          ))}
-        </nav>
-
-        {/* Logout */}
-        <button
-          onClick={logout}
-          title="Logout"
-          className="w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-all border border-transparent hover:border-white/10 text-white/25 hover:text-white/60"
-          style={{ background: 'transparent' }}
-          aria-label="Logout"
-        >
-          {Icons.logout}
-        </button>
-      </aside>
-
-      {/* ── Layout mobile: header + tab bar ── */}
-      <div className="lg:hidden flex-none">
-        {/* Header mobile */}
-        <header
-          className="flex items-center justify-between px-5 py-3 border-b border-white/[.05] sticky top-0 z-30"
-          style={{ backdropFilter: 'blur(12px)' }}
-          aria-label="Header mobile trainer"
-        >
-          <span className="font-display font-black text-[17px]"
-            style={{ background: 'linear-gradient(135deg, #60a5fa, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            FITQUEST
-          </span>
-          <button onClick={logout} className="text-white/30 hover:text-white/60 transition-colors" aria-label="Logout">
-            {Icons.logout}
-          </button>
-        </header>
-
-        {/* Tab bar mobile — stile Twitter/X */}
-        <nav
-          className="flex border-b border-white/[.05] sticky top-[49px] z-20"
-          style={{ backdropFilter: 'blur(12px)' }}
-          aria-label="Tab bar mobile"
-        >
-          {NAV_ITEMS.map(item => (
-            <TabItem
-              key={item.id}
-              item={item}
-              active={page === item.id}
-              onClick={() => setPage(item.id)}
-            />
-          ))}
-        </nav>
-      </div>
-
-      {/* ── Contenuto ── */}
-      <main className="flex-1 min-w-0" tabIndex={0} aria-label="Contenuto principale">
         {children}
       </main>
+
     </div>
-  )
-}
-
-// ── Icona sidebar desktop con tooltip ────────────────────────────────────────
-function SidebarIcon({ item, active, onClick }) {
-  return (
-    <div className="relative group">
-      <button
-        onClick={onClick}
-        className="w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-all border"
-        style={{
-          background:  active ? 'var(--sidebar-active-bg)' : 'transparent',
-          borderColor: active ? 'var(--sidebar-active-border)' : 'transparent',
-          color:       active ? 'var(--tab-active-color)' : 'var(--sidebar-inactive-color)',
-        }}
-        onMouseEnter={e => {
-          if (!active) {
-            e.currentTarget.style.background   = 'var(--sidebar-hover-bg)'
-            e.currentTarget.style.borderColor  = 'var(--sidebar-hover-border)'
-            e.currentTarget.style.color        = 'var(--sidebar-hover-color)'
-          }
-        }}
-        onMouseLeave={e => {
-          if (!active) {
-            e.currentTarget.style.background   = 'transparent'
-            e.currentTarget.style.borderColor  = 'transparent'
-            e.currentTarget.style.color        = 'var(--sidebar-inactive-color)'
-          }
-        }}
-        aria-label={item.label}
-        tabIndex={0}
-        onKeyDown={e => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            onClick()
-          }
-        }}
-      >
-        {item.icon}
-      </button>
-
-      {/* Tooltip label */}
-      <div
-        className="absolute left-[52px] top-1/2 -translate-y-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50"
-        style={{
-          background:   'var(--tooltip-bg)',
-          border:       '1px solid var(--tooltip-border)',
-          borderRadius: 8,
-          padding:      '5px 10px',
-          whiteSpace:   'nowrap',
-        }}
-        role="tooltip"
-        aria-label={item.label}
-      >
-        <span className="font-display text-[11px] text-white/80 tracking-[1px]">
-          {item.label.toUpperCase()}
-        </span>
-        {/* Freccia sinistra */}
-        <div style={{
-          position: 'absolute', left: -5, top: '50%', transform: 'translateY(-50%)',
-          width: 8, height: 8, background: 'var(--tooltip-bg)',
-          borderLeft: '1px solid var(--tooltip-border)',
-          borderBottom: '1px solid var(--tooltip-border)',
-          rotate: '45deg',
-        }} />
-      </div>
-    </div>
-  )
-}
-
-// ── Tab item mobile ───────────────────────────────────────────────────────────
-function TabItem({ item, active, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex-1 flex flex-col items-center gap-1 py-2.5 cursor-pointer transition-all relative border-none"
-      style={{ background: 'transparent' }}
-      aria-label={item.label}
-      tabIndex={0}
-      onKeyDown={e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          onClick()
-        }
-      }}
-    >
-      {/* Indicatore attivo (linea sotto, stile Twitter) */}
-      {active && (
-        <div
-          className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] rounded-full"
-          style={{ width: 32, background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)' }}
-        />
-      )}
-      <span style={{ color: active ? 'var(--tab-active-color)' : 'var(--tab-inactive-color)' }}>
-        {item.icon}
-      </span>
-      <span
-        className="font-display text-[9px] tracking-[0.5px]"
-        style={{ color: active ? 'var(--tab-active-color)' : 'var(--tab-inactive-color)' }}
-      >
-        {item.label.toUpperCase()}
-      </span>
-    </button>
   )
 }

@@ -3,7 +3,7 @@ import {
   getNotifications,
   markAllNotificationsRead,
   deleteNotification,
-} from '../firebase/notifications'
+} from '../firebase/services/notifications'
 
 const NOTIF_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 giorni
 

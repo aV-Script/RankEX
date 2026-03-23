@@ -1,7 +1,0 @@
-export * from './auth'
-export * from './users'
-export * from './clients'
-export * from './missions'
-export * from './notifications'
-export * from './groups'
-export * from './calendar'

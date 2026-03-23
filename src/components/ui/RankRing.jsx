@@ -71,22 +71,16 @@ export function RankRing({ rankObj, xp = 0, xpNext = 700, size = 140, animated =
         alignItems: 'center', justifyContent: 'center',
         gap: 2,
       }}>
-        <span style={{
-          fontFamily: "'Rajdhani', sans-serif",
-          fontWeight: 900,
-          fontSize: size * 0.22,
-          color,
-          lineHeight: 1,
-        }}>
+        <span
+          className="font-display font-black leading-none"
+          style={{ fontSize: size * 0.22, color }}
+        >
           {label}
         </span>
-        <span style={{
-          fontFamily: "'Rajdhani', sans-serif",
-          fontSize: size * 0.1,
-          color: 'rgba(255,255,255,0.3)',
-          letterSpacing: '0.15em',
-          lineHeight: 1,
-        }}>
+        <span
+          className="font-display text-white/30 tracking-[0.15em] leading-none"
+          style={{ fontSize: size * 0.1 }}
+        >
           RANK
         </span>
       </div>

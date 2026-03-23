@@ -1,0 +1,33 @@
+import { useState, useCallback } from 'react'
+import { useTrainerState, useTrainerDispatch, ACTIONS } from '../../context/TrainerContext'
+
+/**
+ * Gestisce la navigazione dell'area trainer.
+ *
+ * La navigazione ha due livelli:
+ *   1. page — la sezione attiva nella sidebar
+ *   2. selectedClient — se presente, sovrascrive la pagina e mostra ClientDashboard
+ *
+ * Esposto globalmente così ogni pagina può chiamare selectClient
+ * senza riceverlo come prop dall'alto.
+ */
+export function useTrainerNav() {
+  const [page, setPage]    = useState('clients')
+  const { selectedClient } = useTrainerState()
+  const dispatch           = useTrainerDispatch()
+
+  const navigateTo = useCallback((newPage) => {
+    setPage(newPage)
+    dispatch({ type: ACTIONS.DESELECT_CLIENT })
+  }, [dispatch])
+
+  const selectClient = useCallback((client) => {
+    dispatch({ type: ACTIONS.SELECT_CLIENT, payload: client })
+  }, [dispatch])
+
+  const deselectClient = useCallback(() => {
+    dispatch({ type: ACTIONS.DESELECT_CLIENT })
+  }, [dispatch])
+
+  return { page, selectedClient, navigateTo, selectClient, deselectClient }
+}

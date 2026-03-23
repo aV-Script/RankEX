@@ -17,7 +17,7 @@ export const Pentagon = memo(function Pentagon({
 
   const outerPoints = useMemo(
     () => angles.map(a => ({ x: cx + R * Math.cos(a), y: cy + R * Math.sin(a) })),
-    [cx, cy, R, angles.join()]
+    [cx, cy, R, statKeys.join()]
   )
 
   const statPoints = useMemo(
