@@ -18,14 +18,14 @@ export function ErrorFallback({ error, onReset }) {
       <div className="flex gap-3">
         <button
           onClick={onReset}
-          className="px-4 py-2.5 rounded-xl font-display text-[11px] tracking-widest text-white border border-white/20 bg-transparent cursor-pointer hover:bg-white/10 transition-colors"
+          className="px-4 py-2.5 rounded-[3px] font-display text-[11px] tracking-widest text-white border border-white/20 bg-transparent cursor-pointer hover:bg-white/10 transition-colors"
         >
           RIPROVA
         </button>
         <button
           onClick={() => window.location.reload()}
-          className="px-4 py-2.5 rounded-xl font-display text-[11px] tracking-widest text-white cursor-pointer hover:opacity-90 transition-opacity"
-          style={{ background: 'linear-gradient(135deg, #3b82f6, #7c3aed)', border: '1px solid rgba(99,102,241,0.4)' }}
+          className="px-4 py-2.5 rounded-[3px] font-display text-[11px] tracking-widest text-white cursor-pointer hover:opacity-90 transition-opacity"
+          style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', border: 'none' }}
         >
           RICARICA
         </button>

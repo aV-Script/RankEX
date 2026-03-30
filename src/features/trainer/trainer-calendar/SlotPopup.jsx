@@ -22,7 +22,7 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
     .filter(Boolean)
 
   const statusLabel = {
-    [SLOT_STATUS.PLANNED]:   { text: 'PIANIFICATA', color: '#60a5fa' },
+    [SLOT_STATUS.PLANNED]:   { text: 'PIANIFICATA', color: '#00c8ff' },
     [SLOT_STATUS.COMPLETED]: { text: 'COMPLETATA',  color: '#34d399' },
     [SLOT_STATUS.SKIPPED]:   { text: 'SALTATA',     color: '#6b7280' },
   }[slot.status ?? SLOT_STATUS.PLANNED]
@@ -34,10 +34,10 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
   return (
     <div
       ref={ref}
-      className="fixed z-50 w-72 rounded-2xl p-4 shadow-2xl"
+      className="fixed z-50 w-72 rounded-[4px] p-4 shadow-2xl"
       style={{
-        background: 'rgba(10,15,30,0.98)',
-        border:     '1px solid rgba(255,255,255,0.12)',
+        background: '#0d1520',
+        border:     '1px solid rgba(15,214,90,0.15)',
         top:        position.y,
         left:       position.x,
         maxWidth:   'calc(100vw - 32px)',
@@ -57,7 +57,7 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
         </div>
         <div className="flex items-center gap-2">
           <span
-            className="font-display text-[9px] px-2 py-0.5 rounded-md"
+            className="font-display text-[9px] px-2 py-0.5 rounded-[3px]"
             style={{ background: statusLabel.color + '22', color: statusLabel.color }}
           >
             {statusLabel.text}
@@ -79,11 +79,11 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
           return (
             <div
               key={client.id}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg"
+              className="flex items-center gap-2 px-3 py-2 rounded-[3px]"
               style={{
                 background: isPresent ? 'rgba(52,211,153,0.06)' :
                             isAbsent  ? 'rgba(248,113,113,0.06)' :
-                            'rgba(255,255,255,0.03)',
+                            'rgba(13,21,32,0.6)',
               }}
             >
               <span
@@ -107,10 +107,10 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
 
       {slot.recurrenceId && (
         <div
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg mb-4"
-          style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.15)' }}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] mb-4"
+          style={{ background: 'rgba(0,200,255,0.08)', border: '1px solid rgba(0,200,255,0.2)' }}
         >
-          <span className="font-display text-[10px] text-purple-400">↺ Sessione ricorrente</span>
+          <span className="font-display text-[10px]" style={{ color: '#00c8ff' }}>↺ Sessione ricorrente</span>
         </div>
       )}
 
@@ -119,7 +119,7 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
         {!isCompleted && !isSkipped && (
           <button
             onClick={onCloseSession}
-            className="w-full py-2.5 rounded-xl font-display text-[11px] tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
+            className="w-full py-2.5 rounded-[3px] font-display text-[11px] tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
             style={{ background: 'linear-gradient(135deg, #34d399, #059669)', color: '#fff' }}
           >
             CHIUDI SESSIONE
@@ -129,7 +129,7 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
         {!isCompleted && !isSkipped && isPast && (
           <button
             onClick={onSkip}
-            className="w-full py-2.5 rounded-xl font-display text-[11px] cursor-pointer border border-white/10 bg-transparent text-white/40 hover:text-white/60 transition-all"
+            className="w-full py-2.5 rounded-[3px] font-display text-[11px] cursor-pointer border border-white/10 bg-transparent text-white/40 hover:text-white/60 transition-all"
           >
             SEGNA COME SALTATA
           </button>
@@ -137,7 +137,7 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
 
         <button
           onClick={onDelete}
-          className="w-full py-2 rounded-xl font-display text-[11px] cursor-pointer border border-red-500/20 bg-transparent text-red-400/50 hover:text-red-400 hover:border-red-500/40 transition-all"
+          className="w-full py-2 rounded-[3px] font-display text-[11px] cursor-pointer border border-red-500/20 bg-transparent text-red-400/50 hover:text-red-400 hover:border-red-500/40 transition-all"
         >
           ELIMINA
         </button>

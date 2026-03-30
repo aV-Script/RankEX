@@ -38,7 +38,7 @@ export function CampionamentoView({ client, color, onSave, onBack }) {
 
         <button
           onClick={handleRequestSave}
-          className="font-display text-[11px] px-3 py-1.5 rounded-xl cursor-pointer border transition-all"
+          className="font-display text-[11px] px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all"
           style={{ color, borderColor: color + '55', background: color + '11' }}
         >
           SALVA CAMPIONAMENTO
@@ -95,7 +95,7 @@ export function CampionamentoView({ client, color, onSave, onBack }) {
 
           <button
             onClick={handleRequestSave}
-            className="font-display text-[11px] px-3 py-1.5 rounded-xl cursor-pointer border transition-all"
+            className="font-display text-[11px] px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all"
             style={{ color, borderColor: color + '55', background: color + '11' }}
           >
             SALVA CAMPIONAMENTO

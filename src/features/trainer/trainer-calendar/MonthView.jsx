@@ -4,7 +4,7 @@ import { SLOT_STATUS } from '../../../constants/slotStatus'
 const DAY_NAMES = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
 
 const STATUS_COLOR = {
-  [SLOT_STATUS.PLANNED]:   '#3b82f6',
+  [SLOT_STATUS.PLANNED]:   '#00c8ff',
   [SLOT_STATUS.COMPLETED]: '#34d399',
   [SLOT_STATUS.SKIPPED]:   '#6b7280',
 }
@@ -13,17 +13,17 @@ const MonthCell = memo(function MonthCell({ cell, clients, today, onSlotClick, o
   const isToday = cell.dateStr === today
   return (
     <div
-      className="rounded-xl min-h-[90px] flex flex-col cursor-pointer border transition-all"
+      className="rounded-[4px] min-h-[90px] flex flex-col cursor-pointer border transition-all"
       style={{
-        background:  isToday ? 'rgba(59,130,246,0.05)' : 'rgba(255,255,255,0.02)',
-        borderColor: isToday ? 'rgba(59,130,246,0.3)'  : 'rgba(255,255,255,0.05)',
+        background:  isToday ? 'rgba(0,200,255,0.05)' : 'rgba(13,21,32,0.7)',
+        borderColor: isToday ? 'rgba(0,200,255,0.3)'  : 'rgba(15,214,90,0.06)',
       }}
       onClick={() => onEmptyClick(cell.dateStr, '09:00')}
     >
       <div className="px-2 pt-2 pb-1">
         <span
           className={`font-display text-[13px] w-7 h-7 flex items-center justify-center rounded-full ${isToday ? 'text-white' : 'text-white/60'}`}
-          style={isToday ? { background: '#3b82f6' } : {}}
+          style={isToday ? { background: '#00c8ff' } : {}}
         >
           {cell.day}
         </span>
@@ -39,7 +39,7 @@ const MonthCell = memo(function MonthCell({ cell, clients, today, onSlotClick, o
             <button
               key={slot.id}
               onClick={(e) => { e.stopPropagation(); onSlotClick(slot, e) }}
-              className="w-full text-left rounded-md px-1.5 py-0.5 font-body text-[10px] truncate cursor-pointer transition-all hover:opacity-80 border-none"
+              className="w-full text-left rounded-[3px] px-1.5 py-0.5 font-body text-[10px] truncate cursor-pointer transition-all hover:opacity-80 border-none"
               style={{ background: statusColor + '22', color: statusColor }}
             >
               {slot.startTime} {label}

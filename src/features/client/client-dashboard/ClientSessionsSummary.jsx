@@ -10,8 +10,7 @@ export function ClientSessionsSummary({ clientId, sessionsPerWeek }) {
   return (
     <section className="px-6 py-6">
       <div
-        className="rounded-2xl p-5"
-        style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
+        className="rounded-[4px] p-5 rx-card"
       >
         <SectionLabel>◈ Calendario allenamenti</SectionLabel>
         <ClientCalendar

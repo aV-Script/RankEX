@@ -41,7 +41,7 @@ export function StatsChart({ campionamenti, color, categoria = 'health' }) {
           <button
             key={s.stat}
             onClick={() => setSelectedStat(s.stat)}
-            className="px-3 py-1 rounded-lg font-display text-[11px] border cursor-pointer transition-all"
+            className="px-3 py-1 rounded-[3px] font-display text-[11px] border cursor-pointer transition-all"
             style={selectedStat === s.stat
               ? { background: color + '33', borderColor: color + '55', color }
               : { background: 'transparent', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.3)' }
@@ -59,23 +59,23 @@ export function StatsChart({ campionamenti, color, categoria = 'health' }) {
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
             <XAxis
               dataKey="name"
-              tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'Rajdhani' }}
+              tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'Inter' }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
               domain={[0, 100]}
-              tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'Rajdhani' }}
+              tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'Inter' }}
               axisLine={false}
               tickLine={false}
             />
             <Tooltip
               formatter={(v) => [v, stat?.label]}
               contentStyle={{
-                background: 'rgba(10,22,40,0.97)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 8,
-                fontFamily: 'Rajdhani',
+                background: '#0d1520',
+                border: '1px solid rgba(15,214,90,0.15)',
+                borderRadius: 4,
+                fontFamily: 'Inter',
                 fontSize: 12,
               }}
               labelStyle={{ color: 'rgba(255,255,255,0.4)' }}

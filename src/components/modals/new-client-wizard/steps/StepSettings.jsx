@@ -22,7 +22,7 @@ export function StepSettings({ settings, setSettings, groups }) {
             onChange={e => update('sessionsPerWeek')(e.target.value)}
             className="flex-1"
           />
-          <span className="font-display font-black text-[22px] w-8 text-center" style={{ color: '#60a5fa' }}>
+          <span className="font-display font-black text-[22px] w-8 text-center" style={{ color: '#0fd65a' }}>
             {settings.sessionsPerWeek}
           </span>
         </div>
@@ -45,7 +45,7 @@ export function StepSettings({ settings, setSettings, groups }) {
           <div className="flex flex-col gap-1.5 mb-3">
             <button
               onClick={() => setSettings(p => ({ ...p, groupId: null, newGroupName: '' }))}
-              className="flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer border-none bg-transparent text-left"
+              className="flex items-center gap-2 px-3 py-2.5 rounded-[3px] cursor-pointer border-none bg-transparent text-left"
               style={!settings.groupId && !settings.newGroupName
                 ? { background: 'rgba(255,255,255,0.07)', color: '#fff' }
                 : { color: 'rgba(255,255,255,0.35)' }
@@ -58,9 +58,9 @@ export function StepSettings({ settings, setSettings, groups }) {
               <button
                 key={g.id}
                 onClick={() => setSettings(p => ({ ...p, groupId: g.id, newGroupName: '' }))}
-                className="flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer border-none text-left"
+                className="flex items-center justify-between px-3 py-2.5 rounded-[3px] cursor-pointer border-none text-left"
                 style={settings.groupId === g.id
-                  ? { background: 'rgba(59,130,246,0.15)', color: '#fff' }
+                  ? { background: 'rgba(15,214,90,0.12)', color: '#fff' }
                   : { background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.55)' }
                 }
               >
@@ -80,7 +80,7 @@ export function StepSettings({ settings, setSettings, groups }) {
           onChange={e => setSettings(p => ({ ...p, newGroupName: e.target.value, groupId: null }))}
         />
         {settings.newGroupName.trim() && (
-          <p className="font-body text-[11px] text-blue-400/70 mt-1.5 m-0">
+          <p className="font-body text-[11px] mt-1.5 m-0" style={{ color: 'rgba(15,214,90,0.7)' }}>
             Verrà creato il gruppo "{settings.newGroupName.trim()}"
           </p>
         )}

@@ -1,10 +1,10 @@
 function Bone({ className = '' }) {
-  return <div className={`bg-white/[.06] rounded-lg animate-pulse ${className}`} />
+  return <div className={`bg-white/[.06] rounded-[3px] animate-pulse ${className}`} />
 }
 
 function CardSkeleton() {
   return (
-    <div className="bg-white/[.03] border border-white/[.07] rounded-2xl p-5">
+    <div className="rx-card rounded-[4px] p-5">
       <div className="flex items-center gap-3 mb-4">
         <Bone className="w-10 h-10 rounded-full shrink-0" />
         <div className="flex-1 flex flex-col gap-2">

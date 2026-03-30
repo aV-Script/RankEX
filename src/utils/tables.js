@@ -1,3 +1,4 @@
+import { ALL_TESTS } from '../constants'
 /**
  * Tabelle percentili per tutte le categorie.
  *

@@ -44,9 +44,10 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
   const canSave = selectedDays.length > 0 && selectedClients.length > 0 && startDate && endDate
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(8,12,18,0.9)' }} onClick={onClose}>
       <div
-        className="bg-gray-900 border border-white/10 rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
+        className="rx-card p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
+        style={{ background: '#0d1520' }}
         onClick={e => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-5">
@@ -61,10 +62,10 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
             {WEEK_DAYS.map(({ value, label }) => (
               <button
                 key={value} onClick={() => toggleDay(value)}
-                className="w-10 h-10 rounded-xl font-display text-[11px] cursor-pointer border transition-all"
+                className="w-10 h-10 font-display text-[11px] cursor-pointer border transition-all"
                 style={selectedDays.includes(value)
-                  ? { background: 'rgba(59,130,246,0.2)', borderColor: '#3b82f6', color: '#fff' }
-                  : { background: 'transparent', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.35)' }
+                  ? { background: 'rgba(15,214,90,0.15)', borderColor: '#0fd65a', color: '#fff', borderRadius: '4px' }
+                  : { background: 'transparent', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.35)', borderRadius: '4px' }
                 }
               >
                 {label}
@@ -106,10 +107,10 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
         {/* Preview */}
         {previewCount > 0 && (
           <div
-            className="rounded-xl p-3 mb-4"
-            style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)' }}
+            className="rounded-[3px] p-3 mb-4"
+            style={{ background: 'rgba(15,214,90,0.08)', border: '1px solid rgba(15,214,90,0.2)' }}
           >
-            <span className="font-display text-[11px] text-blue-400">
+            <span className="font-display text-[11px]" style={{ color: '#0fd65a' }}>
               Verranno create {previewCount} sessioni
             </span>
           </div>
@@ -123,9 +124,9 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
               {groups.map(g => (
                 <button
                   key={g.id} onClick={() => selectGroup(g)}
-                  className="rounded-xl px-3 py-1.5 font-display text-[11px] cursor-pointer border transition-all"
+                  className="rounded-[3px] px-3 py-1.5 font-display text-[11px] cursor-pointer border transition-all"
                   style={selectedGroups.includes(g.id)
-                    ? { background: 'rgba(139,92,246,0.15)', borderColor: '#8b5cf655', color: '#a78bfa' }
+                    ? { background: 'rgba(0,200,255,0.1)', borderColor: 'rgba(0,200,255,0.35)', color: '#00c8ff' }
                     : { background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' }
                   }
                 >
@@ -151,17 +152,17 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
             {clients.map(c => (
               <button
                 key={c.id} onClick={() => toggleClient(c.id)}
-                className="flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer border transition-all text-left"
+                className="flex items-center gap-3 px-3 py-2 rounded-[3px] cursor-pointer border transition-all text-left"
                 style={selectedClients.includes(c.id)
-                  ? { background: 'rgba(59,130,246,0.12)', borderColor: '#3b82f655', color: '#fff' }
+                  ? { background: 'rgba(15,214,90,0.08)', borderColor: 'rgba(15,214,90,0.35)', color: '#fff' }
                   : { background: 'transparent', borderColor: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }
                 }
               >
                 <div
                   className="w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0"
                   style={{
-                    background:  selectedClients.includes(c.id) ? '#3b82f6' : 'transparent',
-                    borderColor: selectedClients.includes(c.id) ? '#3b82f6' : 'rgba(255,255,255,0.2)',
+                    background:  selectedClients.includes(c.id) ? '#0fd65a' : 'transparent',
+                    borderColor: selectedClients.includes(c.id) ? '#0fd65a' : 'rgba(255,255,255,0.2)',
                   }}
                 >
                   {selectedClients.includes(c.id) && (
@@ -179,8 +180,8 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
         <button
           onClick={() => canSave && onSave({ clientIds: selectedClients, groupIds: selectedGroups, days: selectedDays, startDate, endDate, startTime, endTime })}
           disabled={!canSave}
-          className="w-full rounded-xl py-3 font-display text-[12px] tracking-widest border-0 transition-opacity"
-          style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', color: '#fff', opacity: canSave ? 1 : 0.4, cursor: canSave ? 'pointer' : 'not-allowed' }}
+          className="w-full py-3 font-display text-[12px] tracking-widest border-0 transition-opacity"
+          style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', borderRadius: '3px', color: '#080c12', fontWeight: 700, opacity: canSave ? 1 : 0.4, cursor: canSave ? 'pointer' : 'not-allowed' }}
         >
           CREA RICORRENZA
         </button>

@@ -2,7 +2,7 @@ import { calcSessionConfig } from '../../../utils/gamification'
 import { SLOT_STATUS } from '../../../constants/slotStatus'
 
 const STATUS_COLORS = {
-  [SLOT_STATUS.PLANNED]:   '#3b82f6',
+  [SLOT_STATUS.PLANNED]:   '#00c8ff',
   [SLOT_STATUS.COMPLETED]: '#34d399',
   [SLOT_STATUS.SKIPPED]:   '#6b7280',
 }
@@ -26,7 +26,7 @@ export function SlotCard({ slot, clients, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="w-full text-left rounded-2xl p-4 mb-3 cursor-pointer transition-all hover:opacity-90"
+      className="w-full text-left rounded-[4px] p-4 mb-3 cursor-pointer transition-all hover:opacity-90"
       style={{
         background: 'rgba(255,255,255,0.03)',
         border:     `1px solid ${statusColor}33`,
@@ -42,8 +42,8 @@ export function SlotCard({ slot, clients, onClick }) {
           )}
           {slot.recurrenceId && (
             <span
-              className="font-display text-[9px] px-2 py-0.5 rounded-md"
-              style={{ background: '#8b5cf622', color: '#a78bfa' }}
+              className="font-display text-[9px] px-2 py-0.5 rounded-[3px]"
+              style={{ background: 'rgba(0,200,255,0.08)', color: '#00c8ff' }}
             >
               ↺ RICORRENTE
             </span>
@@ -51,7 +51,7 @@ export function SlotCard({ slot, clients, onClick }) {
         </div>
 
         <span
-          className="font-display text-[9px] px-2 py-0.5 rounded-md"
+          className="font-display text-[9px] px-2 py-0.5 rounded-[3px]"
           style={{ background: statusColor + '22', color: statusColor }}
         >
           {statusLabel}
@@ -69,7 +69,7 @@ export function SlotCard({ slot, clients, onClick }) {
           return (
             <div
               key={clientId}
-              className="flex items-center gap-2.5 rounded-xl px-3 py-2"
+              className="flex items-center gap-2.5 rounded-[3px] px-3 py-2"
               style={{
                 background: isPresent ? 'rgba(52,211,153,0.06)' :
                             isAbsent  ? 'rgba(248,113,113,0.06)' :

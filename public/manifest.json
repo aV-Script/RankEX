@@ -1,7 +1,6 @@
 {
-  "name": "FitQuest",
-  "short_name": "FitQuest",
-  "description": "La piattaforma fitness gamificata per trainer e atleti.",
+  "name": "Rank EX",
+  "short_name": "Rank EX",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0f1e",

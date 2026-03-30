@@ -4,16 +4,16 @@
 export function NotificationsPanel({ notifications, color, onClose, onDelete }) {
   return (
     <div
-      className="fixed inset-0 bg-black/70 z-50 flex justify-end"
+      className="fixed inset-0 z-50 flex justify-end"
+      style={{ background: 'rgba(8,12,18,0.7)' }}
       onClick={onClose}
     >
       <div
         className="
           w-full max-w-sm h-full overflow-y-auto p-6
-          border-l border-white/10
           animate-in slide-in-from-right duration-300
         "
-        style={{ background: 'rgba(10,15,30,0.98)' }}
+        style={{ background: '#0d1520', borderLeft: '1px solid rgba(15,214,90,0.12)' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
@@ -39,13 +39,11 @@ export function NotificationsPanel({ notifications, color, onClose, onDelete }) 
         {notifications.map(n => (
           <div
             key={n.id}
-            className={`
-              rounded-xl p-3.5 mb-2 border transition-all
-              ${n.read
-                ? 'border-white/[.05] bg-white/[.02]'
-                : 'border-white/10 bg-white/[.05]'
-              }
-            `}
+            className="rounded-[3px] p-3.5 mb-2 transition-all"
+            style={n.read
+              ? { background: 'rgba(13,21,32,0.6)', border: '1px solid rgba(15,214,90,0.06)' }
+              : { background: 'rgba(15,214,90,0.04)', border: '1px solid rgba(15,214,90,0.15)' }
+            }
           >
             <div className="flex justify-between items-start gap-2">
               <div className="flex-1 min-w-0">

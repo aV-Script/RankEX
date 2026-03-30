@@ -18,15 +18,8 @@ export function MobileNav({ page, onNavigate, onLogout }) {
         "
         aria-label="Header mobile"
       >
-        <span
-          className="font-display font-black text-[17px]"
-          style={{
-            background:           'linear-gradient(135deg, #60a5fa, #8b5cf6)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor:  'transparent',
-          }}
-        >
-          FITQUEST
+        <span className="rx-glow-text font-display font-black text-[17px]">
+          Rank EX
         </span>
 
         <button

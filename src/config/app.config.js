@@ -1,4 +1,4 @@
-export const APP_NAME    = 'FitQuest'
+export const APP_NAME    = 'Rank EX'
 export const APP_VERSION = '0.1.0'
 
 // Limiti

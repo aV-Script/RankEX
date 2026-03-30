@@ -18,11 +18,8 @@ export function ClientShell({ activePage, onNavigate, color, unreadCount, onOpen
       >
         {/* Logo */}
         <div className="mb-4">
-          <span
-            className="font-display font-black text-[13px]"
-            style={{ background: 'linear-gradient(135deg, #60a5fa, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
-          >
-            FQ
+          <span className="rx-glow-text font-display font-black text-[14px] leading-none tracking-wider">
+            RX
           </span>
         </div>
 
@@ -36,11 +33,11 @@ export function ClientShell({ activePage, onNavigate, color, unreadCount, onOpen
                 aria-label={item.label}
                 aria-current={activePage === item.id ? 'page' : undefined}
                 className="
-                  w-10 h-10 rounded-xl flex items-center justify-center
+                  w-10 h-10 rounded-[3px] flex items-center justify-center
                   cursor-pointer transition-all border
                   text-white/35 border-transparent
                   hover:bg-white/[.07] hover:border-white/10 hover:text-white/75
-                  data-[active=true]:bg-blue-500/[.18] data-[active=true]:border-blue-500/40 data-[active=true]:text-blue-400
+                  data-[active=true]:bg-rx-green/[.1] data-[active=true]:border-rx-green/40 data-[active=true]:text-rx-green
                 "
               >
                 {item.icon}
@@ -51,13 +48,14 @@ export function ClientShell({ activePage, onNavigate, color, unreadCount, onOpen
                 absolute left-[52px] top-1/2 -translate-y-1/2
                 pointer-events-none opacity-0 group-hover:opacity-100
                 transition-opacity duration-150 z-50
-                bg-[rgba(15,31,61,0.97)] border border-white/10
-                rounded-lg px-2.5 py-1.5 whitespace-nowrap
-              ">
-                <span className="font-display text-[11px] text-white/80 tracking-[1px]">
+                rounded-[3px] px-2.5 py-1.5 whitespace-nowrap
+              "
+              style={{ background: 'rgba(8,12,18,0.97)', border: '1px solid rgba(15,214,90,0.2)' }}
+              >
+                <span className="font-display text-[11px] tracking-[1px]" style={{ color: '#0fd65a' }}>
                   {item.label.toUpperCase()}
                 </span>
-                <div className="absolute left-[-5px] top-1/2 -translate-y-1/2 w-2 h-2 bg-[rgba(15,31,61,0.97)] border-l border-b border-white/10 rotate-45" />
+                <div className="absolute left-[-5px] top-1/2 -translate-y-1/2 w-2 h-2 rotate-45" style={{ background: 'rgba(8,12,18,0.97)', borderLeft: '1px solid rgba(15,214,90,0.2)', borderBottom: '1px solid rgba(15,214,90,0.2)' }} />
               </div>
             </div>
           ))}
@@ -67,7 +65,7 @@ export function ClientShell({ activePage, onNavigate, color, unreadCount, onOpen
         <button
           onClick={onOpenNotifs}
           aria-label="Notifiche"
-          className="relative w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-all border border-transparent hover:border-white/10"
+          className="relative w-10 h-10 rounded-[3px] flex items-center justify-center cursor-pointer transition-all border border-transparent hover:border-white/10"
           style={{ color: unreadCount > 0 ? color : 'rgba(255,255,255,0.35)' }}
         >
           {BellIcon}
@@ -85,7 +83,7 @@ export function ClientShell({ activePage, onNavigate, color, unreadCount, onOpen
         <button
           onClick={logout}
           aria-label="Logout"
-          className="w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-all border border-transparent hover:border-white/10 text-white/25 hover:text-white/60 bg-transparent"
+          className="w-10 h-10 rounded-[3px] flex items-center justify-center cursor-pointer transition-all border border-transparent hover:border-white/10 text-white/25 hover:text-white/60 bg-transparent"
         >
           {LogoutIcon}
         </button>
@@ -97,11 +95,8 @@ export function ClientShell({ activePage, onNavigate, color, unreadCount, onOpen
           className="flex items-center justify-between px-5 py-3 border-b border-white/[.05] sticky top-0 z-30 backdrop-blur-md"
           aria-label="Header mobile"
         >
-          <span
-            className="font-display font-black text-[17px]"
-            style={{ background: 'linear-gradient(135deg, #60a5fa, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
-          >
-            FITQUEST
+          <span className="rx-glow-text font-display font-black text-[17px]">
+            Rank X
           </span>
           <div className="flex items-center gap-2">
             <button
@@ -146,18 +141,18 @@ export function ClientShell({ activePage, onNavigate, color, unreadCount, onOpen
               {activePage === item.id && (
                 <div
                   className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-8 rounded-full"
-                  style={{ background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)' }}
+                  style={{ background: 'linear-gradient(90deg, #0fd65a, #00c8ff)', boxShadow: '0 0 8px rgba(15,214,90,0.5)' }}
                 />
               )}
               <span
                 data-active={activePage === item.id}
-                className="data-[active=true]:text-blue-400 text-white/30 transition-colors"
+                className="data-[active=true]:text-rx-green text-white/30 transition-colors"
               >
                 {item.icon}
               </span>
               <span
                 data-active={activePage === item.id}
-                className="font-display text-[9px] tracking-[0.5px] data-[active=true]:text-blue-400 text-white/30 transition-colors"
+                className="font-display text-[9px] tracking-[0.5px] data-[active=true]:text-rx-green text-white/30 transition-colors"
               >
                 {item.label.toUpperCase()}
               </span>

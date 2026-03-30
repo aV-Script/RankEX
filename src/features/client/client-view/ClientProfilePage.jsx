@@ -11,12 +11,11 @@ export function ClientProfilePage({ client, color, onCard }) {
 
       {/* Info cliente */}
       <div
-        className="rounded-2xl p-5 mb-4"
-        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+        className="rounded-[4px] p-5 mb-4 rx-card"
       >
         <div className="flex items-center gap-4">
           <div
-            className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0"
+            className="w-14 h-14 rounded-[4px] flex items-center justify-center shrink-0"
             style={{ background: color + '22', border: `1px solid ${color}44` }}
           >
             <span className="font-display font-black text-[22px]" style={{ color }}>
@@ -34,10 +33,8 @@ export function ClientProfilePage({ client, color, onCard }) {
       <button
         onClick={onCard}
         className="
-          w-full flex items-center gap-3 px-5 py-4 rounded-2xl
-          cursor-pointer transition-all text-left border
-          bg-white/[.02] border-white/[.07]
-          hover:bg-white/[.05] hover:border-white/20
+          w-full flex items-center gap-3 px-5 py-4 rounded-[4px]
+          cursor-pointer transition-all text-left rx-card
         "
       >
         <span className="font-body text-[13px] text-white/60">Visualizza Player Card</span>

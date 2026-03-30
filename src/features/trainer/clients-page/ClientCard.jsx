@@ -22,11 +22,10 @@ export const ClientCard = memo(function ClientCard({ client, onSelect }) {
       onClick={() => onSelect(client)}
       data-color={color}
       className="
-        text-left w-full rounded-2xl p-4
+        text-left w-full rounded-[4px] p-4
         cursor-pointer transition-all duration-200
         flex flex-col gap-3 group
-        border border-white/[.07] bg-white/[.03]
-        hover:border-white/20
+        rx-card
       "
       style={{
         '--card-color': color,
@@ -43,7 +42,7 @@ export const ClientCard = memo(function ClientCard({ client, onSelect }) {
       {/* Header — rank + nome + categoria */}
       <div className="flex items-center gap-3">
         <div
-          className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+          className="w-11 h-11 rounded-[3px] flex items-center justify-center shrink-0"
           style={{ background: color + '22', border: `2px solid ${color}55` }}
         >
           <span className="font-display font-black text-[15px]" style={{ color }}>

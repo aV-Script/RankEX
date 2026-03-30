@@ -5,7 +5,7 @@ export const Pentagon = memo(function Pentagon({
   stats = {},
   statKeys = [],
   statLabels = [],
-  color = '#60a5fa',
+  color = '#0fd65a',
   size = 180,
   fluid = false,
 }) {
@@ -76,7 +76,7 @@ export const Pentagon = memo(function Pentagon({
             dominantBaseline="middle"
             fontSize={size > 160 ? 10 : 9}
             fill="rgba(255,255,255,0.5)"
-            fontFamily="Rajdhani"
+            fontFamily="Montserrat"
             fontWeight="600"
             letterSpacing="1"
           >

@@ -20,23 +20,23 @@ export { applyFormula }
 
 // ── Rank ──────────────────────────────────────────────────────────────────────
 export const RANKS = [
-  { min: 95, label: 'EX',  color: '#ffd700' },
-  { min: 90, label: 'SS+', color: '#ff6b6b' },
-  { min: 85, label: 'SS',  color: '#ff8e53' },
-  { min: 80, label: 'S+',  color: '#ff6fd8' },
-  { min: 75, label: 'S',   color: '#c77dff' },
-  { min: 70, label: 'A+',  color: '#a78bfa' },
-  { min: 65, label: 'A',   color: '#60a5fa' },
-  { min: 60, label: 'B+',  color: '#38bdf8' },
-  { min: 55, label: 'B',   color: '#34d399' },
-  { min: 50, label: 'C+',  color: '#6ee7b7' },
-  { min: 45, label: 'C',   color: '#a3e635' },
-  { min: 40, label: 'D+',  color: '#facc15' },
-  { min: 35, label: 'D',   color: '#fb923c' },
-  { min: 30, label: 'E+',  color: '#f87171' },
-  { min: 25, label: 'E',   color: '#f43f5e' },
-  { min: 20, label: 'F+',  color: '#9ca3af' },
-  { min: 0,  label: 'F',   color: '#6b7280' },
+  { min: 95, label: 'EX',  color: '#ffd700' },  // oro
+  { min: 90, label: 'SS+', color: '#ff4560' },  // rosso vivo
+  { min: 85, label: 'SS',  color: '#ff7043' },  // arancio caldo
+  { min: 80, label: 'S+',  color: '#1aff6e' },  // verde brillante RankEX
+  { min: 75, label: 'S',   color: '#0fd65a' },  // verde logo RankEX
+  { min: 70, label: 'A+',  color: '#00c8ff' },  // ciano logo RankEX
+  { min: 65, label: 'A',   color: '#4db8ff' },  // ciano chiaro
+  { min: 60, label: 'B+',  color: '#38bdf8' },  // azzurro
+  { min: 55, label: 'B',   color: '#0066cc' },  // blu RankEX
+  { min: 50, label: 'C+',  color: '#a3e635' },  // lime
+  { min: 45, label: 'C',   color: '#facc15' },  // giallo
+  { min: 40, label: 'D+',  color: '#fb923c' },  // arancio
+  { min: 35, label: 'D',   color: '#f97316' },  // arancio scuro
+  { min: 30, label: 'E+',  color: '#f87171' },  // rosso chiaro
+  { min: 25, label: 'E',   color: '#ef4444' },  // rosso
+  { min: 20, label: 'F+',  color: '#8a9bb0' },  // metallo chiaro
+  { min: 0,  label: 'F',   color: '#4a5568' },  // metallo scuro
 ]
 
 export function getRankFromMedia(media) {
@@ -54,7 +54,7 @@ export const CATEGORIE = [
   {
     id:    'active',
     label: 'Active',
-    color: '#60a5fa',
+    color: '#00c8ff',
     desc:  'Soggetti fisicamente attivi. Test orientati a performance funzionale e forza esplosiva.',
   },
   {

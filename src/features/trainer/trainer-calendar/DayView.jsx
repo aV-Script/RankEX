@@ -35,7 +35,7 @@ export function DayView({ currentDate, slots, clients, today, onSlotClick, onEmp
           </div>
           <div
             className={`font-display font-black text-[32px] mt-1 w-14 h-14 mx-auto flex items-center justify-center rounded-full ${isToday ? 'text-white' : 'text-white/70'}`}
-            style={isToday ? { background: '#3b82f6' } : {}}
+            style={isToday ? { background: '#00c8ff' } : {}}
           >
             {new Date(currentDate + 'T12:00').getDate()}
           </div>

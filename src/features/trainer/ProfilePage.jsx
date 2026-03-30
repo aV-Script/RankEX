@@ -10,13 +10,12 @@ export function ProfilePage() {
         PROFILO TRAINER
       </p>
 
-      <div className="rounded-2xl p-5 mb-4"
+      <div className="rounded-[4px] p-5 mb-4"
         style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: 'linear-gradient(135deg, #3b82f622, #8b5cf622)', border: '1px solid rgba(99,102,241,0.3)' }}>
-            <span className="font-display font-black text-[22px]"
-              style={{ background: 'linear-gradient(135deg, #60a5fa, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          <div className="w-14 h-14 rounded-[4px] flex items-center justify-center shrink-0"
+            style={{ background: 'rgba(15,214,90,0.06)', border: '1px solid rgba(15,214,90,0.15)' }}>
+            <span className="rx-glow-text font-display font-black text-[22px]">
               {user?.email?.[0]?.toUpperCase() ?? 'T'}
             </span>
           </div>
@@ -27,7 +26,7 @@ export function ProfilePage() {
         </div>
       </div>
 
-      <div className="rounded-2xl overflow-hidden"
+      <div className="rounded-[4px] overflow-hidden"
         style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
         <div className="px-5 py-4" style={{ background: 'rgba(255,255,255,0.02)' }}>
           <div className="font-display text-[10px] text-white/30 tracking-[2px] mb-1">ACCOUNT</div>

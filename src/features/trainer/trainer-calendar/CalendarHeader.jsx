@@ -25,21 +25,21 @@ export function CalendarHeader({ currentDate, view, onNavigate, onToday, onSetVi
         <button
           onClick={() => onNavigate(-1)}
           aria-label="Periodo precedente"
-          className="w-8 h-8 rounded-lg flex items-center justify-center bg-transparent border border-white/10 text-white/40 hover:text-white/70 hover:border-white/20 transition-all cursor-pointer font-display text-[16px]"
+          className="w-8 h-8 rounded-[3px] flex items-center justify-center bg-transparent border border-[rgba(15,214,90,0.15)] text-white/40 hover:text-white/70 hover:border-[rgba(15,214,90,0.35)] transition-all cursor-pointer font-display text-[16px]"
         >
           ‹
         </button>
         <button
           onClick={onToday}
           aria-label="Vai a oggi"
-          className="px-3 py-1.5 rounded-lg font-display text-[11px] cursor-pointer border border-white/10 bg-transparent text-white/40 hover:text-white/70 transition-all"
+          className="px-3 py-1.5 rounded-[3px] font-display text-[11px] cursor-pointer border border-[rgba(15,214,90,0.15)] bg-transparent text-white/40 hover:text-white/70 transition-all"
         >
           OGGI
         </button>
         <button
           onClick={() => onNavigate(1)}
           aria-label="Periodo successivo"
-          className="w-8 h-8 rounded-lg flex items-center justify-center bg-transparent border border-white/10 text-white/40 hover:text-white/70 hover:border-white/20 transition-all cursor-pointer font-display text-[16px]"
+          className="w-8 h-8 rounded-[3px] flex items-center justify-center bg-transparent border border-[rgba(15,214,90,0.15)] text-white/40 hover:text-white/70 hover:border-[rgba(15,214,90,0.35)] transition-all cursor-pointer font-display text-[16px]"
         >
           ›
         </button>
@@ -48,8 +48,8 @@ export function CalendarHeader({ currentDate, view, onNavigate, onToday, onSetVi
 
       {/* Centro — switcher vista */}
       <div
-        className="flex rounded-xl overflow-hidden border border-white/10"
-        style={{ background: 'rgba(255,255,255,0.03)' }}
+        className="flex rounded-[3px] overflow-hidden border"
+        style={{ background: 'rgba(13,21,32,0.9)', borderColor: 'rgba(15,214,90,0.12)' }}
       >
         {['month', 'week', 'day'].map(v => (
           <button
@@ -58,7 +58,7 @@ export function CalendarHeader({ currentDate, view, onNavigate, onToday, onSetVi
             aria-pressed={view === v}
             className="px-4 py-1.5 font-display text-[11px] cursor-pointer transition-all border-none"
             style={view === v
-              ? { background: 'rgba(59,130,246,0.2)', color: '#60a5fa' }
+              ? { background: 'rgba(15,214,90,0.15)', color: '#0fd65a' }
               : { background: 'transparent', color: 'rgba(255,255,255,0.35)' }
             }
           >
@@ -71,14 +71,14 @@ export function CalendarHeader({ currentDate, view, onNavigate, onToday, onSetVi
       <div className="flex gap-2">
         <button
           onClick={onNewRecurrence}
-          className="bg-transparent border border-white/10 rounded-xl px-3 py-1.5 text-white/40 font-display text-[11px] tracking-widest cursor-pointer hover:text-white/60 transition-all"
+          className="bg-transparent border border-[rgba(15,214,90,0.15)] rounded-[3px] px-3 py-1.5 text-white/40 font-display text-[11px] tracking-widest cursor-pointer hover:text-white/60 transition-all"
         >
           RICORRENZA
         </button>
         <button
           onClick={onNewSlot}
-          className="rounded-xl px-4 py-2 font-display text-[11px] tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
-          style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', color: '#fff' }}
+          className="rounded-[3px] px-4 py-2 font-display text-[11px] tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
+          style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', color: '#080c12' }}
         >
           NUOVA SESSIONE
         </button>

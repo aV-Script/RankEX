@@ -16,7 +16,7 @@ export function RankPreview({ client, statsForPreview, newRankObj, newMedia, old
 
       {/* Rank proiettato */}
       <div
-        className="rounded-2xl p-5 text-center"
+        className="rounded-[4px] p-5 text-center"
         style={{ background: newRankObj.color + '11', border: `1px solid ${newRankObj.color}33` }}
       >
         <div className="font-display text-[10px] text-white/30 tracking-[3px] mb-2">
@@ -33,7 +33,7 @@ export function RankPreview({ client, statsForPreview, newRankObj, newMedia, old
         </div>
         {rankChanged && (
           <div
-            className="mt-3 rounded-lg px-3 py-1.5 text-[11px] font-display"
+            className="mt-3 rounded-[3px] px-3 py-1.5 text-[11px] font-display"
             style={{
               background: newMedia > oldMedia ? '#34d39922' : '#f8717122',
               color:      newMedia > oldMedia ? '#34d399'   : '#f87171',
@@ -47,8 +47,7 @@ export function RankPreview({ client, statsForPreview, newRankObj, newMedia, old
 
       {/* Pentagon */}
       <div
-        className="rounded-2xl p-5 flex flex-col items-center gap-3"
-        style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
+        className="rounded-[4px] p-5 flex flex-col items-center gap-3 rx-card"
       >
         <div className="font-display text-[10px] text-white/30 tracking-[3px]">STATISTICHE</div>
         <Pentagon
@@ -62,8 +61,7 @@ export function RankPreview({ client, statsForPreview, newRankObj, newMedia, old
 
       {/* Contatore test */}
       <div
-        className="rounded-xl px-4 py-3 flex items-center justify-between"
-        style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
+        className="rounded-[3px] px-4 py-3 flex items-center justify-between rx-card"
       >
         <span className="font-body text-[12px] text-white/40">Test completati</span>
         <span

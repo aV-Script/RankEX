@@ -5,11 +5,13 @@
 export function DeleteDialog({ clientName, onConfirm, onCancel }) {
   return (
     <div
-      className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      style={{ background: 'rgba(8,12,18,0.9)' }}
       onClick={onCancel}
     >
       <div
-        className="bg-gray-900 border border-white/10 rounded-2xl p-6 w-full max-w-sm"
+        className="p-6 w-full max-w-sm"
+        style={{ background: '#0d1520', border: '1px solid rgba(15,214,90,0.15)', borderRadius: '4px', boxShadow: '0 20px 60px rgba(0,0,0,0.8)' }}
         onClick={e => e.stopPropagation()}
       >
         <h3 className="font-display font-black text-[16px] text-white mb-2">
@@ -22,14 +24,15 @@ export function DeleteDialog({ clientName, onConfirm, onCancel }) {
         <div className="flex gap-3">
           <button
             onClick={onCancel}
-            className="flex-1 py-2.5 rounded-xl font-display text-[12px] cursor-pointer border border-white/10 bg-transparent text-white/40 hover:text-white/70 transition-all"
+            className="flex-1 py-2.5 font-display text-[12px] cursor-pointer bg-transparent text-white/40 hover:text-white/70 transition-all"
+            style={{ borderRadius: '3px', border: '1px solid rgba(255,255,255,0.1)' }}
           >
             ANNULLA
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 py-2.5 rounded-xl font-display text-[12px] cursor-pointer border-0 transition-opacity hover:opacity-85"
-            style={{ background: '#ef4444', color: '#fff' }}
+            className="flex-1 py-2.5 font-display text-[12px] cursor-pointer border-0 transition-opacity hover:opacity-85"
+            style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)', borderRadius: '3px', color: '#ffffff' }}
           >
             ELIMINA
           </button>

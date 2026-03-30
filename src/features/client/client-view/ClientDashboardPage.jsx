@@ -23,13 +23,13 @@ export function ClientDashboardPage({ client, color, rankObj }) {
           </div>
           <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
             <span
-              className="font-display text-[12px] rounded-lg px-3 py-1"
+              className="font-display text-[12px] rounded-[3px] px-3 py-1"
               style={{ background: color + '22', color, border: `1px solid ${color}44` }}
             >
               LIVELLO {client.level}
             </span>
             {categoria && (
-              <span className="font-body text-[12px] text-white/30 border border-white/10 rounded-lg px-3 py-1">
+              <span className="font-body text-[12px] text-white/30 border border-white/10 rounded-[3px] px-3 py-1">
                 {categoria.label}
               </span>
             )}
@@ -44,8 +44,7 @@ export function ClientDashboardPage({ client, color, rankObj }) {
       {/* Status */}
       <section className="px-6 py-6">
         <div
-          className="rounded-2xl p-5"
-          style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
+          className="rounded-[4px] p-5 rx-card"
         >
           <SectionLabel>◈ Status</SectionLabel>
           <StatsSection

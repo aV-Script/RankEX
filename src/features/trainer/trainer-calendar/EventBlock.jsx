@@ -7,7 +7,7 @@ import { SLOT_STATUS } from '../../../constants/slotStatus'
  */
 export const EventBlock = memo(function EventBlock({ slot, clients, onSelect, style }) {
   const statusColor = {
-    [SLOT_STATUS.PLANNED]:   '#3b82f6',
+    [SLOT_STATUS.PLANNED]:   '#00c8ff',
     [SLOT_STATUS.COMPLETED]: '#34d399',
     [SLOT_STATUS.SKIPPED]:   '#6b7280',
   }[slot.status ?? SLOT_STATUS.PLANNED]
@@ -23,7 +23,7 @@ export const EventBlock = memo(function EventBlock({ slot, clients, onSelect, st
   return (
     <button
       onClick={(e) => { e.stopPropagation(); onSelect(slot, e) }}
-      className="absolute left-1 right-1 rounded-lg px-2 py-1 text-left cursor-pointer transition-all hover:opacity-90 overflow-hidden"
+      className="absolute left-1 right-1 rounded-[3px] px-2 py-1 text-left cursor-pointer transition-all hover:opacity-90 overflow-hidden"
       style={{
         background:  statusColor + '22',
         border:      `1px solid ${statusColor}55`,

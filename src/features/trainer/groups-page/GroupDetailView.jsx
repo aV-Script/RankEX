@@ -111,10 +111,10 @@ export function GroupDetailView({ group, clients, trainerId, onToggleClient, onR
         {/* Info gruppo */}
         <div className="flex items-center gap-4 mb-8">
           <div
-            className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.2)' }}
+            className="w-14 h-14 rounded-[3px] flex items-center justify-center shrink-0"
+            style={{ background: 'rgba(15,214,90,0.08)', border: '1px solid rgba(15,214,90,0.2)' }}
           >
-            <span className="font-display font-black text-[20px] text-blue-400">
+            <span className="font-display font-black text-[20px]" style={{ color: '#0fd65a' }}>
               {group.name[0].toUpperCase()}
             </span>
           </div>
@@ -207,7 +207,7 @@ export function GroupDetailView({ group, clients, trainerId, onToggleClient, onR
 function ClientRow({ client, inGroup, loading, onToggle }) {
   return (
     <div
-      className="flex items-center justify-between px-4 py-3 rounded-xl transition-all"
+      className="flex items-center justify-between px-4 py-3 rounded-[3px] transition-all"
       style={inGroup
         ? { background: 'rgba(52,211,153,0.06)', border: '1px solid rgba(52,211,153,0.15)' }
         : { background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }
@@ -215,7 +215,7 @@ function ClientRow({ client, inGroup, loading, onToggle }) {
     >
       <div className="flex items-center gap-3">
         <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+          className="w-8 h-8 rounded-[3px] flex items-center justify-center shrink-0"
           style={inGroup
             ? { background: 'rgba(52,211,153,0.15)' }
             : { background: 'rgba(255,255,255,0.06)' }
@@ -241,10 +241,10 @@ function ClientRow({ client, inGroup, loading, onToggle }) {
       <button
         onClick={onToggle}
         disabled={loading}
-        className="font-display text-[10px] px-3 py-1.5 rounded-lg cursor-pointer border transition-all disabled:opacity-40"
+        className="font-display text-[10px] px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all disabled:opacity-40"
         style={inGroup
           ? { color: '#f87171', borderColor: 'rgba(248,113,113,0.2)', background: 'transparent' }
-          : { color: '#60a5fa', borderColor: 'rgba(96,165,250,0.2)',  background: 'rgba(96,165,250,0.06)' }
+          : { color: '#0fd65a', borderColor: 'rgba(15,214,90,0.2)',   background: 'rgba(15,214,90,0.06)' }
         }
       >
         {loading ? '...' : inGroup ? 'RIMUOVI' : 'AGGIUNGI'}
@@ -257,7 +257,7 @@ function ActionBtn({ onClick, children, color, danger, muted }) {
   return (
     <button
       onClick={onClick}
-      className="font-display text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer border transition-all"
+      className="font-display text-[10px] px-2.5 py-1.5 rounded-[3px] cursor-pointer border transition-all"
       style={
         danger ? { color: '#f87171', borderColor: 'rgba(248,113,113,0.2)', background: 'transparent' } :
         muted  ? { color: 'rgba(255,255,255,0.3)', borderColor: 'rgba(255,255,255,0.1)', background: 'transparent' } :

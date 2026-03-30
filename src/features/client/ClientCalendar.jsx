@@ -44,17 +44,17 @@ export function ClientCalendar({ clientId, sessionsPerWeek = 3 }) {
       {/* Navigazione */}
       <div className="flex items-center justify-between">
         <button onClick={prevMonth}
-          className="bg-transparent border border-white/10 rounded-xl w-8 h-8 flex items-center justify-center cursor-pointer hover:border-white/20 transition-all text-white/40 hover:text-white/70 text-[16px]">‹</button>
+          className="bg-transparent border border-white/10 rounded-[3px] w-8 h-8 flex items-center justify-center cursor-pointer hover:border-white/20 transition-all text-white/40 hover:text-white/70 text-[16px]">‹</button>
         <span className="font-display font-black text-[15px] text-white">
           {MONTH_NAMES[currentMonth - 1]} {currentYear}
         </span>
         <button onClick={nextMonth}
-          className="bg-transparent border border-white/10 rounded-xl w-8 h-8 flex items-center justify-center cursor-pointer hover:border-white/20 transition-all text-white/40 hover:text-white/70 text-[16px]">›</button>
+          className="bg-transparent border border-white/10 rounded-[3px] w-8 h-8 flex items-center justify-center cursor-pointer hover:border-white/20 transition-all text-white/40 hover:text-white/70 text-[16px]">›</button>
       </div>
 
       {/* Barra completamento */}
       {planned > 0 && (
-        <div className="rounded-xl p-3.5"
+        <div className="rounded-[3px] p-3.5"
           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
           <div className="flex justify-between items-center mb-2">
             <span className="font-display text-[10px] text-white/30 tracking-[2px]">COMPLETAMENTO MESE</span>
@@ -94,13 +94,13 @@ export function ClientCalendar({ clientId, sessionsPerWeek = 3 }) {
 
             return (
               <div key={cell.dateStr}
-                className="rounded-xl flex flex-col items-center justify-center gap-0.5 py-2 min-h-[44px]"
+                className="rounded-[3px] flex flex-col items-center justify-center gap-0.5 py-2 min-h-[44px]"
                 style={{
                   background:  isCompleted ? '#34d39911' : isToday ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.02)',
                   border: `1px solid ${isCompleted ? '#34d39933' : isToday ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)'}`,
                 }}>
                 <span className="font-display text-[11px]"
-                  style={{ color: isCompleted ? '#34d399' : isToday ? '#60a5fa' : 'rgba(255,255,255,0.5)' }}>
+                  style={{ color: isCompleted ? '#34d399' : isToday ? '#00c8ff' : 'rgba(255,255,255,0.5)' }}>
                   {cell.day}
                 </span>
                 {hasSlots && cell.slots[0].startTime && (

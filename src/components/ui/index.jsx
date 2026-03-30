@@ -5,9 +5,15 @@ import { getStatsConfig } from '../../constants'
 export { XPBar } from './XPBar'
 
 // ─── Card ─────────────────────────────────────────────────────────────────────
-export function Card({ className = '', children }) {
+export function Card({ className = '', children, glow = 'green' }) {
   return (
-    <div className={`bg-white/[.03] border border-white/[.07] rounded-2xl p-5 ${className}`}>
+    <div
+      className={`p-5 rx-card ${className}`}
+      style={glow === 'cyan'
+        ? { borderColor: 'rgba(0,200,255,0.12)' }
+        : {}
+      }
+    >
       {children}
     </div>
   )
@@ -16,7 +22,10 @@ export function Card({ className = '', children }) {
 // ─── SectionLabel ─────────────────────────────────────────────────────────────
 export function SectionLabel({ children, className = '' }) {
   return (
-    <div className={`font-display text-[10px] text-white/30 tracking-[3px] uppercase mb-3.5 ${className}`}>
+    <div
+      className={`font-display text-[10px] tracking-[3px] uppercase mb-3.5 ${className}`}
+      style={{ color: '#0fd65a' }}
+    >
       {children}
     </div>
   )
@@ -38,22 +47,30 @@ export function Modal({ title, onClose, disableOverlayClose, size = 'default', c
 
   return (
     <div
-      className="fixed inset-0 bg-black/80 z-50 flex items-start lg:items-center justify-center overflow-y-auto py-4 px-4"
+      className="fixed inset-0 z-50 flex items-start lg:items-center justify-center overflow-y-auto py-4 px-4"
+      style={{ background: 'rgba(8,12,18,0.9)' }}
       onClick={disableOverlayClose ? undefined : onClose}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        className={`bg-gray-900 border border-white/10 rounded-2xl p-6 lg:p-8 ${MODAL_WIDTHS[size]} max-w-[96vw] my-auto`}
+        className={`rx-card p-6 lg:p-8 ${MODAL_WIDTHS[size]} max-w-[96vw] my-auto`}
+        style={{
+          background:  '#0d1520',
+          borderColor: 'rgba(15,214,90,0.2)',
+          boxShadow:   '0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(15,214,90,0.1)',
+        }}
         onClick={e => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-6">
-          <h3 id="modal-title" className="font-display text-white text-base m-0">{title}</h3>
+          <h3 id="modal-title" className="font-display text-white text-base m-0 tracking-wider">
+            {title}
+          </h3>
           <button
             onClick={onClose}
             aria-label="Chiudi"
-            className="bg-transparent border-none text-white/40 text-xl cursor-pointer leading-none hover:text-white/70 transition-colors"
+            className="bg-transparent border-none text-white/30 text-xl cursor-pointer leading-none hover:text-white/70 transition-colors"
           >
             ✕
           </button>
@@ -80,10 +97,23 @@ export function Textarea({ className = '', ...props }) {
 }
 
 // ─── Button ───────────────────────────────────────────────────────────────────
-const VARIANT_CLASSES = {
-  primary: 'bg-gradient-to-br from-blue-500 to-violet-500 border-0',
-  danger:  'bg-gradient-to-br from-amber-500 to-red-500 border-0',
-  ghost:   'bg-transparent border border-white/10',
+const VARIANT_STYLES = {
+  primary: {
+    background: 'linear-gradient(135deg, #1aff6e 0%, #0fd65a 30%, #00c8ff 70%, #4db8ff 100%)',
+    border:     'none',
+    color:      '#080c12',
+    fontWeight: 700,
+  },
+  danger: {
+    background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+    border:     'none',
+    color:      '#ffffff',
+  },
+  ghost: {
+    background: 'transparent',
+    border:     '1px solid rgba(15,214,90,0.3)',
+    color:      '#0fd65a',
+  },
 }
 
 export function Button({ variant = 'primary', loading, disabled, className = '', children, ...props }) {
@@ -91,12 +121,16 @@ export function Button({ variant = 'primary', loading, disabled, className = '',
     <button
       disabled={loading || disabled}
       className={`
-        rounded-xl py-3.5 px-4 text-white font-display text-[13px] font-bold tracking-wider
-        cursor-pointer transition-opacity duration-200
-        ${loading || disabled ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'}
-        ${VARIANT_CLASSES[variant]}
+        px-4 font-display text-[13px] font-bold tracking-wider
+        cursor-pointer transition-all duration-200
+        ${loading || disabled ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-85'}
         ${className}
       `}
+      style={{
+        ...VARIANT_STYLES[variant],
+        borderRadius: '3px',
+        padding:      '12px 16px',
+      }}
       {...props}
     >
       {loading ? 'ATTENDERE...' : children}
@@ -107,10 +141,14 @@ export function Button({ variant = 'primary', loading, disabled, className = '',
 // ─── Divider ──────────────────────────────────────────────────────────────────
 export function Divider({ color }) {
   return (
-    <div className="px-6">
+    <div className="px-6 my-1">
       <div
         className="w-full h-px"
-        style={{ background: `linear-gradient(90deg, transparent, ${color}33, transparent)` }}
+        style={{
+          background: color
+            ? `linear-gradient(90deg, transparent, ${color}55, transparent)`
+            : 'linear-gradient(90deg, transparent, rgba(15,214,90,0.2), transparent)',
+        }}
       />
     </div>
   )
@@ -138,8 +176,7 @@ export function Field({ label, error, htmlFor, children }) {
 export function ActivityLog({ log = [], color }) {
   return (
     <div
-      className="rounded-2xl p-5"
-      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
+      className="rounded-[4px] p-5 rx-card"
     >
       <SectionLabel>◈ Attività recenti</SectionLabel>
       {log.length === 0 && (

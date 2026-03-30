@@ -22,7 +22,7 @@ export function DashboardHeader({ client, rankObj, color, onBack, onDelete }) {
 
         <button
           onClick={onDelete}
-          className="bg-transparent border border-red-500/20 rounded-xl px-3 py-1.5 text-red-400/50 font-display text-[11px] cursor-pointer hover:border-red-500/50 hover:text-red-400 transition-all"
+          className="bg-transparent border border-red-500/20 rounded-[3px] px-3 py-1.5 text-red-400/50 font-display text-[11px] cursor-pointer hover:border-red-500/50 hover:text-red-400 transition-all"
         >
           ELIMINA
         </button>
@@ -43,13 +43,13 @@ export function DashboardHeader({ client, rankObj, color, onBack, onDelete }) {
           </div>
           <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
             <span
-              className="font-display text-[12px] rounded-lg px-3 py-1"
+              className="font-display text-[12px] rounded-[3px] px-3 py-1"
               style={{ background: color + '22', color, border: `1px solid ${color}44` }}
             >
               LIVELLO {client.level}
             </span>
             {categoria && (
-              <span className="font-body text-[12px] text-white/30 border border-white/10 rounded-lg px-3 py-1">
+              <span className="font-body text-[12px] text-white/30 border border-white/10 rounded-[3px] px-3 py-1">
                 {categoria.label}
               </span>
             )}

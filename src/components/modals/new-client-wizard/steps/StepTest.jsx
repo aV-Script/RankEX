@@ -57,19 +57,18 @@ export function StepTest({ test, tests, setTests, errors, livePercentile }) {
       {/* Percentile live */}
       {livePercentile !== null && (
         <div
-          className="rounded-xl p-3"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+          className="rounded-[3px] p-3 rx-card"
         >
           <div className="flex justify-between mb-1.5">
             <span className="font-display text-[10px] text-white/30 tracking-[2px]">PERCENTILE</span>
-            <span className="font-display text-[13px] font-black" style={{ color: '#60a5fa' }}>
+            <span className="font-display text-[13px] font-black" style={{ color: '#0fd65a' }}>
               {livePercentile}°
             </span>
           </div>
           <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
             <div
               className="h-full rounded-full transition-[width] duration-300"
-              style={{ width: `${livePercentile}%`, background: '#60a5fa' }}
+              style={{ width: `${livePercentile}%`, background: '#0fd65a' }}
             />
           </div>
         </div>

@@ -14,14 +14,16 @@ export function ConfirmDialog({ title, description, confirmLabel = 'CONFERMA', c
 
   return (
     <div
-      className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      style={{ background: 'rgba(8,12,18,0.9)' }}
       onClick={onCancel}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
-        className="bg-gray-900 border border-white/10 rounded-2xl p-6 w-full max-w-sm"
+        className="p-6 w-full max-w-sm"
+        style={{ background: '#0d1520', border: '1px solid rgba(15,214,90,0.15)', borderRadius: '4px', boxShadow: '0 20px 60px rgba(0,0,0,0.8)' }}
         onClick={e => e.stopPropagation()}
       >
         <h3 id="confirm-dialog-title" className="font-display font-black text-[16px] text-white mb-2">
@@ -34,15 +36,16 @@ export function ConfirmDialog({ title, description, confirmLabel = 'CONFERMA', c
           <button
             onClick={onCancel}
             disabled={loading}
-            className="flex-1 py-2.5 rounded-xl font-display text-[12px] cursor-pointer border border-white/10 bg-transparent text-white/40 hover:text-white/70 transition-all disabled:opacity-50"
+            className="flex-1 py-2.5 font-display text-[12px] cursor-pointer bg-transparent text-white/40 hover:text-white/70 transition-all disabled:opacity-50"
+            style={{ borderRadius: '3px', border: '1px solid rgba(255,255,255,0.1)' }}
           >
             {cancelLabel}
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="flex-1 py-2.5 rounded-xl font-display text-[12px] cursor-pointer border-0 transition-opacity hover:opacity-85 disabled:opacity-50"
-            style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', color: '#fff' }}
+            className="flex-1 py-2.5 font-display text-[12px] cursor-pointer border-0 transition-opacity hover:opacity-85 disabled:opacity-50"
+            style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', borderRadius: '3px', color: '#080c12', fontWeight: 700 }}
           >
             {loading ? 'ATTENDERE...' : confirmLabel}
           </button>

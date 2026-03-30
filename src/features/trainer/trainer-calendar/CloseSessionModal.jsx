@@ -27,15 +27,16 @@ export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      style={{ background: 'rgba(8,12,18,0.9)' }}
       onClick={onClose}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="close-session-title"
-        className="rounded-2xl p-6 w-full max-w-sm"
-        style={{ background: 'rgba(10,15,30,0.98)', border: '1px solid rgba(255,255,255,0.1)' }}
+        className="rounded-[4px] p-6 w-full max-w-sm"
+        style={{ background: '#0d1520', border: '1px solid rgba(15,214,90,0.15)', boxShadow: '0 20px 60px rgba(0,0,0,0.8)' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
@@ -61,7 +62,7 @@ export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
               <button
                 key={client.id}
                 onClick={() => toggleAttendee(client.id)}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer border transition-all text-left"
+                className="flex items-center gap-3 px-4 py-3 rounded-[3px] cursor-pointer border transition-all text-left"
                 style={isPresent
                   ? { background: 'rgba(52,211,153,0.08)', borderColor: '#34d39944' }
                   : { background: 'rgba(248,113,113,0.06)', borderColor: '#f8717133' }
@@ -69,7 +70,7 @@ export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
               >
                 {/* Icona presenza */}
                 <div
-                  className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                  className="w-6 h-6 rounded-[3px] flex items-center justify-center shrink-0"
                   style={{ background: isPresent ? '#34d39922' : '#f8717122' }}
                 >
                   <span style={{ color: isPresent ? '#34d399' : '#f87171', fontSize: 12 }}>
@@ -100,8 +101,8 @@ export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
 
         {/* Riepilogo */}
         <div
-          className="rounded-xl px-4 py-3 mb-5 flex items-center justify-between"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+          className="rounded-[3px] px-4 py-3 mb-5 flex items-center justify-between"
+          style={{ background: 'rgba(13,21,32,0.9)', border: '1px solid rgba(15,214,90,0.1)' }}
         >
           <div className="flex items-center gap-3">
             <span className="font-display text-[12px] text-emerald-400">
@@ -122,14 +123,15 @@ export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl font-display text-[12px] cursor-pointer border border-white/10 bg-transparent text-white/40 hover:text-white/70 transition-all"
+            className="flex-1 py-2.5 rounded-[3px] font-display text-[12px] cursor-pointer border bg-transparent text-white/40 hover:text-white/70 transition-all"
+            style={{ borderColor: 'rgba(15,214,90,0.2)' }}
           >
             ANNULLA
           </button>
           <button
             onClick={() => onConfirm(attendees)}
             disabled={presentCount === 0 && slotClients.length > 0}
-            className="flex-1 py-2.5 rounded-xl font-display text-[12px] cursor-pointer border-0 transition-opacity hover:opacity-85 disabled:opacity-40"
+            className="flex-1 py-2.5 rounded-[3px] font-display text-[12px] cursor-pointer border-0 transition-opacity hover:opacity-85 disabled:opacity-40"
             style={{ background: 'linear-gradient(135deg, #34d399, #059669)', color: '#fff' }}
           >
             CHIUDI SESSIONE

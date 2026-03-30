@@ -14,22 +14,22 @@ export function PlayerCard({ client, onEnter }) {
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center gap-5"
-      style={{ background: 'radial-gradient(ellipse at 20% 0%, #0f1f3d 0%, #070b14 60%)' }}
+      style={{ background: 'radial-gradient(ellipse at 20% 0%, #0d1520 0%, #080c12 60%)' }}
     >
       {/* Card */}
       <div
         className="relative overflow-hidden"
         style={{
           width: 340, height: 520,
-          background: '#0a1628',
+          background: '#0d1520',
           border: `1px solid ${color}33`,
-          borderRadius: 20,
+          borderRadius: 4,
           boxShadow: `0 0 60px ${color}22`,
         }}
       >
         {/* Barra colore top */}
         <div
-          className="absolute top-0 left-0 right-0 h-1 rounded-t-[20px]"
+          className="absolute top-0 left-0 right-0 h-1 rounded-t-[4px]"
           style={{ background: color }}
         />
 
@@ -38,7 +38,7 @@ export function PlayerCard({ client, onEnter }) {
           <div
             className="font-display text-[11px] text-white/30 tracking-[0.2em] uppercase mb-1"
           >
-            FITQUEST · PROFILO
+            Rank EX · PROFILO
           </div>
           <div className="font-display font-black text-[26px] text-white leading-none">
             {client.name}
@@ -123,7 +123,7 @@ export function PlayerCard({ client, onEnter }) {
 
         {/* Footer */}
         <div className="absolute bottom-3 left-0 right-0 text-center font-display text-[9px] text-white/10 tracking-[3px]">
-          FITQUEST
+          Rank EX
         </div>
       </div>
     </div>

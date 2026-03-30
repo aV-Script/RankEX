@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { getTestsForCategoria, CATEGORIE } from '../../constants'
 
-const CATEGORY_COLORS = { health: '#34d399', active: '#60a5fa', athlete: '#f59e0b' }
+const CATEGORY_COLORS = { health: '#34d399', active: '#00c8ff', athlete: '#f59e0b' }
 
 export function TestGuidePage() {
   const [selectedCat,  setSelectedCat]  = useState('health')
@@ -62,7 +62,7 @@ export function TestGuidePage() {
               <button
                 key={t.key}
                 onClick={() => setSelectedTest(t.key)}
-                className="text-left px-3 py-2.5 rounded-xl font-body text-[13px] cursor-pointer border transition-all"
+                className="text-left px-3 py-2.5 rounded-[3px] font-body text-[13px] cursor-pointer border transition-all"
                 style={selectedTest === t.key
                   ? { background: catColor + '18', borderColor: catColor + '44', color: '#fff' }
                   : { background: 'transparent', borderColor: 'transparent', color: 'rgba(255,255,255,0.4)' }
@@ -86,7 +86,7 @@ export function TestGuidePage() {
                 <button
                   key={cat.id}
                   onClick={() => handleSelectCat(cat.id)}
-                  className="shrink-0 px-3 py-2 rounded-xl font-display text-[10px] tracking-widest cursor-pointer border transition-all"
+                  className="shrink-0 px-3 py-2 rounded-[3px] font-display text-[10px] tracking-widest cursor-pointer border transition-all"
                   style={selectedCat === cat.id
                     ? { background: cat.color + '22', borderColor: cat.color + '55', color: cat.color }
                     : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)' }
@@ -100,8 +100,8 @@ export function TestGuidePage() {
             {/* Dropdown test */}
             <button
               onClick={() => setMenuOpen(o => !o)}
-              className="w-full flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer border transition-all"
-              style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.1)' }}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-[3px] cursor-pointer border transition-all"
+              style={{ background: 'rgba(13,21,32,0.9)', borderColor: 'rgba(15,214,90,0.15)' }}
             >
               <div className="text-left">
                 <span className="font-display text-[10px] tracking-[2px] block" style={{ color: catColor }}>
@@ -120,8 +120,8 @@ export function TestGuidePage() {
             </button>
 
             {menuOpen && (
-              <div className="rounded-xl overflow-hidden"
-                style={{ background: 'rgba(15,31,61,0.98)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <div className="rounded-[3px] overflow-hidden"
+                style={{ background: '#0d1520', border: '1px solid rgba(15,214,90,0.15)' }}>
                 {tests.map(t => (
                   <button
                     key={t.key}
@@ -215,7 +215,7 @@ function GuideContent({ test, guide, color }) {
         <ol className="flex flex-col gap-4">
           {guide.protocol.map((step, i) => (
             <li key={i} className="flex gap-4 items-start">
-              <span className="font-display font-black text-[13px] w-7 h-7 rounded-lg flex items-center justify-center mt-[2px]"
+              <span className="font-display font-black text-[13px] w-7 h-7 rounded-[3px] flex items-center justify-center mt-[2px]"
                 style={{ background: color + '22', color }}>
                 {i + 1}
               </span>
@@ -228,8 +228,8 @@ function GuideContent({ test, guide, color }) {
       <GuideSection title="Note operative">
         <ul className="flex flex-col gap-3">
           {guide.notes.map((note, i) => (
-            <li key={i} className="flex gap-2.5 items-start rounded-xl px-3 py-2.5"
-              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <li key={i} className="flex gap-2.5 items-start rounded-[3px] px-3 py-2.5"
+              style={{ background: 'rgba(13,21,32,0.9)', border: '1px solid rgba(15,214,90,0.08)' }}>
               <span className="mt-0.5 text-[12px]" style={{ color }}>{i+1}</span>
               <span className="text-[13px] text-white/60">{note}</span>
             </li>
@@ -253,8 +253,8 @@ function GuideSection({ title, children }) {
 
 function Pill({ label, value, color }) {
   return (
-    <div className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 leading-none"
-      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+    <div className="flex items-center gap-1.5 rounded-[3px] px-3 py-1.5 leading-none"
+      style={{ background: 'rgba(13,21,32,0.8)', border: '1px solid rgba(15,214,90,0.12)' }}>
       <span className="text-[11px] text-white/30">{label}:</span>
       <span className="text-[11px]" style={{ color }}>{value}</span>
     </div>

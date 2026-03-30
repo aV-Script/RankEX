@@ -9,15 +9,15 @@ export function GroupCard({ group, clients, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="text-left w-full rounded-2xl p-4 cursor-pointer transition-all duration-200 group border"
-      style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.07)' }}
+      className="text-left w-full rounded-[4px] p-4 cursor-pointer transition-all duration-200 group border"
+      style={{ background: 'rgba(13,21,32,0.9)', borderColor: 'rgba(15,214,90,0.12)' }}
       onMouseEnter={e => {
-        e.currentTarget.style.background    = 'rgba(255,255,255,0.06)'
-        e.currentTarget.style.borderColor   = 'rgba(255,255,255,0.15)'
+        e.currentTarget.style.background    = 'rgba(15,214,90,0.05)'
+        e.currentTarget.style.borderColor   = 'rgba(15,214,90,0.25)'
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.background    = 'rgba(255,255,255,0.03)'
-        e.currentTarget.style.borderColor   = 'rgba(255,255,255,0.07)'
+        e.currentTarget.style.background    = 'rgba(13,21,32,0.9)'
+        e.currentTarget.style.borderColor   = 'rgba(15,214,90,0.12)'
       }}
     >
       <div className="flex items-center justify-between">
@@ -37,10 +37,10 @@ export function GroupCard({ group, clients, onClick }) {
               {groupClients.map(c => (
                 <div
                   key={c.id}
-                  className="w-7 h-7 rounded-full flex items-center justify-center border-2 border-[#0a0f1e]"
-                  style={{ background: 'rgba(96,165,250,0.2)' }}
+                  className="w-7 h-7 rounded-full flex items-center justify-center border-2 border-[#080c12]"
+                  style={{ background: 'rgba(15,214,90,0.15)' }}
                 >
-                  <span className="font-display text-[10px] text-blue-400">
+                  <span className="font-display text-[10px]" style={{ color: '#0fd65a' }}>
                     {c.name?.[0]?.toUpperCase()}
                   </span>
                 </div>

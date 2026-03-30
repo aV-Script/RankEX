@@ -17,10 +17,10 @@ export function TestInput({ test, testValues, livePercentile, prevValue, errors,
 
   return (
     <div
-      className="rounded-2xl p-4 transition-colors"
+      className="rounded-[4px] p-4 transition-colors"
       style={{
-        background: livePercentile !== null ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)',
-        border:     `1px solid ${livePercentile !== null ? color + '33' : 'rgba(255,255,255,0.06)'}`,
+        background: 'rgba(13,21,32,0.9)',
+        border:     `1px solid ${livePercentile !== null ? color + '44' : 'rgba(15,214,90,0.08)'}`,
       }}
     >
       {/* Header test */}

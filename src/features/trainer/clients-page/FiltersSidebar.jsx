@@ -92,7 +92,7 @@ function FilterBtn({ active, onClick, children }) {
   return (
     <button
       onClick={onClick}
-      className="text-left px-3 py-2 rounded-xl font-body text-[12px] cursor-pointer border transition-all"
+      className="text-left px-3 py-2 rounded-[3px] font-body text-[12px] cursor-pointer border transition-all"
       style={active
         ? { background: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.18)', color: '#fff' }
         : { background: 'transparent', borderColor: 'transparent', color: 'rgba(255,255,255,0.4)' }
@@ -107,8 +107,8 @@ function GradientBtn({ onClick, children }) {
   return (
     <button
       onClick={onClick}
-      className="w-full py-2.5 text-[11px] rounded-xl font-display tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
-      style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', color: '#fff' }}
+      className="w-full py-2.5 text-[11px] rounded-[3px] font-display tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
+      style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', color: '#080c12' }}
     >
       {children}
     </button>

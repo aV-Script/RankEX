@@ -99,8 +99,8 @@ export function GroupsPage({ trainerId }) {
             <h1 className="font-display font-black text-[22px] text-white m-0">Gruppi</h1>
             <button
               onClick={() => setShowNew(true)}
-              className="px-4 py-2 text-[11px] rounded-xl font-display tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
-              style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', color: '#fff' }}
+              className="px-4 py-2 text-[11px] rounded-[3px] font-display tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
+              style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', color: '#080c12' }}
             >
               NUOVO
             </button>
@@ -116,8 +116,8 @@ export function GroupsPage({ trainerId }) {
         {/* Form nuovo gruppo */}
         {showNew && (
           <div
-            className="rounded-2xl p-4 mb-5 flex gap-3"
-            style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)' }}
+            className="rounded-[4px] p-4 mb-5 flex gap-3"
+            style={{ background: 'rgba(15,214,90,0.06)', border: '1px solid rgba(15,214,90,0.15)' }}
           >
             <input
               autoFocus
@@ -132,14 +132,14 @@ export function GroupsPage({ trainerId }) {
             />
             <button
               onClick={handleCreate}
-              className="font-display text-[11px] px-4 py-2 rounded-xl cursor-pointer border-0 transition-opacity hover:opacity-85"
-              style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', color: '#fff' }}
+              className="font-display text-[11px] px-4 py-2 rounded-[3px] cursor-pointer border-0 transition-opacity hover:opacity-85"
+              style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', color: '#080c12' }}
             >
               CREA
             </button>
             <button
               onClick={() => { setShowNew(false); setNewGroupName('') }}
-              className="font-display text-[11px] px-4 py-2 rounded-xl cursor-pointer border border-white/10 bg-transparent text-white/40 hover:text-white/70 transition-all"
+              className="font-display text-[11px] px-4 py-2 rounded-[3px] cursor-pointer border border-white/10 bg-transparent text-white/40 hover:text-white/70 transition-all"
             >
               ANNULLA
             </button>

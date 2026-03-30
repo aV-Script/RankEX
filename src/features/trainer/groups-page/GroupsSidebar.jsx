@@ -11,8 +11,8 @@ export function GroupsSidebar({ groupSearch, onGroupSearchChange, onNewGroup, to
     ">
       <button
         onClick={onNewGroup}
-        className="w-full py-2.5 text-[11px] rounded-xl font-display tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
-        style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', color: '#fff' }}
+        className="w-full py-2.5 text-[11px] rounded-[3px] font-display tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
+        style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', color: '#080c12' }}
       >
         NUOVO GRUPPO
       </button>

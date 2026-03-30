@@ -1,36 +1,31 @@
 /**
  * Tab della barra di navigazione mobile.
- * L'indicatore attivo è una linea gradiente sotto la tab — stile Twitter/X.
+ * Indicatore attivo: linea verde/ciano sotto la tab.
  */
 export function TabItem({ item, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      data-active={active}
       aria-label={item.label}
       aria-current={active ? 'page' : undefined}
-      className="
-        flex-1 flex flex-col items-center gap-1 py-2.5
-        cursor-pointer transition-all relative border-none
-        bg-transparent
-      "
+      className="flex-1 flex flex-col items-center gap-1 py-2.5 cursor-pointer transition-all relative border-none bg-transparent"
     >
-      {/* Indicatore attivo */}
       {active && (
         <div
-          className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-8 rounded-full"
-          style={{ background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)' }}
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-8"
+          style={{
+            background:   'linear-gradient(90deg, #0fd65a, #00c8ff)',
+            borderRadius: '1px',
+            boxShadow:    '0 0 8px rgba(15,214,90,0.5)',
+          }}
         />
       )}
-
-      <span className="data-[active=true]:text-blue-400 text-white/30 transition-colors"
-        data-active={active}>
+      <span style={{ color: active ? '#0fd65a' : 'rgba(200,212,224,0.3)' }}>
         {item.icon}
       </span>
-
       <span
-        data-active={active}
-        className="font-display text-[9px] tracking-[0.5px] data-[active=true]:text-blue-400 text-white/30 transition-colors"
+        className="font-display text-[9px] tracking-[0.5px]"
+        style={{ color: active ? '#0fd65a' : 'rgba(200,212,224,0.3)' }}
       >
         {item.label.toUpperCase()}
       </span>

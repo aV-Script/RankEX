@@ -20,15 +20,8 @@ export function Sidebar({ page, onNavigate, onLogout }) {
     >
       {/* Logo */}
       <div className="mb-4">
-        <span
-          className="font-display font-black text-[13px] leading-none"
-          style={{
-            background:           'linear-gradient(135deg, #60a5fa, #8b5cf6)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor:  'transparent',
-          }}
-        >
-          FQ
+        <span className="rx-glow-text font-display font-black text-[14px] leading-none tracking-wider">
+          RX
         </span>
       </div>
 
@@ -49,9 +42,9 @@ export function Sidebar({ page, onNavigate, onLogout }) {
         onClick={onLogout}
         aria-label="Logout"
         className="
-          w-10 h-10 rounded-xl flex items-center justify-center
+          w-10 h-10 rounded-[3px] flex items-center justify-center
           cursor-pointer transition-all border border-transparent
-          text-white/25 hover:text-white/60 hover:border-white/10
+          text-white/25 hover:text-white/60
           bg-transparent
         "
       >

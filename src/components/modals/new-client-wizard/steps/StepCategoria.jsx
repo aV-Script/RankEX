@@ -11,7 +11,7 @@ export function StepCategoria({ categoria, setCategoria }) {
         <button
           key={cat.id}
           onClick={() => setCategoria(cat.id)}
-          className="flex items-start gap-4 p-4 rounded-2xl cursor-pointer border transition-all text-left"
+          className="flex items-start gap-4 p-4 rounded-[4px] cursor-pointer border transition-all text-left"
           style={categoria === cat.id
             ? { background: cat.color + '15', borderColor: cat.color + '55' }
             : { background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.07)' }

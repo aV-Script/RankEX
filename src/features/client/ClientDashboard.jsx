@@ -58,14 +58,13 @@ export function ClientDashboard({ client, trainerId, onBack, onCampionamento, on
 
       <section className="px-6 pt-6 pb-4">
         <div
-          className="rounded-2xl p-5"
-          style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
+          className="rounded-[4px] p-5 rx-card"
         >
           <div className="flex items-center justify-between mb-4">
             <SectionLabel className="mb-0">◈ Status</SectionLabel>
             <button
               onClick={() => setView('campionamento')}
-              className="text-[11px] font-display px-3 py-1.5 rounded-lg cursor-pointer border transition-all hover:opacity-80"
+              className="text-[11px] font-display px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all hover:opacity-80"
               style={{ color, borderColor: color + '55', background: color + '11' }}
             >
               CAMPIONAMENTO

@@ -24,7 +24,8 @@ export default function App() {
       <p className="font-display text-white/50 tracking-widest text-sm">CARICAMENTO FALLITO</p>
       <button
         onClick={() => window.location.reload()}
-        className="px-4 py-2 text-sm text-white/70 border border-white/20 rounded-lg hover:bg-white/10"
+        className="px-4 py-2 text-sm text-white/70 border rounded-[3px] hover:opacity-80 transition-opacity"
+        style={{ borderColor: 'rgba(15,214,90,0.2)' }}
       >
         Ricarica
       </button>
