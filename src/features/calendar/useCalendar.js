@@ -1,11 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   getTrainerSlots, addSlot, updateSlot, deleteSlot,
-  addClientToSlot, removeClientFromSlot,
-  getSlotsByGroup, addRecurrence,
+  addRecurrence,
   generateRecurrenceDates,
   skipSlot,
 } from '../../firebase/services/calendar'
+import {
+  addClientToGroupSlots,
+  removeClientFromGroupSlots,
+} from './calendarGroupUtils'
 import { getMonthRange, getWeekRange } from '../../utils/calendarUtils'
 import { closeSessionUseCase } from '../../usecases/closeSessionUseCase'
 import { SLOT_STATUS } from '../../constants/slotStatus'
@@ -154,22 +157,12 @@ export function useCalendar(trainerId) {
 
   // ── Group handlers ─────────────────────────────────────────────────────
   const handleAddClientToGroupSlots = useCallback(async (groupId, clientId, fromDate) => {
-    const groupSlots = await getSlotsByGroup(trainerId, groupId, fromDate)
-    await Promise.all(
-      groupSlots
-        .filter(s => !s.clientIds.includes(clientId))
-        .map(s => addClientToSlot(s.id, clientId))
-    )
+    await addClientToGroupSlots(trainerId, groupId, clientId, fromDate)
     fetchSlots()
   }, [trainerId, fetchSlots])
 
   const handleRemoveClientFromGroupSlots = useCallback(async (groupId, clientId, fromDate) => {
-    const groupSlots = await getSlotsByGroup(trainerId, groupId, fromDate)
-    await Promise.all(
-      groupSlots
-        .filter(s => s.clientIds.includes(clientId))
-        .map(s => removeClientFromSlot(s.id, clientId))
-    )
+    await removeClientFromGroupSlots(trainerId, groupId, clientId, fromDate)
     fetchSlots()
   }, [trainerId, fetchSlots])
 

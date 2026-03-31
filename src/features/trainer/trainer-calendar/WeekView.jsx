@@ -1,6 +1,7 @@
-import { useMemo, useRef, useEffect } from 'react'
-import { HOUR_HEIGHT_PX as HOUR_H }  from '../../../utils/calendarUtils'
-import { EventBlock }                from './EventBlock'
+import { useMemo, useRef, useEffect }              from 'react'
+import { HOUR_HEIGHT_PX as HOUR_H,
+         computeSlotLayout }                       from '../../../utils/calendarUtils'
+import { EventBlock }                              from './EventBlock'
 
 const HOURS              = Array.from({ length: 24 }, (_, i) => i)
 const DAY_NAMES          = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
@@ -96,6 +97,7 @@ export function WeekView({ currentDate, slots, clients, today, onSlotClick, onEm
           {/* Colonne giorni */}
           {weekDays.map((dateStr) => {
             const daySlots = slotsByDate[dateStr] ?? []
+            const layout   = computeSlotLayout(daySlots)
             const isToday  = dateStr === today
 
             return (
@@ -156,13 +158,16 @@ export function WeekView({ currentDate, slots, clients, today, onSlotClick, onEm
                 {daySlots.map(slot => {
                   const top    = timeToY(slot.startTime)
                   const height = Math.max(30, timeToY(slot.endTime) - top)
+                  const { col, totalCols } = layout[slot.id] ?? { col: 0, totalCols: 1 }
+                  const left  = `calc(${(col / totalCols) * 100}% + 4px)`
+                  const width = `calc(${(1 / totalCols) * 100}% - 8px)`
                   return (
                     <EventBlock
                       key={slot.id}
                       slot={slot}
                       clients={clients}
                       onSelect={onSlotClick}
-                      style={{ top, height }}
+                      style={{ top, height, left, width, right: 'auto' }}
                     />
                   )
                 })}

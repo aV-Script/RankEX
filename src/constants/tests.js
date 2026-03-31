@@ -24,7 +24,7 @@ export const TESTS = [
   {
     key:        'dinamometro_hand_grip',
     stat:       'forza',
-    label:      'FOR',
+    label:      'FORZA',
     unit:       'kg',
     direction:  'direct',
     ageGroup:   (age) => age <= 35 ? '18-35' : age <= 45 ? '36-45' : age <= 55 ? '46-55' : age <= 65 ? '56-65' : '66+',
@@ -59,7 +59,7 @@ export const TESTS = [
   {
     key:        'ymca_step_test',
     stat:       'resistenza',
-    label:      'RES',
+    label:      'RESISTENZA',
     unit:       'bpm',
     direction:  'inverse',
     ageGroup:   (age) => age <= 35 ? '18-35' : age <= 45 ? '36-45' : '46+',
@@ -97,7 +97,7 @@ export const TESTS = [
   {
     key:        'sit_and_reach',
     stat:       'mobilita',
-    label:      'MOB',
+    label:      'MOBILITÀ',
     unit:       'cm',
     direction:  'direct',
     test:       'Sit and Reach',
@@ -132,7 +132,7 @@ export const TESTS = [
   {
     key:        'flamingo_test',
     stat:       'equilibrio',
-    label:      'EQU',
+    label:      'EQUILIBRIO',
     unit:       'cadute',
     direction:  'inverse',
     ageGroup:   (age) => age <= 35 ? '18-35' : age <= 45 ? '36-45' : age <= 55 ? '46-55' : age <= 65 ? '56-65' : '66+',
@@ -170,7 +170,7 @@ export const TESTS = [
   {
     key:        'sit_to_stand',
     stat:       'esplosivita',
-    label:      'ESP',
+    label:      'ESPLOSIVITÀ',
     unit:       'secondi',
     direction:  'inverse',
     ageGroup:   (age) => age <= 35 ? '18-35' : age <= 45 ? '36-45' : age <= 55 ? '46-55' : age <= 65 ? '56-65' : '66+',
@@ -208,7 +208,7 @@ export const TESTS = [
   {
     key:         'y_balance',
     stat:        'stabilita',
-    label:       'STAB',
+    label:       'STABILITÀ',
     unit:        '%',
     direction:   'direct',
     ageGroup:   (age) => age <= 40 ? '18-40' : '41-60',
@@ -254,7 +254,7 @@ export const TESTS = [
   {
     key:        'standing_long_jump',
     stat:       'esplosivita',
-    label:      'ESP',
+    label:      'ESPLOSIVITÀ',
     unit:       'cm',
     direction:  'direct',
     ageGroup:   (age) => age <= 35 ? '18-35' : '36-50',
@@ -291,7 +291,7 @@ export const TESTS = [
   {
     key:        'sprint_10m',
     stat:       'velocita',
-    label:      'VEL',
+    label:      'VELOCITÀ',
     unit:       'secondi',
     direction:  'inverse',
     ageGroup:   (age) => age <= 35 ? '18-35' : '36-50',
@@ -330,7 +330,7 @@ export const TESTS = [
   {
     key:        'drop_jump_rsi',
     stat:       'reattivita',
-    label:      'REA',
+    label:      'REAATTIVITÀ',
     unit:       'RSI',
     direction:  'direct',
     ageGroup:   (age) => age <= 35 ? '18-35' : '36-50',
@@ -368,7 +368,7 @@ export const TESTS = [
   {
     key:        't_test_agility',
     stat:       'agilita',
-    label:      'AGI',
+    label:      'AGILITÀ',
     unit:       'secondi',
     direction:  'inverse',
     ageGroup:   (_) => '18-40',
@@ -405,7 +405,7 @@ export const TESTS = [
   {
     key:        'yo_yo_ir1',
     stat:       'resistenza',
-    label:      'RES',
+    label:      'RESISTENZA',
     unit:       'metri',
     direction:  'direct',
     ageGroup:   (age) => age <= 35 ? '18-35' : '36-50',
@@ -443,7 +443,7 @@ export const TESTS = [
   {
     key:        'sprint_20m',
     stat:       'velocita',
-    label:      'VEL',
+    label:      'VELOCITÀ',
     unit:       'secondi',
     direction:  'inverse',
     test:       'Sprint 20m',
@@ -480,7 +480,7 @@ export const TESTS = [
   {
     key:        'cmj',
     stat:       'esplosivita',
-    label:      'ESP',
+    label:      'ESPLOSIVITÀ',
     unit:       'cm',
     direction:  'direct',
     ageGroup:   (age) => age <= 35 ? '18-35' : '36-50',

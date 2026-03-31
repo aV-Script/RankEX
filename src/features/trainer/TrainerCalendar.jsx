@@ -11,7 +11,7 @@ import { AddSlotModal }                    from './trainer-calendar/AddSlotModal
 import { RecurrenceModal }                 from './trainer-calendar/RecurrenceModal'
 import { useGroups } from '../../hooks/useGroups'
 
-export function TrainerCalendar({ trainerId, clients = [], onRefreshClients }) {
+export function TrainerCalendar({ trainerId, clients = [], onRefreshClients, onNavigate }) {
   const {
     slots, isLoading,
     currentDate, view,
@@ -62,6 +62,11 @@ export function TrainerCalendar({ trainerId, clients = [], onRefreshClients }) {
     await handleDeleteSlot(slotId)
   }, [handleDeleteSlot])
 
+  const handleViewRecurrence = useCallback((recurrenceId) => {
+    setPopup(null)
+    onNavigate?.('recurrences', { initialRecurrenceId: recurrenceId })
+  }, [onNavigate])
+
   const viewProps = {
     currentDate,
     slots,
@@ -106,6 +111,7 @@ export function TrainerCalendar({ trainerId, clients = [], onRefreshClients }) {
           onCloseSession={() => handleCloseSession(popup.slot)}
           onSkip={() => handleSkip(popup.slot.id)}
           onDelete={() => handleDelete(popup.slot.id)}
+          onViewRecurrence={handleViewRecurrence}
         />
       )}
 

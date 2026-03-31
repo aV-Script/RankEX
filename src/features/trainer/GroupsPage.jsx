@@ -57,6 +57,7 @@ export function GroupsPage({ trainerId }) {
       <GroupDetailView
         group={currentGroup}
         clients={clients}
+        trainerId={trainerId}
         onToggleClient={handleToggleClient}
         onRename={handleRenameGroup}
         onDelete={handleDeleteGroup}

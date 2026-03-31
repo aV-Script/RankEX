@@ -5,7 +5,7 @@ import { SLOT_STATUS } from '../../../constants/slotStatus'
  * Popup dettaglio slot — appare al click su un evento.
  * Mostra info slot e azioni rapide.
  */
-export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, onCloseSession }) {
+export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, onCloseSession, onViewRecurrence }) {
   const ref = useRef(null)
 
   // Chiude al click fuori
@@ -106,12 +106,18 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
       </div>
 
       {slot.recurrenceId && (
-        <div
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] mb-4"
-          style={{ background: 'rgba(0,200,255,0.08)', border: '1px solid rgba(0,200,255,0.2)' }}
+        <button
+          onClick={() => onViewRecurrence?.(slot.recurrenceId)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] mb-4 w-full text-left cursor-pointer border transition-all hover:border-purple-400/30"
+          style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.15)' }}
         >
-          <span className="font-display text-[10px]" style={{ color: '#00c8ff' }}>↺ Sessione ricorrente</span>
-        </div>
+          <span className="font-display text-[10px] text-purple-400 flex-1">
+            ↺ Sessione ricorrente
+          </span>
+          <span className="font-display text-[9px] text-purple-400/50">
+            GESTISCI →
+          </span>
+        </button>
       )}
 
       {/* Azioni */}

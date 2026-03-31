@@ -47,6 +47,59 @@ export function calcMonthlyCompletion(clientSlots, clientId) {
 }
 
 /**
+ * Calcola il layout a colonne per slot sovrapposti nello stesso contenitore.
+ * Restituisce { [slotId]: { col, totalCols } } in modo che slot con orari
+ * sovrapposti vengano affiancati invece di sovrapporsi visivamente.
+ *
+ * @param {object[]} slots — array di slot con startTime/endTime 'HH:MM'
+ * @returns {{ [id: string]: { col: number, totalCols: number } }}
+ */
+export function computeSlotLayout(slots) {
+  if (!slots.length) return {}
+
+  const toMin = t => {
+    if (!t) return 0
+    const [h, m] = t.split(':').map(Number)
+    return h * 60 + m
+  }
+
+  const sorted = [...slots].sort((a, b) => toMin(a.startTime) - toMin(b.startTime))
+
+  // Assegnazione greedy delle colonne
+  const colEnds = []  // minuto di fine dell'ultimo slot in ciascuna colonna
+  const result  = {}
+
+  for (const slot of sorted) {
+    const start = toMin(slot.startTime)
+    const end   = toMin(slot.endTime)
+    let col = colEnds.findIndex(e => e <= start)
+    if (col === -1) {
+      col = colEnds.length
+      colEnds.push(end)
+    } else {
+      colEnds[col] = end
+    }
+    result[slot.id] = { col, totalCols: 1 }
+  }
+
+  // Calcola totalCols: quante colonne distinte si sovrappongono con ciascuno slot
+  for (const slot of sorted) {
+    const start = toMin(slot.startTime)
+    const end   = toMin(slot.endTime)
+    const cols  = new Set([result[slot.id].col])
+    for (const other of sorted) {
+      if (other.id === slot.id) continue
+      const oStart = toMin(other.startTime)
+      const oEnd   = toMin(other.endTime)
+      if (oStart < end && oEnd > start) cols.add(result[other.id].col)
+    }
+    result[slot.id].totalCols = cols.size
+  }
+
+  return result
+}
+
+/**
  * Genera tutte le date in un intervallo per i giorni della settimana dati.
  * @param {string}   startDate — 'YYYY-MM-DD'
  * @param {string}   endDate   — 'YYYY-MM-DD'

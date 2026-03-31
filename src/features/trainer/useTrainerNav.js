@@ -8,16 +8,18 @@ import { useTrainerState, useTrainerDispatch, ACTIONS } from '../../context/Trai
  *   1. page — la sezione attiva nella sidebar
  *   2. selectedClient — se presente, sovrascrive la pagina e mostra ClientDashboard
  *
- * Esposto globalmente così ogni pagina può chiamare selectClient
- * senza riceverlo come prop dall'alto.
+ * navigateTo accetta un secondo argomento opzionale `params` che viene
+ * passato alla pagina di destinazione (es. { initialRecurrenceId }).
  */
 export function useTrainerNav() {
-  const [page, setPage]    = useState('clients')
+  const [page,      setPage]      = useState('clients')
+  const [navParams, setNavParams] = useState(null)
   const { selectedClient } = useTrainerState()
   const dispatch           = useTrainerDispatch()
 
-  const navigateTo = useCallback((newPage) => {
+  const navigateTo = useCallback((newPage, params = null) => {
     setPage(newPage)
+    setNavParams(params)
     dispatch({ type: ACTIONS.DESELECT_CLIENT })
   }, [dispatch])
 
@@ -29,5 +31,5 @@ export function useTrainerNav() {
     dispatch({ type: ACTIONS.DESELECT_CLIENT })
   }, [dispatch])
 
-  return { page, selectedClient, navigateTo, selectClient, deselectClient }
+  return { page, navParams, selectedClient, navigateTo, selectClient, deselectClient }
 }

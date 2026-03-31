@@ -14,7 +14,7 @@ export default function TrainerView({ user }) {
 }
 
 function TrainerLayout({ user }) {
-  const { page, selectedClient, navigateTo, deselectClient } = useTrainerNav()
+  const { page, navParams, selectedClient, navigateTo, deselectClient } = useTrainerNav()
   const {
     clients, isLoading, fetchError,
     fetchClients,
@@ -41,6 +41,8 @@ function TrainerLayout({ user }) {
           clientsError={fetchError}
           onAddClient={handleAddClient}
           onRefreshClients={fetchClients}
+          onNavigate={navigateTo}
+          {...(navParams ?? {})}
         />
       )}
     </TrainerShell>

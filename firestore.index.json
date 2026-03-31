@@ -46,6 +46,31 @@
         { "fieldPath": "groupIds",  "arrayConfig": "CONTAINS" },
         { "fieldPath": "date",      "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "slots",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "recurrenceId", "order": "ASCENDING" },
+        { "fieldPath": "date",         "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "recurrences",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "trainerId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "recurrences",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "trainerId", "order": "ASCENDING" },
+        { "fieldPath": "groupIds",  "arrayConfig": "CONTAINS" },
+        { "fieldPath": "status",    "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

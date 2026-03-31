@@ -1,8 +1,12 @@
-import { useState, useMemo, useCallback }          from 'react'
-import { usePagination }                           from '../../../hooks/usePagination'
-import { Pagination }                              from '../../../components/common/Pagination'
-import { ConfirmDialog }                           from '../../../components/common/ConfirmDialog'
-import { addClientToGroupSlots, removeClientFromGroupSlots } from '../../../features/calendar/calendarGroupUtils'
+import { useState, useMemo, useCallback }           from 'react'
+import { usePagination }                            from '../../../hooks/usePagination'
+import { Pagination }                               from '../../../components/common/Pagination'
+import { ConfirmDialog }                            from '../../../components/common/ConfirmDialog'
+import { GroupToggleDialog }                        from './GroupToggleDialog'
+import {
+  addClientToGroupSlots,
+  removeClientFromGroupSlots,
+} from '../../../features/calendar/calendarGroupUtils'
 
 const CLIENTS_PAGE_SIZE = 8
 
@@ -11,9 +15,10 @@ export function GroupDetailView({ group, clients, trainerId, onToggleClient, onR
   const [isEditing,    setIsEditing]    = useState(false)
   const [editingName,  setEditingName]  = useState(group.name)
   const [showDelete,   setShowDelete]   = useState(false)
-  const [toggling,     setToggling]     = useState(null) // clientId in corso
 
-  const today = new Date().toISOString().slice(0, 10)
+  // Dialog toggle — { client, isRemoving }
+  const [toggleDialog, setToggleDialog] = useState(null)
+  const [toggling,     setToggling]     = useState(null)
 
   const filteredClients = useMemo(() =>
     clients.filter(c => c.name.toLowerCase().includes(clientSearch.toLowerCase()))
@@ -30,24 +35,31 @@ export function GroupDetailView({ group, clients, trainerId, onToggleClient, onR
   const inGroupPagination    = usePagination(clientsInGroup,    CLIENTS_PAGE_SIZE)
   const notInGroupPagination = usePagination(clientsNotInGroup, CLIENTS_PAGE_SIZE)
 
-  // ── Toggle cliente — aggiorna gruppo + slot futuri ────────────────────────
-  const handleToggle = useCallback(async (groupId, clientId) => {
-    const isInGroup = group.clientIds.includes(clientId)
-    setToggling(clientId)
-    try {
-      // 1. Aggiorna il gruppo
-      await onToggleClient(groupId, clientId)
+  // ── Apre il dialog di conferma ─────────────────────────────
+  const handleRequestToggle = useCallback((client, isRemoving) => {
+    setToggleDialog({ client, isRemoving })
+  }, [])
 
-      // 2. Aggiorna gli slot futuri del gruppo
-      if (isInGroup) {
-        await removeClientFromGroupSlots(trainerId, groupId, clientId, today)
+  // ── Conferma il toggle dopo il dialog ─────────────────────
+  const handleConfirmToggle = useCallback(async () => {
+    const { client, isRemoving } = toggleDialog
+    setToggling(client.id)
+    setToggleDialog(null)
+
+    try {
+      await onToggleClient(group.id, client.id)
+
+      if (isRemoving) {
+        await removeClientFromGroupSlots(trainerId, group.id, client.id)
       } else {
-        await addClientToGroupSlots(trainerId, groupId, clientId, today)
+        await addClientToGroupSlots(trainerId, group.id, client.id)
       }
+    } catch (err) {
+      console.error('[GroupDetailView] toggleClient failed', err)
     } finally {
       setToggling(null)
     }
-  }, [group.clientIds, onToggleClient, trainerId, today])
+  }, [toggleDialog, group.id, onToggleClient, trainerId])
 
   const handleRename = useCallback(async () => {
     if (!editingName.trim() || editingName === group.name) {
@@ -93,7 +105,9 @@ export function GroupDetailView({ group, clients, trainerId, onToggleClient, onR
               <ActionBtn onClick={() => { setIsEditing(false); setEditingName(group.name) }} muted>ANNULLA</ActionBtn>
             </>
           ) : (
-            <span className="font-display font-black text-[16px] text-white">{group.name}</span>
+            <span className="font-display font-black text-[16px] text-white">
+              {group.name}
+            </span>
           )}
         </div>
 
@@ -152,7 +166,7 @@ export function GroupDetailView({ group, clients, trainerId, onToggleClient, onR
                     client={c}
                     inGroup
                     loading={toggling === c.id}
-                    onToggle={() => handleToggle(group.id, c.id)}
+                    onToggle={() => handleRequestToggle(c, true)}
                   />
                 ))}
               </div>
@@ -179,7 +193,7 @@ export function GroupDetailView({ group, clients, trainerId, onToggleClient, onR
                     client={c}
                     inGroup={false}
                     loading={toggling === c.id}
-                    onToggle={() => handleToggle(group.id, c.id)}
+                    onToggle={() => handleRequestToggle(c, false)}
                   />
                 ))}
               </div>
@@ -189,6 +203,19 @@ export function GroupDetailView({ group, clients, trainerId, onToggleClient, onR
         </div>
       </div>
 
+      {/* Dialog toggle con recap */}
+      {toggleDialog && (
+        <GroupToggleDialog
+          client={toggleDialog.client}
+          group={group}
+          trainerId={trainerId}
+          isRemoving={toggleDialog.isRemoving}
+          onConfirm={handleConfirmToggle}
+          onCancel={() => setToggleDialog(null)}
+        />
+      )}
+
+      {/* Dialog elimina gruppo */}
       {showDelete && (
         <ConfirmDialog
           title={`Eliminare "${group.name}"?`}
@@ -202,7 +229,7 @@ export function GroupDetailView({ group, clients, trainerId, onToggleClient, onR
   )
 }
 
-// ── Componenti locali ─────────────────────────────────────────────────────────
+// ── Componenti locali ─────────────────────────────────────────
 
 function ClientRow({ client, inGroup, loading, onToggle }) {
   return (
