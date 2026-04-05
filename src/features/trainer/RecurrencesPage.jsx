@@ -70,17 +70,19 @@ export function RecurrencesPage({ orgId, initialRecurrenceId }) {
             <p className="font-body text-[13px] text-white/20">Nessuna ricorrenza attiva.</p>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
-            {paginatedActive.map(rec => (
-              <RecurrenceCard
-                key={rec.id}
-                recurrence={rec}
-                clients={clients}
-                onClick={() => setSelectedId(rec.id)}
-              />
-            ))}
-          </div>
-          <Pagination {...activePagination} />
+          <>
+            <div className="flex flex-col gap-3">
+              {paginatedActive.map(rec => (
+                <RecurrenceCard
+                  key={rec.id}
+                  recurrence={rec}
+                  clients={clients}
+                  onClick={() => setSelectedId(rec.id)}
+                />
+              ))}
+            </div>
+            <Pagination {...activePagination} />
+          </>
         )}
 
         {/* Archivio collassabile */}

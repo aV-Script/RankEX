@@ -171,42 +171,44 @@ export function OrgDetailView({ org, onBack }) {
           ) : members.length === 0 ? (
             <p className="font-body text-[13px] text-white/20">Nessun membro.</p>
           ) : (
-            <div className="flex flex-col gap-1.5">
-              {paginatedMembers.map(m => (
-                <div
-                  key={m.id}
-                  className="flex items-center justify-between px-4 py-2.5 rounded-[3px]"
-                  style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="font-body text-[13px] text-white/70">{m.name ?? m.email ?? m.id}</div>
-                    {m.email && (
-                      <div className="font-display text-[10px] text-white/25 mt-0.5">{m.email}</div>
-                    )}
+            <>
+              <div className="flex flex-col gap-1.5">
+                {paginatedMembers.map(m => (
+                  <div
+                    key={m.id}
+                    className="flex items-center justify-between px-4 py-2.5 rounded-[3px]"
+                    style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="font-body text-[13px] text-white/70">{m.name ?? m.email ?? m.id}</div>
+                      {m.email && (
+                        <div className="font-display text-[10px] text-white/25 mt-0.5">{m.email}</div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <select
+                        value={m.role}
+                        onChange={e => handleRoleChange(m, e.target.value)}
+                        className="input-base text-[11px] py-1.5 px-2"
+                        style={{ width: 'auto', minWidth: 100 }}
+                      >
+                        {ROLE_OPTIONS.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => setConfirmRemove(m)}
+                        className="font-display text-[10px] px-2.5 py-1.5 rounded-[3px] cursor-pointer border transition-all bg-transparent"
+                        style={{ color: '#f87171', borderColor: 'rgba(248,113,113,0.2)' }}
+                      >
+                        RIMUOVI
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <select
-                      value={m.role}
-                      onChange={e => handleRoleChange(m, e.target.value)}
-                      className="input-base text-[11px] py-1.5 px-2"
-                      style={{ width: 'auto', minWidth: 100 }}
-                    >
-                      {ROLE_OPTIONS.map(opt => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                    <button
-                      onClick={() => setConfirmRemove(m)}
-                      className="font-display text-[10px] px-2.5 py-1.5 rounded-[3px] cursor-pointer border transition-all bg-transparent"
-                      style={{ color: '#f87171', borderColor: 'rgba(248,113,113,0.2)' }}
-                    >
-                      RIMUOVI
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <Pagination {...memberPagination} />
+                ))}
+              </div>
+              <Pagination {...memberPagination} />
+            </>
           )}
         </section>
 

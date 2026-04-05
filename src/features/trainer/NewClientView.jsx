@@ -59,37 +59,40 @@ export function NewClientView({ orgId, onAdd, onBack, clients = [] }) {
         />
       ) : null}
 
-      {!atClientLimit && <div className="max-w-2xl mx-auto px-6 py-8 flex flex-col gap-6">
-        <WizardProgress
-          step={wizard.step}
-          totalSteps={totalSteps}
-          title={wizard.stepTitle}
-          progressPct={wizard.progressPct}
-        />
+      {!atClientLimit && (
+        <>
+          <div className="max-w-2xl mx-auto px-6 py-8 flex flex-col gap-6">
+            <WizardProgress
+              step={wizard.step}
+              totalSteps={totalSteps}
+              title={wizard.stepTitle}
+              progressPct={wizard.progressPct}
+            />
 
-        <StepContent wizard={wizard} />
+            <StepContent wizard={wizard} />
 
-        <WizardNav
-          step={wizard.step}
-          isLastStep={wizard.isLastStep}
-          loading={wizard.isLoading}
-          onPrev={wizard.prev}
-          onNext={wizard.next}
-          onSubmit={wizard.handleRequestSubmit}
-        />
-      </div>
+            <WizardNav
+              step={wizard.step}
+              isLastStep={wizard.isLastStep}
+              loading={wizard.isLoading}
+              onPrev={wizard.prev}
+              onNext={wizard.next}
+              onSubmit={wizard.handleRequestSubmit}
+            />
+          </div>
 
-      {wizard.showConfirm && (
-        <ConfirmDialog
-          title="Creare il cliente?"
-          description={`Stai per creare l'account per ${wizard.anagrafica.name}.`}
-          confirmLabel="CREA CLIENTE"
-          loading={wizard.isLoading}
-          onConfirm={wizard.handleConfirmSubmit}
-          onCancel={() => wizard.setShowConfirm(false)}
-        />
+          {wizard.showConfirm && (
+            <ConfirmDialog
+              title="Creare il cliente?"
+              description={`Stai per creare l'account per ${wizard.anagrafica.name}.`}
+              confirmLabel="CREA CLIENTE"
+              loading={wizard.isLoading}
+              onConfirm={wizard.handleConfirmSubmit}
+              onCancel={() => wizard.setShowConfirm(false)}
+            />
+          )}
+        </>
       )}
-      </div>}
     </div>
   )
 }

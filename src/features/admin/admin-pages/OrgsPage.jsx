@@ -79,38 +79,40 @@ export function OrgsPage({ onSelectOrg, currentUserUid }) {
       ) : filtered.length === 0 ? (
         <p className="font-body text-[13px] text-white/20">Nessuna organizzazione trovata.</p>
       ) : (
-        <div className="flex flex-col gap-2">
-          {paginatedOrgs.map(org => (
-            <button
-              key={org.id}
-              onClick={() => onSelectOrg(org)}
-              className="flex items-center justify-between px-5 py-4 w-full text-left cursor-pointer border transition-all rounded-[4px]"
-              style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.06)' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(248,113,113,0.2)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)' }}
-            >
-              <div>
-                <div className="font-display text-[14px] text-white">{org.name}</div>
-                <div className="font-body text-[12px] text-white/40 mt-0.5">
-                  {MODULE_LABELS[org.moduleType] ?? org.moduleType} · {org.id}
+        <>
+          <div className="flex flex-col gap-2">
+            {paginatedOrgs.map(org => (
+              <button
+                key={org.id}
+                onClick={() => onSelectOrg(org)}
+                className="flex items-center justify-between px-5 py-4 w-full text-left cursor-pointer border transition-all rounded-[4px]"
+                style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.06)' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(248,113,113,0.2)' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)' }}
+              >
+                <div>
+                  <div className="font-display text-[14px] text-white">{org.name}</div>
+                  <div className="font-body text-[12px] text-white/40 mt-0.5">
+                    {MODULE_LABELS[org.moduleType] ?? org.moduleType} · {org.id}
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <span
-                  className="font-display text-[9px] px-2 py-0.5 rounded-[3px]"
-                  style={{
-                    color:       STATUS_COLORS[org.status] ?? '#6b7280',
-                    background: (STATUS_COLORS[org.status] ?? '#6b7280') + '18',
-                  }}
-                >
-                  {(org.status ?? 'active').toUpperCase()}
-                </span>
-                <span className="text-white/20 text-[14px]">›</span>
-              </div>
-            </button>
-          ))}
-        </div>
-        <Pagination {...pagination} />
+                <div className="flex items-center gap-3">
+                  <span
+                    className="font-display text-[9px] px-2 py-0.5 rounded-[3px]"
+                    style={{
+                      color:       STATUS_COLORS[org.status] ?? '#6b7280',
+                      background: (STATUS_COLORS[org.status] ?? '#6b7280') + '18',
+                    }}
+                  >
+                    {(org.status ?? 'active').toUpperCase()}
+                  </span>
+                  <span className="text-white/20 text-[14px]">›</span>
+                </div>
+              </button>
+            ))}
+          </div>
+          <Pagination {...pagination} />
+        </>
       )}
 
       {showForm && (
