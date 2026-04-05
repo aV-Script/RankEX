@@ -11,6 +11,13 @@ dist-ssr/
 .env
 .env.local
 .env.*.local
+env
+
+# Claude Code — impostazioni locali
+.claude/
+
+# File gitignore con nome errato (duplicato)
+gitignore
 
 # Logs
 npm-debug.log*

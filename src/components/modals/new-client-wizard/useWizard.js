@@ -23,19 +23,20 @@ function calcTestFinalValue(test, tests) {
   return tests[test.key] === '' || isNaN(val) ? null : val
 }
 
-export function useWizard({ groups, onAdd, onClose, onAddGroup, onToggleClientGroup }) {
+export function useWizard({ groups, onAdd, onClose, onAddGroup, onToggleClientGroup, isSoccer = false }) {
   const [step,        setStep]        = useState(0)
   const [anagrafica,  setAnagrafica]  = useState({ name: '', eta: '', sesso: 'M', peso: '', altezza: '' })
   const [profileType, setProfileType] = useState('tests_only')
   const [categoria,   setCategoria]   = useState('health')
+  const [ruolo,       setRuolo]       = useState('goalkeeper')
   const [tests,       setTests]       = useState({})
   const [account,     setAccount]     = useState({ email: '', password: '' })
   const [errors,      setErrors]      = useState({})
   const [loading,     setLoading]     = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
-  const WIZARD_STEPS = useMemo(() => getWizardSteps(profileType), [profileType])
-  const TOTAL_STEPS  = TOTAL_STEPS_MAP[profileType]
+  const WIZARD_STEPS = useMemo(() => getWizardSteps(profileType, isSoccer), [profileType, isSoccer])
+  const TOTAL_STEPS  = isSoccer ? TOTAL_STEPS_MAP.soccer : TOTAL_STEPS_MAP[profileType]
 
   const categoryTests = getTestsForCategoria(categoria)
   const currentStep   = WIZARD_STEPS[step]
@@ -121,13 +122,14 @@ export function useWizard({ groups, onAdd, onClose, onAddGroup, onToggleClientGr
     try {
       await onAdd({
         ...anagrafica,
-        eta:        parseInt(anagrafica.eta),
-        peso:       parseFloat(anagrafica.peso),
-        altezza:    parseFloat(anagrafica.altezza),
-        categoria:  profileType === 'bia_only' ? null : categoria,
-        profileType,
-        email:      account.email.trim(),
-        password:   account.password,
+        eta:         parseInt(anagrafica.eta),
+        peso:        parseFloat(anagrafica.peso),
+        altezza:     parseFloat(anagrafica.altezza),
+        categoria:   isSoccer ? 'soccer' : (profileType === 'bia_only' ? null : categoria),
+        ruolo:       isSoccer ? ruolo : undefined,
+        profileType: isSoccer ? 'tests_only' : profileType,
+        email:       account.email.trim(),
+        password:    account.password,
       })
       onClose()
     } catch (err) {
@@ -138,13 +140,13 @@ export function useWizard({ groups, onAdd, onClose, onAddGroup, onToggleClientGr
   }, [anagrafica, profileType, categoria, account, onAdd, onClose])
 
   return {
-    step, anagrafica, profileType, categoria, account, errors, isLoading: loading,
+    step, anagrafica, profileType, categoria, ruolo, account, errors, isLoading: loading,
     showConfirm, setShowConfirm,
     categoryTests, currentStep, currentTest,
     livePercentile, media, rankObj,
     stepTitle, progressPct,
     isLastStep: step === TOTAL_STEPS - 1,
-    setAnagrafica, setCategoria, setAccount,
+    setAnagrafica, setCategoria, setRuolo, setAccount,
     setProfileType: (type) => {
       setProfileType(type)
       if (type === 'bia_only') setTests({})

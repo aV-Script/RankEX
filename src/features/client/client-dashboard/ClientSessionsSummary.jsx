@@ -6,7 +6,7 @@ import { ClientCalendar } from '../ClientCalendar'
  * Mostra il calendario con lo stato delle sessioni pianificate
  * e completate per il cliente selezionato.
  */
-export function ClientSessionsSummary({ clientId, sessionsPerWeek }) {
+export function ClientSessionsSummary({ clientId, orgId }) {
   return (
     <section className="px-6 py-6">
       <div
@@ -15,7 +15,7 @@ export function ClientSessionsSummary({ clientId, sessionsPerWeek }) {
         <SectionLabel>◈ Calendario allenamenti</SectionLabel>
         <ClientCalendar
           clientId={clientId}
-          sessionsPerWeek={sessionsPerWeek}
+          orgId={orgId}
         />
       </div>
     </section>

@@ -7,11 +7,11 @@ import { ErrorBoundary }         from '../components/common/ErrorBoundary'
 const LOADING_TIMEOUT_MS = 10_000
 
 export default function App() {
-  const { user, profile, refreshProfile } = useAuth()
-  const [timedOut, setTimedOut]           = useState(false)
+  const { user, profile, org, terminology, refreshProfile } = useAuth()
+  const [timedOut, setTimedOut]                             = useState(false)
 
-  // true finché l'SDK auth non risponde, o finché l'utente loggato aspetta il profilo
-  const isLoading = user === undefined || (user !== null && profile === undefined)
+  // true finché l'SDK auth non risponde, o finché l'utente loggato aspetta il profilo+org
+  const isLoading = user === undefined || (user !== null && (profile === undefined || org === undefined))
 
   useEffect(() => {
     if (!isLoading) { setTimedOut(false); return }
@@ -34,7 +34,7 @@ export default function App() {
   if (isLoading) return <LoadingScreen />
   return (
     <ErrorBoundary>
-      <AppRouter user={user} profile={profile} refreshProfile={refreshProfile} />
+      <AppRouter user={user} profile={profile} org={org} terminology={terminology} refreshProfile={refreshProfile} />
     </ErrorBoundary>
   )
 }

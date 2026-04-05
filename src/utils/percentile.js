@@ -1,8 +1,10 @@
 import { ALL_TESTS }      from '../constants'
 import { TABLES, getAgeGroup } from './tables'
 
-export function calcPercentile(stat, value, sex, age) {
-  const testEntry = ALL_TESTS.find(t => t.stat === stat)
+export function calcPercentile(stat, value, sex, age, testKey) {
+  const testEntry = testKey
+    ? ALL_TESTS.find(t => t.key === testKey)
+    : ALL_TESTS.find(t => t.stat === stat)
   if (!testEntry) return null
 
   const table = TABLES[testEntry.key]

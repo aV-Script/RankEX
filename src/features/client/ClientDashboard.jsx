@@ -14,12 +14,12 @@ import { UpgradeCategoryBanner }           from '../bia/UpgradeCategoryBanner'
 import { getProfileCategory }              from '../../constants/bia'
 import { calcBiaScore, getBiaRankFromScore } from '../../utils/bia'
 
-export function ClientDashboard({ client, trainerId, onBack, onCampionamento, onDelete }) {
+export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDelete }) {
   const { rankObj: testRankObj, color: testColor } = useClientRank(client)
   const [view,       setView]       = useState('dashboard') // 'dashboard' | 'campionamento' | 'bia'
   const [showDelete, setShowDelete] = useState(false)
 
-  const { handleSaveBia, handleUpgradeProfile } = useBia(trainerId)
+  const { handleSaveBia, handleUpgradeProfile } = useBia()
 
   const profileType = client.profileType ?? 'tests_only'
   const profile     = getProfileCategory(profileType)
@@ -85,7 +85,7 @@ export function ClientDashboard({ client, trainerId, onBack, onCampionamento, on
 
       <ClientSessionsSummary
         clientId={client.id}
-        sessionsPerWeek={client.sessionsPerWeek}
+        orgId={orgId}
       />
 
       <Divider color={color} />

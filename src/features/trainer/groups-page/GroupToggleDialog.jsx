@@ -10,7 +10,7 @@ const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
 export function GroupToggleDialog({
   client,
   group,
-  trainerId,
+  orgId,
   isRemoving,
   onConfirm,
   onCancel,
@@ -20,10 +20,10 @@ export function GroupToggleDialog({
   const [saving,  setSaving]  = useState(false)
 
   useEffect(() => {
-    getGroupTogglePreview(trainerId, group.id)
+    getGroupTogglePreview(orgId, group.id)
       .then(setPreview)
       .finally(() => setLoading(false))
-  }, [trainerId, group.id])
+  }, [orgId, group.id])
 
   const handleConfirm = async () => {
     setSaving(true)

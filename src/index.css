@@ -110,6 +110,17 @@ html, body, #root {
 }
 .input-base::placeholder { color: rgba(255,255,255,0.2); }
 
+select.input-base {
+  color:      #ffffff;
+  background: var(--rx-surface);
+  cursor:     pointer;
+  appearance: auto;
+}
+select.input-base option {
+  background: #131e2a;
+  color:      #ffffff;
+}
+
 /* ── Reticolo esagonale (sfondo decorativo) ────────────────── */
 .rx-hex-bg {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='64'%3E%3Cpath d='M28 2 L54 17 L54 47 L28 62 L2 47 L2 17 Z' fill='none' stroke='rgba(0,200,255,0.06)' stroke-width='1'/%3E%3C/svg%3E");

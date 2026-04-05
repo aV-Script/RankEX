@@ -3,7 +3,7 @@ import { ProtectedRoute }          from '../components/common/ProtectedRoute'
 import LoginPage                   from '../features/auth/LoginPage'
 import { ROLE_REDIRECT, PROTECTED_ROUTES } from './routes.config'
 
-export function AppRouter({ user, profile, refreshProfile }) {
+export function AppRouter({ user, profile, org, terminology, refreshProfile }) {
   const role = profile?.role
 
   return (
@@ -23,7 +23,7 @@ export function AppRouter({ user, profile, refreshProfile }) {
           path={path}
           element={
             <ProtectedRoute user={user} profile={profile} allowedRoles={allowedRoles}>
-              {element(user, profile, { refreshProfile })}
+              {element(user, profile, { org, terminology, refreshProfile })}
             </ProtectedRoute>
           }
         />

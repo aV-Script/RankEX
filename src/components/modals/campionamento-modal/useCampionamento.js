@@ -13,13 +13,13 @@ function calcTestPercentile(test, testValues, sesso, eta) {
     }
     const finalValue = applyFormula(test, varsValues)
     if (finalValue === null) return null
-    return calcPercentile(test.stat, finalValue, sesso, eta)
+    return calcPercentile(test.stat, finalValue, sesso, eta, test.key)
   }
 
   const raw = testValues[test.stat]
   const val = raw === '' || raw === undefined ? null : Number(raw)
   if (val === null || isNaN(val)) return null
-  return calcPercentile(test.stat, val, sesso, eta)
+  return calcPercentile(test.stat, val, sesso, eta, test.key)
 }
 
 export function useCampionamento({ client, onSave, onBack }) {

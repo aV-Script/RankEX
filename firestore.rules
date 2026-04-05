@@ -2,106 +2,161 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Restituisce il clientId Firestore dell'utente autenticato.
-    // I trainer non hanno clientId → restituisce null → tutti i check falliscono.
-    // Se il documento users/{uid} non esiste la regola viene negata (comportamento
-    // predefinito di Firestore quando un'espressione lancia eccezione).
-    function myClientId() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.clientId;
+    // ── Helpers ───────────────────────────────────────────────
+
+    function isAuth() {
+      return request.auth != null;
     }
 
-    // ── Profili utente ─────────────────────────────────────────────────────────
-    // Lettura/aggiornamento solo al documento proprio.
-    // Creazione: self-signup (trainer) OPPURE il trainer crea il profilo del cliente
-    // (handleAddClient in useClients.js chiama setDoc con l'UID del cliente).
-    match /users/{userId} {
-      allow read, update, delete: if request.auth != null
-        && request.auth.uid == userId;
-
-      allow create: if request.auth != null && (
-        // Il trainer crea il proprio profilo al primo accesso
-        request.auth.uid == userId
-        ||
-        // Il trainer crea il profilo di un cliente appena registrato
-        (
-          request.resource.data.role      == 'client'
-          && request.resource.data.trainerId == request.auth.uid
-          && get(/databases/$(database)/documents/clients/$(request.resource.data.clientId))
-               .data.trainerId == request.auth.uid
-        )
-      );
+    function userProfile() {
+      let p = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return p == null ? {} : p.data;
     }
 
-    // ── Clienti ───────────────────────────────────────────────────────────────
-    // Lettura: trainer proprietario O il cliente stesso (tramite clientAuthUid).
-    // Scrittura/cancellazione: solo il trainer proprietario.
-    // Creazione: il trainer deve essere il proprietario del documento.
-    match /clients/{clientId} {
-      allow read: if request.auth != null && (
-        resource.data.trainerId     == request.auth.uid ||
-        resource.data.clientAuthUid == request.auth.uid
-      );
-
-      allow update, delete: if request.auth != null
-        && resource.data.trainerId == request.auth.uid;
-
-      allow create: if request.auth != null
-        && request.resource.data.trainerId == request.auth.uid;
+    function isSuperAdmin() {
+      return isAuth() && userProfile().role == 'super_admin';
     }
 
-    // ── Slot calendario ───────────────────────────────────────────────────────
-    // Lettura: trainer proprietario O cliente presente nello slot.
-    //   clientIds contiene Firestore IDs → si confronta con myClientId()
-    //   ricavato dal profilo users/{uid} del cliente autenticato.
-    // Scrittura/cancellazione: solo il trainer proprietario.
-    match /slots/{slotId} {
-      allow read: if request.auth != null && (
-        resource.data.trainerId == request.auth.uid ||
-        myClientId() in resource.data.clientIds
-      );
-
-      allow update, delete: if request.auth != null
-        && resource.data.trainerId == request.auth.uid;
-
-      allow create: if request.auth != null
-        && request.resource.data.trainerId == request.auth.uid;
+    function isClientOfOrg(orgId) {
+      return isAuth() &&
+        userProfile().role == 'client' &&
+        userProfile().orgId == orgId;
     }
 
-    // ── Gruppi clienti ─────────────────────────────────────────────────────────
-    // Accesso completo solo al trainer proprietario del gruppo.
-    match /groups/{groupId} {
-      allow read, update, delete: if request.auth != null
-        && resource.data.trainerId == request.auth.uid;
-
-      allow create: if request.auth != null
-        && request.resource.data.trainerId == request.auth.uid;
+    function isOrgMember(orgId) {
+      return isAuth() &&
+        exists(/databases/$(database)/documents/organizations/$(orgId)/members/$(request.auth.uid));
     }
 
-    // ── Notifiche ─────────────────────────────────────────────────────────────
-    // Lettura/aggiornamento (mark read) /cancellazione: solo il cliente destinatario.
-    //   myClientId() confronta il clientId Firestore del cliente autenticato
-    //   con resource.data.clientId della notifica.
-    // Creazione: solo il trainer proprietario del cliente destinatario.
-    match /notifications/{notifId} {
-      allow read, update, delete: if request.auth != null
-        && myClientId() == resource.data.clientId;
-
-      allow create: if request.auth != null
-        && get(/databases/$(database)/documents/clients/$(request.resource.data.clientId))
-             .data.trainerId == request.auth.uid;
+    function memberRole(orgId) {
+      return get(/databases/$(database)/documents/organizations/$(orgId)/members/$(request.auth.uid)).data.role;
     }
 
-    // ── Ricorrenze ────────────────────────────────────────────────────────────
-    // Accesso completo solo al trainer proprietario.
-    match /recurrences/{recId} {
-      allow read, update, delete: if request.auth != null
-        && resource.data.trainerId == request.auth.uid;
-
-      allow create: if request.auth != null
-        && request.resource.data.trainerId == request.auth.uid;
+    function canWrite(orgId) {
+      return isSuperAdmin() ||
+        (isOrgMember(orgId) && memberRole(orgId) in ['org_admin', 'trainer']);
     }
 
-    // Nota: le collection missions e missionTemplates sono state rimosse
-    // dall'applicazione. Nessuna regola → accesso negato per default.
+    function canRead(orgId) {
+      return isSuperAdmin() || isOrgMember(orgId);
+    }
+
+    // ── Limiti piano ─────────────────────────────────────────────
+    // Se il campo counter non è ancora inizializzato (org esistente),
+    // si lascia passare (return true) fino alla prima operazione contabile.
+
+    function withinTrainerLimit(orgId) {
+      let org   = get(/databases/$(database)/documents/organizations/$(orgId)).data;
+      let limit = org.plan == 'enterprise' ? 999999 : org.plan == 'pro' ? 5 : 1;
+      return !('memberCount' in org) || org.memberCount < limit;
+    }
+
+    function withinClientLimit(orgId) {
+      let org   = get(/databases/$(database)/documents/organizations/$(orgId)).data;
+      let limit = org.plan == 'enterprise' ? 999999 : org.plan == 'pro' ? 100 : 10;
+      return !('clientCount' in org) || org.clientCount < limit;
+    }
+
+    function isOrgAdminForMember(targetUid) {
+      let admin = userProfile();
+      return isAuth() &&
+        admin.role == 'org_admin' &&
+        admin.orgId != null &&
+        exists(/databases/$(database)/documents/organizations/$(admin.orgId)/members/$(targetUid)) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role']);
+    }
+
+    function isOwnClient(orgId, clientId) {
+      return isAuth() &&
+        userProfile().orgId == orgId &&
+        userProfile().clientId == clientId &&
+        userProfile().role == 'client';
+    }
+
+    // ── Users ─────────────────────────────────────────────────
+
+    match /users/{uid} {
+      // Ogni utente legge solo il proprio profilo (o super_admin legge tutto)
+      allow read: if isAuth() && (request.auth.uid == uid || isSuperAdmin());
+
+      // CREATE: org_admin e trainer possono creare profili cliente/membro
+      // nella propria org. Super_admin può creare qualsiasi profilo.
+      allow create: if isSuperAdmin() ||
+        (isAuth() &&
+         request.resource.data.orgId != null &&
+         isOrgMember(request.resource.data.orgId) &&
+         memberRole(request.resource.data.orgId) in ['org_admin', 'trainer']);
+
+      // UPDATE: super_admin può tutto.
+      // L'utente può aggiornare solo mustChangePassword sul proprio profilo.
+      // Org_admin può cambiare il role dei propri membri.
+      allow update: if isSuperAdmin() ||
+        (request.auth.uid == uid &&
+         request.resource.data.diff(resource.data).affectedKeys()
+           .hasOnly(['mustChangePassword'])) ||
+        isOrgAdminForMember(uid);
+
+      allow delete: if isSuperAdmin();
+    }
+
+    // ── Organizations ─────────────────────────────────────────
+
+    match /organizations/{orgId} {
+      allow read:  if isSuperAdmin() || isOrgMember(orgId) || isClientOfOrg(orgId);
+      allow write: if isSuperAdmin() ||
+        (isOrgMember(orgId) && memberRole(orgId) == 'org_admin');
+
+      // ── Members ───────────────────────────────────────────
+
+      match /members/{uid} {
+        allow read:   if isSuperAdmin() ||
+          (isOrgMember(orgId) && memberRole(orgId) == 'org_admin');
+        allow create: if isSuperAdmin() ||
+          (isOrgMember(orgId) && memberRole(orgId) == 'org_admin' && withinTrainerLimit(orgId));
+        allow update, delete: if isSuperAdmin() ||
+          (isOrgMember(orgId) && memberRole(orgId) == 'org_admin');
+      }
+
+      // ── Clients ───────────────────────────────────────────
+
+      match /clients/{clientId} {
+        allow read:   if canRead(orgId) || isOwnClient(orgId, clientId);
+        allow create: if isSuperAdmin() ||
+          (isOrgMember(orgId) && memberRole(orgId) in ['org_admin', 'trainer'] && withinClientLimit(orgId));
+        allow update, delete: if canWrite(orgId);
+      }
+
+      // ── Slots ─────────────────────────────────────────────
+
+      match /slots/{slotId} {
+        allow read: if canRead(orgId) ||
+          (isClientOfOrg(orgId) &&
+           resource.data.clientIds.hasAny([userProfile().clientId]));
+        allow write: if canWrite(orgId);
+      }
+
+      // ── Groups ────────────────────────────────────────────
+
+      match /groups/{groupId} {
+        allow read:  if canRead(orgId);
+        allow write: if canWrite(orgId);
+      }
+
+      // ── Recurrences ───────────────────────────────────────
+
+      match /recurrences/{recId} {
+        allow read:  if canRead(orgId);
+        allow write: if canWrite(orgId);
+      }
+
+      // ── Notifications ─────────────────────────────────────
+
+      match /notifications/{notId} {
+        allow read: if canRead(orgId) ||
+          (isClientOfOrg(orgId) &&
+           userProfile().clientId == resource.data.clientId);
+        allow write: if canWrite(orgId);
+      }
+    }
   }
 }

@@ -1,36 +1,25 @@
-import { useCallback }                                      from 'react'
-import { useTrainerDispatch, ACTIONS }                      from '../../context/TrainerContext'
-import { updateClient }                                     from '../../firebase/services/clients'
-import { addNotification }                                  from '../../firebase/services/notifications'
-import { buildBiaUpdate, buildProfileUpgrade }              from '../../utils/gamification'
+import { useCallback }                         from 'react'
+import { useTrainerState, useTrainerDispatch, ACTIONS } from '../../context/TrainerContext'
+import { updateClient }                         from '../../firebase/services/clients'
+import { addNotification }                      from '../../firebase/services/notifications'
+import { buildBiaUpdate, buildProfileUpgrade }  from '../../utils/gamification'
 
 /**
  * Hook per la gestione delle misurazioni BIA.
- * Usato nel dashboard trainer per i clienti con BIA.
  */
-export function useBia(trainerId) {
-  const dispatch = useTrainerDispatch()
+export function useBia() {
+  const { orgId }  = useTrainerState()
+  const dispatch   = useTrainerDispatch()
 
-  /**
-   * Salva una nuova misurazione BIA per un cliente.
-   */
   const handleSaveBia = useCallback(async (client, biaData) => {
     const { update, xpEarned } = buildBiaUpdate(client, biaData)
 
-    // Ottimistico
-    dispatch({
-      type:    ACTIONS.UPDATE_CLIENT,
-      payload: { id: client.id, ...update },
-    })
-    dispatch({
-      type:    ACTIONS.SELECT_CLIENT,
-      payload: { ...client, ...update },
-    })
+    dispatch({ type: ACTIONS.SELECT_CLIENT, payload: { ...client, ...update } })
 
     try {
-      await updateClient(client.id, update)
+      await updateClient(orgId, client.id, update)
       if (client.clientAuthUid && xpEarned > 0) {
-        await addNotification({
+        await addNotification(orgId, {
           clientId: client.id,
           message:  xpEarned === 100
             ? `Prima misurazione BIA completata! +${xpEarned} XP`
@@ -40,32 +29,20 @@ export function useBia(trainerId) {
         })
       }
     } catch {
-      // Rollback
-      dispatch({ type: ACTIONS.UPDATE_CLIENT, payload: client })
       dispatch({ type: ACTIONS.SELECT_CLIENT, payload: client })
     }
-  }, [dispatch])
+  }, [orgId, dispatch])
 
-  /**
-   * Upgrade categoria profilo cliente.
-   */
   const handleUpgradeProfile = useCallback(async (client, newProfileType) => {
     const update   = buildProfileUpgrade(client, newProfileType)
     const snapshot = client
 
-    dispatch({
-      type:    ACTIONS.UPDATE_CLIENT,
-      payload: { id: client.id, ...update },
-    })
-    dispatch({
-      type:    ACTIONS.SELECT_CLIENT,
-      payload: { ...client, ...update },
-    })
+    dispatch({ type: ACTIONS.SELECT_CLIENT, payload: { ...client, ...update } })
 
     try {
-      await updateClient(client.id, update)
+      await updateClient(orgId, client.id, update)
       if (client.clientAuthUid) {
-        await addNotification({
+        await addNotification(orgId, {
           clientId: client.id,
           message:  'Il tuo profilo è stato aggiornato dal trainer.',
           date:     new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }),
@@ -73,10 +50,9 @@ export function useBia(trainerId) {
         })
       }
     } catch {
-      dispatch({ type: ACTIONS.UPDATE_CLIENT, payload: snapshot })
       dispatch({ type: ACTIONS.SELECT_CLIENT, payload: snapshot })
     }
-  }, [dispatch])
+  }, [orgId, dispatch])
 
   return { handleSaveBia, handleUpgradeProfile }
 }

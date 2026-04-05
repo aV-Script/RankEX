@@ -1,9 +1,13 @@
 import { memo }                              from 'react'
 import { useClientRank }                     from '../../../hooks/useClientRank'
+import { useTrainerState }                   from '../../../context/TrainerContext'
+import { getModule, PLAYER_ROLES }           from '../../../config/modules.config'
 import { getCategoriaById }                  from '../../../constants'
 import { calcBiaScore, getBiaRankFromScore } from '../../../utils/bia'
 
 export const ClientCard = memo(function ClientCard({ client, onSelect }) {
+  const { moduleType }       = useTrainerState()
+  const isSoccer             = getModule(moduleType).isSoccer
   const { color: testColor } = useClientRank(client)
 
   const profileType = client.profileType ?? 'tests_only'
@@ -12,7 +16,8 @@ export const ClientCard = memo(function ClientCard({ client, onSelect }) {
   const biaColor    = biaRank?.color ?? '#4a5568'
   const color       = profileType === 'bia_only' ? biaColor : testColor
 
-  const categoria   = client.categoria ? getCategoriaById(client.categoria) : null
+  const categoria   = !isSoccer && client.categoria ? getCategoriaById(client.categoria) : null
+  const roleObj     = isSoccer && client.ruolo ? PLAYER_ROLES.find(r => r.value === client.ruolo) : null
 
   return (
     <button
@@ -52,7 +57,7 @@ export const ClientCard = memo(function ClientCard({ client, onSelect }) {
             LVL {client.level}
           </span>
 
-          {/* Categoria con il suo colore — enfasi principale */}
+          {/* Badge: categoria (PT) o ruolo (Soccer) */}
           {categoria && (
             <span
               className="rounded-full px-2.5 py-0.5 text-[10px] font-display font-bold tracking-wide"
@@ -63,6 +68,18 @@ export const ClientCard = memo(function ClientCard({ client, onSelect }) {
               }}
             >
               {categoria.label}
+            </span>
+          )}
+          {roleObj && (
+            <span
+              className="rounded-full px-2.5 py-0.5 text-[10px] font-display font-bold tracking-wide"
+              style={{
+                background: '#00c8ff1a',
+                color:      '#00c8ff',
+                border:     '1px solid #00c8ff44',
+              }}
+            >
+              {roleObj.label}
             </span>
           )}
         </div>

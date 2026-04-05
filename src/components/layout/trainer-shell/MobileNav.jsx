@@ -1,11 +1,17 @@
-import { TabItem }              from './TabItem'
-import { NAV_ITEMS, LogoutIcon } from './navItems.config'
+import { TabItem }      from './TabItem'
+import { useTrainerState } from '../../../context/TrainerContext'
+import { NAV_ITEMS, ORG_ADMIN_NAV_ITEMS, LogoutIcon } from './navItems.config'
 
 /**
  * Navigazione mobile — header fisso + tab bar.
  * onLogout viene dall'esterno per le stesse ragioni della Sidebar.
  */
 export function MobileNav({ page, onNavigate, onLogout }) {
+  const { userRole } = useTrainerState()
+  const allNavItems  = userRole === 'org_admin'
+    ? [...NAV_ITEMS, ...ORG_ADMIN_NAV_ITEMS]
+    : NAV_ITEMS
+
   return (
     <div className="lg:hidden flex-none">
 
@@ -36,7 +42,7 @@ export function MobileNav({ page, onNavigate, onLogout }) {
         className="flex border-b border-white/[.05] sticky top-[49px] z-20 backdrop-blur-md"
         aria-label="Navigazione mobile"
       >
-        {NAV_ITEMS.map(item => (
+        {allNavItems.map(item => (
           <TabItem
             key={item.id}
             item={item}

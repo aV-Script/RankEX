@@ -1,5 +1,6 @@
-import { SidebarIcon } from './SidebarIcon'
-import { NAV_ITEMS, LogoutIcon } from './navItems.config'
+import { SidebarIcon }   from './SidebarIcon'
+import { useTrainerState } from '../../../context/TrainerContext'
+import { NAV_ITEMS, ORG_ADMIN_NAV_ITEMS, LogoutIcon } from './navItems.config'
 
 /**
  * Sidebar desktop — icone con tooltip, logo, logout.
@@ -7,6 +8,11 @@ import { NAV_ITEMS, LogoutIcon } from './navItems.config'
  * onLogout viene dall'esterno — la sidebar non sa come funziona il logout.
  */
 export function Sidebar({ page, onNavigate, onLogout }) {
+  const { userRole }  = useTrainerState()
+  const allNavItems   = userRole === 'org_admin'
+    ? [...NAV_ITEMS, ...ORG_ADMIN_NAV_ITEMS]
+    : NAV_ITEMS
+
   return (
     <aside
       className="
@@ -27,7 +33,7 @@ export function Sidebar({ page, onNavigate, onLogout }) {
 
       {/* Voci nav */}
       <nav className="flex flex-col items-center gap-1 flex-1">
-        {NAV_ITEMS.map(item => (
+        {allNavItems.map(item => (
           <SidebarIcon
             key={item.id}
             item={item}

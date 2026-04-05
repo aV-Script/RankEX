@@ -1,6 +1,8 @@
 import { useState, useCallback }  from 'react'
 import { useGroups }              from '../../hooks/useGroups'
 import { useTrainerNav }          from './useTrainerNav'
+import { useTrainerState }        from '../../context/TrainerContext'
+import { getModule }              from '../../config/modules.config'
 import { useClientFilters }       from './useClientFilters'
 import { usePagination }          from '../../hooks/usePagination'
 import { ClientCard }             from './clients-page/ClientCard'
@@ -13,10 +15,12 @@ import { PAGINATION_PAGE_SIZE }  from '../../config/app.config'
 
 const PAGE_SIZE = PAGINATION_PAGE_SIZE
 
-export function ClientsPage({ trainerId, clients = [], clientsLoading: loading = false, clientsError: error = null, onAddClient }) {
-  const { groups }     = useGroups(trainerId)
+export function ClientsPage({ orgId, clients = [], clientsLoading: loading = false, clientsError: error = null, onAddClient }) {
+  const { moduleType }  = useTrainerState()
+  const isSoccer        = getModule(moduleType).isSoccer
+  const { groups }      = useGroups(orgId)
   const { selectClient }                             = useTrainerNav()
-  const filters                                      = useClientFilters(clients, groups)
+  const filters                                      = useClientFilters(clients, groups, isSoccer)
   const [view, setView]                              = useState('list')
 
   const pagination = usePagination(filters.filteredClients, PAGE_SIZE)
@@ -32,7 +36,7 @@ export function ClientsPage({ trainerId, clients = [], clientsLoading: loading =
   if (view === 'new') {
     return (
       <NewClientView
-        trainerId={trainerId}
+        orgId={orgId}
         onAdd={handleAdd}
         onBack={() => setView('list')}
       />
@@ -45,6 +49,7 @@ export function ClientsPage({ trainerId, clients = [], clientsLoading: loading =
       <FiltersSidebar
         {...filters}
         groups={groups}
+        isSoccer={isSoccer}
         onNewClient={() => setView('new')}
       />
 

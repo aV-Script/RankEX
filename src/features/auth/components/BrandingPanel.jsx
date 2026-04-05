@@ -8,7 +8,7 @@ const RANK_DECORATIONS = [
 
 const STATS = [
   ['17', 'livelli di rank'],
-  ['5',  'test scientifici'],
+  ['5+', 'test atletici'],
   ['∞',  'progressioni'],
 ]
 
@@ -34,7 +34,7 @@ export function BrandingPanel() {
           className="font-display text-[11px] tracking-[4px] mb-4"
           style={{ color: '#0fd65a' }}
         >
-          TRAINER PORTAL
+          PERFORMANCE PLATFORM
         </p>
         <h1 className="font-display font-black text-[52px] leading-[1.05] text-white m-0">
           Allena.<br />
@@ -43,8 +43,8 @@ export function BrandingPanel() {
         </h1>
         <p className="font-body text-white/40 text-[15px] mt-6 leading-relaxed max-w-sm">
           Trasforma ogni sessione in progressione misurabile.
-          Gamifica i risultati dei tuoi clienti con statistiche
-          reali e un sistema di rank dinamico.
+          Statistiche reali, test atletici certificati
+          e un sistema di rank dinamico.
         </p>
       </div>
 

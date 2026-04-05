@@ -1,4 +1,5 @@
-import { Input } from '../../../components/ui'
+import { Input }        from '../../../components/ui'
+import { PLAYER_ROLES } from '../../../config/modules.config'
 
 const SORT_OPTIONS = [
   ['name',  'Nome A→Z'],
@@ -18,6 +19,7 @@ export function FiltersSidebar({
   categorie,
   groups,
   onNewClient,
+  isSoccer = false,
 }) {
   return (
     <aside className="
@@ -37,16 +39,21 @@ export function FiltersSidebar({
       </FilterSection>
 
       {categorie.length > 1 && (
-        <FilterSection label="CATEGORIA">
-          {categorie.map(cat => (
-            <FilterBtn
-              key={cat}
-              active={filterCategoria === cat}
-              onClick={() => onCategoriaChange(cat)}
-            >
-              {cat.charAt(0).toUpperCase() + cat.slice(1)}
-            </FilterBtn>
-          ))}
+        <FilterSection label={isSoccer ? 'RUOLO' : 'CATEGORIA'}>
+          {categorie.map(val => {
+            const label = isSoccer && val !== 'tutti'
+              ? (PLAYER_ROLES.find(r => r.value === val)?.label ?? val)
+              : val.charAt(0).toUpperCase() + val.slice(1)
+            return (
+              <FilterBtn
+                key={val}
+                active={filterCategoria === val}
+                onClick={() => onCategoriaChange(val)}
+              >
+                {label}
+              </FilterBtn>
+            )
+          })}
         </FilterSection>
       )}
 

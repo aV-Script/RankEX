@@ -9,6 +9,12 @@ export const ACTIONS = Object.freeze({
 // ── Stato iniziale ────────────────────────────────────────────────────────────
 const initialState = {
   selectedClient: null,
+  // Info org — popolate dal Provider
+  orgId:       null,
+  moduleType:  null,
+  terminology: null,
+  userRole:    null,
+  orgPlan:     'free',
 }
 
 // ── Reducer ───────────────────────────────────────────────────────────────────
@@ -30,8 +36,19 @@ const StateCtx    = createContext(null)
 const DispatchCtx = createContext(null)
 
 // ── Provider ──────────────────────────────────────────────────────────────────
-export function TrainerProvider({ children }) {
-  const [state, dispatch] = useReducer(reducer, initialState)
+/**
+ * @param {{ orgId, moduleType, terminology, userRole, orgPlan, children }} props
+ */
+export function TrainerProvider({ orgId, moduleType, terminology, userRole, orgPlan, children }) {
+  const [state, dispatch] = useReducer(reducer, {
+    ...initialState,
+    orgId,
+    moduleType,
+    terminology,
+    userRole,
+    orgPlan: orgPlan ?? 'free',
+  })
+
   return (
     <StateCtx.Provider value={state}>
       <DispatchCtx.Provider value={dispatch}>

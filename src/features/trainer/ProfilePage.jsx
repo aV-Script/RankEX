@@ -1,17 +1,26 @@
-import { useState, useCallback }        from 'react'
-import { useAuth }                       from '../auth/useAuth'
-import { logout, changeTrainerPassword } from '../../firebase/services/auth'
-import { Field }                         from '../../components/ui'
-import { getFirebaseErrorMessage }       from '../../utils/firebaseErrors'
-import { validatePassword }              from '../../utils/validation'
+import { useState, useCallback }                        from 'react'
+import { useAuth }                                       from '../auth/useAuth'
+import { logout, changeTrainerPassword, changeUserEmail } from '../../firebase/services/auth'
+import { Field }                                         from '../../components/ui'
+import { getFirebaseErrorMessage }                       from '../../utils/firebaseErrors'
+import { validatePassword }                              from '../../utils/validation'
 
 export function ProfilePage() {
   const { user } = useAuth()
+
+  // — Password change
   const [open,    setOpen]    = useState(false)
   const [form,    setForm]    = useState({ current: '', password: '', confirm: '' })
   const [errors,  setErrors]  = useState({})
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+
+  // — Email change
+  const [openEmail,   setOpenEmail]   = useState(false)
+  const [emailForm,   setEmailForm]   = useState({ current: '', newEmail: '' })
+  const [emailErrors, setEmailErrors] = useState({})
+  const [emailLoading,setEmailLoading]= useState(false)
+  const [emailSuccess,setEmailSuccess]= useState(false)
 
   const set = (key) => (e) => {
     setForm(p => ({ ...p, [key]: e.target.value }))
@@ -39,12 +48,38 @@ export function ProfilePage() {
       setOpen(false)
     } catch (err) {
       const msg = getFirebaseErrorMessage(err, 'Impossibile aggiornare la password')
-      // wrong-password → errore sul campo password attuale
       setErrors({ general: msg })
     } finally {
       setLoading(false)
     }
   }, [form, validate])
+
+  const setEmail = (key) => (e) => {
+    setEmailForm(p => ({ ...p, [key]: e.target.value }))
+    setEmailErrors(p => ({ ...p, [key]: undefined, general: undefined }))
+    setEmailSuccess(false)
+  }
+
+  const handleEmailSubmit = useCallback(async () => {
+    const e = {}
+    if (!emailForm.current)                          e.current  = 'Password attuale obbligatoria'
+    if (!emailForm.newEmail.includes('@'))           e.newEmail = 'Email non valida'
+    if (emailForm.newEmail === user?.email)          e.newEmail = 'Email uguale a quella attuale'
+    setEmailErrors(e)
+    if (Object.keys(e).length > 0) return
+    setEmailLoading(true)
+    try {
+      await changeUserEmail(emailForm.current, emailForm.newEmail)
+      setEmailSuccess(true)
+      setEmailForm({ current: '', newEmail: '' })
+      setOpenEmail(false)
+    } catch (err) {
+      const msg = getFirebaseErrorMessage(err, 'Impossibile aggiornare l\'email')
+      setEmailErrors({ general: msg })
+    } finally {
+      setEmailLoading(false)
+    }
+  }, [emailForm, user?.email])
 
   return (
     <div className="px-6 py-8 max-w-lg">
@@ -73,11 +108,86 @@ export function ProfilePage() {
       <div className="rounded-[4px] overflow-hidden"
         style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
 
-        {/* Email */}
-        <div className="px-5 py-4" style={{ background: 'rgba(255,255,255,0.02)' }}>
-          <div className="font-display text-[10px] text-white/30 tracking-[2px] mb-1">ACCOUNT</div>
-          <div className="font-body text-[13px] text-white/60">{user?.email}</div>
-        </div>
+        {/* Cambio email — toggle */}
+        <button
+          onClick={() => { setOpenEmail(o => !o); setEmailErrors({}); setEmailSuccess(false) }}
+          className="w-full flex items-center justify-between px-5 py-4 cursor-pointer transition-all text-left border-none bg-transparent"
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        >
+          <div className="flex items-center gap-3">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="rgba(200,212,224,0.5)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            <div>
+              <span className="font-body text-[13px] text-white/60">Cambia email</span>
+              <div className="font-body text-[11px] text-white/30 mt-0.5">{user?.email}</div>
+            </div>
+          </div>
+          {emailSuccess
+            ? <span className="font-display text-[10px] tracking-wider" style={{ color: '#0fd65a' }}>VERIFICA INVIATA</span>
+            : <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="rgba(255,255,255,0.2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                style={{ transform: openEmail ? 'rotate(180deg)' : 'none', transition: 'transform 200ms' }}>
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+          }
+        </button>
+
+        {openEmail && (
+          <div className="px-5 pb-5 flex flex-col gap-3"
+            style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+            <div className="pt-4 flex flex-col gap-3">
+              <Field label="Password attuale" error={emailErrors.current} htmlFor="em-current">
+                <input
+                  id="em-current"
+                  type="password"
+                  placeholder="••••••••"
+                  value={emailForm.current}
+                  onChange={setEmail('current')}
+                  className="input-base"
+                  autoComplete="current-password"
+                />
+              </Field>
+              <Field label="Nuova email" error={emailErrors.newEmail} htmlFor="em-new">
+                <input
+                  id="em-new"
+                  type="email"
+                  placeholder="nuova@email.com"
+                  value={emailForm.newEmail}
+                  onChange={setEmail('newEmail')}
+                  className="input-base"
+                  autoComplete="email"
+                />
+              </Field>
+              {emailErrors.general && (
+                <p className="font-body text-[12px] text-red-400 m-0">{emailErrors.general}</p>
+              )}
+              <p className="font-body text-[11px] text-white/30 m-0">
+                Riceverai un link di verifica alla nuova email prima che la modifica diventi effettiva.
+              </p>
+              <div className="flex gap-2 mt-1">
+                <button
+                  onClick={() => { setOpenEmail(false); setEmailErrors({}) }}
+                  className="flex-1 py-2.5 font-display text-[12px] cursor-pointer bg-transparent text-white/40 hover:text-white/60 transition-colors border-none"
+                  style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: '3px' }}
+                >
+                  ANNULLA
+                </button>
+                <button
+                  onClick={handleEmailSubmit}
+                  disabled={emailLoading}
+                  className="flex-1 py-2.5 font-display text-[12px] font-bold cursor-pointer transition-opacity hover:opacity-85 disabled:opacity-50 border-none"
+                  style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', borderRadius: '3px', color: '#080c12' }}
+                >
+                  {emailLoading ? 'INVIO...' : 'INVIA VERIFICA'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="h-px" style={{ background: 'rgba(255,255,255,0.05)' }} />
 

@@ -35,7 +35,7 @@ function MobileLogo() {
         Rank EX
       </div>
       <div className="text-white/30 font-body text-[12px] mt-1 tracking-[3px]">
-        TRAINER PORTAL
+        PERFORMANCE PLATFORM
       </div>
     </div>
   )

@@ -21,8 +21,8 @@ const PAGES = {
  * Entry point dell'area cliente.
  * Gestisce fetch, navigazione, notifiche
  */
-export default function ClientView({ clientId }) {
-  const { client, loading } = useClient(clientId)
+export default function ClientView({ clientId, orgId }) {
+  const { client, loading } = useClient(orgId, clientId)
   const { rankObj: testRankObj, color: testColor } = useClientRank(client)
 
   const profileType = client?.profileType ?? 'tests_only'
@@ -31,7 +31,7 @@ export default function ClientView({ clientId }) {
 
   const rankObj = profileType === 'bia_only' ? biaRankObj : testRankObj
   const color   = profileType === 'bia_only' ? biaRankObj.color : testColor
-  const { notifications, unreadCount, markAllRead, remove } = useNotifications(clientId)
+  const { notifications, unreadCount, markAllRead, remove } = useNotifications(orgId, clientId)
 
   const [view,        setView]        = useState('dashboard') // 'dashboard' | 'card'
   const [activePage,  setActivePage]  = useState('dashboard')
@@ -73,7 +73,7 @@ export default function ClientView({ clientId }) {
         <div className="px-4 py-6">
           <ClientCalendar
             clientId={clientId}
-            sessionsPerWeek={client.sessionsPerWeek}
+            orgId={orgId}
           />
         </div>
       )}

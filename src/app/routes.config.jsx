@@ -3,22 +3,49 @@ import ChangePasswordScreen from '../features/client/ChangePasswordScreen'
 import { ErrorBoundary }    from '../components/common/ErrorBoundary'
 import { LoadingScreen }    from '../components/common/LoadingScreen'
 
-const TrainerView = lazy(() => import('../features/trainer/TrainerView'))
-const ClientView  = lazy(() => import('../features/client/ClientView'))
+const TrainerView     = lazy(() => import('../features/trainer/TrainerView'))
+const ClientView      = lazy(() => import('../features/client/ClientView'))
+const SuperAdminView  = lazy(() => import('../features/admin/SuperAdminView'))
+const OrgAdminView    = lazy(() => import('../features/org/OrgAdminView'))
 
 export const ROLE_REDIRECT = {
-  trainer: '/trainer',
-  client:  '/client',
+  super_admin:   '/admin',
+  org_admin:     '/org',
+  trainer:       '/trainer',
+  staff_readonly:'/trainer',
+  client:        '/client',
 }
 
 export const PROTECTED_ROUTES = [
   {
-    path:         '/trainer',
-    allowedRoles: ['trainer'],
+    path:         '/admin',
+    allowedRoles: ['super_admin'],
     element:      (user, profile, helpers) => (
       <ErrorBoundary>
         <Suspense fallback={<LoadingScreen />}>
-          <TrainerView user={user} />
+          <SuperAdminView user={user} profile={profile} />
+        </Suspense>
+      </ErrorBoundary>
+    ),
+  },
+  {
+    path:         '/org',
+    allowedRoles: ['org_admin'],
+    element:      (user, profile, { org, terminology }) => (
+      <ErrorBoundary>
+        <Suspense fallback={<LoadingScreen />}>
+          <OrgAdminView user={user} profile={profile} org={org} terminology={terminology} />
+        </Suspense>
+      </ErrorBoundary>
+    ),
+  },
+  {
+    path:         '/trainer',
+    allowedRoles: ['trainer', 'staff_readonly'],
+    element:      (user, profile, { org }) => (
+      <ErrorBoundary>
+        <Suspense fallback={<LoadingScreen />}>
+          <TrainerView user={user} profile={profile} org={org} />
         </Suspense>
       </ErrorBoundary>
     ),
@@ -31,7 +58,7 @@ export const PROTECTED_ROUTES = [
         <Suspense fallback={<LoadingScreen />}>
           {profile?.mustChangePassword
             ? <ChangePasswordScreen userId={user.uid} onDone={() => helpers.refreshProfile(user.uid)} />
-            : <ClientView clientId={profile?.clientId} />
+            : <ClientView clientId={profile?.clientId} orgId={profile?.orgId} />
           }
         </Suspense>
       </ErrorBoundary>

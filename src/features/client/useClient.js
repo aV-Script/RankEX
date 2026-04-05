@@ -3,22 +3,24 @@ import { getClientById }       from '../../firebase/services/clients'
 
 /**
  * Fetch del profilo cliente dal proprio clientId.
- * Ricarica automaticamente se cambia clientId.
+ *
+ * @param {string} orgId
+ * @param {string} clientId
  */
-export function useClient(clientId) {
+export function useClient(orgId, clientId) {
   const [client,  setClient]  = useState(null)
   const [loading, setLoading] = useState(true)
   const [error,   setError]   = useState(null)
 
   useEffect(() => {
-    if (!clientId) return
+    if (!orgId || !clientId) return
     setLoading(true)
     setError(null)
-    getClientById(clientId)
+    getClientById(orgId, clientId)
       .then(setClient)
       .catch(err => setError(err.message))
       .finally(() => setLoading(false))
-  }, [clientId])
+  }, [orgId, clientId])
 
   return { client, loading, error }
 }

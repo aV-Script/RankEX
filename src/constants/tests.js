@@ -213,7 +213,7 @@ export const TESTS = [
     direction:   'direct',
     ageGroup:   (age) => age <= 40 ? '18-40' : '41-60',
     test:        'Y Balance Test',
-    categories:  ['active'],
+    categories:  ['active', 'soccer'],
     desc:        'Score composito normalizzato sulla lunghezza arto.',
     variables: [
       { key: 'ANT',           label: 'Anterior',         unit: 'cm' },
@@ -259,7 +259,7 @@ export const TESTS = [
     direction:  'direct',
     ageGroup:   (age) => age <= 35 ? '18-35' : '36-50',
     test:       'Standing Long Jump',
-    categories: ['active'],
+    categories: ['active', 'soccer'],
     desc:       'Distanza salto in lungo da fermo.',
     guide: {
       duration:  '10 minuti',
@@ -448,7 +448,7 @@ export const TESTS = [
     direction:  'inverse',
     test:       'Sprint 20m',
     ageGroup:   (age) => age <= 35 ? '18-35' : '36-50',
-    categories: ['athlete'],
+    categories: ['athlete', 'soccer'],
     desc:       'Tempo sui 20 metri lanciati.',
     guide: {
       duration:  '20 minuti',
@@ -487,6 +487,83 @@ export const TESTS = [
     test:       'CMJ Avanzato',
     categories: ['athlete'],
     desc:       'Altezza salto verticale senza arm swing.',
+  },
+
+  // ── SOCCER ───────────────────────────────────────────────────────────────────
+
+  {
+    key:        '505_cod_agility',
+    stat:       'agilita',
+    label:      'AGILITÀ',
+    unit:       'secondi',
+    direction:  'inverse',
+    ageGroup:   (age) => age <= 35 ? '18-35' : '36-50',
+    test:       '505 COD Agility',
+    categories: ['soccer'],
+    desc:       'Tempo di cambio direzione 180° su 5 metri.',
+    guide: {
+      duration:  '15 minuti',
+      equipment: [
+        'Fotocellule o cinesimetro',
+        'Nastro adesivo per segnare le linee',
+        'Cono singolo',
+      ],
+      warmup: [
+        'Jogging 5 minuti',
+        'Esercizi di cambio direzione leggeri (shuffle, carioca) 2×15m',
+        '2 prove non registrate al 70% dell\'intensità massima',
+      ],
+      protocol: [
+        'Segnare una linea di timing e un cono a 5m di distanza.',
+        'Il soggetto parte da 5m prima della linea di timing con run-in.',
+        'Attraversa la linea di timing, raggiunge il cono a 5m, gira di 180° e sprint ritorno.',
+        'Il tempo viene registrato dall\'attraversamento della linea di timing all\'andata fino al ritorno.',
+        '3 tentativi per lato (viraggio a destra e viraggio a sinistra) con 90 secondi di recupero tra prove.',
+        'Registrare il TEMPO MIGLIORE tra tutti i tentativi.',
+      ],
+      notes: [
+        'Meno secondi = punteggio migliore.',
+        'Differenza >0.10s tra i due lati indica asimmetria funzionale rilevante.',
+        'Eseguire sempre su superficie standardizzata (erba sintetica o parquet).',
+      ],
+    },
+  },
+
+  {
+    key:        'beep_test',
+    stat:       'resistenza',
+    label:      'RESISTENZA',
+    unit:       'livello',
+    direction:  'direct',
+    ageGroup:   (age) => age <= 35 ? '18-35' : '36-50',
+    test:       'Beep Test (MSFT)',
+    categories: ['soccer'],
+    desc:       'Livello massimo raggiunto nel Multi-Stage Fitness Test.',
+    guide: {
+      duration:  '10-25 minuti',
+      equipment: [
+        'Traccia audio Beep Test / MSFT ufficiale',
+        'Altoparlante',
+        'Coni per segnare le linee a 20m',
+        'Superficie piana di almeno 25m',
+      ],
+      warmup: [
+        'Jogging leggero 5 minuti.',
+        'NON eseguire riscaldamento intenso: i primi livelli del test fungono da riscaldamento progressivo.',
+      ],
+      protocol: [
+        'Segnare due linee parallele distanti esattamente 20 metri.',
+        'Al bip di partenza, correre da una linea all\'altra. Il soggetto deve raggiungere la linea entro il bip successivo.',
+        'La velocità aumenta automaticamente a ogni livello (circa ogni minuto).',
+        'Il test termina quando il soggetto non raggiunge la linea in tempo per 2 volte consecutive.',
+        'Registrare il livello nel formato decimale: es. 12.5 = livello 12, 5ª ripetizione.',
+      ],
+      notes: [
+        'Più alto il livello = punteggio migliore.',
+        'Riferimento calciatori dilettanti M: 9–11 · Semiprofessionisti: 12–14 · Professionisti: 14+.',
+        'Evitare il test in condizioni di caldo estremo o dopo allenamenti intensi.',
+      ],
+    },
     guide: {
       duration:  '15 minuti',
       equipment: [

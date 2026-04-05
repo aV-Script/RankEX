@@ -71,13 +71,14 @@ export function CalendarHeader({ currentDate, view, onNavigate, onToday, onSetVi
       <div className="flex gap-2">
         <button
           onClick={onNewRecurrence}
-          className="bg-transparent border border-[rgba(15,214,90,0.15)] rounded-[3px] px-3 py-1.5 text-white/40 font-display text-[11px] tracking-widest cursor-pointer hover:text-white/60 transition-all"
+          className="rounded-[3px] px-3 py-1.5 font-display text-[11px] tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
+          style={{ background: 'rgba(15,214,90,0.12)', color: '#0fd65a', border: '1px solid rgba(15,214,90,0.2)' }}
         >
           RICORRENZA
         </button>
         <button
           onClick={onNewSlot}
-          className="rounded-[3px] px-4 py-2 font-display text-[11px] tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
+          className="rounded-[3px] px-3 py-1.5 font-display text-[11px] tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
           style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', color: '#080c12' }}
         >
           NUOVA SESSIONE

@@ -11,9 +11,9 @@ import { PAGINATION_PAGE_SIZE }           from '../../config/app.config'
 
 const GROUPS_PAGE_SIZE = PAGINATION_PAGE_SIZE
 
-export function GroupsPage({ trainerId }) {
-  const { groups, isLoading, handleAddGroup, handleRenameGroup, handleToggleClient, handleDeleteGroup } = useGroups(trainerId)
-  const { clients } = useClients(trainerId)
+export function GroupsPage({ orgId }) {
+  const { groups, isLoading, handleAddGroup, handleRenameGroup, handleToggleClient, handleDeleteGroup } = useGroups(orgId)
+  const { clients } = useClients(orgId)
 
   const [view,         setView]         = useState('list') // 'list' | 'detail'
   const [selectedGroup, setSelectedGroup] = useState(null)
@@ -57,7 +57,7 @@ export function GroupsPage({ trainerId }) {
       <GroupDetailView
         group={currentGroup}
         clients={clients}
-        trainerId={trainerId}
+        orgId={orgId}
         onToggleClient={handleToggleClient}
         onRename={handleRenameGroup}
         onDelete={handleDeleteGroup}

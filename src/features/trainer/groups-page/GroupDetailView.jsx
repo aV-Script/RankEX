@@ -10,7 +10,7 @@ import {
 
 const CLIENTS_PAGE_SIZE = 8
 
-export function GroupDetailView({ group, clients, trainerId, onToggleClient, onRename, onDelete, onBack }) {
+export function GroupDetailView({ group, clients, orgId, onToggleClient, onRename, onDelete, onBack }) {
   const [clientSearch, setClientSearch] = useState('')
   const [isEditing,    setIsEditing]    = useState(false)
   const [editingName,  setEditingName]  = useState(group.name)
@@ -50,16 +50,16 @@ export function GroupDetailView({ group, clients, trainerId, onToggleClient, onR
       await onToggleClient(group.id, client.id)
 
       if (isRemoving) {
-        await removeClientFromGroupSlots(trainerId, group.id, client.id)
+        await removeClientFromGroupSlots(orgId, group.id, client.id)
       } else {
-        await addClientToGroupSlots(trainerId, group.id, client.id)
+        await addClientToGroupSlots(orgId, group.id, client.id)
       }
     } catch (err) {
       console.error('[GroupDetailView] toggleClient failed', err)
     } finally {
       setToggling(null)
     }
-  }, [toggleDialog, group.id, onToggleClient, trainerId])
+  }, [toggleDialog, group.id, onToggleClient, orgId])
 
   const handleRename = useCallback(async () => {
     if (!editingName.trim() || editingName === group.name) {
@@ -208,7 +208,7 @@ export function GroupDetailView({ group, clients, trainerId, onToggleClient, onR
         <GroupToggleDialog
           client={toggleDialog.client}
           group={group}
-          trainerId={trainerId}
+          orgId={orgId}
           isRemoving={toggleDialog.isRemoving}
           onConfirm={handleConfirmToggle}
           onCancel={() => setToggleDialog(null)}

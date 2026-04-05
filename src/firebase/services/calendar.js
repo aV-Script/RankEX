@@ -3,15 +3,15 @@ import {
   doc, query, where, orderBy, arrayUnion, arrayRemove,
   writeBatch,
 } from 'firebase/firestore'
-import { db } from './db'
-import { SLOT_STATUS } from '../../constants/slotStatus'
+import { db }                                   from './db'
+import { slotsPath, recurrencesPath }           from '../paths'
+import { SLOT_STATUS }                          from '../../constants/slotStatus'
 
 // ── Slots ─────────────────────────────────────────────────────────────────────
 
-export const getTrainerSlots = async (trainerId, from, to) => {
+export const getTrainerSlots = async (orgId, from, to) => {
   const q    = query(
-    collection(db, 'slots'),
-    where('trainerId', '==', trainerId),
+    collection(db, slotsPath(orgId)),
     where('date', '>=', from),
     where('date', '<=', to),
     orderBy('date'),
@@ -21,9 +21,9 @@ export const getTrainerSlots = async (trainerId, from, to) => {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
 }
 
-export const getClientSlots = async (clientId, from, to) => {
+export const getClientSlots = async (orgId, clientId, from, to) => {
   const q    = query(
-    collection(db, 'slots'),
+    collection(db, slotsPath(orgId)),
     where('clientIds', 'array-contains', clientId),
     where('date', '>=', from),
     where('date', '<=', to),
@@ -33,10 +33,9 @@ export const getClientSlots = async (clientId, from, to) => {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
 }
 
-export const getSlotsByGroup = async (trainerId, groupId, fromDate) => {
+export const getSlotsByGroup = async (orgId, groupId, fromDate) => {
   const q    = query(
-    collection(db, 'slots'),
-    where('trainerId', '==', trainerId),
+    collection(db, slotsPath(orgId)),
     where('groupIds', 'array-contains', groupId),
     where('date', '>=', fromDate),
     orderBy('date'),
@@ -45,8 +44,8 @@ export const getSlotsByGroup = async (trainerId, groupId, fromDate) => {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
 }
 
-export const addSlot = (data) =>
-  addDoc(collection(db, 'slots'), {
+export const addSlot = (orgId, data) =>
+  addDoc(collection(db, slotsPath(orgId)), {
     ...data,
     status:    SLOT_STATUS.PLANNED,
     attendees: [],
@@ -54,53 +53,48 @@ export const addSlot = (data) =>
     createdAt: new Date().toISOString(),
   })
 
-export const updateSlot = (id, data) =>
-  updateDoc(doc(db, 'slots', id), data)
+export const updateSlot = (orgId, id, data) =>
+  updateDoc(doc(db, slotsPath(orgId), id), data)
 
-export const deleteSlot = (id) =>
-  deleteDoc(doc(db, 'slots', id))
+export const deleteSlot = (orgId, id) =>
+  deleteDoc(doc(db, slotsPath(orgId), id))
 
-export const closeSlot = (id, { attendees, absentees }) =>
-  updateDoc(doc(db, 'slots', id), {
-    status:    SLOT_STATUS.COMPLETED,
+export const closeSlot = (orgId, id, { attendees, absentees }) =>
+  updateDoc(doc(db, slotsPath(orgId), id), {
+    status: SLOT_STATUS.COMPLETED,
     attendees,
     absentees,
   })
 
-export const skipSlot = (id) =>
-  updateDoc(doc(db, 'slots', id), {
+export const skipSlot = (orgId, id) =>
+  updateDoc(doc(db, slotsPath(orgId), id), {
     status:    SLOT_STATUS.SKIPPED,
     attendees: [],
     absentees: [],
   })
 
-export const addClientToSlot = (slotId, clientId) =>
-  updateDoc(doc(db, 'slots', slotId), {
+export const addClientToSlot = (orgId, slotId, clientId) =>
+  updateDoc(doc(db, slotsPath(orgId), slotId), {
     clientIds: arrayUnion(clientId),
   })
 
-export const removeClientFromSlot = (slotId, clientId) =>
-  updateDoc(doc(db, 'slots', slotId), {
+export const removeClientFromSlot = (orgId, slotId, clientId) =>
+  updateDoc(doc(db, slotsPath(orgId), slotId), {
     clientIds: arrayRemove(clientId),
   })
 
 // ── Recurrences ───────────────────────────────────────────────────────────────
 
-export const getTrainerRecurrences = async (trainerId) => {
-  const q    = query(
-    collection(db, 'recurrences'),
-    where('trainerId', '==', trainerId),
-  )
+export const getTrainerRecurrences = async (orgId) => {
+  const q    = query(collection(db, recurrencesPath(orgId)))
   const snap = await getDocs(q)
   const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-  // Ordine client-side per evitare indice composito non ancora deployato
   return docs.sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
 }
 
-export const getGroupRecurrences = async (trainerId, groupId) => {
+export const getGroupRecurrences = async (orgId, groupId) => {
   const q    = query(
-    collection(db, 'recurrences'),
-    where('trainerId', '==', trainerId),
+    collection(db, recurrencesPath(orgId)),
     where('groupIds', 'array-contains', groupId),
     where('status', '==', 'active'),
   )
@@ -108,36 +102,35 @@ export const getGroupRecurrences = async (trainerId, groupId) => {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
 }
 
-export const addRecurrence = (data) =>
-  addDoc(collection(db, 'recurrences'), {
+export const addRecurrence = (orgId, data) =>
+  addDoc(collection(db, recurrencesPath(orgId)), {
     ...data,
     status:    'active',
     createdAt: new Date().toISOString(),
   })
 
-export const updateRecurrence = (id, data) =>
-  updateDoc(doc(db, 'recurrences', id), data)
+export const updateRecurrence = (orgId, id, data) =>
+  updateDoc(doc(db, recurrencesPath(orgId), id), data)
 
-export const cancelRecurrence = (id) =>
-  updateDoc(doc(db, 'recurrences', id), { status: 'cancelled' })
+export const cancelRecurrence = (orgId, id) =>
+  updateDoc(doc(db, recurrencesPath(orgId), id), { status: 'cancelled' })
 
-export const deleteRecurrence = (id) =>
-  deleteDoc(doc(db, 'recurrences', id))
+export const deleteRecurrence = (orgId, id) =>
+  deleteDoc(doc(db, recurrencesPath(orgId), id))
 
 /**
- * Aggiunge un cliente a una ricorrenza e a tutti
- * gli slot futuri collegati.
+ * Aggiunge un cliente a una ricorrenza e a tutti gli slot futuri collegati.
  */
-export const addClientToRecurrence = async (recurrenceId, clientId) => {
+export const addClientToRecurrence = async (orgId, recurrenceId, clientId) => {
   const today = new Date().toISOString().slice(0, 10)
   const batch = writeBatch(db)
 
-  batch.update(doc(db, 'recurrences', recurrenceId), {
+  batch.update(doc(db, recurrencesPath(orgId), recurrenceId), {
     clientIds: arrayUnion(clientId),
   })
 
   const q    = query(
-    collection(db, 'slots'),
+    collection(db, slotsPath(orgId)),
     where('recurrenceId', '==', recurrenceId),
     where('date', '>=', today),
   )
@@ -150,19 +143,18 @@ export const addClientToRecurrence = async (recurrenceId, clientId) => {
 }
 
 /**
- * Rimuove un cliente da una ricorrenza e da tutti
- * gli slot futuri collegati.
+ * Rimuove un cliente da una ricorrenza e da tutti gli slot futuri collegati.
  */
-export const removeClientFromRecurrence = async (recurrenceId, clientId) => {
+export const removeClientFromRecurrence = async (orgId, recurrenceId, clientId) => {
   const today = new Date().toISOString().slice(0, 10)
   const batch = writeBatch(db)
 
-  batch.update(doc(db, 'recurrences', recurrenceId), {
+  batch.update(doc(db, recurrencesPath(orgId), recurrenceId), {
     clientIds: arrayRemove(clientId),
   })
 
   const q    = query(
-    collection(db, 'slots'),
+    collection(db, slotsPath(orgId)),
     where('recurrenceId', '==', recurrenceId),
     where('date', '>=', today),
   )
@@ -175,15 +167,14 @@ export const removeClientFromRecurrence = async (recurrenceId, clientId) => {
 }
 
 /**
- * Aggiorna gli slot futuri di una ricorrenza
- * (usato quando si modifica orario/giorni).
+ * Aggiorna gli slot futuri di una ricorrenza (orario/giorni).
  */
-export const updateFutureSlots = async (recurrenceId, update) => {
+export const updateFutureSlots = async (orgId, recurrenceId, update) => {
   const today = new Date().toISOString().slice(0, 10)
   const batch = writeBatch(db)
 
   const q    = query(
-    collection(db, 'slots'),
+    collection(db, slotsPath(orgId)),
     where('recurrenceId', '==', recurrenceId),
     where('date', '>=', today),
   )
@@ -198,12 +189,12 @@ export const updateFutureSlots = async (recurrenceId, update) => {
 /**
  * Elimina tutti gli slot futuri di una ricorrenza.
  */
-export const deleteFutureSlots = async (recurrenceId) => {
+export const deleteFutureSlots = async (orgId, recurrenceId) => {
   const today = new Date().toISOString().slice(0, 10)
   const batch = writeBatch(db)
 
   const q    = query(
-    collection(db, 'slots'),
+    collection(db, slotsPath(orgId)),
     where('recurrenceId', '==', recurrenceId),
     where('date', '>=', today),
   )
@@ -218,10 +209,10 @@ export const deleteFutureSlots = async (recurrenceId) => {
 /**
  * Conta slot futuri di una ricorrenza (per preview nel dialog).
  */
-export const countFutureSlots = async (recurrenceId) => {
+export const countFutureSlots = async (orgId, recurrenceId) => {
   const today = new Date().toISOString().slice(0, 10)
   const q     = query(
-    collection(db, 'slots'),
+    collection(db, slotsPath(orgId)),
     where('recurrenceId', '==', recurrenceId),
     where('date', '>=', today),
   )

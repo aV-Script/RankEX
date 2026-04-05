@@ -16,11 +16,11 @@ import { useToast } from '../../hooks/useToast'
 
 export { calcMonthlyCompletion, getMonthRange, getWeekRange } from '../../utils/calendarUtils'
 
-export function useCalendar(trainerId) {
-  const [slots, setSlots] = useState([])
-  const [loading, setLoading] = useState(false)
+export function useCalendar(orgId) {
+  const [slots, setSlots]           = useState([])
+  const [loading, setLoading]       = useState(false)
   const [currentDate, setCurrentDate] = useState(new Date().toISOString().slice(0, 10))
-  const [view, setView] = useState('week') // 'month' | 'week' | 'day'
+  const [view, setView]             = useState('week') // 'month' | 'week' | 'day'
   const toast = useToast()
 
   // ── Calcola il range in base alla vista ────────────────────────────────
@@ -34,12 +34,12 @@ export function useCalendar(trainerId) {
   const { from, to } = getRange(currentDate, view)
 
   const fetchSlots = useCallback(() => {
-    if (!trainerId) return
+    if (!orgId) return
     setLoading(true)
-    getTrainerSlots(trainerId, from, to)
+    getTrainerSlots(orgId, from, to)
       .then(setSlots)
       .finally(() => setLoading(false))
-  }, [trainerId, from, to])
+  }, [orgId, from, to])
 
   useEffect(() => { fetchSlots() }, [fetchSlots])
 
@@ -69,28 +69,28 @@ export function useCalendar(trainerId) {
         clientIds: [...existing.clientIds, ...newClientIds],
         groupIds:  [...(existing.groupIds ?? []), ...newGroupIds],
       }
-      await updateSlot(existing.id, { clientIds: updated.clientIds, groupIds: updated.groupIds })
+      await updateSlot(orgId, existing.id, { clientIds: updated.clientIds, groupIds: updated.groupIds })
       setSlots(prev => prev.map(s => s.id === existing.id ? updated : s))
       return updated
     }
 
-    const ref = await addSlot({ trainerId, date, startTime, endTime, clientIds, groupIds })
+    const ref = await addSlot(orgId, { date, startTime, endTime, clientIds, groupIds })
     const newSlot = {
-      id: ref.id, trainerId, date, startTime, endTime,
+      id: ref.id, date, startTime, endTime,
       clientIds, groupIds,
       status: SLOT_STATUS.PLANNED, attendees: [], absentees: [],
       recurrenceId: null,
     }
     setSlots(prev => [...prev, newSlot])
     return newSlot
-  }, [slots, trainerId])
+  }, [orgId, slots])
 
   // ── Add recurrence ─────────────────────────────────────────────────────
   const handleAddRecurrence = useCallback(async ({
     clientIds, groupIds, days, startDate, endDate, startTime, endTime
   }) => {
-    const recRef = await addRecurrence({
-      trainerId, clientIds, groupIds, days,
+    const recRef = await addRecurrence(orgId, {
+      clientIds, groupIds, days,
       startDate, endDate, startTime, endTime,
     })
     const recurrenceId = recRef.id
@@ -98,12 +98,12 @@ export function useCalendar(trainerId) {
 
     for (const date of dates) {
       const slot = await handleAddSlot({ date, startTime, endTime, clientIds, groupIds })
-      if (slot?.id) await updateSlot(slot.id, { recurrenceId })
+      if (slot?.id) await updateSlot(orgId, slot.id, { recurrenceId })
     }
 
     fetchSlots()
     return recurrenceId
-  }, [trainerId, handleAddSlot, fetchSlots])
+  }, [orgId, handleAddSlot, fetchSlots])
 
   // ── Close slot ─────────────────────────────────────────────────────────
   const handleCloseSlot = useCallback(async (slotId, attendeeIds, clientsData) => {
@@ -113,7 +113,6 @@ export function useCalendar(trainerId) {
     const absenteeIds = slot.clientIds.filter(id => !attendeeIds.includes(id))
     const snapshot = slot
 
-    // Aggiorna localmente lo slot
     setSlots(prev => prev.map(s => s.id === slotId ? {
       ...s,
       status: SLOT_STATUS.COMPLETED,
@@ -122,14 +121,14 @@ export function useCalendar(trainerId) {
     } : s))
 
     try {
-      await closeSessionUseCase(slot, attendeeIds, clientsData)
+      await closeSessionUseCase(orgId, slot, attendeeIds, clientsData)
       toast.success('Sessione chiusa · +XP assegnata')
     } catch (err) {
       console.error('[closeSession]', err)
       setSlots(prev => prev.map(s => s.id === slotId ? snapshot : s))
       toast.error('Impossibile chiudere la sessione')
     }
-  }, [slots, toast])
+  }, [orgId, slots, toast])
 
   // ── Skip slot ──────────────────────────────────────────────────────────
   const handleSkipSlot = useCallback(async (slotId) => {
@@ -138,47 +137,46 @@ export function useCalendar(trainerId) {
       ...s, status: SLOT_STATUS.SKIPPED, attendees: [], absentees: [],
     } : s))
     try {
-      await skipSlot(slotId)
+      await skipSlot(orgId, slotId)
     } catch {
       setSlots(prev => prev.map(s => s.id === slotId ? snapshot : s))
     }
-  }, [slots])
+  }, [orgId, slots])
 
   // ── Delete slot ────────────────────────────────────────────────────────
   const handleDeleteSlot = useCallback(async (slotId) => {
     const snapshot = slots.find(s => s.id === slotId)
     setSlots(prev => prev.filter(s => s.id !== slotId))
     try {
-      await deleteSlot(slotId)
+      await deleteSlot(orgId, slotId)
     } catch {
       if (snapshot) setSlots(prev => [...prev, snapshot])
     }
-  }, [slots])
+  }, [orgId, slots])
 
   // ── Group handlers ─────────────────────────────────────────────────────
-  const handleAddClientToGroupSlots = useCallback(async (groupId, clientId, fromDate) => {
-    await addClientToGroupSlots(trainerId, groupId, clientId, fromDate)
+  const handleAddClientToGroupSlots = useCallback(async (groupId, clientId) => {
+    await addClientToGroupSlots(orgId, groupId, clientId)
     fetchSlots()
-  }, [trainerId, fetchSlots])
+  }, [orgId, fetchSlots])
 
-  const handleRemoveClientFromGroupSlots = useCallback(async (groupId, clientId, fromDate) => {
-    await removeClientFromGroupSlots(trainerId, groupId, clientId, fromDate)
+  const handleRemoveClientFromGroupSlots = useCallback(async (groupId, clientId) => {
+    await removeClientFromGroupSlots(orgId, groupId, clientId)
     fetchSlots()
-  }, [trainerId, fetchSlots])
+  }, [orgId, fetchSlots])
 
   // ── Controllo max sessioni mensili per un cliente ──────────────────────
   const isClientOverMonthlyLimit = useCallback((client, date) => {
-    const year = new Date(date).getFullYear()
+    const year  = new Date(date).getFullYear()
     const month = new Date(date).getMonth() + 1
-    const from = `${year}-${String(month).padStart(2,'0')}-01`
-    const to   = `${year}-${String(month).padStart(2,'0')}-${new Date(year, month, 0).getDate()}`
+    const f = `${year}-${String(month).padStart(2,'0')}-01`
+    const t = `${year}-${String(month).padStart(2,'0')}-${new Date(year, month, 0).getDate()}`
 
     const planned = slots.filter(s =>
-      s.clientIds.includes(client.id) && s.date >= from && s.date <= to
+      s.clientIds.includes(client.id) && s.date >= f && s.date <= t
     ).length
 
-    const maxMonthlySessions = client.maxMonthlySessions ?? 20
-    return planned >= maxMonthlySessions
+    return planned >= (client.maxMonthlySessions ?? 20)
   }, [slots])
 
   return {

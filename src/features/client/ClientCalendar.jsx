@@ -7,7 +7,7 @@ const MONTH_NAMES = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
   'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
 const DAY_NAMES = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom']
 
-export function ClientCalendar({ clientId, clients }) {
+export function ClientCalendar({ clientId, orgId, clients }) {
   const [slots,        setSlots]        = useState([])
   const [currentYear,  setCurrentYear]  = useState(new Date().getFullYear())
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1)
@@ -16,9 +16,9 @@ export function ClientCalendar({ clientId, clients }) {
 
   // Ottieni i dati delle sessioni del client
   useEffect(() => {
-    if (!clientId) return
-    getClientSlots(clientId, from, to).then(setSlots)
-  }, [clientId, from, to])
+    if (!orgId || !clientId) return
+    getClientSlots(orgId, clientId, from, to).then(setSlots)
+  }, [orgId, clientId, from, to])
 
   const client = clients?.find(c => c.id === clientId)
 

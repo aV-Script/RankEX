@@ -3,27 +3,26 @@ import { useRecurrences }       from '../../features/calendar/useRecurrences'
 import { useClients }           from '../../hooks/useClients'
 import { RecurrenceDetailView } from './recurrences-page/RecurrenceDetailView'
 import { RecurrenceCard }       from './recurrences-page/RecurrenceCard'
+import { usePagination }        from '../../hooks/usePagination'
+import { Pagination }           from '../../components/common/Pagination'
 
-const STATUS_TABS = [
-  { id: 'active',    label: 'ATTIVE' },
-  { id: 'ended',     label: 'TERMINATE' },
-  { id: 'cancelled', label: 'CANCELLATE' },
-]
-
-export function RecurrencesPage({ trainerId, initialRecurrenceId }) {
+export function RecurrencesPage({ orgId, initialRecurrenceId }) {
   const {
     recurrences, loading, error,
     handleUpdateTime, handleUpdateDays, handleExtendPeriod,
     handleAddClient, handleRemoveClient, handleCancel,
-  } = useRecurrences(trainerId)
+  } = useRecurrences(orgId)
 
-  const { clients } = useClients(trainerId)
+  const { clients } = useClients(orgId)
 
-  const [activeTab,  setActiveTab]  = useState('active')
-  const [selectedId, setSelectedId] = useState(initialRecurrenceId ?? null)
+  const [showArchive, setShowArchive] = useState(false)
+  const [selectedId,  setSelectedId]  = useState(initialRecurrenceId ?? null)
 
-  const filtered = recurrences.filter(r => (r.status ?? 'active') === activeTab)
+  const active   = recurrences.filter(r => (r.status ?? 'active') === 'active')
+  const archived = recurrences.filter(r => ['ended', 'cancelled'].includes(r.status ?? ''))
   const selected = recurrences.find(r => r.id === selectedId) ?? null
+
+  const { paginatedItems: paginatedActive, ...activePagination } = usePagination(active, 10)
 
   if (selected) {
     return (
@@ -48,28 +47,11 @@ export function RecurrencesPage({ trainerId, initialRecurrenceId }) {
       <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         <h1 className="font-display font-black text-[20px] text-white m-0">Ricorrenze</h1>
         <span className="font-display text-[11px] text-white/30">
-          {recurrences.filter(r => (r.status ?? 'active') === 'active').length} attive
+          {active.length} attive
         </span>
       </div>
 
-      {/* Tab status */}
-      <div className="flex" style={{ paddingLeft: 24, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        {STATUS_TABS.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className="px-4 py-3 font-display text-[11px] cursor-pointer border-none bg-transparent transition-all"
-            style={activeTab === tab.id
-              ? { color: '#0fd65a', borderBottom: '2px solid #0fd65a' }
-              : { color: 'rgba(255,255,255,0.3)', borderBottom: '2px solid transparent' }
-            }
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Lista */}
+      {/* Lista attive */}
       <div className="px-6 py-5">
         {error ? (
           <div className="text-center py-16">
@@ -80,25 +62,16 @@ export function RecurrencesPage({ trainerId, initialRecurrenceId }) {
         ) : loading ? (
           <div className="flex flex-col gap-3">
             {[1, 2, 3].map(i => (
-              <div
-                key={i}
-                className="h-20 animate-pulse rounded-[4px]"
-                style={{ background: 'rgba(255,255,255,0.03)' }}
-              />
+              <div key={i} className="h-20 animate-pulse rounded-[4px]" style={{ background: 'rgba(255,255,255,0.03)' }} />
             ))}
           </div>
-        ) : filtered.length === 0 ? (
+        ) : active.length === 0 ? (
           <div className="text-center py-16">
-            <p className="font-body text-[13px] text-white/20">
-              Nessuna ricorrenza {
-                activeTab === 'active' ? 'attiva' :
-                activeTab === 'ended'  ? 'terminata' : 'cancellata'
-              }.
-            </p>
+            <p className="font-body text-[13px] text-white/20">Nessuna ricorrenza attiva.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {filtered.map(rec => (
+            {paginatedActive.map(rec => (
               <RecurrenceCard
                 key={rec.id}
                 recurrence={rec}
@@ -106,6 +79,36 @@ export function RecurrencesPage({ trainerId, initialRecurrenceId }) {
                 onClick={() => setSelectedId(rec.id)}
               />
             ))}
+          </div>
+          <Pagination {...activePagination} />
+        )}
+
+        {/* Archivio collassabile */}
+        {archived.length > 0 && (
+          <div className="mt-8">
+            <button
+              onClick={() => setShowArchive(v => !v)}
+              className="flex items-center gap-2 font-display text-[10px] tracking-[2px] text-white/25 hover:text-white/45 transition-colors cursor-pointer bg-transparent border-none p-0"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                style={{ transform: showArchive ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }}>
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+              ARCHIVIO ({archived.length})
+            </button>
+
+            {showArchive && (
+              <div className="flex flex-col gap-3 mt-3">
+                {archived.map(rec => (
+                  <RecurrenceCard
+                    key={rec.id}
+                    recurrence={rec}
+                    clients={clients}
+                    onClick={() => setSelectedId(rec.id)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

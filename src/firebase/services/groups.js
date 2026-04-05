@@ -1,31 +1,32 @@
 import {
   collection, getDocs, addDoc, updateDoc, deleteDoc,
-  doc, query, where,
+  doc, query,
 } from 'firebase/firestore'
-import { db } from './db'
+import { db }         from './db'
+import { groupsPath } from '../paths'
 
-// Struttura gruppo: { id, name, trainerId, clientIds: [] }
+// Struttura gruppo: { id, name, clientIds: [] }
 
-export const getGroups = async (trainerId) => {
-  const q    = query(collection(db, 'groups'), where('trainerId', '==', trainerId))
+export const getGroups = async (orgId) => {
+  const q    = query(collection(db, groupsPath(orgId)))
   const snap = await getDocs(q)
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
 }
 
-export const addGroup = (data) =>
-  addDoc(collection(db, 'groups'), data)
+export const addGroup = (orgId, data) =>
+  addDoc(collection(db, groupsPath(orgId)), data)
 
-export const updateGroup = (id, data) =>
-  updateDoc(doc(db, 'groups', id), data)
+export const updateGroup = (orgId, id, data) =>
+  updateDoc(doc(db, groupsPath(orgId), id), data)
 
-export const deleteGroup = (id) =>
-  deleteDoc(doc(db, 'groups', id))
+export const deleteGroup = (orgId, id) =>
+  deleteDoc(doc(db, groupsPath(orgId), id))
 
-export async function removeClientFromAllGroups(trainerId, clientId) {
-  const groups = await getGroups(trainerId)
+export async function removeClientFromAllGroups(orgId, clientId) {
+  const groups   = await getGroups(orgId)
   const promises = groups
     .filter(g => g.clientIds.includes(clientId))
-    .map(g => updateGroup(g.id, {
+    .map(g => updateGroup(orgId, g.id, {
       clientIds: g.clientIds.filter(id => id !== clientId)
     }))
   await Promise.all(promises)

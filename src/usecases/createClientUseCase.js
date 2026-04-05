@@ -7,17 +7,19 @@ import { NEW_CLIENT_DEFAULTS } from '../constants'
 /**
  * Crea un nuovo cliente: account Auth, documento clients, profilo users.
  *
- * @param {string} trainerId
+ * @param {string} orgId
+ * @param {string} trainerId — uid del trainer che sta creando il cliente
  * @param {object} formData  — { email, password, ...anagrafica }
  * @returns {{ id: string, ...clientData }} — cliente completo con id Firestore
  */
-export async function createClientUseCase(trainerId, formData) {
+export async function createClientUseCase(orgId, trainerId, formData) {
   const { email, password, ...rest } = formData
   const clientUid = await createClientAccount(email, password)
   const data      = buildNewClient(trainerId, rest, NEW_CLIENT_DEFAULTS)
-  const ref       = await addClient(trainerId, { ...data, email, clientAuthUid: clientUid })
+  const ref       = await addClient(orgId, { ...data, email, clientAuthUid: clientUid })
   await createUserProfile(clientUid, {
     role:               'client',
+    orgId,
     clientId:           ref.id,
     trainerId,
     mustChangePassword: true,

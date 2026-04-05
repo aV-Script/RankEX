@@ -11,16 +11,16 @@ import { AddSlotModal }                    from './trainer-calendar/AddSlotModal
 import { RecurrenceModal }                 from './trainer-calendar/RecurrenceModal'
 import { useGroups } from '../../hooks/useGroups'
 
-export function TrainerCalendar({ trainerId, clients = [], onRefreshClients, onNavigate }) {
+export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavigate }) {
   const {
     slots, isLoading,
     currentDate, view,
     setView, navigate, goToToday,
     handleAddSlot, handleAddRecurrence,
     handleCloseSlot, handleSkipSlot, handleDeleteSlot,
-  } = useCalendar(trainerId)
+  } = useCalendar(orgId)
 
-  const { groups } = useGroups(trainerId)
+  const { groups } = useGroups(orgId)
   const today = new Date().toISOString().slice(0, 10)
 
   // ── Stato UI ──────────────────────────────────────────────────────────────

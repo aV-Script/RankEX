@@ -1,14 +1,18 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useTrainerDispatch, ACTIONS }       from '../context/TrainerContext'
+import { useTrainerDispatch, ACTIONS }      from '../context/TrainerContext'
 import { getClients, updateClient, deleteClient } from '../firebase/services/clients'
 import { addNotification }          from '../firebase/services/notifications'
 import { buildCampionamentoUpdate, buildXPUpdate } from '../utils/gamification'
 import { createClientUseCase }      from '../usecases/createClientUseCase'
 import { saveCampionamentoUseCase } from '../usecases/saveCampionamentoUseCase'
-import { useToast }              from './useToast'
-import { getFirebaseErrorMessage } from '../utils/firebaseErrors'
+import { useToast }                 from './useToast'
+import { getFirebaseErrorMessage }  from '../utils/firebaseErrors'
 
-export function useClients(trainerId) {
+/**
+ * @param {string} orgId    — ID organizzazione (subcollection path)
+ * @param {string} [userId] — UID del trainer che crea i clienti (opzionale)
+ */
+export function useClients(orgId, userId) {
   const [clients, setClients] = useState([])
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState(null)
@@ -17,14 +21,14 @@ export function useClients(trainerId) {
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
   const fetchClients = useCallback(() => {
-    if (!trainerId) return
+    if (!orgId) return
     setLoading(true)
     setError(null)
-    getClients(trainerId)
+    getClients(orgId)
       .then(data => setClients(data))
       .catch(err  => setError(err.message))
       .finally(()  => setLoading(false))
-  }, [trainerId])
+  }, [orgId])
 
   useEffect(() => { fetchClients() }, [fetchClients])
 
@@ -37,10 +41,10 @@ export function useClients(trainerId) {
     setClients(prev => prev.filter(c => c.id !== id))
   }, [])
 
-  // ── Add client — non ottimistico per natura (richiede uid Firebase) ────────
+  // ── Add client ─────────────────────────────────────────────────────────────
   const handleAddClient = useCallback(async (formData) => {
     try {
-      const newClient = await createClientUseCase(trainerId, formData)
+      const newClient = await createClientUseCase(orgId, userId ?? orgId, formData)
       setClients(prev => [...prev, newClient])
       toast.success('Cliente creato')
       return newClient
@@ -48,7 +52,7 @@ export function useClients(trainerId) {
       toast.error(getFirebaseErrorMessage(err, 'Impossibile creare il cliente'))
       throw err
     }
-  }, [trainerId, toast])
+  }, [orgId, userId, toast])
 
   // ── Campionamento — ottimistico con rollback ───────────────────────────────
   const handleCampionamento = useCallback(async (client, newStats, testValues) => {
@@ -59,14 +63,14 @@ export function useClients(trainerId) {
     dispatch({ type: ACTIONS.SELECT_CLIENT, payload: { ...client, ...update } })
 
     try {
-      await saveCampionamentoUseCase(client, update)
+      await saveCampionamentoUseCase(orgId, client, update)
       toast.success('Campionamento salvato')
     } catch {
       updateLocal(client.id, snapshot)
       dispatch({ type: ACTIONS.SELECT_CLIENT, payload: snapshot })
       toast.error('Impossibile salvare il campionamento')
     }
-  }, [dispatch, updateLocal, toast])
+  }, [orgId, dispatch, updateLocal, toast])
 
   // ── Add XP — ottimistico con rollback ─────────────────────────────────────
   const handleAddXP = useCallback(async (client, xpToAdd, note) => {
@@ -77,9 +81,9 @@ export function useClients(trainerId) {
     dispatch({ type: ACTIONS.SELECT_CLIENT, payload: { ...client, ...update } })
 
     try {
-      await updateClient(client.id, update)
+      await updateClient(orgId, client.id, update)
       if (client.clientAuthUid) {
-        await addNotification({
+        await addNotification(orgId, {
           clientId: client.id,
           message:  `Hai guadagnato ${xpToAdd} XP — ${note || 'aggiunto dal trainer'}!`,
           date:     new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }),
@@ -90,7 +94,7 @@ export function useClients(trainerId) {
       updateLocal(client.id, snapshot)
       dispatch({ type: ACTIONS.SELECT_CLIENT, payload: snapshot })
     }
-  }, [dispatch, updateLocal])
+  }, [orgId, dispatch, updateLocal])
 
   // ── Delete client — ottimistico con rollback ──────────────────────────────
   const handleDeleteClient = useCallback(async (clientId) => {
@@ -100,13 +104,13 @@ export function useClients(trainerId) {
     dispatch({ type: ACTIONS.DESELECT_CLIENT })
 
     try {
-      await deleteClient(clientId)
+      await deleteClient(orgId, clientId)
       toast.success('Cliente eliminato')
     } catch {
       if (snapshot) setClients(prev => [...prev, snapshot])
       toast.error('Impossibile eliminare il cliente')
     }
-  }, [clients, dispatch, removeLocal, toast])
+  }, [orgId, clients, dispatch, removeLocal, toast])
 
   return {
     clients,

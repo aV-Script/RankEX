@@ -1,13 +1,127 @@
 import { useState } from 'react'
-import { getTestsForCategoria, CATEGORIE } from '../../constants'
+import { getTestsForCategoria, CATEGORIE, ALL_TESTS } from '../../constants'
+import { useTrainerState }  from '../../context/TrainerContext'
+import { getModule }        from '../../config/modules.config'
 
 const CATEGORY_COLORS = { health: '#34d399', active: '#00c8ff', athlete: '#0066cc' }
+const SOCCER_COLOR    = '#00c8ff'
 
 export function TestGuidePage() {
+  const { moduleType } = useTrainerState()
+  const isSoccer       = getModule(moduleType).isSoccer
+
   const [selectedCat,  setSelectedCat]  = useState('health')
   const [selectedTest, setSelectedTest] = useState(getTestsForCategoria('health')[0].key)
   const [menuOpen,     setMenuOpen]     = useState(false)
-  
+
+  // Soccer: usa i 5 test fissi
+  const soccerTests = isSoccer ? ALL_TESTS.filter(t => t.categories.includes('soccer')) : null
+  const [soccerSelectedTest, setSoccerSelectedTest] = useState(() =>
+    ALL_TESTS.find(t => t.categories.includes('soccer'))?.key ?? null
+  )
+
+  if (isSoccer) {
+    const currentTest = soccerTests.find(t => t.key === soccerSelectedTest)
+    const guide       = currentTest?.guide
+
+    return (
+      <div className="text-white">
+        <div className="hidden lg:flex items-center px-4 lg:px-6 py-4 border-b border-white/[.05]">
+          <h1 className="font-display font-black text-[20px] m-0">Guida Test</h1>
+        </div>
+
+        <div className="flex min-h-[calc(100vh-57px)]">
+          {/* Sidebar desktop */}
+          <aside className="hidden lg:flex w-60 xl:w-72 shrink-0 border-r border-white/[.05] flex-col sticky top-[57px] h-[calc(100vh-57px)] overflow-y-auto">
+            <div className="p-4 flex flex-col gap-2">
+              {soccerTests.map(t => (
+                <button
+                  key={t.key}
+                  onClick={() => setSoccerSelectedTest(t.key)}
+                  className="text-left px-3 py-2.5 rounded-[3px] font-body text-[13px] cursor-pointer border transition-all"
+                  style={soccerSelectedTest === t.key
+                    ? { background: SOCCER_COLOR + '18', borderColor: SOCCER_COLOR + '44', color: '#fff' }
+                    : { background: 'transparent', borderColor: 'transparent', color: 'rgba(255,255,255,0.4)' }
+                  }
+                >
+                  {t.label}
+                  <span className="block font-display text-[10px] opacity-50 mt-0.5">{t.test}</span>
+                </button>
+              ))}
+            </div>
+          </aside>
+
+          {/* Mobile */}
+          <div className="lg:hidden w-full">
+            <div className="px-4 py-4 border-b border-white/[.05]">
+              <button
+                onClick={() => setMenuOpen(o => !o)}
+                className="w-full flex items-center justify-between px-4 py-3 rounded-[3px] cursor-pointer border transition-all"
+                style={{ background: 'rgba(13,21,32,0.9)', borderColor: 'rgba(0,200,255,0.15)' }}
+              >
+                <div className="text-left">
+                  <span className="font-display text-[10px] tracking-[2px] block" style={{ color: SOCCER_COLOR }}>
+                    SOCCER
+                  </span>
+                  <span className="font-body text-[14px] text-white mt-0.5 block">
+                    {currentTest?.label}
+                  </span>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                  style={{ transform: menuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+
+              {menuOpen && (
+                <div className="rounded-[3px] overflow-hidden mt-2"
+                  style={{ background: '#0d1520', border: '1px solid rgba(0,200,255,0.15)' }}>
+                  {soccerTests.map(t => (
+                    <button
+                      key={t.key}
+                      onClick={() => { setSoccerSelectedTest(t.key); setMenuOpen(false) }}
+                      className="w-full text-left px-4 py-3 flex items-center justify-between cursor-pointer transition-all border-none"
+                      style={{
+                        background:   soccerSelectedTest === t.key ? SOCCER_COLOR + '18' : 'transparent',
+                        borderBottom: '1px solid rgba(255,255,255,0.05)',
+                      }}
+                    >
+                      <span className="font-body text-[14px]"
+                        style={{ color: soccerSelectedTest === t.key ? '#fff' : 'rgba(255,255,255,0.6)' }}>
+                        {t.label}
+                      </span>
+                      {soccerSelectedTest === t.key && (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                          stroke={SOCCER_COLOR} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            {guide && (
+              <div className="px-4 py-6 max-w-3xl mx-auto">
+                <GuideContent test={currentTest} guide={guide} color={SOCCER_COLOR} />
+              </div>
+            )}
+          </div>
+
+          {/* Desktop content */}
+          {guide && (
+            <main className="hidden lg:block flex-1 px-4 lg:px-6 py-8 max-w-3xl overflow-y-auto">
+              <GuideContent test={currentTest} guide={guide} color={SOCCER_COLOR} />
+            </main>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // ── Personal Training ──────────────────────────────────────────────────────
+
   const tests       = getTestsForCategoria(selectedCat)
   const currentTest = tests.find(t => t.key === selectedTest)
   const guide       = currentTest?.guide

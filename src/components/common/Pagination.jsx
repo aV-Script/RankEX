@@ -1,3 +1,5 @@
+import { useMemo } from 'react'
+
 /**
  * Controlli di paginazione riusabili.
  * Mostra: prima, prev, pagine, next, ultima.

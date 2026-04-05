@@ -28,17 +28,18 @@ const SORT_FNS = {
   rank:  (a, b) => getEffectiveScore(b) - getEffectiveScore(a),
 }
 
-export function useClientFilters(clients, groups) {
+export function useClientFilters(clients, groups, isSoccer = false) {
   const [query,           setQuery]           = useState('')
   const [filterCategoria, setFilterCategoria] = useState('tutti')
   const [filterGroup,     setFilterGroup]     = useState(null)
   const [sortBy,          setSortBy]          = useState('name')
 
-  // Categorie uniche presenti tra i clienti
+  // Opzioni filtro: ruoli per soccer, categorie per PT
   const categorie = useMemo(() => {
-    const set = new Set(clients.map(c => c.categoria).filter(Boolean))
+    const values = clients.map(c => isSoccer ? c.ruolo : c.categoria)
+    const set = new Set(values.filter(Boolean))
     return ['tutti', ...Array.from(set)]
-  }, [clients])
+  }, [clients, isSoccer])
 
   // Lista filtrata e ordinata
   const filteredClients = useMemo(() => {
@@ -50,7 +51,9 @@ export function useClientFilters(clients, groups) {
     }
 
     if (filterCategoria !== 'tutti') {
-      list = list.filter(c => c.categoria === filterCategoria)
+      list = list.filter(c =>
+        isSoccer ? c.ruolo === filterCategoria : c.categoria === filterCategoria
+      )
     }
 
     if (query.trim()) {
@@ -59,13 +62,13 @@ export function useClientFilters(clients, groups) {
     }
 
     return list.sort(SORT_FNS[sortBy] ?? SORT_FNS.name)
-  }, [clients, groups, filterGroup, filterCategoria, query, sortBy])
+  }, [clients, groups, filterGroup, filterCategoria, query, sortBy, isSoccer])
 
   return {
-    query,          onQueryChange:    setQuery,
+    query,           onQueryChange:     setQuery,
     filterCategoria, onCategoriaChange: setFilterCategoria,
-    filterGroup,    onGroupChange:    setFilterGroup,
-    sortBy,         onSortByChange:   setSortBy,
+    filterGroup,     onGroupChange:     setFilterGroup,
+    sortBy,          onSortByChange:    setSortBy,
     categorie,
     filteredClients,
   }
