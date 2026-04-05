@@ -11,16 +11,29 @@ export function useAuth() {
   const [terminology, setTerminology] = useState(undefined)
 
   const refreshProfile = async (uid) => {
-    const p = await getUserProfile(uid)
-    setProfile(p)
+    try {
+      const p = await getUserProfile(uid)
+      setProfile(p ?? null)
 
-    if (p?.orgId) {
-      const o = await getOrganization(p.orgId)
-      setOrg(o)
-      setTerminology(getTerminology(o?.moduleType, p.terminologyVariant))
-    } else {
+      if (p?.orgId) {
+        try {
+          const o = await getOrganization(p.orgId)
+          setOrg(o)
+          setTerminology(getTerminology(o?.moduleType, p.terminologyVariant))
+        } catch {
+          // Org non raggiungibile (regole, rete) — procedi senza
+          setOrg(null)
+          setTerminology(getTerminology('personal_training'))
+        }
+      } else {
+        setOrg(null)
+        setTerminology(getTerminology('personal_training'))
+      }
+    } catch {
+      // Profilo non raggiungibile — forza logout state
+      setProfile(null)
       setOrg(null)
-      setTerminology(getTerminology('personal_training'))
+      setTerminology(null)
     }
   }
 

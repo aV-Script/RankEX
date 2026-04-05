@@ -13,7 +13,7 @@ export function useClient(orgId, clientId) {
   const [error,   setError]   = useState(null)
 
   useEffect(() => {
-    if (!orgId || !clientId) return
+    if (!orgId || !clientId) { setLoading(false); return }
     setLoading(true)
     setError(null)
     getClientById(orgId, clientId)
