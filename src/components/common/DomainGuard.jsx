@@ -1,4 +1,4 @@
-import { isAdminDomain } from '../../utils/env'
+import { isAdminDomain, isDev } from '../../utils/env'
 
 const ADMIN_URL = 'https://rankex-admin.web.app'
 const APP_URL   = 'https://rankex-app.web.app'
@@ -13,7 +13,7 @@ const APP_URL   = 'https://rankex-app.web.app'
  * Il guard si attiva solo dopo che il profilo è caricato (role != null).
  */
 export function DomainGuard({ role, children }) {
-  if (role == null) return children
+  if (isDev || role == null) return children
 
   if (isAdminDomain() && role !== 'super_admin') {
     return <Blocked message="Questa area è riservata agli amministratori di sistema." href={APP_URL} label="Vai all'app" />

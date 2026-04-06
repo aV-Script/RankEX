@@ -19,6 +19,9 @@ env
 # Claude Code — impostazioni locali
 .claude/
 
+# Firebase cache locale
+.firebase/
+
 # File gitignore con nome errato (duplicato)
 gitignore
 
