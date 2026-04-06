@@ -965,3 +965,35 @@ Dopo ogni modifica a `firestore.rules`, deploya su entrambi i progetti:
 npm run deploy:rules       # → prod (fitquest-60a09)
 npm run deploy:rules:dev   # → dev  (rankex-dev)
 ```
+
+---
+
+## Monitoraggio costi Firebase
+
+### Piano attuale: Spark (gratuito)
+Sul piano Spark Firebase non può addebitare nulla. Monitorare i limiti per sapere quando avvicinarsi all'upgrade.
+
+**Limiti Firestore gratuiti (per giorno):**
+```
+50.000 letture
+20.000 scritture
+20.000 eliminazioni
+1 GB storage
+```
+
+### Dove controllare
+- **Usage & billing** → `console.firebase.google.com/project/fitquest-60a09/usage`
+- **Firestore → Utilization tab** → documenti più letti, query inefficienti
+
+### Ottimizzazioni già presenti
+- `memberCount` / `clientCount` come counter atomici → nessuna query count a ogni render
+- Letture Firestore solo su mount, no polling
+- `onSnapshot` solo dove serve il real-time (calendario, notifiche)
+
+### Quando si passa a Blaze (pay-as-you-go)
+Impostare subito un budget alert su Google Cloud Console:
+- Billing → Budgets & Alerts → progetto `fitquest-60a09`
+- Soglia: €5/mese, alert al 50% e 90%
+
+Il piano Blaze mantiene lo stesso free tier — si paga solo oltre la soglia.
+MFA via SMS e backup automatico Firestore richiedono Blaze.
