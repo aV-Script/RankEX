@@ -8,12 +8,12 @@
  *   color  — colore del rank
  *   size   — 'sm' (h-1.5) | 'lg' (h-3, default)
  */
-export function XPBar({ xp, xpNext, color, size = 'lg' }) {
+export function XPBar({ xp, xpNext, color, size = 'lg', fullWidth = false }) {
   const pct    = xpNext > 0 ? Math.round((xp / xpNext) * 100) : 0
   const height = size === 'sm' ? 'h-1.5' : 'h-3'
 
   return (
-    <div className="w-full max-w-sm">
+    <div className={`w-full ${fullWidth ? '' : 'max-w-sm'}`}>
       <div className="flex justify-between mb-1.5">
         <span className="font-display text-[10px] text-white/30 tracking-[0.2em]">EXP</span>
         <span className="font-display text-[11px]" style={{ color }}>

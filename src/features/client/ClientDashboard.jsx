@@ -2,11 +2,11 @@ import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useClientRank }                    from '../../hooks/useClientRank'
 import { useReadonly }                       from '../../context/ReadonlyContext'
 import { useTrainerState }                   from '../../context/TrainerContext'
-import { SectionLabel, StatsSection } from '../../components/ui'
+import { StatsSection }                      from '../../components/ui'
 import { XPBar }                             from '../../components/ui/XPBar'
+import { RankRing }                          from '../../components/ui/RankRing'
 import { ActivityLog }                       from '../../components/ui'
 import { StatsChart }                        from './StatsChart'
-import { DashboardHeader }                   from './client-dashboard/DashboardHeader'
 import { DeleteDialog }                      from './client-dashboard/DeleteDialog'
 import { NotesSection }                      from './client-dashboard/NotesSection'
 import { WorkoutPlanSection }                from './client-dashboard/WorkoutPlanSection'
@@ -19,26 +19,85 @@ import { BiaSummary }                        from '../bia/bia-view/BiaSummary'
 import { BiaHistoryChart }                   from '../bia/bia-view/BiaHistoryChart'
 import { UpgradeCategoryBanner }             from '../bia/UpgradeCategoryBanner'
 import { getProfileCategory }                from '../../constants/bia'
+import { getCategoriaById }                  from '../../constants'
 import { calcBiaScore, getBiaRankFromScore } from '../../utils/bia'
 import { getClientSlots }                    from '../../firebase/services/calendar'
 import { getMonthRange, calcMonthlyCompletion } from '../calendar/useCalendar'
+import { resetPassword }                     from '../../firebase/services/auth'
+import { PLAYER_ROLES }                      from '../../config/modules.config'
 import { getAuth }                           from 'firebase/auth'
 import app                                   from '../../firebase/config'
 
+// ── Icons ─────────────────────────────────────────────────────────────────────
+
+const ICON_TEST = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+  </svg>
+)
+const ICON_BIA = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+  </svg>
+)
+const ICON_WORKOUT = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 4v6a6 6 0 0 0 12 0V4"/>
+    <line x1="6" y1="20" x2="18" y2="20"/>
+  </svg>
+)
+const ICON_CALENDAR = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2"/>
+    <line x1="16" y1="2" x2="16" y2="6"/>
+    <line x1="8" y1="2" x2="8" y2="6"/>
+    <line x1="3" y1="10" x2="21" y2="10"/>
+  </svg>
+)
+const ICON_NOTES = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+    <polyline points="14 2 14 8 20 8"/>
+    <line x1="16" y1="13" x2="8" y2="13"/>
+    <line x1="16" y1="17" x2="8" y2="17"/>
+  </svg>
+)
+const ICON_ACTIVITY = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <polyline points="12 6 12 12 16 14"/>
+  </svg>
+)
+const ICON_AVATAR = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+    <circle cx="12" cy="7" r="4"/>
+  </svg>
+)
+
+
+/**
+ * Dashboard cliente vista trainer — layout:
+ *   header full-width (← Clienti | rank | azioni)
+ *   ─────────────────────────────────────────────
+ *   LEFT panel  │  RIGHT panel
+ *   avatar+dati │  stat tiles + tab nav + contenuto
+ */
 export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDelete }) {
   const { rankObj: testRankObj, color: testColor } = useClientRank(client)
   const { userRole }  = useTrainerState()
   const readonly      = useReadonly()
-  const [view,        setView]       = useState('dashboard') // 'dashboard' | 'campionamento' | 'bia'
-  const [activeTab,   setActiveTab]  = useState(null)        // lazy init su defaultTab
-  const [showDelete,  setShowDelete] = useState(false)
-  const [showReport,  setShowReport] = useState(false)
-  const [sessionsData, setSessionsData] = useState(null)
 
-  // Fetch sessioni mese corrente — shared tra SessionsCard e Calendario tab
+  const [view,         setView]        = useState('dashboard')
+  const [activeTab,    setActiveTab]   = useState(null)
+  const [showDelete,   setShowDelete]  = useState(false)
+  const [showReport,   setShowReport]  = useState(false)
+  const [sessionsData, setSessionsData] = useState(null)
+  const [resetState,   setResetState]  = useState('idle')
+
   useEffect(() => {
     if (!orgId || !client.id) return
-    const now   = new Date()
+    const now = new Date()
     const { from, to } = getMonthRange(now.getFullYear(), now.getMonth() + 1)
     getClientSlots(orgId, client.id, from, to).then(slots => {
       const { planned, completed, pct } = calcMonthlyCompletion(slots, client.id)
@@ -52,11 +111,6 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
 
   const { handleSaveBia, handleUpgradeProfile } = useBia()
 
-  const trainerAuthor = {
-    role: userRole,
-    name: getAuth(app).currentUser?.email ?? 'Trainer',
-  }
-
   const profileType = client.profileType ?? 'tests_only'
   const profile     = getProfileCategory(profileType)
 
@@ -68,20 +122,33 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
   const color   = profileType === 'bia_only' ? biaColor : testColor
   const rankObj = profileType === 'bia_only' ? biaRankObj : testRankObj
 
-  const prevStats = client.campionamenti?.[1]?.stats ?? null
+  const isSoccer    = ['soccer', 'soccer_youth'].includes(client.categoria)
+  const categoriaObj = !isSoccer ? getCategoriaById(client.categoria) : null
+  const ruoloObj     = isSoccer
+    ? PLAYER_ROLES.find(r => r.value === client.ruolo) ?? null
+    : null
 
-  // Tab disponibili in base al profilo
+  const prevStats = client.campionamenti?.[1]?.stats ?? null
+  const media     = client.media ?? 0
+  const campCount = client.campionamenti?.length ?? 0
+
+  const trainerAuthor = {
+    role: userRole,
+    name: getAuth(app).currentUser?.email ?? 'Trainer',
+  }
+
   const tabs = useMemo(() => [
-    ...(profile.hasTests ? [{ id: 'test',        label: 'Test'        }] : []),
-    ...(profile.hasBia   ? [{ id: 'bia',         label: 'BIA'         }] : []),
-    { id: 'allenamento', label: 'Allenamento' },
-    { id: 'calendario',  label: 'Calendario'  },
-    { id: 'note',        label: 'Note'        },
-    { id: 'attivita',    label: 'Attività'    },
-  ], [profile.hasTests, profile.hasBia])
+    { id: 'avatar',      label: 'Avatar',      icon: ICON_AVATAR,   mobileOnly: true },
+    profile.hasTests && { id: 'test',        label: 'Test',        icon: ICON_TEST },
+    profile.hasBia   && { id: 'bia',         label: 'BIA',         icon: ICON_BIA },
+    { id: 'allenamento', label: 'Allenamento', icon: ICON_WORKOUT },
+    { id: 'calendario',  label: 'Calendario',  icon: ICON_CALENDAR },
+    { id: 'note',        label: 'Note',         icon: ICON_NOTES },
+    { id: 'attivita',    label: 'Attività',     icon: ICON_ACTIVITY },
+  ].filter(Boolean), [profile.hasTests, profile.hasBia])
 
   const defaultTab = profile.hasTests ? 'test' : profile.hasBia ? 'bia' : 'allenamento'
-  const tab        = activeTab ?? defaultTab
+  const tab        = activeTab ?? (window.innerWidth < 1024 ? 'avatar' : defaultTab)
 
   const handleDelete = useCallback(async () => {
     await onDelete(client.id)
@@ -93,6 +160,20 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
     await onCampionamento(client, newStats, testValues)
   }, [onCampionamento, client])
 
+  const handleResetPassword = useCallback(async () => {
+    if (!client.email || resetState === 'loading') return
+    setResetState('loading')
+    try {
+      await resetPassword(client.email)
+      setResetState('sent')
+      setTimeout(() => setResetState('idle'), 4000)
+    } catch {
+      setResetState('error')
+      setTimeout(() => setResetState('idle'), 3000)
+    }
+  }, [client.email, resetState])
+
+  // ── Views overlay ─────────────────────────────────────────────────────────
   if (view === 'campionamento') {
     return (
       <CampionamentoView
@@ -103,7 +184,6 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
       />
     )
   }
-
   if (view === 'bia') {
     return (
       <BiaView
@@ -116,276 +196,397 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
   }
 
   return (
-    <div className="min-h-screen text-white">
+    <div className="min-h-screen text-white flex flex-col">
 
-      {/* Hero esistente — rank ring + nome + XP */}
-      <DashboardHeader
-        client={client}
-        rankObj={rankObj}
-        color={color}
-        biaRankObj={profileType === 'complete' ? biaRankObj : null}
-        onBack={onBack}
-        onDelete={() => setShowDelete(true)}
-        onExport={() => setShowReport(true)}
-      />
+      {/* ── HEADER FULL-WIDTH ─────────────────────────────────────────────── */}
+      <header
+        className="flex flex-wrap items-center justify-between gap-y-2 px-5 py-3 border-b border-white/[.05] sticky top-0 z-30 backdrop-blur-md shrink-0"
+        style={{ background: 'rgba(7,9,14,0.72)' }}
+      >
+        {/* Sinistra: back */}
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1.5 bg-transparent border-none text-white/40 font-body text-[13px] cursor-pointer hover:text-white/70 transition-colors p-0"
+        >
+          ‹ Clienti
+        </button>
 
-      {/* Due card recap */}
-      <div className="px-6 pt-4 pb-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <PerformanceCard
-          client={client}
-          color={color}
-          profile={profile}
-        />
-        <SessionsCard data={sessionsData} />
-      </div>
-
-      {/* Banner upgrade (se necessario) */}
-      <div className="px-6 pb-2">
-        <UpgradeCategoryBanner
-          client={client}
-          color={color}
-          onUpgrade={handleUpgradeProfile}
-        />
-      </div>
-
-      {/* Tab bar — sticky */}
-      <div className="px-6 py-3">
-        <div className="rounded-[4px] p-1 flex overflow-x-auto no-scrollbar rx-card">
-          {tabs.map(t => (
+        {/* Destra: azioni — visibili su tutti i breakpoint */}
+        <div className="flex items-center gap-1 flex-wrap justify-end">
+          {!readonly && profile.hasTests && (
             <button
-              key={t.id}
-              onClick={() => setActiveTab(t.id)}
-              className="font-display text-[11px] tracking-[1px] px-4 py-2 cursor-pointer border-none transition-all shrink-0 rounded-[3px] flex-1"
-              style={tab === t.id
-                ? { color, background: color + '15' }
-                : { color: 'rgba(255,255,255,0.30)', background: 'transparent' }
-              }
+              onClick={() => setView('campionamento')}
+              className="border rounded-[3px] px-2.5 py-1.5 font-display text-[10px] cursor-pointer transition-all hover:opacity-80"
+              style={{ color, borderColor: color + '55', background: color + '14' }}
             >
-              {t.label}
+              CAMPIONAMENTO
             </button>
-          ))}
+          )}
+          {!readonly && profile.hasBia && (
+            <button
+              onClick={() => setView('bia')}
+              className="border rounded-[3px] px-2.5 py-1.5 font-display text-[10px] cursor-pointer transition-all hover:opacity-80"
+              style={{ color: biaColor, borderColor: biaColor + '55', background: biaColor + '14' }}
+            >
+              BIA
+            </button>
+          )}
+          <button
+            onClick={() => setShowReport(true)}
+            className="bg-transparent border rounded-[3px] px-2.5 py-1.5 font-display text-[10px] cursor-pointer transition-all"
+            style={{ borderColor: 'rgba(255,255,255,0.12)', color: 'rgba(200,212,224,0.45)' }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'rgba(200,212,224,0.75)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(200,212,224,0.45)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)' }}
+          >
+            PDF
+          </button>
+          <button
+            onClick={handleResetPassword}
+            disabled={resetState === 'loading' || resetState === 'sent'}
+            className="bg-transparent border rounded-[3px] px-2.5 py-1.5 font-display text-[10px] cursor-pointer transition-all disabled:opacity-50"
+            style={resetState === 'sent'
+              ? { borderColor: 'rgba(15,214,90,0.4)', color: '#0fd65a' }
+              : resetState === 'error'
+              ? { borderColor: 'rgba(248,113,113,0.4)', color: '#f87171' }
+              : { borderColor: 'rgba(255,255,255,0.12)', color: 'rgba(200,212,224,0.45)' }
+            }
+          >
+            {resetState === 'loading' ? 'INVIO…'
+             : resetState === 'sent'  ? '✓ INVIATA'
+             : resetState === 'error' ? 'ERRORE'
+             : 'PW'}
+          </button>
+          <button
+            onClick={() => setShowDelete(true)}
+            className="bg-transparent border border-red-500/20 rounded-[3px] px-2.5 py-1.5 text-red-400/50 font-display text-[10px] cursor-pointer hover:border-red-500/50 hover:text-red-400 transition-all"
+          >
+            ELIMINA
+          </button>
         </div>
-      </div>
+      </header>
 
-      {/* Contenuto tab */}
-      <div className="pb-12">
+      {/* ── BODY: 2 colonne ──────────────────────────────────────────────────── */}
+      <div className="flex flex-col lg:flex-row flex-1">
 
-        {/* ── Test ── */}
-        {tab === 'test' && profile.hasTests && (
-          <section className="px-6 pt-6">
-            <div className="rounded-[4px] p-5 rx-card">
-              <div className="flex items-center justify-between mb-4">
-                <SectionLabel className="mb-0">◈ Status</SectionLabel>
-                {!readonly && (
-                  <button
-                    onClick={() => setView('campionamento')}
-                    className="text-[11px] font-display px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all hover:opacity-80"
-                    style={{ color, borderColor: color + '55', background: color + '11' }}
-                  >
-                    CAMPIONAMENTO
-                  </button>
-                )}
-              </div>
-              <div
-                className="rounded-[4px] p-5"
-                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
-              >
-                <StatsSection
-                  stats={client.stats}
-                  prevStats={prevStats}
+        {/* ── LEFT PANEL ──────────────────────────────────────────────────── */}
+        <aside
+          className="shrink-0 lg:w-2/5"
+          style={{ borderRight: '1px solid rgba(255,255,255,0.04)' }}
+        >
+          {/* Desktop: sticky, allineata in cima sotto header */}
+          <div className="hidden lg:block sticky top-[49px]">
+            <section className="px-4 pt-8 pb-6">
+              <div className="rounded-[4px] p-5 rx-card flex flex-col items-center text-center">
+
+                {/* Header card — come Status */}
+                <div className="w-full flex items-center justify-between mb-5">
+                  <div className="font-display text-[10px] tracking-[3px] uppercase" style={{ color: '#0fd65a' }}>◈ Atleta</div>
+                </div>
+
+                {/* Avatar */}
+                <AvatarPlaceholder
                   color={color}
-                  categoria={client.categoria}
+                  rankObj={rankObj}
+                  xp={client.xp}
+                  xpNext={client.xpNext}
+                  level={client.level}
+                  biaRankObj={profileType === 'complete' ? biaRankObj : null}
                 />
-              </div>
-              <div className="mt-6">
-                <StatsChart
-                  campionamenti={client.campionamenti}
-                  color={color}
-                  categoria={client.categoria}
-                />
-              </div>
-            </div>
-          </section>
-        )}
 
-        {/* ── BIA ── */}
-        {tab === 'bia' && profile.hasBia && (
-          <section className="px-6 pt-6">
-            <div className="rounded-[4px] p-5 rx-card">
-              <div className="flex items-center justify-between mb-4">
-                <SectionLabel className="mb-0">◈ BIA</SectionLabel>
-                {!readonly && (
+                {/* Nome */}
+                <div className="mt-3 font-display font-black text-[20px] text-white leading-tight tracking-wide uppercase">
+                  {client.name}
+                </div>
+
+                {/* Badge categoria / ruolo */}
+                <div className="flex items-center gap-2 mt-2.5 flex-wrap justify-center">
+                  {categoriaObj && (
+                    <span className="font-display text-[11px] px-3 py-1 rounded-[3px]"
+                      style={{ background: categoriaObj.color + '18', color: categoriaObj.color, border: `1px solid ${categoriaObj.color}44` }}>
+                      {categoriaObj.label.toUpperCase()}
+                    </span>
+                  )}
+                  {ruoloObj && (
+                    <span className="font-display text-[11px] px-3 py-1 rounded-[3px]"
+                      style={{ background: color + '18', color, border: `1px solid ${color}44` }}>
+                      {ruoloObj.label.toUpperCase()}
+                    </span>
+                  )}
+                  {client.categoria === 'soccer_youth' && (
+                    <span className="font-display text-[11px] px-3 py-1 rounded-[3px]"
+                      style={{ background: '#fbbf2420', color: '#fbbf24', border: '1px solid #fbbf2440' }}>
+                      PICCOLI
+                    </span>
+                  )}
+                  {profile.hasTests && (
+                    <span className="font-display font-bold text-[11px] px-3 py-1 rounded-[3px]"
+                      style={{ background: testRankObj.color + '20', color: testRankObj.color, border: `1px solid ${testRankObj.color}50` }}>
+                      {testRankObj.label}
+                    </span>
+                  )}
+                  {profile.hasBia && (
+                    <span className="font-display text-[11px] px-3 py-1 rounded-[3px]"
+                      style={{ background: biaRankObj.color + '20', color: biaRankObj.color, border: `1px solid ${biaRankObj.color}50` }}>
+                      BIA {biaRankObj.label}
+                    </span>
+                  )}
+                </div>
+
+                {/* XP Bar — self-stretch forza larghezza piena nonostante items-center */}
+                <div className="mt-5 self-stretch">
+                  <XPBar xp={client.xp} xpNext={client.xpNext} color={color} fullWidth />
+                </div>
+
+              </div>
+            </section>
+          </div>
+        </aside>
+
+        {/* ── RIGHT PANEL ─────────────────────────────────────────────────── */}
+        <div className="flex-1 flex flex-col min-w-0">
+
+          {/* Banner upgrade */}
+          <div className="px-6 pt-3">
+            <UpgradeCategoryBanner
+              client={client}
+              color={color}
+              onUpgrade={handleUpgradeProfile}
+            />
+          </div>
+
+          {/* Tab navigation — rx-card section */}
+          <section
+            className="px-4 pt-4 pb-2 sticky top-[49px] z-10 backdrop-blur-md"
+          >
+            <div className="rounded-[4px] rx-card overflow-hidden">
+              <div className="flex gap-1 px-3 py-2 overflow-x-auto">
+                {tabs.map(t => (
                   <button
-                    onClick={() => setView('bia')}
-                    className="text-[11px] font-display px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all hover:opacity-80"
-                    style={{ color: biaColor, borderColor: biaColor + '55', background: biaColor + '11' }}
+                    key={t.id}
+                    onClick={() => setActiveTab(t.id)}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-[3px] font-display text-[11px] tracking-[0.5px] whitespace-nowrap cursor-pointer border transition-all shrink-0${t.mobileOnly ? ' lg:hidden' : ''}`}
+                    style={tab === t.id
+                      ? { background: color + '18', borderColor: color + '55', color }
+                      : { background: 'transparent', borderColor: 'transparent', color: 'rgba(255,255,255,0.35)' }
+                    }
                   >
-                    NUOVA MISURAZIONE
+                    {t.icon}
+                    {t.label}
                   </button>
-                )}
-              </div>
-              <BiaSummary
-                bia={client.lastBia}
-                prevBia={client.biaHistory?.[1] ?? null}
-                sex={client.sesso}
-                age={client.eta}
-                color={biaColor}
-                rank={biaRank.label}
-              />
-              <div className="mt-6">
-                <BiaHistoryChart biaHistory={client.biaHistory} color={biaColor} />
+                ))}
               </div>
             </div>
           </section>
-        )}
 
-        {/* ── Allenamento ── */}
-        {tab === 'allenamento' && (
-          <WorkoutPlanSection
-            orgId={orgId}
-            clientId={client.id}
-            color={color}
-            readonly={readonly}
-          />
-        )}
+          {/* Contenuto tab */}
+          <div className="flex-1 pb-12">
 
-        {/* ── Calendario ── */}
-        {tab === 'calendario' && (
-          <section className="px-6 pt-6">
-            <div className="rounded-[4px] p-5 rx-card">
-              <SectionLabel className="mb-4">◈ Calendario allenamenti</SectionLabel>
-              <ClientCalendar
-                clientId={client.id}
-                orgId={orgId}
-              />
-            </div>
-          </section>
-        )}
+            {tab === 'avatar' && (
+              <section className="px-6 pt-6 lg:hidden">
+                <div className="rounded-[4px] p-5 rx-card flex flex-col items-center text-center">
+                  <div className="w-full flex items-center justify-between mb-5">
+                    <div className="font-display text-[10px] tracking-[3px] uppercase" style={{ color: '#0fd65a' }}>◈ Atleta</div>
+                  </div>
+                  <AvatarPlaceholder color={color} rankObj={rankObj} xp={client.xp} xpNext={client.xpNext} level={client.level} small />
+                  <div className="mt-3 font-display font-black text-[20px] text-white leading-tight tracking-wide uppercase">
+                    {client.name}
+                  </div>
+                  <div className="flex items-center gap-2 mt-2.5 flex-wrap justify-center">
+                    {categoriaObj && (
+                      <span className="font-display text-[11px] px-3 py-1 rounded-[3px]"
+                        style={{ background: categoriaObj.color + '18', color: categoriaObj.color, border: `1px solid ${categoriaObj.color}44` }}>
+                        {categoriaObj.label.toUpperCase()}
+                      </span>
+                    )}
+                    {ruoloObj && (
+                      <span className="font-display text-[11px] px-3 py-1 rounded-[3px]"
+                        style={{ background: color + '18', color, border: `1px solid ${color}44` }}>
+                        {ruoloObj.label.toUpperCase()}
+                      </span>
+                    )}
+                    {client.categoria === 'soccer_youth' && (
+                      <span className="font-display text-[11px] px-3 py-1 rounded-[3px]"
+                        style={{ background: '#fbbf2420', color: '#fbbf24', border: '1px solid #fbbf2440' }}>
+                        PICCOLI
+                      </span>
+                    )}
+                    {profile.hasTests && (
+                      <span className="font-display font-bold text-[11px] px-3 py-1 rounded-[3px]"
+                        style={{ background: testRankObj.color + '20', color: testRankObj.color, border: `1px solid ${testRankObj.color}50` }}>
+                        {testRankObj.label}
+                      </span>
+                    )}
+                    {profile.hasBia && (
+                      <span className="font-display text-[11px] px-3 py-1 rounded-[3px]"
+                        style={{ background: biaRankObj.color + '20', color: biaRankObj.color, border: `1px solid ${biaRankObj.color}50` }}>
+                        BIA {biaRankObj.label}
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-5 self-stretch">
+                    <XPBar xp={client.xp} xpNext={client.xpNext} color={color} fullWidth />
+                  </div>
+                </div>
+              </section>
+            )}
 
-        {/* ── Note ── */}
-        {tab === 'note' && (
-          <NotesSection
-            orgId={orgId}
-            clientId={client.id}
-            color={color}
-            author={trainerAuthor}
-            readonly={readonly}
-          />
-        )}
+            {tab === 'test' && profile.hasTests && (
+              <section className="px-6 pt-6">
+                <div className="rounded-[4px] p-5 rx-card">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="font-display text-[10px] tracking-[3px] uppercase" style={{ color: '#0fd65a' }}>◈ Status</div>
+                    {!readonly && (
+                      <button onClick={() => setView('campionamento')}
+                        className="text-[11px] font-display px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all hover:opacity-80"
+                        style={{ color, borderColor: color + '55', background: color + '11' }}>
+                        CAMPIONAMENTO
+                      </button>
+                    )}
+                  </div>
+                  <div className="rounded-[4px] p-5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <StatsSection stats={client.stats} prevStats={prevStats} color={color} categoria={client.categoria} />
+                  </div>
+                  <div className="mt-6">
+                    <StatsChart campionamenti={client.campionamenti} color={color} categoria={client.categoria} />
+                  </div>
+                </div>
+              </section>
+            )}
 
-        {/* ── Attività ── */}
-        {tab === 'attivita' && (
-          <section className="px-6 pt-6">
-            <ActivityLog log={client.log} color={color} limit={10} />
-          </section>
-        )}
+            {tab === 'bia' && profile.hasBia && (
+              <section className="px-6 pt-6">
+                <div className="rounded-[4px] p-5 rx-card">
+                  <div className="font-display text-[10px] tracking-[3px] uppercase mb-4" style={{ color: '#0fd65a' }}>◈ BIA</div>
+                  <BiaSummary bia={client.lastBia} prevBia={client.biaHistory?.[1] ?? null} sex={client.sesso} age={client.eta} color={biaColor} rank={biaRank.label} />
+                  <div className="mt-6">
+                    <BiaHistoryChart biaHistory={client.biaHistory} color={biaColor} />
+                  </div>
+                </div>
+              </section>
+            )}
 
+            {tab === 'allenamento' && (
+              <WorkoutPlanSection orgId={orgId} clientId={client.id} color={color} readonly={readonly} />
+            )}
+
+            {tab === 'calendario' && (
+              <section className="px-6 pt-6">
+                <div className="rounded-[4px] p-5 rx-card">
+                  <div className="font-display text-[10px] tracking-[3px] uppercase mb-4" style={{ color: '#0fd65a' }}>◈ Calendario allenamenti</div>
+                  <ClientCalendar clientId={client.id} orgId={orgId} />
+                </div>
+              </section>
+            )}
+
+            {tab === 'note' && (
+              <NotesSection orgId={orgId} clientId={client.id} color={color} author={trainerAuthor} readonly={readonly} />
+            )}
+
+            {tab === 'attivita' && (
+              <section className="px-6 pt-6">
+                <ActivityLog log={client.log} color={color} limit={10} />
+              </section>
+            )}
+
+          </div>
+        </div>
       </div>
 
       {showDelete && (
-        <DeleteDialog
-          clientName={client.name}
-          onConfirm={handleDelete}
-          onCancel={() => setShowDelete(false)}
-        />
+        <DeleteDialog clientName={client.name} onConfirm={handleDelete} onCancel={() => setShowDelete(false)} />
       )}
-
       {showReport && (
-        <ClientReportPrint
-          client={client}
-          color={color}
-          rankObj={rankObj}
-          onClose={() => setShowReport(false)}
-        />
+        <ClientReportPrint client={client} color={color} rankObj={rankObj} onClose={() => setShowReport(false)} />
       )}
     </div>
   )
 }
 
-// ── Recap cards ────────────────────────────────────────────────────────────────
+// ── AvatarPlaceholder ─────────────────────────────────────────────────────────
 
-function PerformanceCard({ client, color, profile }) {
-  const lastCamp = client.campionamenti?.[0]
-  const lastDate = lastCamp?.date
-    ? new Date(lastCamp.date).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })
-    : null
-  const campCount = client.campionamenti?.length ?? 0
+/**
+ * Placeholder dell'avatar atleta — verrà sostituito dall'avatar reale.
+ * Mostra una silhouette stilizzata con il RankRing come badge.
+ *
+ * Props:
+ *   compact    — versione mini per mobile (solo ring senza card)
+ *   biaRankObj — se presente, mostra un chip BIA rank
+ */
+function AvatarPlaceholder({ color, rankObj, xp, xpNext, level, biaRankObj, compact = false, small = false }) {
+  if (compact) {
+    return <RankRing rankObj={rankObj} xp={xp} xpNext={xpNext} size={72} animated={false} />
+  }
+
+  const W    = small ? 110 : 174
+  const H    = small ? 138 : 218
+  const ring = small ? 62  : 82
+  const rMt  = small ? -18 : -24
+  const rMl  = small ? -12 : -16
 
   return (
-    <div className="rounded-[4px] p-4 rx-card flex flex-col gap-3">
-      <span className="font-display text-[10px] tracking-[2px] text-white/30">◈ PERFORMANCE</span>
+    <div style={{ width: W }}>
+      {/* Card portrait */}
+      <div
+        className="relative overflow-hidden rounded-[4px]"
+        style={{
+          height: H,
+          background: 'linear-gradient(170deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%)',
+          border: `1px solid ${color}28`,
+        }}
+      >
+        {/* Pattern esagonale */}
+        <div className="absolute inset-0 bg-hex" style={{ opacity: 0.14 }} />
 
-      {profile.hasTests && (
-        <div className="flex items-end justify-between">
-          <div>
-            <span className="font-display text-[10px] tracking-[1px] text-white/25 block mb-0.5">MEDIA</span>
-            <span className="font-display font-black text-[28px] leading-none" style={{ color }}>
-              {client.media != null ? client.media.toFixed(1) : '—'}
-            </span>
-          </div>
-          <div className="text-right">
-            <span className="font-display text-[10px] tracking-[1px] text-white/25 block mb-0.5">CAMP.</span>
-            <span className="font-display font-bold text-[18px] text-white/60">{campCount}</span>
-          </div>
+        {/* Alone colore in alto */}
+        <div className="absolute top-0 left-0 right-0 h-28"
+          style={{ background: `radial-gradient(ellipse at 50% -20%, ${color}22 0%, transparent 65%)` }} />
+
+        {/* Silhouette atleta */}
+        <div className="absolute inset-0 flex items-center justify-center" style={{ paddingBottom: 28 }}>
+          <svg viewBox="0 0 80 112" width={small ? 58 : 90} height={small ? 80 : 126}>
+            <circle cx="40" cy="26" r="19" fill={color} opacity="0.18" />
+            <circle cx="40" cy="26" r="19" fill="none" stroke={color} strokeWidth="1.4" opacity="0.45" />
+            <path d="M6,112 Q6,62 40,62 Q74,62 74,112Z" fill={color} opacity="0.14" />
+            <path d="M6,112 Q6,62 40,62 Q74,62 74,112Z" fill="none" stroke={color} strokeWidth="1.4" opacity="0.38" />
+            <path d="M24,62 Q28,76 40,78 Q52,76 56,62" fill="none" stroke={color} strokeWidth="1" opacity="0.2" />
+          </svg>
         </div>
-      )}
 
-      <XPBar xp={client.xp} xpNext={client.xpNext} color={color} />
+        {/* Gradiente basso */}
+        <div className="absolute bottom-0 left-0 right-0 h-20"
+          style={{ background: `linear-gradient(to top, ${color}22, transparent)` }} />
 
-      {lastDate && (
-        <span className="font-body text-[11px] text-white/25">Ultimo camp. {lastDate}</span>
-      )}
+        {/* Badge livello — angolo top-left */}
+        <div
+          className="absolute top-2 left-2 font-display font-black text-[10px] px-1.5 py-0.5 rounded-[3px]"
+          style={{ background: 'rgba(0,0,0,0.65)', color, border: `1px solid ${color}50` }}
+        >
+          LV.{level}
+        </div>
+
+        {/* Watermark */}
+        {!small && (
+          <div
+            className="absolute bottom-2.5 right-2.5 font-display text-[7px] tracking-[3px] uppercase"
+            style={{ color: color + '45' }}
+          >
+            Avatar
+          </div>
+        )}
+      </div>
+
     </div>
   )
 }
 
-function SessionsCard({ data }) {
-  const barColor = data
-    ? data.pct === 100 ? '#34d399' : data.pct >= 50 ? '#f59e0b' : data.planned === 0 ? 'rgba(255,255,255,0.15)' : '#f87171'
-    : 'rgba(255,255,255,0.15)'
+// ── Helper components ─────────────────────────────────────────────────────────
 
+function StatPill({ label, value, color }) {
   return (
-    <div className="rounded-[4px] p-4 rx-card flex flex-col gap-3">
-      <span className="font-display text-[10px] tracking-[2px] text-white/30">◈ SESSIONI</span>
-
-      {!data ? (
-        <div className="flex flex-col gap-2">
-          <div className="h-5 skeleton rounded-[3px]" />
-          <div className="h-1.5 skeleton rounded-full" />
-          <div className="h-4 skeleton rounded-[3px] w-2/3" />
-        </div>
-      ) : (
-        <>
-          {/* Completamento mese */}
-          <div>
-            <div className="flex justify-between items-center mb-1.5">
-              <span className="font-body text-[12px] text-white/40">Questo mese</span>
-              <span className="font-display font-bold text-[14px]" style={{ color: barColor }}>
-                {data.completed}/{data.planned}
-              </span>
-            </div>
-            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
-              <div
-                className="h-full rounded-full transition-[width] duration-700"
-                style={{ width: `${data.pct}%`, background: barColor }}
-              />
-            </div>
-          </div>
-
-          {/* Prossima sessione */}
-          <div className="flex items-center justify-between">
-            <span className="font-display text-[10px] tracking-[1px] text-white/25">PROSSIMA</span>
-            {data.upcoming ? (
-              <span className="font-body text-[11px] text-white/50">
-                {new Date(data.upcoming.date + 'T00:00:00').toLocaleDateString('it-IT', { weekday: 'short', day: '2-digit', month: 'short' })}
-                {data.upcoming.startTime ? ` · ${data.upcoming.startTime}` : ''}
-              </span>
-            ) : (
-              <span className="font-body text-[11px] text-white/25">—</span>
-            )}
-          </div>
-        </>
-      )}
+    <div className="flex flex-col gap-0.5">
+      <span className="font-display font-black text-[22px] leading-none" style={{ color }}>{value}</span>
+      <span className="font-display text-[9px] tracking-[2px] text-white/30 uppercase">{label}</span>
     </div>
   )
 }
+

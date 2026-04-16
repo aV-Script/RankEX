@@ -317,7 +317,7 @@ src/
 │       ├── index.jsx        ← Card, Button, Badge, Modal, Field,
 │       │                       StatNumber, EmptyState, Skeleton,
 │       │                       ActivityLog, StatsSection, Divider
-│       ├── XPBar.jsx
+│       ├── XPBar.jsx            ← prop fullWidth=false rimuove max-w-sm interno
 │       ├── Pentagon.jsx
 │       └── RankRing.jsx
 │
@@ -392,9 +392,10 @@ src/
 │   │   ├── PlayerCard.jsx
 │   │   ├── StatsChart.jsx
 │   │   ├── ChangePasswordScreen.jsx
+│   │   ├── ClientDashboard.jsx          ← vista trainer: layout 2 col + mobile AVATAR tab
 │   │   ├── client-view/
 │   │   │   ├── ClientShell.jsx
-│   │   │   ├── ClientDashboardPage.jsx
+│   │   │   ├── ClientDashboardPage.jsx  ← vista client: stesso layout, AVATAR tab mobile
 │   │   │   ├── ClientProfilePage.jsx
 │   │   │   └── client.config.jsx
 │   │   └── client-dashboard/
@@ -997,6 +998,40 @@ Struttura: `organizations/{orgId}/workoutPlans/{planId}`.
 - Rules: `allow read: if canRead(orgId) || isClientOfOrg(orgId)` — semplificato
   perché `resource.data.clientId == userProfile().clientId` non è valutabile
   da Firestore a query-plan time su collection query.
+
+### Dashboard cliente — layout (aggiornato apr 2026)
+
+`ClientDashboard.jsx` (trainer) e `ClientDashboardPage.jsx` (client) condividono lo stesso pattern:
+
+**Desktop** — 2 colonne (40/60):
+- Colonna sinistra (`aside`): scheda Atleta sticky `top-[49px]` in `rx-card` — avatar + nome + badge + XPBar
+- Colonna destra: tab nav sticky + contenuto tab
+
+**Mobile** — colonna unica:
+- `aside` collassa (vuota su mobile)
+- Tab nav sticky subito sotto l'header
+- Primo tab = **AVATAR** (mobile only, `mobileOnly: true`) → scheda atleta in `rx-card`
+- Tab AVATAR nascosto su desktop (`lg:hidden`), default `window.innerWidth < 1024 ? 'avatar' : defaultTab`
+
+**AvatarPlaceholder** — componente locale in entrambi i file:
+- `small` prop → 110×138px (per tab AVATAR mobile)
+- Full size → 174×218px (desktop left panel)
+- Il `RankRing` NON è più dentro l'avatar — rank mostrato solo nei badge vicino a categoria
+- Badge row: `categoriaObj | ruoloObj | Piccoli | rank test | rank BIA`
+
+**Tab mobileOnly** — pattern:
+```js
+{ id: 'avatar', label: 'Avatar', icon: ICON_AVATAR, mobileOnly: true }
+// nel render:
+className={`... ${t.mobileOnly ? 'lg:hidden' : ''}`}
+```
+
+**XPBar** — usare `fullWidth` nelle dashboard + `self-stretch` sul wrapper per larghezza piena:
+```jsx
+<div className="mt-5 self-stretch">
+  <XPBar xp={xp} xpNext={xpNext} color={color} fullWidth />
+</div>
+```
 
 ### Export PDF atleta
 - Componente: `ClientReportPrint.jsx` in `client-dashboard/`
