@@ -32,7 +32,7 @@ export default function TrainerView({ user, profile, org }) {
 }
 
 function TrainerLayout({ user, orgId }) {
-  const { page, navParams, selectedClient, navigateTo, deselectClient } = useTrainerNav()
+  const { page, navKey, navParams, selectedClient, navigateTo, deselectClient } = useTrainerNav()
   const {
     clients, isLoading, fetchError,
     fetchClients,
@@ -54,6 +54,7 @@ function TrainerLayout({ user, orgId }) {
         />
       ) : (
         <CurrentPage
+          key={navKey}
           orgId={orgId}
           trainerId={user.uid}
           clients={clients}

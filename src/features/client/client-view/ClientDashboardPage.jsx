@@ -101,11 +101,10 @@ export function ClientDashboardPage({ client, clientId, orgId, color, rankObj, b
       {/* ── LEFT PANEL ─────────────────────────────────────────────────────── */}
       <aside
         className="shrink-0 lg:w-2/5"
-        style={{ borderRight: '1px solid rgba(255,255,255,0.04)' }}
       >
-        {/* Desktop: sticky, allineata in cima sotto header */}
-        <div className="hidden lg:block sticky top-[49px]">
-          <section className="px-4 pt-8 pb-6">
+        {/* Desktop: sticky, centrata verticalmente nell'area visibile */}
+        <div className="hidden lg:flex lg:items-center sticky top-[49px] h-[calc(100vh-49px)]">
+          <section className="px-4 py-6 w-full">
             <div className="rounded-[4px] p-5 rx-card flex flex-col items-center text-center">
               {/* Header card */}
               <div className="w-full flex items-center justify-between mb-5">
@@ -171,26 +170,26 @@ export function ClientDashboardPage({ client, clientId, orgId, color, rankObj, b
       </aside>
 
       {/* ── RIGHT PANEL ─────────────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 lg:pt-8">
 
         {/* Tab navigation */}
         <section
           className="px-4 pt-4 pb-2 sticky top-[49px] z-10 backdrop-blur-md"
         >
           <div className="rounded-[4px] rx-card overflow-hidden">
-            <div className="flex gap-1 px-3 py-2 overflow-x-auto">
+            <div className="grid grid-flow-col auto-cols-fr px-1 py-2">
               {TABS.map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-[3px] font-display text-[11px] tracking-[0.5px] whitespace-nowrap cursor-pointer border transition-all shrink-0${tab.mobileOnly ? ' lg:hidden' : ''}`}
+                  className={`flex items-center justify-center gap-1.5 px-1 lg:px-3 py-2 rounded-[3px] font-display text-[11px] tracking-[0.5px] cursor-pointer border transition-all${tab.mobileOnly ? ' lg:hidden' : ''}`}
                   style={activeTab === tab.id
                     ? { background: color + '18', borderColor: color + '55', color }
                     : { background: 'transparent', borderColor: 'transparent', color: 'rgba(255,255,255,0.35)' }
                   }
                 >
                   {tab.icon}
-                  {tab.label}
+                  <span className="hidden lg:inline">{tab.label}</span>
                 </button>
               ))}
             </div>

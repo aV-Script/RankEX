@@ -200,23 +200,14 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
 
       {/* ── HEADER FULL-WIDTH ─────────────────────────────────────────────── */}
       <header
-        className="flex flex-wrap items-center justify-between gap-y-2 px-5 py-3 border-b border-white/[.05] sticky top-0 z-30 backdrop-blur-md shrink-0"
-        style={{ background: 'rgba(7,9,14,0.72)' }}
+        className="flex items-center px-2 lg:px-5 py-3 border-b border-white/[.05] sticky top-0 z-30 backdrop-blur-md shrink-0"
       >
-        {/* Sinistra: back */}
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 bg-transparent border-none text-white/40 font-body text-[13px] cursor-pointer hover:text-white/70 transition-colors p-0"
-        >
-          ‹ Clienti
-        </button>
-
-        {/* Destra: azioni — visibili su tutti i breakpoint */}
-        <div className="flex items-center gap-1 flex-wrap justify-end">
+        {/* Azioni — su mobile occupano tutta la larghezza, su desktop compatti a destra */}
+        <div className="flex items-center gap-1 w-full lg:w-auto lg:justify-end">
           {!readonly && profile.hasTests && (
             <button
               onClick={() => setView('campionamento')}
-              className="border rounded-[3px] px-2.5 py-1.5 font-display text-[10px] cursor-pointer transition-all hover:opacity-80"
+              className="flex-1 lg:flex-none border rounded-[3px] px-2.5 py-1.5 font-display text-[10px] cursor-pointer transition-all hover:opacity-80 text-center"
               style={{ color, borderColor: color + '55', background: color + '14' }}
             >
               CAMPIONAMENTO
@@ -225,7 +216,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
           {!readonly && profile.hasBia && (
             <button
               onClick={() => setView('bia')}
-              className="border rounded-[3px] px-2.5 py-1.5 font-display text-[10px] cursor-pointer transition-all hover:opacity-80"
+              className="flex-1 lg:flex-none border rounded-[3px] px-2.5 py-1.5 font-display text-[10px] cursor-pointer transition-all hover:opacity-80 text-center"
               style={{ color: biaColor, borderColor: biaColor + '55', background: biaColor + '14' }}
             >
               BIA
@@ -233,7 +224,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
           )}
           <button
             onClick={() => setShowReport(true)}
-            className="bg-transparent border rounded-[3px] px-2.5 py-1.5 font-display text-[10px] cursor-pointer transition-all"
+            className="flex-1 lg:flex-none bg-transparent border rounded-[3px] px-2.5 py-1.5 font-display text-[10px] cursor-pointer transition-all text-center"
             style={{ borderColor: 'rgba(255,255,255,0.12)', color: 'rgba(200,212,224,0.45)' }}
             onMouseEnter={e => { e.currentTarget.style.color = 'rgba(200,212,224,0.75)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)' }}
             onMouseLeave={e => { e.currentTarget.style.color = 'rgba(200,212,224,0.45)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)' }}
@@ -243,7 +234,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
           <button
             onClick={handleResetPassword}
             disabled={resetState === 'loading' || resetState === 'sent'}
-            className="bg-transparent border rounded-[3px] px-2.5 py-1.5 font-display text-[10px] cursor-pointer transition-all disabled:opacity-50"
+            className="flex-1 lg:flex-none bg-transparent border rounded-[3px] px-2.5 py-1.5 font-display text-[10px] cursor-pointer transition-all disabled:opacity-50 text-center"
             style={resetState === 'sent'
               ? { borderColor: 'rgba(15,214,90,0.4)', color: '#0fd65a' }
               : resetState === 'error'
@@ -254,11 +245,11 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
             {resetState === 'loading' ? 'INVIO…'
              : resetState === 'sent'  ? '✓ INVIATA'
              : resetState === 'error' ? 'ERRORE'
-             : 'PW'}
+             : 'PR'}
           </button>
           <button
             onClick={() => setShowDelete(true)}
-            className="bg-transparent border border-red-500/20 rounded-[3px] px-2.5 py-1.5 text-red-400/50 font-display text-[10px] cursor-pointer hover:border-red-500/50 hover:text-red-400 transition-all"
+            className="flex-1 lg:flex-none bg-transparent border border-red-500/20 rounded-[3px] px-2.5 py-1.5 text-red-400/50 font-display text-[10px] cursor-pointer hover:border-red-500/50 hover:text-red-400 transition-all text-center"
           >
             ELIMINA
           </button>
@@ -271,11 +262,10 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
         {/* ── LEFT PANEL ──────────────────────────────────────────────────── */}
         <aside
           className="shrink-0 lg:w-2/5"
-          style={{ borderRight: '1px solid rgba(255,255,255,0.04)' }}
         >
-          {/* Desktop: sticky, allineata in cima sotto header */}
-          <div className="hidden lg:block sticky top-[49px]">
-            <section className="px-4 pt-8 pb-6">
+          {/* Desktop: sticky, centrata verticalmente nell'area visibile */}
+          <div className="hidden lg:flex lg:items-center sticky top-[49px] h-[calc(100vh-49px)]">
+            <section className="px-4 py-6 w-full">
               <div className="rounded-[4px] p-5 rx-card flex flex-col items-center text-center">
 
                 {/* Header card — come Status */}
@@ -343,7 +333,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
         </aside>
 
         {/* ── RIGHT PANEL ─────────────────────────────────────────────────── */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 lg:pt-8">
 
           {/* Banner upgrade */}
           <div className="px-6 pt-3">
@@ -359,19 +349,19 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
             className="px-4 pt-4 pb-2 sticky top-[49px] z-10 backdrop-blur-md"
           >
             <div className="rounded-[4px] rx-card overflow-hidden">
-              <div className="flex gap-1 px-3 py-2 overflow-x-auto">
+              <div className="grid grid-flow-col auto-cols-fr px-1 py-2">
                 {tabs.map(t => (
                   <button
                     key={t.id}
                     onClick={() => setActiveTab(t.id)}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-[3px] font-display text-[11px] tracking-[0.5px] whitespace-nowrap cursor-pointer border transition-all shrink-0${t.mobileOnly ? ' lg:hidden' : ''}`}
+                    className={`flex items-center justify-center gap-1.5 px-1 lg:px-3 py-2 rounded-[3px] font-display text-[11px] tracking-[0.5px] cursor-pointer border transition-all${t.mobileOnly ? ' lg:hidden' : ''}`}
                     style={tab === t.id
                       ? { background: color + '18', borderColor: color + '55', color }
                       : { background: 'transparent', borderColor: 'transparent', color: 'rgba(255,255,255,0.35)' }
                     }
                   >
                     {t.icon}
-                    {t.label}
+                    <span className="hidden lg:inline">{t.label}</span>
                   </button>
                 ))}
               </div>

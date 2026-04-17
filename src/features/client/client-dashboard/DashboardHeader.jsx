@@ -29,12 +29,6 @@ export function DashboardHeader({ client, rankObj, color, biaRankObj, onBack, on
 
       {/* Barra azioni */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-white/[.05]">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 bg-transparent border-none text-white/30 font-body text-[13px] cursor-pointer hover:text-white/60 transition-colors p-0"
-        >
-          ‹ Clienti
-        </button>
 
         <div className="flex items-center gap-2">
           {/* Esporta PDF */}
