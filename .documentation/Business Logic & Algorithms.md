@@ -44,33 +44,43 @@ Il rank viene aggiornato automaticamente ogni volta che vengono registrati nuovi
 
 ## **6\. Experience Points System (XP)**
 
-Il sistema di experience points è progettato per incentivare la partecipazione e la continuità degli utenti.
+Il sistema di experience points è progettato per incentivare la partecipazione e la continuità degli utenti nel lungo periodo.
 
-Gli XP vengono assegnati in seguito a specifiche azioni, tra cui la partecipazione alle sessioni e la registrazione di dati. La quantità di punti assegnata dipende dalla frequenza delle attività e da configurazioni predefinite.
+Gli XP vengono assegnati in seguito a specifiche azioni: partecipazione alle sessioni, registrazione di campionamenti atletici e misurazioni BIA. La progressione dei livelli segue una curva incrementale calibrata per coprire un orizzonte di 3–5 anni di utilizzo attivo.
 
-La progressione dei livelli segue una logica incrementale, in cui ogni livello richiede una quantità crescente di punti rispetto al precedente. Questo approccio introduce una curva di progressione che mantiene l’engagement nel lungo periodo.
+**Curva di livellaggio:** ogni livello richiede l’1.08× dei punti del livello precedente, con un punto di partenza di 500 XP (Lv.1→Lv.2). Questo moltiplicatore consente a un atleta attivo di raggiungere il livello 30 in circa 3.5–4 anni con frequenza regolare (3 sessioni settimanali).
 
-Il sistema prevede inoltre bonus legati alla costanza, premiando gli utenti che mantengono una partecipazione regolare nel tempo.
+Il sistema prevede bonus legati alla costanza tramite streak sessioni: ogni sessione consecutiva completata senza assenze aumenta il moltiplicatore XP del 10%, fino a un massimo del +100% a streak 10 (doppio XP).
 
 ## **7\. Session XP Logic**
 
-Le sessioni rappresentano una delle principali fonti di accumulo di experience points.
+Le sessioni rappresentano la principale fonte di accumulo di experience points.
 
-Al termine di una sessione, il sistema assegna XP esclusivamente agli utenti presenti. Gli utenti assenti non ricevono alcun punto, indipendentemente dal motivo dell’assenza.
+Al termine di una sessione, il sistema assegna XP esclusivamente agli utenti presenti. Gli utenti assenti non ricevono alcun punto e la loro streak viene azzerata a zero.
 
-Nel caso in cui una sessione venga contrassegnata come non svolta, il sistema non assegna XP a nessun partecipante.
+Nel caso in cui una sessione venga contrassegnata come non svolta (skipped), il sistema non assegna XP a nessun partecipante.
 
-La quantità di XP assegnata per sessione può variare in funzione della frequenza settimanale delle attività, garantendo un bilanciamento tra utenti con diversi livelli di partecipazione.
+La quantità di XP per sessione dipende dal valore base (50 XP) moltiplicato per il fattore streak: `XP = round(50 × (1 + min(streak × 0.1, 1.0)))`. Il massimo teorico è 100 XP/sessione a streak 10 o superiore.
 
-## **8\. BIA Evaluation Logic**
+## **8\. Campionamento e BIA — Logica XP Unificata**
 
-Nel modulo personal training, la piattaforma supporta la valutazione dei dati di composizione corporea tramite BIA.
+I due eventi di misurazione — campionamento atletico e BIA — seguono la stessa logica a tier basata sul numero di parametri migliorati rispetto alla misurazione precedente. Questo garantisce coerenza e prevedibilità per trainer e atleti.
 
-Ogni misurazione viene analizzata confrontando i valori con range di riferimento specifici per ciascun parametro. Il sistema identifica eventuali miglioramenti o regressioni rispetto alle misurazioni precedenti.
+**Tier unificato (campionamento e BIA):**
 
-Sulla base di questa analisi, vengono assegnati experience points secondo una logica che premia il miglioramento e la costanza. La prima misurazione riceve un bonus iniziale, mentre le successive vengono valutate in funzione dell’evoluzione dei parametri.
+| Situazione | XP assegnati |
+|---|---|
+| Prima misurazione in assoluto | 50 XP |
+| 0 parametri/stat migliorati | 10 XP |
+| 1 parametro/stat migliorato | 30 XP |
+| 2–3 parametri/stat migliorati | 60 XP |
+| 4+ parametri/stat migliorati (tutti) | 100 XP |
 
-I dati BIA non influenzano in alcun modo il calcolo del rank, mantenendo separati i due sistemi di valutazione.
+Per il **campionamento**, si contano le statistiche percentili aumentate rispetto all’ultimo campionamento. Per la **BIA**, si contano i 4 parametri chiave migliorati: massa grassa (↓), massa muscolare (↑), acqua corporea (↑) e grasso viscerale (↓).
+
+Il sistema premia sempre la consistenza: anche senza miglioramenti, effettuare una misurazione garantisce 10 XP. Questo evita che una regressione temporanea demotivi l’atleta dall’effettuare le misurazioni successive.
+
+I dati BIA non influenzano in alcun modo il calcolo del rank, mantenendo separati i due sistemi di valutazione. Il BIA non è disponibile nel modulo soccer academy.
 
 ## **9\. Profile Type Logic**
 

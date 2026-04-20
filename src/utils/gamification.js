@@ -12,7 +12,7 @@ import { calcBiaXP }    from './bia'
 // Sale di 1 a ogni sessione completata, si azzera se il cliente è assente.
 
 /** Streak dopo una presenza confermata. */
-export function updateSessionStreak(client) {
+function updateSessionStreak(client) {
   return (client.sessionStreak ?? 0) + 1
 }
 
@@ -25,7 +25,7 @@ export function calcStreakPreview(client) {
  * Calcola EXP per sessione basata SOLO su streak
  */
 export function calcSessionXP(baseXP, streak = 0) {
-  const multiplier = 1 + Math.min(streak * 0.1, 0.5) // max +50%
+  const multiplier = 1 + Math.min(streak * 0.1, 1.0) // max +100% a streak 10
   return Math.round(baseXP * multiplier)
 }
 
@@ -84,7 +84,7 @@ const MAX_CAMPIONAMENTI     = 50
  * @param {number} level  — livello corrente
  * @returns {{ xp: number, xpNext: number, level: number }}
  */
-export function calcLevelProgression(xp, xpNext, level) {
+function calcLevelProgression(xp, xpNext, level) {
   let cur = xp, next = xpNext, lvl = level
   while (cur >= next) {
     cur  -= next
@@ -117,14 +117,6 @@ export function buildXPUpdate(client, xpToAdd, note) {
  * @param {object} testValues — valori grezzi dei test eseguiti
  * @returns {{ update: object, campionamento: object }}
  */
-/**
- * Calcola il patch da applicare al cliente dopo un campionamento.
- * Aggiorna stats, rank, media, campionamenti, log, xp e level.
- * Sistema EXP stile RPG con:
- * - miglioramenti proporzionali
- * - bonus streak
- * - bonus record personale
- */
 export function buildCampionamentoUpdate(client, newStats, testValues) {
   const media   = calcStatMedia(newStats)
   const rankObj = getRankFromMedia(media)
@@ -132,68 +124,19 @@ export function buildCampionamentoUpdate(client, newStats, testValues) {
 
   const prevStats = client.campionamenti?.[0]?.stats
 
-  let xpGain = 0
-  let improved = false
+  let xpGain
+  if (!prevStats) {
+    // Prima misurazione in assoluto
+    xpGain = 50
+  } else {
+    const nImproved = Object.keys(newStats).filter(
+      key => (newStats[key] ?? 0) > (prevStats[key] ?? 0)
+    ).length
 
-  if (prevStats) {
-    let totalImprovement = 0
-    let improvedStatsCount = 0
-    let recordBonus = 0
-
-    Object.keys(newStats).forEach(key => {
-      const prev = prevStats[key] ?? 0
-      const curr = newStats[key] ?? 0
-      const diff = curr - prev
-
-      if (diff > 0) {
-        improved = true
-        improvedStatsCount++
-        totalImprovement += diff
-
-        const bestEver = Math.max(
-          ...((client.campionamenti ?? []).map(c => c.stats?.[key] ?? 0))
-        )
-
-        if (curr > bestEver) {
-          recordBonus += 5
-        }
-      }
-    })
-
-    const BASE_SCALE = 1.2
-    xpGain = totalImprovement * BASE_SCALE
-    xpGain += improvedStatsCount * 2
-    xpGain += recordBonus
-
-    let streak = 0
-
-    for (const c of client.campionamenti ?? []) {
-      const prev = c.stats
-      const next = client.campionamenti?.[streak + 1]?.stats
-      if (!next) break
-
-      const hasImprovement = Object.keys(prev).some(k => (prev[k] ?? 0) > (next[k] ?? 0))
-      if (hasImprovement) streak++
-      else break
-    }
-
-    if (improved) {
-      streak += 1 // includi questo campionamento
-
-      const STREAK_MULTIPLIER = 1 + Math.min(streak * 0.1, 0.5) 
-      // max +50%
-
-      xpGain *= STREAK_MULTIPLIER
-    }
-
-    // 🔹 Soft minimum (se c'è miglioramento)
-    if (improved) {
-      xpGain = Math.max(10, xpGain)
-    } else {
-      xpGain = 0
-    }
-
-    xpGain = Math.round(xpGain)
+    if      (nImproved >= 4) xpGain = 100
+    else if (nImproved >= 2) xpGain = 60
+    else if (nImproved === 1) xpGain = 30
+    else                      xpGain = 10
   }
 
   const campionamento = { date: today, stats: newStats, tests: testValues, media }
@@ -323,15 +266,23 @@ export function buildNewClient(trainerId, formData, defaults) {
   const media   = hasTests ? calcStatMedia(stats) : 0
   const rankObj = getRankFromMedia(media)
 
+  const FIRST_CAMP_XP = 50
+  const { xp, xpNext, level } = hasTests
+    ? calcLevelProgression((defaults.xp ?? 0) + FIRST_CAMP_XP, defaults.xpNext, defaults.level)
+    : { xp: defaults.xp ?? 0, xpNext: defaults.xpNext, level: defaults.level }
+
   return {
     ...defaults,
     ...anagrafica,
     trainerId,
+    xp,
+    xpNext,
+    level,
     stats:         hasTests ? stats : {},
     rank:          hasTests ? rankObj.label : 'F',
     rankColor:     hasTests ? rankObj.color : '#4a5568',
     media:         hasTests ? media : 0,
     campionamenti: hasTests ? [{ date: today, stats, tests: testValues, media }] : [],
-    log: [{ date: today, action: 'Benvenuto nel programma!', xp: 0 }],
+    log: [{ date: today, action: 'Primo campionamento effettuato', xp: hasTests ? FIRST_CAMP_XP : 0 }],
   }
 }

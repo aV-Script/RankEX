@@ -3,6 +3,7 @@ import { usePagination }                            from '../../../hooks/usePagi
 import { Pagination }                               from '../../../components/common/Pagination'
 import { ConfirmDialog }                            from '../../../components/common/ConfirmDialog'
 import { GroupToggleDialog }                        from './GroupToggleDialog'
+import { GroupLeaderboard }                         from './GroupLeaderboard'
 import {
   addClientToGroupSlots,
   removeClientFromGroupSlots,
@@ -11,6 +12,7 @@ import {
 const CLIENTS_PAGE_SIZE = 8
 
 export function GroupDetailView({ group, clients, orgId, onToggleClient, onRename, onDelete, onBack }) {
+  const [subView,      setSubView]      = useState('manage') // 'manage' | 'leaderboard'
   const [clientSearch, setClientSearch] = useState('')
   const [isEditing,    setIsEditing]    = useState(false)
   const [editingName,  setEditingName]  = useState(group.name)
@@ -19,6 +21,11 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
   // Dialog toggle — { client, isRemoving }
   const [toggleDialog, setToggleDialog] = useState(null)
   const [toggling,     setToggling]     = useState(null)
+
+  // Tutti i clienti nel gruppo (senza filtro ricerca — per leaderboard)
+  const allClientsInGroup = useMemo(() =>
+    clients.filter(c => group.clientIds.includes(c.id))
+  , [clients, group.clientIds])
 
   const filteredClients = useMemo(() =>
     clients.filter(c => c.name.toLowerCase().includes(clientSearch.toLowerCase()))
@@ -123,7 +130,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
       <div className="max-w-3xl mx-auto px-6 py-8">
 
         {/* Info gruppo */}
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex items-center gap-4 mb-6">
           <div
             className="w-14 h-14 rounded-[3px] flex items-center justify-center shrink-0"
             style={{ background: 'rgba(15,214,90,0.08)', border: '1px solid rgba(15,214,90,0.2)' }}
@@ -135,72 +142,92 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
           <div>
             <div className="font-display font-black text-[20px] text-white">{group.name}</div>
             <div className="font-body text-[13px] text-white/30 mt-0.5">
-              {group.clientIds.length} {group.clientIds.length === 1 ? 'cliente' : 'clienti'}
+              {group.clientIds.length} {group.clientIds.length === 1 ? 'atleta' : 'atleti'}
             </div>
           </div>
         </div>
 
-        {/* Ricerca */}
-        <input
-          value={clientSearch}
-          onChange={e => setClientSearch(e.target.value)}
-          placeholder="Cerca cliente per nome..."
-          className="input-base w-full mb-6"
-        />
-
-        {/* Clienti nel gruppo */}
-        <div className="mb-8">
-          <div className="font-display text-[10px] text-white/30 tracking-[2px] mb-3">
-            NEL GRUPPO ({clientsInGroup.length})
-          </div>
-          {inGroupPagination.paginatedItems.length === 0 ? (
-            <p className="font-body text-[13px] text-white/20">
-              {clientSearch ? 'Nessun risultato.' : 'Nessun cliente in questo gruppo.'}
-            </p>
-          ) : (
-            <>
-              <div className="flex flex-col gap-2">
-                {inGroupPagination.paginatedItems.map(c => (
-                  <ClientRow
-                    key={c.id}
-                    client={c}
-                    inGroup
-                    loading={toggling === c.id}
-                    onToggle={() => handleRequestToggle(c, true)}
-                  />
-                ))}
-              </div>
-              <Pagination {...inGroupPagination} />
-            </>
-          )}
+        {/* Tab GESTIONE | CLASSIFICA */}
+        <div className="flex gap-2 mb-6">
+          <ViewTab active={subView === 'manage'} onClick={() => setSubView('manage')}>
+            GESTIONE
+          </ViewTab>
+          <ViewTab active={subView === 'leaderboard'} onClick={() => setSubView('leaderboard')}>
+            CLASSIFICA
+          </ViewTab>
         </div>
 
-        {/* Clienti da aggiungere */}
-        <div>
-          <div className="font-display text-[10px] text-white/30 tracking-[2px] mb-3">
-            DA AGGIUNGERE ({clientsNotInGroup.length})
-          </div>
-          {notInGroupPagination.paginatedItems.length === 0 ? (
-            <p className="font-body text-[13px] text-white/20">
-              {clientSearch ? 'Nessun risultato.' : 'Tutti i clienti sono già nel gruppo.'}
-            </p>
-          ) : (
-            <>
-              <div className="flex flex-col gap-2">
-                {notInGroupPagination.paginatedItems.map(c => (
-                  <ClientRow
-                    key={c.id}
-                    client={c}
-                    inGroup={false}
-                    loading={toggling === c.id}
-                    onToggle={() => handleRequestToggle(c, false)}
-                  />
-                ))}
+        {/* ── Vista Leaderboard ── */}
+        {subView === 'leaderboard' && (
+          <GroupLeaderboard clients={allClientsInGroup} />
+        )}
+
+        {/* ── Vista Gestione ── */}
+        {subView === 'manage' && (
+          <>
+            {/* Ricerca */}
+            <input
+              value={clientSearch}
+              onChange={e => setClientSearch(e.target.value)}
+              placeholder="Cerca cliente per nome..."
+              className="input-base w-full mb-6"
+            />
+
+            {/* Clienti nel gruppo */}
+            <div className="mb-8">
+              <div className="font-display text-[10px] text-white/30 tracking-[2px] mb-3">
+                NEL GRUPPO ({clientsInGroup.length})
               </div>
-              <Pagination {...notInGroupPagination} />
-            </>
-          )}
-        </div>
+              {inGroupPagination.paginatedItems.length === 0 ? (
+                <p className="font-body text-[13px] text-white/20">
+                  {clientSearch ? 'Nessun risultato.' : 'Nessun cliente in questo gruppo.'}
+                </p>
+              ) : (
+                <>
+                  <div className="flex flex-col gap-2">
+                    {inGroupPagination.paginatedItems.map(c => (
+                      <ClientRow
+                        key={c.id}
+                        client={c}
+                        inGroup
+                        loading={toggling === c.id}
+                        onToggle={() => handleRequestToggle(c, true)}
+                      />
+                    ))}
+                  </div>
+                  <Pagination {...inGroupPagination} />
+                </>
+              )}
+            </div>
+
+            {/* Clienti da aggiungere */}
+            <div>
+              <div className="font-display text-[10px] text-white/30 tracking-[2px] mb-3">
+                DA AGGIUNGERE ({clientsNotInGroup.length})
+              </div>
+              {notInGroupPagination.paginatedItems.length === 0 ? (
+                <p className="font-body text-[13px] text-white/20">
+                  {clientSearch ? 'Nessun risultato.' : 'Tutti i clienti sono già nel gruppo.'}
+                </p>
+              ) : (
+                <>
+                  <div className="flex flex-col gap-2">
+                    {notInGroupPagination.paginatedItems.map(c => (
+                      <ClientRow
+                        key={c.id}
+                        client={c}
+                        inGroup={false}
+                        loading={toggling === c.id}
+                        onToggle={() => handleRequestToggle(c, false)}
+                      />
+                    ))}
+                  </div>
+                  <Pagination {...notInGroupPagination} />
+                </>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Dialog toggle con recap */}
@@ -277,6 +304,21 @@ function ClientRow({ client, inGroup, loading, onToggle }) {
         {loading ? '...' : inGroup ? 'RIMUOVI' : 'AGGIUNGI'}
       </button>
     </div>
+  )
+}
+
+function ViewTab({ active, onClick, children }) {
+  return (
+    <button
+      onClick={onClick}
+      className="font-display text-[10px] px-4 py-2 rounded-[3px] cursor-pointer border transition-all tracking-[1px]"
+      style={active
+        ? { background: 'rgba(15,214,90,0.12)', borderColor: 'rgba(15,214,90,0.35)', color: '#0fd65a' }
+        : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)' }
+      }
+    >
+      {children}
+    </button>
   )
 }
 

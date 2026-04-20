@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { getClientSlots } from '../../firebase/services/calendar'
 import { getMonthRange, calcMonthlyCompletion } from '../calendar/useCalendar'
-import { calcStreakPreview } from '../../utils/gamification'
+import { calcStreakPreview, calcSessionXP } from '../../utils/gamification'
 
 const MONTH_NAMES = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
   'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
@@ -45,7 +45,7 @@ export function ClientCalendar({ clientId, orgId, clients }) {
   // Preview XP in base allo streak attuale
   const previewXP = useMemo(() => {
     if (!client) return 0
-    return calcStreakPreview(client).xp
+    return calcSessionXP(client.baseXP ?? 50, calcStreakPreview(client))
   }, [client])
 
   return (
@@ -95,7 +95,7 @@ export function ClientCalendar({ clientId, orgId, clients }) {
             const isPlanned   = hasSlots && !isCompleted
 
             // Stima XP giorno (preview)
-            const dayXP = client && hasSlots && isPlanned ? calcStreakPreview(client).xp : 0
+            const dayXP = client && hasSlots && isPlanned ? calcSessionXP(client.baseXP ?? 50, calcStreakPreview(client)) : 0
 
             return (
               <div key={cell.dateStr}

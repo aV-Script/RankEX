@@ -817,22 +817,45 @@ result = (dx + sx) / 2
 ## Gamification
 
 ```js
-MONTHLY_XP_TARGET    = 500
-BONUS_XP_FULL_MONTH  = 200
-WEEKS_PER_MONTH      = 4.33
-XP_PER_LEVEL_MULTIPLIER = 1.3
-XP_PER_CAMPIONAMENTO    = 50
+MONTHLY_XP_TARGET       = 500       // definito ma non usato attivamente
+BONUS_XP_FULL_MONTH     = 200       // definito ma non usato attivamente
+WEEKS_PER_MONTH         = 4.33
+XP_PER_LEVEL_MULTIPLIER = 1.08      // era 1.3 — ridotto per curva raggiungibile
+// xpNext partenza = 500 (era 700) — in NEW_CLIENT_DEFAULTS
 
 calcSessionConfig(sessionsPerWeek)
   → { monthlySessions, xpPerSession }
 
+// Streak sessioni — cap aumentato a streak 10 = ×2.0 (era streak 5 = ×1.5)
+calcSessionXP(baseXP, streak)
+  → round(baseXP × (1 + min(streak × 0.1, 1.0)))
+
+// XP Campionamento — tier per numero di stat percentili migliorate
+// (stesso schema BIA per coerenza)
+XP_CAMPIONAMENTO = {
+  FIRST:   50,   // primo campionamento (nessun storico)
+  NONE:    10,   // 0 stat migliorate
+  PARTIAL: 30,   // 1 stat migliorata
+  MOST:    60,   // 2–3 stat migliorate
+  ALL:    100,   // 4+ stat migliorate
+}
+
+// XP BIA — tier per numero di parametri chiave migliorati
+// Parametri chiave: fatMassPercent↓, muscleMassKg↑, waterPercent↑, visceralFat↓
 XP_BIA = {
-  FIRST_MEASUREMENT: 100,
-  IMPROVEMENT:       75,   // ≥2 parametri chiave migliorati
-  MAINTENANCE:       25,
-  REGRESSION:        0,
+  FIRST_MEASUREMENT: 50,    // era 100
+  ALL:              100,    // tutti e 4 i parametri chiave migliorati
+  MOST:              60,    // 2–3 parametri chiave migliorati
+  PARTIAL:           30,    // 1 parametro chiave migliorato
+  NONE:              10,    // 0 parametri chiave migliorati (era REGRESSION: 0)
 }
 ```
+
+**Curva livelli con i nuovi parametri:**
+- Lv.1→10: ~5 mesi (3 sess/sett, streak ~3)
+- Lv.10→20: ~14 mesi
+- Lv.20→30: ~25 mesi
+- **Totale Lv.30: ~3.5–4 anni** (vs ~335 anni con il vecchio 1.3×)
 
 Il rank dipende SOLO dai test atletici — mai dalla BIA.
 
@@ -1284,7 +1307,10 @@ Super admin    → Gestione e upload moduli (globali + per org)
 Badge / Achievement    → traguardi automatici: prima sessione, 10 presenze
                          consecutive, primo rank-up, nuovo personal best su test
 Streak presenze        → moltiplicatore XP per settimane consecutive senza assenze
-Leaderboard gruppo     → classifica dentro una squadra/gruppo (priorità: soccer)
+Leaderboard gruppo     → IMPLEMENTATO — apr 2026
+                         Tab "CLASSIFICA" in GroupDetailView, ordinabile per media
+                         o per singola stat. Top 3 oro/argento/bronzo.
+                         Componente: GroupLeaderboard.jsx
 Obiettivi trainer      → coach fissa target su test specifico per un cliente
                          (es. "70° percentile sprint entro fine mese")
                          sistema monitora e notifica al raggiungimento

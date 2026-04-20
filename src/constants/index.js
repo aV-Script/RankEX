@@ -76,7 +76,7 @@ export const NEW_CLIENT_DEFAULTS = {
   rank:               'F',
   rankColor:          '#6b7280',
   xp:                 0,
-  xpNext:             700,
+  xpNext:             500,
   stats:              {},
   log:                [],
   campionamenti:      [],
@@ -93,4 +93,4 @@ export const NEW_CLIENT_DEFAULTS = {
 
 // ── Costanti gamification ─────────────────────────────────────────────────────
 export const LOG_MAX_ENTRIES         = 20
-export const XP_PER_LEVEL_MULTIPLIER = 1.3
+export const XP_PER_LEVEL_MULTIPLIER = 1.08

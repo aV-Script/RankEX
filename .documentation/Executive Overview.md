@@ -68,7 +68,7 @@ Le evoluzioni future sono orientate ad approfondire l’esperienza di gamificati
 
 - **Avatar cliente** — rappresentazione visiva personalizzabile che evolve al crescere del rank e del livello XP, aumentando il senso di progressione e identità dell’atleta.
 - **Badge e achievement** — sistema di traguardi automatici (prima sessione, presenze consecutive, rank-up, personal best) per premiare costanza e miglioramento.
-- **Streak di presenze** — moltiplicatore XP per settimane consecutive senza assenze, incentivando la partecipazione regolare.
-- **Leaderboard di gruppo** — classifica interna a squadre o gruppi, con priorità al modulo soccer academy.
+- **Streak di presenze** — moltiplicatore XP per settimane consecutive senza assenze, incentivando la partecipazione regolare. *(Il moltiplicatore streak è già attivo sulle sessioni; questa voce si riferisce alla versione estesa con badge visivi e storico streak.)*
+- **Leaderboard di gruppo** — *(IMPLEMENTATO — apr 2026)* classifica interna a squadre o gruppi, ordinabile per media complessiva o singola statistica. Disponibile per tutti i moduli.
 - **Obiettivi assegnati dal trainer** — il coach fissa target misurabili su test specifici per ogni atleta; il sistema monitora l’avanzamento e notifica al raggiungimento.
-- **Piano di allenamento** — il trainer compone piani strutturati (esercizi, serie, recuperi) e li assegna ai clienti, integrati con il calendario e il sistema XP.
+- **Piano di allenamento** — *(IMPLEMENTATO — apr 2026)* il trainer compone piani multi-giorno (max 7 giorni, esercizi con serie/ripetizioni/recupero) e li assegna ai clienti. L’atleta consulta la scheda attiva in read-only nella propria dashboard.
