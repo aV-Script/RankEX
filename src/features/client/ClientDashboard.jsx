@@ -344,6 +344,22 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
             />
           </div>
 
+          {/* Banner educativo — solo al primo campionamento */}
+          {campCount === 0 && !readonly && profile.hasTests && (
+            <div
+              className="mx-6 mt-3 px-4 py-3 rounded-[4px] font-body text-[12px] text-white/50 leading-relaxed"
+              style={{ background: 'rgba(14,196,82,0.04)', border: '1px solid rgba(14,196,82,0.14)' }}
+            >
+              <span
+                className="font-display text-[9px] tracking-[2px] uppercase mr-2 align-middle"
+                style={{ color: '#0ec452' }}
+              >
+                Inizia
+              </span>
+              Esegui il primo campionamento per calcolare il rank dell'atleta. Le sessioni chiuse aggiungono XP e fanno salire di livello.
+            </div>
+          )}
+
           {/* Tab navigation — rx-card section */}
           <section
             className="px-4 pt-4 pb-2 sticky top-[49px] z-10 backdrop-blur-md"

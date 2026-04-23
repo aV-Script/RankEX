@@ -112,7 +112,7 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
       <div className="rounded-[4px] p-5 rx-card">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-1">
           <SectionLabel className="mb-0">◈ Scheda allenamento</SectionLabel>
           {!readonly && (
             <div className="flex gap-2">
@@ -135,6 +135,11 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
             </div>
           )}
         </div>
+        {!readonly && activePlan && (
+          <p className="font-body text-[11px] text-white/20 text-right mb-3 m-0">
+            Creare una nuova scheda archivierà automaticamente quella corrente
+          </p>
+        )}
 
         {/* Nessuna scheda attiva */}
         {!activePlan && (

@@ -6,9 +6,21 @@ function makeDay(index) {
   return { label: `Giorno ${index + 1}`, exercises: [{ ...EMPTY_EXERCISE }] }
 }
 
+function normalizeExercise(ex) {
+  return {
+    name:        ex.name        ?? '',
+    sets:        ex.sets        != null ? String(ex.sets) : '',
+    reps:        ex.reps        ?? '',
+    restSeconds: ex.restSeconds != null ? String(ex.restSeconds) : '',
+    notes:       ex.notes       ?? '',
+  }
+}
+
 function initDays(initialData) {
-  if (initialData?.days?.length)      return initialData.days
-  if (initialData?.exercises?.length) return [{ label: 'Giorno 1', exercises: initialData.exercises }]
+  if (initialData?.days?.length)
+    return initialData.days.map(d => ({ ...d, exercises: d.exercises.map(normalizeExercise) }))
+  if (initialData?.exercises?.length)
+    return [{ label: 'Giorno 1', exercises: initialData.exercises.map(normalizeExercise) }]
   return [makeDay(0)]
 }
 
@@ -98,7 +110,7 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
             sets:        ex.sets        ? parseInt(ex.sets)     : null,
             reps:        ex.reps        ? ex.reps.trim()        : null,
             restSeconds: ex.restSeconds ? parseInt(ex.restSeconds) : null,
-            notes:       ex.notes.trim() || null,
+            notes:       (ex.notes ?? '').trim() || null,
           })),
       }))
       .filter(d => d.exercises.length > 0)

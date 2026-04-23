@@ -67,7 +67,10 @@ export function RecurrencesPage({ orgId, initialRecurrenceId }) {
           </div>
         ) : active.length === 0 ? (
           <div className="text-center py-16">
-            <p className="font-body text-[13px] text-white/20">Nessuna ricorrenza attiva.</p>
+            <p className="font-body text-[13px] text-white/30 mb-2">Nessuna ricorrenza attiva.</p>
+            <p className="font-body text-[12px] text-white/20 max-w-xs mx-auto leading-relaxed">
+              Le ricorrenze generano automaticamente le sessioni settimanali. Creane una dal Calendario con il pulsante "NUOVA RICORRENZA".
+            </p>
           </div>
         ) : (
           <>

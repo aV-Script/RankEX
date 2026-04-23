@@ -1,4 +1,4 @@
-import { useState, useCallback }          from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { Button, SectionLabel }           from '../../components/ui'
 import { ConfirmDialog }                  from '../../components/common/ConfirmDialog'
 import { BiaGaugeBar }                    from './bia-view/BiaGaugeBar'
@@ -15,6 +15,8 @@ export function BiaView({ client, color, onSave, onBack }) {
   const [showConfirm, setShowConfirm] = useState(false)
 
   const bmiComputed = calcBmi(client.peso, client.altezza)
+
+  const KEY_PARAMS = useMemo(() => new Set(['fatMassPercent', 'muscleMassKg', 'waterPercent', 'visceralFat']), [])
 
   const updateValue = (key) => (e) => {
     setValues(p => ({ ...p, [key]: e.target.value }))
@@ -115,6 +117,14 @@ export function BiaView({ client, color, onSave, onBack }) {
                     {param.label}
                   </span>
                   <span className="font-body text-[11px] text-white/25">({param.unit})</span>
+                  {KEY_PARAMS.has(param.key) && (
+                    <span
+                      className="font-display text-[9px] px-1.5 py-0.5 rounded-[2px]"
+                      style={{ background: color + '12', color: color + 'aa', border: `1px solid ${color}28` }}
+                    >
+                      chiave
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-3">
