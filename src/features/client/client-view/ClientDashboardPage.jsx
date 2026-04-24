@@ -269,11 +269,8 @@ function AvatarPlaceholder({ color, rankObj, xp, xpNext, level, biaRankObj, comp
     return <RankRing rankObj={rankObj} xp={xp} xpNext={xpNext} size={72} animated={false} />
   }
 
-  const W    = small ? 110 : 174
-  const H    = small ? 138 : 218
-  const ring = small ? 62  : 82
-  const rMt  = small ? -18 : -24
-  const rMl  = small ? -12 : -16
+  const W = small ? 110 : 174
+  const H = small ? 138 : 218
 
   return (
     <div style={{ width: W }}>
@@ -331,13 +328,3 @@ function AvatarPlaceholder({ color, rankObj, xp, xpNext, level, biaRankObj, comp
   )
 }
 
-// ── Helper components ─────────────────────────────────────────────────────────
-
-function StatPill({ label, value, color }) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <span className="font-display font-black text-[22px] leading-none" style={{ color }}>{value}</span>
-      <span className="font-display text-[9px] tracking-[2px] text-white/30 uppercase">{label}</span>
-    </div>
-  )
-}
