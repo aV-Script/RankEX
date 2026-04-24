@@ -784,7 +784,7 @@ viene salvato con il percentile stimato e l'operatore vede il banner ambra di av
 | Test               | Min età | Fasce aggiunte                  | Fonte dati                                        | F = M? |
 |--------------------|---------|----------------------------------|---------------------------------------------------|--------|
 | `y_balance`        | 10      | 10-11, 12-13, 14-15, 16-17      | Zwicker et al. 2020 (LQ Composite Score)          | Sì     |
-| `standing_long_jump`| 6      | 6-7, 8-9, 10-11, 12-13, 14-15, 16-17 | Thomas et al. 2020 (percentili reali M e F) | No — dati F reali |
+| `standing_long_jump`| 9      | 9-10, 11-12, 13-14, 15-16, 17-18 + adulti 18-29…70-79 | Thomas et al. 2020 youth M+F; Cartwright 2025 adulti M; F adulti: stime | No — F reali youth, F adulti stime |
 | `sprint_20m`       | 8       | 8-9, 10-11, 12-13, 14-15, 16-17| Nikolaidis et al. 2016 (soccer U10-U35)           | Sì     |
 | `505_cod_agility`  | 10      | 10-11, 12-13, 14-15, 16-17      | Haff & Triplett 2015 + soccer U11-U17             | Sì     |
 | `beep_test`        | 8       | 8-9, 10-11, 12-13, 14-15, 16-17| LeBlanc & Tomkinson 2016 (livelli, M e F separati)| No — dati F reali |
@@ -792,7 +792,7 @@ viene salvato con il percentile stimato e l'operatore vede il banner ambra di av
 **Regola ageGroup per test soccer:**
 ```js
 y_balance:          age < 10 → null | 10-11 | 12-13 | 14-15 | 16-17 | 18-40 | 41-60
-standing_long_jump: age < 6  → null | 6-7 | 8-9 | 10-11 | 12-13 | 14-15 | 16-17 | 18-35 | 36-50
+standing_long_jump: age < 9  → null | 9-10 | 11-12 | 13-14 | 15-16 | 17-18 | 18-29 | 30-39 | 40-49 | 50-59 | 60-69 | 70-79
 sprint_20m:         age < 8  → null | 8-9 | 10-11 | 12-13 | 14-15 | 16-17 | 18-35 | 36-50
 505_cod_agility:    age < 10 → null | 10-11 | 12-13 | 14-15 | 16-17 | 18-35 | 36-50
 beep_test:          age < 8  → null | 8-9 | 10-11 | 12-13 | 14-15 | 16-17 | 18-35 | 36-50
