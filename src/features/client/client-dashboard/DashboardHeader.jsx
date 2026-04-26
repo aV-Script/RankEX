@@ -1,14 +1,13 @@
 import { useState, useCallback }  from 'react'
 import { RankRing }               from '../../../components/ui/RankRing'
 import { getCategoriaById }        from '../../../constants'
-import { XPBar }                   from '../../../components/ui/XPBar'
 import { resetPassword }           from '../../../firebase/services/auth'
 
 /**
  * Hero section del dashboard cliente.
  * Mostra rank ring, nome, categoria, XP bar e azioni (back + elimina + reset pw).
  */
-export function DashboardHeader({ client, rankObj, color, biaRankObj, onBack, onDelete }) {
+export function DashboardHeader({ client, rankObj, color, biaRankObj, onBack, onDelete, onExport }) {
   const categoria = getCategoriaById(client.categoria)
   const [resetState, setResetState] = useState('idle') // 'idle' | 'loading' | 'sent' | 'error'
 
@@ -29,15 +28,29 @@ export function DashboardHeader({ client, rankObj, color, biaRankObj, onBack, on
     <div className="relative">
 
       {/* Barra azioni */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-white/[.05]">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 bg-transparent border-none text-white/30 font-body text-[13px] cursor-pointer hover:text-white/60 transition-colors p-0"
-        >
-          ‹ Clienti
-        </button>
+      <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-white/[.05]">
 
         <div className="flex items-center gap-2">
+          {/* Esporta PDF */}
+          {onExport && (
+            <button
+              onClick={onExport}
+              title="Esporta scheda atleta come PDF"
+              className="bg-transparent border rounded-[3px] px-3 py-1.5 font-display text-[11px] cursor-pointer transition-all"
+              style={{ borderColor: 'rgba(255,255,255,0.12)', color: 'rgba(200,212,224,0.4)' }}
+              onMouseEnter={e => {
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'
+                e.currentTarget.style.color = 'rgba(200,212,224,0.7)'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'
+                e.currentTarget.style.color = 'rgba(200,212,224,0.4)'
+              }}
+            >
+              ESPORTA PDF
+            </button>
+          )}
+
           {/* Reset password */}
           <button
             onClick={handleResetPassword}
@@ -79,18 +92,18 @@ export function DashboardHeader({ client, rankObj, color, biaRankObj, onBack, on
       </div>
 
       {/* Hero */}
-      <div className="px-6 py-8 flex flex-col items-center text-center gap-4">
+      <div className="px-4 sm:px-6 py-8 flex flex-col items-center text-center gap-4">
 
         {/* Ring(s) rank */}
         {biaRankObj ? (
           <div className="flex items-end gap-6">
             <div className="flex flex-col items-center gap-1.5">
               <RankRing rankObj={rankObj} xp={client.xp} xpNext={client.xpNext} size={120} />
-              <span className="font-display text-[9px] tracking-[2px] text-white/30">TEST</span>
+              <span className="font-display text-[10px] font-semibold tracking-[2px] text-white/30">TEST</span>
             </div>
             <div className="flex flex-col items-center gap-1.5">
               <RankRing rankObj={biaRankObj} xp={client.xp} xpNext={client.xpNext} size={120} />
-              <span className="font-display text-[9px] tracking-[2px] text-white/30">BIA</span>
+              <span className="font-display text-[10px] font-semibold tracking-[2px] text-white/30">BIA</span>
             </div>
           </div>
         ) : (
@@ -116,7 +129,6 @@ export function DashboardHeader({ client, rankObj, color, biaRankObj, onBack, on
           </div>
         </div>
 
-        <XPBar xp={client.xp} xpNext={client.xpNext} color={color} />
       </div>
     </div>
   )

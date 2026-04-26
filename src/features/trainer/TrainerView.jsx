@@ -32,7 +32,7 @@ export default function TrainerView({ user, profile, org }) {
 }
 
 function TrainerLayout({ user, orgId }) {
-  const { page, navParams, selectedClient, navigateTo, deselectClient } = useTrainerNav()
+  const { page, navKey, navParams, selectedClient, navigateTo, deselectClient } = useTrainerNav()
   const {
     clients, isLoading, fetchError,
     fetchClients,
@@ -45,25 +45,30 @@ function TrainerLayout({ user, orgId }) {
       <ReadonlyBanner />
       <span id="main-content" tabIndex={-1} style={{ position: 'absolute', left: 0, top: 0 }} />
       {selectedClient ? (
-        <ClientDashboard
-          client={selectedClient}
-          orgId={orgId}
-          onBack={deselectClient}
-          onCampionamento={handleCampionamento}
-          onDelete={handleDeleteClient}
-        />
+        <div key={`client-${selectedClient.id}`} className="rx-animate-in">
+          <ClientDashboard
+            client={selectedClient}
+            orgId={orgId}
+            onBack={deselectClient}
+            onCampionamento={handleCampionamento}
+            onDelete={handleDeleteClient}
+          />
+        </div>
       ) : (
-        <CurrentPage
-          orgId={orgId}
-          trainerId={user.uid}
-          clients={clients}
-          clientsLoading={isLoading}
-          clientsError={fetchError}
-          onAddClient={handleAddClient}
-          onRefreshClients={fetchClients}
-          onNavigate={navigateTo}
-          {...(navParams ?? {})}
-        />
+        <div key={`page-${navKey}`} className="rx-animate-in">
+          <CurrentPage
+            key={navKey}
+            orgId={orgId}
+            trainerId={user.uid}
+            clients={clients}
+            clientsLoading={isLoading}
+            clientsError={fetchError}
+            onAddClient={handleAddClient}
+            onRefreshClients={fetchClients}
+            onNavigate={navigateTo}
+            {...(navParams ?? {})}
+          />
+        </div>
       )}
     </TrainerShell>
   )

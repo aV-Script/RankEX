@@ -4,6 +4,7 @@ import { updateUserProfile }                from '../../../firebase/services/use
 import { ConfirmDialog }                    from '../../../components/common/ConfirmDialog'
 import { CreateMemberForm }                 from './CreateMemberForm'
 import { getPlanLimits }                    from '../../../config/plans.config'
+import { EmptyState }                       from '../../../components/ui'
 
 const ROLE_OPTIONS = [
   { value: 'trainer',        label: 'Trainer' },
@@ -53,7 +54,7 @@ export function MembersPage({ orgId, org }) {
   return (
     <div className="px-6 py-8 text-white">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="font-display font-black text-[20px]">Team</h1>
+        <h1 className="font-display font-black text-[24px]">Team</h1>
         <button
           onClick={() => !atTrainerLimit && setShowCreate(true)}
           disabled={atTrainerLimit}
@@ -101,9 +102,13 @@ export function MembersPage({ orgId, org }) {
           ))}
         </div>
       ) : members.length === 0 ? (
-        <p className="font-body text-[13px] text-white/20">Nessun membro del team.</p>
+        <EmptyState
+          icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
+          title="Nessun membro"
+          description="Aggiungi il primo membro del team per iniziare."
+        />
       ) : (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 rx-animate-in">
           {members.map(member => (
             <div
               key={member.id}
@@ -111,11 +116,11 @@ export function MembersPage({ orgId, org }) {
               style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}
             >
               <div className="flex-1 min-w-0">
-                <div className="font-body text-[13px] text-white/70">
+                <div className="font-display font-bold text-[14px] text-white">
                   {member.name ?? member.email ?? member.id}
                 </div>
                 {member.email && (
-                  <div className="font-display text-[10px] text-white/25 mt-0.5">{member.email}</div>
+                  <div className="font-display text-[11px] text-white/25 mt-0.5">{member.email}</div>
                 )}
               </div>
               <select

@@ -1,4 +1,4 @@
-import { useState, useCallback }          from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { Button, SectionLabel }           from '../../components/ui'
 import { ConfirmDialog }                  from '../../components/common/ConfirmDialog'
 import { BiaGaugeBar }                    from './bia-view/BiaGaugeBar'
@@ -15,6 +15,8 @@ export function BiaView({ client, color, onSave, onBack }) {
   const [showConfirm, setShowConfirm] = useState(false)
 
   const bmiComputed = calcBmi(client.peso, client.altezza)
+
+  const KEY_PARAMS = useMemo(() => new Set(['fatMassPercent', 'muscleMassKg', 'waterPercent', 'visceralFat']), [])
 
   const updateValue = (key) => (e) => {
     setValues(p => ({ ...p, [key]: e.target.value }))
@@ -63,7 +65,7 @@ export function BiaView({ client, color, onSave, onBack }) {
     <div className="min-h-screen text-white">
 
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-white/[.05]">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-white/[.05]">
         <button
           onClick={onBack}
           className="flex items-center gap-1.5 bg-transparent border-none text-white/30 font-body text-[13px] cursor-pointer hover:text-white/60 transition-colors p-0"
@@ -83,7 +85,7 @@ export function BiaView({ client, color, onSave, onBack }) {
       </div>
 
       {/* Contenuto */}
-      <div className="max-w-5xl mx-auto px-6 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         <p className="font-body text-[13px] text-white/40 mb-6">
           {client.name} · {client.sesso} · {client.eta} anni
           {bmiComputed && (
@@ -115,6 +117,14 @@ export function BiaView({ client, color, onSave, onBack }) {
                     {param.label}
                   </span>
                   <span className="font-body text-[11px] text-white/25">({param.unit})</span>
+                  {KEY_PARAMS.has(param.key) && (
+                    <span
+                      className="font-display text-[9px] px-1.5 py-0.5 rounded-[2px]"
+                      style={{ background: color + '12', color: color + 'aa', border: `1px solid ${color}28` }}
+                    >
+                      chiave
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-3">

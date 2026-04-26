@@ -14,12 +14,14 @@ import { useTrainerState, useTrainerDispatch, ACTIONS } from '../../context/Trai
 export function useTrainerNav() {
   const [page,      setPage]      = useState('clients')
   const [navParams, setNavParams] = useState(null)
+  const [navKey,    setNavKey]    = useState(0)
   const { selectedClient } = useTrainerState()
   const dispatch           = useTrainerDispatch()
 
   const navigateTo = useCallback((newPage, params = null) => {
     setPage(newPage)
     setNavParams(params)
+    setNavKey(k => k + 1)
     dispatch({ type: ACTIONS.DESELECT_CLIENT })
   }, [dispatch])
 
@@ -31,5 +33,5 @@ export function useTrainerNav() {
     dispatch({ type: ACTIONS.DESELECT_CLIENT })
   }, [dispatch])
 
-  return { page, navParams, selectedClient, navigateTo, selectClient, deselectClient }
+  return { page, navKey, navParams, selectedClient, navigateTo, selectClient, deselectClient }
 }

@@ -63,7 +63,7 @@ export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
         </div>
 
         {/* Lista presenze */}
-        <div className="font-display text-[10px] text-white/30 tracking-[2px] mb-3">
+        <div className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] mb-3">
           PRESENZE
         </div>
 
@@ -92,7 +92,7 @@ export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
                 </div>
 
                 <div className="flex-1">
-                  <div className="font-body text-[13px] text-white/80">
+                  <div className="font-display font-bold text-[13px] text-white/80">
                     {client.name}
                   </div>
                   <div

@@ -1,9 +1,11 @@
 import { useState, useMemo, useCallback } from 'react'
 import { getStatsConfig, applyFormula }   from '../../../constants'
-import { calcPercentile, calcStatMedia }  from '../../../utils/percentile'
+import { calcPercentileEx, calcStatMedia } from '../../../utils/percentile'
 import { getRankFromMedia }               from '../../../constants'
 
-function calcTestPercentile(test, testValues, sesso, eta) {
+// Risolve l'input grezzo di un test (con o senza formula) al valore numerico finale.
+// Restituisce null se i campi sono incompleti/non validi.
+function resolveTestInput(test, testValues) {
   if (test.variables && test.formulaType) {
     const varsValues = {}
     for (const v of test.variables) {
@@ -11,15 +13,19 @@ function calcTestPercentile(test, testValues, sesso, eta) {
       if (testValues[v.key] === '' || isNaN(val)) return null
       varsValues[v.key] = val
     }
-    const finalValue = applyFormula(test, varsValues)
-    if (finalValue === null) return null
-    return calcPercentile(test.stat, finalValue, sesso, eta, test.key)
+    return applyFormula(test, varsValues)
   }
-
   const raw = testValues[test.stat]
   const val = raw === '' || raw === undefined ? null : Number(raw)
   if (val === null || isNaN(val)) return null
-  return calcPercentile(test.stat, val, sesso, eta, test.key)
+  return val
+}
+
+// Calcola { value, outOfRange } per un test dato i valori correnti.
+function calcTestResult(test, testValues, sesso, eta) {
+  const finalValue = resolveTestInput(test, testValues)
+  if (finalValue === null) return { value: null, outOfRange: false }
+  return calcPercentileEx(test.stat, finalValue, sesso, eta, test.key)
 }
 
 export function useCampionamento({ client, onSave, onBack }) {
@@ -38,13 +44,24 @@ export function useCampionamento({ client, onSave, onBack }) {
   const [loading,      setLoading]      = useState(false)
   const [showConfirm,  setShowConfirm]  = useState(false)
 
-  const liveStats = useMemo(() => {
+  // Risultati completi per ogni test: { [stat]: { value, outOfRange } }
+  const liveResults = useMemo(() => {
     const result = {}
     config.forEach(test => {
-      result[test.stat] = calcTestPercentile(test, testValues, client.sesso, client.eta)
+      result[test.stat] = calcTestResult(test, testValues, client.sesso, client.eta)
     })
     return result
   }, [testValues, client.sesso, client.eta, config])
+
+  // Valori numerici (backward-compat con tutto il resto della UI)
+  const liveStats = useMemo(() =>
+    Object.fromEntries(Object.entries(liveResults).map(([k, r]) => [k, r.value]))
+  , [liveResults])
+
+  // Flags età fuori fascia normativa per ogni test
+  const ageWarnings = useMemo(() =>
+    Object.fromEntries(Object.entries(liveResults).map(([k, r]) => [k, r.outOfRange]))
+  , [liveResults])
 
   const statsForPreview = useMemo(() => {
     const result = {}
@@ -77,19 +94,17 @@ export function useCampionamento({ client, onSave, onBack }) {
     return Object.keys(e).length === 0
   }, [config, testValues])
 
-  // Click su "Salva" — valida e mostra conferma
   const handleRequestSave = useCallback(() => {
     if (!validate()) return
     setShowConfirm(true)
   }, [validate])
 
-  // Click su "Conferma" nel dialog
   const handleConfirmSave = useCallback(async () => {
     setLoading(true)
     try {
       const newStats = {}
       config.forEach(test => {
-        newStats[test.stat] = calcTestPercentile(test, testValues, client.sesso, client.eta) ?? 0
+        newStats[test.stat] = calcTestResult(test, testValues, client.sesso, client.eta).value ?? 0
       })
       await onSave(newStats, { ...testValues })
       onBack()
@@ -110,6 +125,7 @@ export function useCampionamento({ client, onSave, onBack }) {
     loading,
     showConfirm,
     liveStats,
+    ageWarnings,
     statsForPreview,
     newMedia,
     newRankObj,

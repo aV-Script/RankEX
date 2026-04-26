@@ -78,13 +78,19 @@ Il sistema supporta diversi tipi di profilo cliente, che determinano quali funzi
 
 ## **9\. Gamification System**
 
-RankEX integra un sistema di gamification progettato per aumentare il coinvolgimento degli utenti e incentivare la continuità nel tempo.
+RankEX integra un sistema di gamification progettato per aumentare il coinvolgimento degli utenti e incentivare la continuità nel tempo, calibrato su un orizzonte di utilizzo di 3–5 anni.
 
-Gli utenti accumulano experience points attraverso diverse attività, tra cui la partecipazione alle sessioni e la registrazione di dati. Il sistema prevede una progressione a livelli, in cui ogni livello richiede una quantità crescente di punti.
+**Fonti di XP:** gli utenti accumulano experience points partecipando alle sessioni, registrando campionamenti atletici e misurazioni BIA. La partecipazione alle sessioni rappresenta la fonte principale; campionamento e BIA contribuiscono con bonus legati al miglioramento.
 
-È inoltre previsto un sistema di bonus che premia la costanza nel tempo, ad esempio in caso di partecipazione regolare alle attività mensili.
+**Sessioni:** ogni sessione completata con presenza garantisce XP base (50), moltiplicato da un fattore streak che premia la continuità. La streak aumenta del 10% per ogni sessione consecutiva senza assenze, fino a un massimo di +100% a streak 10. Un’assenza azzera la streak.
 
-Il rank dell’utente, pur essendo visivamente collegato alla progressione, rimane indipendente dal sistema di experience points e continua a basarsi esclusivamente sui test atletici.
+**Campionamento e BIA — logica unificata:** entrambi gli eventi di misurazione seguono la stessa struttura a tier: 50 XP alla prima misurazione, poi 10/30/60/100 XP in base al numero di parametri migliorati rispetto alla sessione precedente (0 / 1 / 2–3 / tutti). Effettuare una misurazione garantisce sempre almeno 10 XP, anche in caso di regressione.
+
+**Progressione livelli:** ogni livello richiede l’1.08× dei punti del livello precedente, con partenza a 500 XP. La curva è calibrata affinché un atleta attivo raggiunga il livello 30 in circa 3.5–4 anni con frequenza regolare.
+
+**Leaderboard di gruppo:** ogni gruppo/squadra dispone di una classifica interna consultabile dal trainer, ordinabile per media complessiva o per singola statistica atletica. I primi tre posti sono evidenziati con colori oro, argento e bronzo.
+
+Il rank dell’utente rimane indipendente dal sistema di experience points e continua a basarsi esclusivamente sulla media dei percentili dei test atletici.
 
 ## **10\. Calendar and Session Management**
 

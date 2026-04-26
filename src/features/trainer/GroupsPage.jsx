@@ -7,6 +7,7 @@ import { GroupCard }                      from './groups-page/GroupCard'
 import { GroupDetailView }                from './groups-page/GroupDetailView'
 import { GroupsSidebar }                  from './groups-page/GroupsSidebar'
 import { Skeleton }                       from '../../components/common/Skeleton'
+import { EmptyState }                     from '../../components/ui'
 import { PAGINATION_PAGE_SIZE }           from '../../config/app.config'
 
 const GROUPS_PAGE_SIZE = PAGINATION_PAGE_SIZE
@@ -153,11 +154,13 @@ export function GroupsPage({ orgId }) {
             <Skeleton variant="card" count={6} />
           </div>
         ) : filteredGroups.length === 0 ? (
-          <EmptyState>
-            {groups.length === 0 ? 'Nessun gruppo. Creane uno!' : 'Nessun gruppo trovato.'}
-          </EmptyState>
+          <EmptyState
+            icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>}
+            title={groups.length === 0 ? 'Nessun gruppo' : 'Nessun risultato'}
+            description={groups.length === 0 ? 'Crea il primo gruppo per organizzare i clienti.' : 'Prova a cambiare il termine di ricerca.'}
+          />
         ) : (
-          <>
+          <div className="rx-animate-in">
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
               {pagination.paginatedItems.map(group => (
                 <GroupCard
@@ -169,17 +172,9 @@ export function GroupsPage({ orgId }) {
               ))}
             </div>
             <Pagination {...pagination} />
-          </>
+          </div>
         )}
       </main>
-    </div>
-  )
-}
-
-function EmptyState({ children }) {
-  return (
-    <div className="flex items-center justify-center py-20">
-      <span className="font-body text-white/20 text-[15px]">{children}</span>
     </div>
   )
 }

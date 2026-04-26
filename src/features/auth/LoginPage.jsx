@@ -8,14 +8,13 @@ export default function LoginPage() {
   const form = useLoginForm()
 
   return (
-    <div className="min-h-screen flex" style={{ background: '#080c12' }}>
+    <div className="min-h-screen flex">
       <BrandingPanel />
       <div className="hidden lg:block w-px"
         style={{ background: 'linear-gradient(180deg, transparent, rgba(15,214,90,0.12) 30%, rgba(15,214,90,0.12) 70%, transparent)' }}
       />
       <div
         className="flex-1 lg:max-w-[480px] flex flex-col items-center justify-center px-8 py-12"
-        style={{ background: '#080c12' }}
       >
         <MobileLogo />
         <div className="w-full max-w-[360px]">

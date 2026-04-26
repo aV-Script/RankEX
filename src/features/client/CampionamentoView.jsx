@@ -12,6 +12,7 @@ export function CampionamentoView({ client, color, onSave, onBack }) {
     loading,
     showConfirm,
     liveStats,
+    ageWarnings,
     statsForPreview,
     newMedia,
     newRankObj,
@@ -48,8 +49,11 @@ export function CampionamentoView({ client, color, onSave, onBack }) {
       {/* Contenuto */}
       <div className="max-w-5xl mx-auto px-6 py-8">
 
-        <p className="text-[13px] text-white/40 mb-6">
+        <p className="text-[13px] text-white/40 mb-2">
           {client.name} · {client.sesso} · {client.eta} anni
+        </p>
+        <p className="font-body text-[12px] text-white/25 mb-6 leading-relaxed">
+          Il percentile indica la posizione rispetto ai pari età/sesso: 70° = meglio del 70% delle persone simili.
         </p>
 
         <div className="flex gap-8 items-start">
@@ -64,6 +68,7 @@ export function CampionamentoView({ client, color, onSave, onBack }) {
                 livePercentile={liveStats[test.stat]}
                 prevValue={client.stats?.[test.stat]}
                 errors={errors}
+                ageWarning={ageWarnings[test.stat]}
                 onUpdate={updateValue}
               />
             ))}

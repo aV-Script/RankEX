@@ -70,10 +70,47 @@
 
 html, body, #root {
   min-height:             100vh;
-  background:             var(--rx-bg);
   color:                  var(--rx-text);
   font-family:            'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* ── Background brand CSS-only — fisso, infinitamente scalabile ── */
+html {
+  background-color: #06080d;
+  background-image:
+    /* 1 — Vignette perimetrale */
+    radial-gradient(ellipse 120% 120% at 50% 50%,
+      transparent 30%, rgba(0, 0, 0, 0.72) 100%),
+    /* 2 — Green glow bordo sinistro */
+    radial-gradient(ellipse 45% 60% at -3% 62%,
+      rgba(15, 214, 90, 0.20) 0%,
+      rgba(15, 214, 90, 0.06) 40%,
+      transparent 65%),
+    /* 3 — Cyan trace top-right */
+    radial-gradient(ellipse 35% 25% at 106% -2%,
+      rgba(0, 200, 255, 0.10) 0%,
+      transparent 55%),
+    /* 4 — Pentagoni sparsi */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='116'%3E%3Cpolygon points='60,6 110,42 91,100 30,100 11,42' fill='none' stroke='rgba(0,200,255,0.07)' stroke-width='0.8'/%3E%3C/svg%3E"),
+    /* 5 — Griglia rettangolare orizzontale */
+    linear-gradient(rgba(0, 200, 255, 0.028) 1px, transparent 1px),
+    /* 6 — Griglia rettangolare verticale */
+    linear-gradient(90deg, rgba(0, 200, 255, 0.028) 1px, transparent 1px);
+  background-size:
+    cover, cover, cover,
+    120px 116px,
+    40px 40px,
+    40px 40px;
+  background-attachment: fixed;
+  background-position:   center;
+  background-repeat:
+    no-repeat, no-repeat, no-repeat,
+    repeat, repeat, repeat;
+}
+
+body, #root {
+  background: transparent;
 }
 
 /* ── Font utilities ─────────────────────────────────────────── */

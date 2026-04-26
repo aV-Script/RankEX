@@ -65,13 +65,15 @@ export function AddSlotModal({ date, clients, groups, slots, onClose, onSave }) 
         onClick={e => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-5">
-          <h3 id="add-slot-title" className="font-display text-white text-[15px] m-0">Nuova sessione</h3>
-          <button onClick={onClose} aria-label="Chiudi" className="bg-transparent border-none text-white/40 text-xl cursor-pointer">✕</button>
+          <h3 id="add-slot-title" className="font-display font-black text-white text-[16px] m-0">Nuova sessione</h3>
+          <button onClick={onClose} aria-label="Chiudi" className="bg-transparent border-none text-white/40 cursor-pointer flex items-center justify-center w-7 h-7">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
 
         {/* Data */}
         <div className="mb-4">
-          <label className="font-display text-[10px] text-white/30 tracking-[2px] block mb-1.5">DATA</label>
+          <label className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] block mb-1.5">DATA</label>
           <input
             type="date" value={selectedDate} min={today}
             onChange={e => setSelectedDate(e.target.value)}
@@ -82,12 +84,12 @@ export function AddSlotModal({ date, clients, groups, slots, onClose, onSave }) 
         {/* Orari */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
-            <label className="font-display text-[10px] text-white/30 tracking-[2px] block mb-1.5">INIZIO</label>
+            <label className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] block mb-1.5">INIZIO</label>
             <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)}
               className="input-base w-full" style={{ colorScheme: 'dark' }} />
           </div>
           <div>
-            <label className="font-display text-[10px] text-white/30 tracking-[2px] block mb-1.5">FINE</label>
+            <label className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] block mb-1.5">FINE</label>
             <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)}
               className="input-base w-full" style={{ colorScheme: 'dark' }} />
           </div>
@@ -96,7 +98,7 @@ export function AddSlotModal({ date, clients, groups, slots, onClose, onSave }) 
         {/* Gruppi */}
         {groups.length > 0 && (
           <div className="mb-4">
-            <label className="font-display text-[10px] text-white/30 tracking-[2px] block mb-2">GRUPPO</label>
+            <label className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] block mb-2">GRUPPO</label>
             <div className="flex flex-wrap gap-2">
               {groups.map(g => (
                 <button
@@ -117,18 +119,18 @@ export function AddSlotModal({ date, clients, groups, slots, onClose, onSave }) 
         {/* Clienti */}
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
-            <label className="font-display text-[10px] text-white/30 tracking-[2px]">CLIENTI</label>
+            <label className="font-display text-[11px] font-semibold text-white/30 tracking-[2px]">CLIENTI</label>
             <div className="flex gap-2">
               <button
                 onClick={() => setSelectedClients(clients.map(c => c.id))}
-                className="font-display text-[9px] text-white/30 cursor-pointer hover:text-white/50 bg-transparent border-none p-0"
+                className="font-display text-[10px] text-white/30 cursor-pointer hover:text-white/50 bg-transparent border-none p-0"
               >
                 TUTTI
               </button>
               <span className="text-white/15">·</span>
               <button
                 onClick={() => setSelectedClients([])}
-                className="font-display text-[9px] text-white/30 cursor-pointer hover:text-white/50 bg-transparent border-none p-0"
+                className="font-display text-[10px] text-white/30 cursor-pointer hover:text-white/50 bg-transparent border-none p-0"
               >
                 NESSUNO
               </button>
@@ -161,8 +163,8 @@ export function AddSlotModal({ date, clients, groups, slots, onClose, onSave }) 
                       </svg>
                     )}
                   </div>
-                  <span className="font-body text-[13px] flex-1">{c.name}</span>
-                  {isOverLimit && <span className="font-display text-[9px] text-red-400">MAX RAGGIUNTO</span>}
+                  <span className="font-display font-bold text-[13px] flex-1">{c.name}</span>
+                  {isOverLimit && <span className="font-display text-[10px] text-red-400">MAX RAGGIUNTO</span>}
                 </button>
               )
             })}

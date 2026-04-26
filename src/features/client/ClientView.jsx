@@ -5,21 +5,12 @@ import { useClientRank }                  from '../../hooks/useClientRank'
 import { useNotifications }               from '../../hooks/useNotifications'
 import { ClientShell }                    from './client-view/ClientShell'
 import { ClientDashboardPage }            from './client-view/ClientDashboardPage'
-import { ClientProfilePage }              from './client-view/ClientProfilePage'
-import { ClientCalendar }                 from './ClientCalendar'
 import { NotificationsPanel }             from '../notification/NotificationsPanel'
 import { calcBiaScore, getBiaRankFromScore } from '../../utils/bia'
 
-// Mappa pagina → componente
-const PAGES = {
-  dashboard: ClientDashboardPage,
-  calendar:  null, // gestito inline per via delle props
-  profile:   null, // gestito inline per via di onCard
-}
-
 /**
  * Entry point dell'area cliente.
- * Gestisce fetch, navigazione, notifiche
+ * Gestisce fetch, notifiche e passa tutto al layout 2-colonne.
  */
 export default function ClientView({ clientId, orgId }) {
   const { client, loading } = useClient(orgId, clientId)
@@ -31,11 +22,10 @@ export default function ClientView({ clientId, orgId }) {
 
   const rankObj = profileType === 'bia_only' ? biaRankObj : testRankObj
   const color   = profileType === 'bia_only' ? biaRankObj.color : testColor
+
   const { notifications, unreadCount, markAllRead, remove } = useNotifications(orgId, clientId)
 
-  const [view,        setView]        = useState('dashboard') // 'dashboard' | 'card'
-  const [activePage,  setActivePage]  = useState('dashboard')
-  const [showNotifs,  setShowNotifs]  = useState(false)
+  const [showNotifs, setShowNotifs] = useState(false)
 
   const handleOpenNotifs = useCallback(async () => {
     setShowNotifs(true)
@@ -51,40 +41,20 @@ export default function ClientView({ clientId, orgId }) {
   )
   if (!client) return <FullScreenMsg>Profilo non trovato.</FullScreenMsg>
 
-
   return (
     <ClientShell
-      activePage={activePage}
-      onNavigate={setActivePage}
       color={color}
       unreadCount={unreadCount}
       onOpenNotifs={handleOpenNotifs}
     >
-      {activePage === 'dashboard' && (
-        <ClientDashboardPage
-          client={client}
-          color={color}
-          rankObj={rankObj}
-          biaRankObj={profileType === 'complete' ? biaRankObj : null}
-        />
-      )}
-
-      {activePage === 'calendar' && (
-        <div className="px-4 py-6">
-          <ClientCalendar
-            clientId={clientId}
-            orgId={orgId}
-          />
-        </div>
-      )}
-
-      {activePage === 'profile' && (
-        <ClientProfilePage
-          client={client}
-          color={color}
-          onCard={() => setView('card')}
-        />
-      )}
+      <ClientDashboardPage
+        client={client}
+        clientId={clientId}
+        orgId={orgId}
+        color={color}
+        rankObj={rankObj}
+        biaRankObj={profileType === 'complete' ? biaRankObj : null}
+      />
 
       {showNotifs && (
         <NotificationsPanel

@@ -33,7 +33,7 @@ export const EventBlock = memo(function EventBlock({ slot, clients, onSelect, st
       <div className="font-display text-[10px] font-black leading-tight" style={{ color: statusColor }}>
         {slot.startTime}
       </div>
-      <div className="font-body text-[11px] text-white/80 truncate leading-tight mt-0.5">
+      <div className="font-display font-bold text-[11px] text-white/80 truncate leading-tight mt-0.5">
         {label}
       </div>
       {slot.recurrenceId && (

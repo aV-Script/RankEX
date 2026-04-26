@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { getClientSlots } from '../../firebase/services/calendar'
 import { getMonthRange, calcMonthlyCompletion } from '../calendar/useCalendar'
-import { calcStreakPreview } from '../../utils/gamification'
+import { calcStreakPreview, calcSessionXP } from '../../utils/gamification'
 
 const MONTH_NAMES = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
   'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
@@ -45,7 +45,7 @@ export function ClientCalendar({ clientId, orgId, clients }) {
   // Preview XP in base allo streak attuale
   const previewXP = useMemo(() => {
     if (!client) return 0
-    return calcStreakPreview(client).xp
+    return calcSessionXP(client.baseXP ?? 50, calcStreakPreview(client))
   }, [client])
 
   return (
@@ -54,7 +54,7 @@ export function ClientCalendar({ clientId, orgId, clients }) {
       <div className="flex items-center justify-between">
         <button onClick={prevMonth}
           className="bg-transparent border border-white/10 rounded-[3px] w-8 h-8 flex items-center justify-center cursor-pointer hover:border-white/20 transition-all text-white/40 hover:text-white/70 text-[16px]">‹</button>
-        <span className="font-display font-black text-[15px] text-white">
+        <span className="font-display font-black text-[16px] text-white">
           {MONTH_NAMES[currentMonth - 1]} {currentYear}
         </span>
         <button onClick={nextMonth}
@@ -66,7 +66,7 @@ export function ClientCalendar({ clientId, orgId, clients }) {
         <div className="rounded-[3px] p-3.5"
           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
           <div className="flex justify-between items-center mb-2">
-            <span className="font-display text-[10px] text-white/30 tracking-[2px]">COMPLETAMENTO MESE</span>
+            <span className="font-display text-[11px] font-semibold text-white/30 tracking-[2px]">COMPLETAMENTO MESE</span>
             <span className="font-display text-[12px]"
               style={{ color: pct === 100 ? '#34d399' : pct >= 50 ? '#f59e0b' : '#f87171' }}>
               {completed}/{planned}
@@ -83,7 +83,7 @@ export function ClientCalendar({ clientId, orgId, clients }) {
       <div>
         <div className="grid grid-cols-7 gap-1 mb-1">
           {DAY_NAMES.map(d => (
-            <div key={d} className="text-center font-display text-[9px] text-white/25 tracking-[1px] py-0.5">{d}</div>
+            <div key={d} className="text-center font-display text-[10px] font-semibold text-white/30 tracking-[1px] py-0.5">{d}</div>
           ))}
         </div>
         <div className="grid grid-cols-7 gap-1">
@@ -95,7 +95,7 @@ export function ClientCalendar({ clientId, orgId, clients }) {
             const isPlanned   = hasSlots && !isCompleted
 
             // Stima XP giorno (preview)
-            const dayXP = client && hasSlots && isPlanned ? calcStreakPreview(client).xp : 0
+            const dayXP = client && hasSlots && isPlanned ? calcSessionXP(client.baseXP ?? 50, calcStreakPreview(client)) : 0
 
             return (
               <div key={cell.dateStr}
@@ -126,11 +126,11 @@ export function ClientCalendar({ clientId, orgId, clients }) {
       <div className="flex gap-4">
         <div className="flex items-center gap-1.5">
           <div className="w-2 h-2 rounded-full bg-emerald-400" />
-          <span className="font-body text-[11px] text-white/30">Completata</span>
+          <span className="font-display font-bold text-[11px] text-white/30">Completata</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-2 h-2 rounded-full bg-blue-400 opacity-60" />
-          <span className="font-body text-[11px] text-white/30">Pianificata</span>
+          <span className="font-display font-bold text-[11px] text-white/30">Pianificata</span>
         </div>
       </div>
     </div>

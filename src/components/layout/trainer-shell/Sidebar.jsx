@@ -19,14 +19,14 @@ export function Sidebar({ page, onNavigate, onLogout }) {
         hidden lg:flex flex-col items-center
         py-6 gap-2 sticky top-0 h-screen
         shrink-0 z-30 border-r border-white/[.05]
-        backdrop-blur-md
+        backdrop-blur-md bg-black/50
       "
       style={{ width: 64 }}
       aria-label="Navigazione principale"
     >
       {/* Logo */}
       <div className="mb-4">
-        <span className="rx-glow-text font-display font-black text-[14px] leading-none tracking-wider">
+        <span className="rx-glow-text font-display font-black text-[16px] leading-none tracking-wider">
           RX
         </span>
       </div>

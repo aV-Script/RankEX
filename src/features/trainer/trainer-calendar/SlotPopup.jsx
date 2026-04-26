@@ -57,16 +57,18 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
         </div>
         <div className="flex items-center gap-2">
           <span
-            className="font-display text-[9px] px-2 py-0.5 rounded-[3px]"
+            className="font-display text-[10px] px-2 py-0.5 rounded-[3px]"
             style={{ background: statusLabel.color + '22', color: statusLabel.color }}
           >
             {statusLabel.text}
           </span>
           <button
             onClick={onClose}
-            className="bg-transparent border-none text-white/30 cursor-pointer hover:text-white/60 transition-colors text-[16px] leading-none p-0"
+            className="bg-transparent border-none text-white/30 cursor-pointer hover:text-white/60 transition-colors p-0 flex items-center justify-center w-6 h-6"
           >
-            ✕
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
           </button>
         </div>
       </div>
@@ -94,7 +96,7 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
               >
                 {isPresent ? '✓' : isAbsent ? '✗' : '·'}
               </span>
-              <span className="font-body text-[13px] text-white/70 flex-1">{client.name}</span>
+              <span className="font-display font-bold text-[13px] text-white/80 flex-1">{client.name}</span>
               {isPresent && (
                 <span className="font-display text-[10px] text-emerald-400">
                   +XP

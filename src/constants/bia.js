@@ -137,11 +137,13 @@ export const BMI_RANGES = [
 ]
 
 // ── XP per BIA ────────────────────────────────────────────────
+// Stessa logica a tier del campionamento: 0/1/2-3/4 param chiave migliorati
 export const XP_BIA = Object.freeze({
-  FIRST_MEASUREMENT: 100,
-  IMPROVEMENT:       75,
-  MAINTENANCE:       25,
-  REGRESSION:        0,
+  FIRST_MEASUREMENT: 50,   // prima BIA in assoluto
+  ALL:              100,   // tutti e 4 i parametri chiave migliorati
+  MOST:              60,   // 2–3 parametri chiave migliorati
+  PARTIAL:           30,   // 1 parametro chiave migliorato
+  NONE:              10,   // 0 parametri chiave migliorati
 })
 
 // ── Parametri chiave per calcolo miglioramento ────────────────

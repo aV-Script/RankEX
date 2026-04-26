@@ -41,7 +41,7 @@ export function GroupToggleDialog({
       onClick={onCancel}
     >
       <div
-        className="w-full max-w-sm p-6"
+        className="w-full max-w-sm p-6 rx-animate-in"
         style={{
           background:   '#0d1520',
           border:       '1px solid rgba(15,214,90,0.15)',
@@ -64,15 +64,15 @@ export function GroupToggleDialog({
           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '3px' }}
         >
           <div className="flex items-center justify-between">
-            <span className="font-body text-[12px] text-white/40">Allievo</span>
+            <span className="font-display text-[11px] font-semibold text-white/40">Allievo</span>
             <span className="font-display text-[13px] text-white">{client.name}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="font-body text-[12px] text-white/40">Gruppo</span>
+            <span className="font-display text-[11px] font-semibold text-white/40">Gruppo</span>
             <span className="font-display text-[13px] text-white">{group.name}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="font-body text-[12px] text-white/40">Operazione</span>
+            <span className="font-display text-[11px] font-semibold text-white/40">Operazione</span>
             <span className="font-display text-[13px]" style={{ color: actionColor }}>
               {isRemoving ? 'Rimozione' : 'Aggiunta'}
             </span>
@@ -84,7 +84,7 @@ export function GroupToggleDialog({
           className="p-4 mb-5"
           style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '3px' }}
         >
-          <div className="font-display text-[10px] tracking-[2px] mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>
+          <div className="font-display text-[11px] font-semibold tracking-[2px] mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>
             IMPATTO SUL CALENDARIO
           </div>
 
@@ -97,7 +97,7 @@ export function GroupToggleDialog({
           ) : preview ? (
             <div className="flex flex-col gap-2.5">
               <div className="flex items-center justify-between">
-                <span className="font-body text-[12px] text-white/50">Sessioni future</span>
+                <span className="font-display font-bold text-[12px] text-white/55">Sessioni future</span>
                 <div className="flex items-center gap-1.5">
                   <span
                     className="font-display font-black text-[14px]"
@@ -110,7 +110,7 @@ export function GroupToggleDialog({
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="font-body text-[12px] text-white/50">Ricorrenze attive</span>
+                <span className="font-display font-bold text-[12px] text-white/55">Ricorrenze attive</span>
                 <div className="flex items-center gap-1.5">
                   <span
                     className="font-display font-black text-[14px]"
@@ -127,7 +127,7 @@ export function GroupToggleDialog({
                   {preview.recurrences.map(r => (
                     <div key={r.id} className="flex items-center gap-2 py-1">
                       <span
-                        className="font-display text-[9px] px-2 py-0.5 rounded-[3px]"
+                        className="font-display text-[10px] font-semibold px-2 py-0.5 rounded-[3px]"
                         style={{ background: 'rgba(15,214,90,0.12)', color: 'rgba(15,214,90,0.8)' }}
                       >
                         {DAY_LABELS.filter((_, i) => r.days.includes(i)).join(' · ')}

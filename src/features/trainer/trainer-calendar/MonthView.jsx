@@ -89,7 +89,7 @@ export function MonthView({ currentDate, slots, clients, today, onSlotClick, onE
       {/* Header giorni */}
       <div className="grid grid-cols-7 gap-1 mb-2">
         {DAY_NAMES.map(d => (
-          <div key={d} className="text-center font-display text-[10px] text-white/30 tracking-[2px] py-1">
+          <div key={d} className="text-center font-display text-[11px] font-semibold text-white/30 tracking-[2px] py-1">
             {d}
           </div>
         ))}

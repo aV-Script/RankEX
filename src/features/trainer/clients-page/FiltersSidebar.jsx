@@ -1,5 +1,5 @@
-import { Input }        from '../../../components/ui'
-import { PLAYER_ROLES } from '../../../config/modules.config'
+import { Input }                                from '../../../components/ui'
+import { PLAYER_ROLES, SOCCER_AGE_GROUPS }      from '../../../config/modules.config'
 
 const SORT_OPTIONS = [
   ['name',  'Nome A→Z'],
@@ -14,9 +14,11 @@ const SORT_OPTIONS = [
 export function FiltersSidebar({
   query,          onQueryChange,
   filterCategoria, onCategoriaChange,
+  filterFascia,    onFasciaChange,
   filterGroup,    onGroupChange,
   sortBy,         onSortByChange,
   categorie,
+  fasce,
   groups,
   onNewClient,
   isSoccer = false,
@@ -57,6 +59,25 @@ export function FiltersSidebar({
         </FilterSection>
       )}
 
+      {isSoccer && fasce.length > 1 && (
+        <FilterSection label="FASCIA">
+          {fasce.map(val => {
+            const label = val === 'tutti'
+              ? 'Tutti'
+              : (SOCCER_AGE_GROUPS.find(g => g.value === val)?.label ?? val)
+            return (
+              <FilterBtn
+                key={val}
+                active={filterFascia === val}
+                onClick={() => onFasciaChange(val)}
+              >
+                {label}
+              </FilterBtn>
+            )
+          })}
+        </FilterSection>
+      )}
+
       {groups.length > 0 && (
         <FilterSection label="GRUPPO">
           <FilterBtn active={filterGroup === null} onClick={() => onGroupChange(null)}>
@@ -89,7 +110,7 @@ export function FiltersSidebar({
 function FilterSection({ label, children }) {
   return (
     <div>
-      <p className="font-display text-[10px] text-white/30 tracking-[3px] mb-2">{label}</p>
+      <p className="font-display text-[11px] font-semibold text-white/30 tracking-[3px] mb-2">{label}</p>
       <div className="flex flex-col gap-1">{children}</div>
     </div>
   )

@@ -5,6 +5,7 @@ import { RecurrenceDetailView } from './recurrences-page/RecurrenceDetailView'
 import { RecurrenceCard }       from './recurrences-page/RecurrenceCard'
 import { usePagination }        from '../../hooks/usePagination'
 import { Pagination }           from '../../components/common/Pagination'
+import { EmptyState }           from '../../components/ui'
 
 export function RecurrencesPage({ orgId, initialRecurrenceId }) {
   const {
@@ -45,7 +46,7 @@ export function RecurrencesPage({ orgId, initialRecurrenceId }) {
 
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <h1 className="font-display font-black text-[20px] text-white m-0">Ricorrenze</h1>
+        <h1 className="font-display font-black text-[22px] text-white m-0">Ricorrenze</h1>
         <span className="font-display text-[11px] text-white/30">
           {active.length} attive
         </span>
@@ -66,11 +67,13 @@ export function RecurrencesPage({ orgId, initialRecurrenceId }) {
             ))}
           </div>
         ) : active.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="font-body text-[13px] text-white/20">Nessuna ricorrenza attiva.</p>
-          </div>
+          <EmptyState
+            icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/><line x1="16" y1="1" x2="16" y2="5"/><line x1="8" y1="1" x2="8" y2="5"/><line x1="3" y1="10" x2="21" y2="10"/></svg>}
+            title="Nessuna ricorrenza attiva"
+            description='Creane una dal Calendario con il pulsante "NUOVA RICORRENZA".'
+          />
         ) : (
-          <>
+          <div className="rx-animate-in">
             <div className="flex flex-col gap-3">
               {paginatedActive.map(rec => (
                 <RecurrenceCard
@@ -82,7 +85,7 @@ export function RecurrencesPage({ orgId, initialRecurrenceId }) {
               ))}
             </div>
             <Pagination {...activePagination} />
-          </>
+          </div>
         )}
 
         {/* Archivio collassabile */}
@@ -100,7 +103,7 @@ export function RecurrencesPage({ orgId, initialRecurrenceId }) {
             </button>
 
             {showArchive && (
-              <div className="flex flex-col gap-3 mt-3">
+              <div className="flex flex-col gap-3 mt-3 rx-animate-in">
                 {archived.map(rec => (
                   <RecurrenceCard
                     key={rec.id}

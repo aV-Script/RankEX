@@ -98,11 +98,11 @@ export function RecurrenceDetailView({
   }
 
   return (
-    <div className="min-h-screen text-white">
+    <div className="min-h-screen text-white rx-animate-in">
 
       {/* Header */}
       <div
-        className="flex items-center justify-between px-6 py-4"
+        className="flex items-center justify-between px-4 sm:px-6 py-4"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
       >
         <button
@@ -113,7 +113,7 @@ export function RecurrenceDetailView({
         </button>
 
         <div className="text-center min-w-0">
-          <div className="font-display font-black text-[15px] text-white leading-tight">
+          <div className="font-display font-black text-[16px] text-white leading-tight">
             {dayLabels(recurrence.days)}
           </div>
           <div className="font-display text-[11px] mt-0.5" style={{ color: '#0fd65a' }}>
@@ -134,7 +134,7 @@ export function RecurrenceDetailView({
         )}
       </div>
 
-      <div className="max-w-2xl mx-auto px-6 py-6 flex flex-col gap-5">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 flex flex-col gap-5">
 
         {/* Riepilogo top */}
         <div
@@ -171,12 +171,12 @@ export function RecurrenceDetailView({
               <div className="flex flex-col gap-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="font-display text-[10px] text-white/30 tracking-[2px] block mb-1.5">INIZIO</label>
+                    <label className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] block mb-1.5">INIZIO</label>
                     <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)}
                       className="input-base w-full" style={{ colorScheme: 'dark' }} />
                   </div>
                   <div>
-                    <label className="font-display text-[10px] text-white/30 tracking-[2px] block mb-1.5">FINE</label>
+                    <label className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] block mb-1.5">FINE</label>
                     <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)}
                       className="input-base w-full" style={{ colorScheme: 'dark' }} />
                   </div>
@@ -277,7 +277,7 @@ export function RecurrenceDetailView({
           {editingEnd && (
             <div className="flex flex-col gap-3 mt-4">
               <div>
-                <label className="font-display text-[10px] text-white/30 tracking-[2px] block mb-1.5">NUOVA DATA FINE</label>
+                <label className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] block mb-1.5">NUOVA DATA FINE</label>
                 <input
                   type="date" value={newEndDate} min={recurrence.endDate}
                   onChange={e => setNewEndDate(e.target.value)}
@@ -318,7 +318,7 @@ export function RecurrenceDetailView({
                       {c.name[0].toUpperCase()}
                     </span>
                   </div>
-                  <span className="font-body text-[13px] text-white/70">{c.name}</span>
+                  <span className="font-display font-bold text-[13px] text-white/80">{c.name}</span>
                 </div>
                 {isActive && (
                   <button
@@ -335,7 +335,7 @@ export function RecurrenceDetailView({
 
           {isActive && clients.filter(c => !recurrence.clientIds.includes(c.id)).length > 0 && (
             <div>
-              <div className="font-display text-[10px] tracking-[2px] mb-2" style={{ color: 'rgba(255,255,255,0.2)' }}>
+              <div className="font-display text-[11px] font-semibold tracking-[2px] mb-2" style={{ color: 'rgba(255,255,255,0.2)' }}>
                 AGGIUNGI CLIENTE
               </div>
               <input
@@ -358,7 +358,7 @@ export function RecurrenceDetailView({
                       onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(15,214,90,0.25)' }}
                       onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)' }}
                     >
-                      <span className="font-body text-[12px] text-white/50">{c.name}</span>
+                      <span className="font-display font-bold text-[12px] text-white/60">{c.name}</span>
                       <span className="font-display text-[10px]" style={{ color: '#0fd65a' }}>+ AGGIUNGI</span>
                     </button>
                   ))}
@@ -385,8 +385,8 @@ export function RecurrenceDetailView({
 function InfoChip({ label, children }) {
   return (
     <div>
-      <div className="font-display text-[9px] tracking-[2px] text-white/25 mb-1">{label}</div>
-      <div className="font-display text-[12px] text-white/70">{children}</div>
+      <div className="font-display text-[10px] font-semibold tracking-[2px] text-white/25 mb-1">{label}</div>
+      <div className="font-display font-bold text-[12px] text-white/80">{children}</div>
     </div>
   )
 }

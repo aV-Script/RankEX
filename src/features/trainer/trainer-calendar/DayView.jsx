@@ -32,7 +32,7 @@ export function DayView({ currentDate, slots, clients, today, onSlotClick, onEmp
       {/* Header giorno */}
       <div className="flex items-center justify-center py-4 border-b border-white/[.05] shrink-0">
         <div className="text-center">
-          <div className="font-display text-[10px] text-white/30 tracking-[2px]">
+          <div className="font-display text-[11px] font-semibold text-white/30 tracking-[2px]">
             {new Date(currentDate + 'T12:00').toLocaleDateString('it-IT', { weekday: 'long' }).toUpperCase()}
           </div>
           <div
@@ -53,7 +53,7 @@ export function DayView({ currentDate, slots, clients, today, onSlotClick, onEmp
             {HOURS.map(h => (
               <div
                 key={h}
-                className="absolute right-2 font-display text-[10px] text-white/20"
+                className="absolute right-2 font-display text-[11px] text-white/20"
                 style={{ top: h * HOUR_H - 7 }}
               >
                 {h === 0 ? '' : `${String(h).padStart(2,'0')}:00`}

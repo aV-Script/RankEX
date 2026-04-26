@@ -18,10 +18,10 @@ export function CalendarHeader({ currentDate, view, onNavigate, onToday, onSetVi
     : d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })
 
   return (
-    <div className="flex items-center justify-between px-6 py-4 border-b border-white/[.05] flex-wrap gap-3">
+    <div className="flex flex-wrap items-center justify-between px-4 sm:px-6 py-3 border-b border-white/[.05] gap-y-2 gap-x-3 shrink-0">
 
-      {/* Sinistra — navigazione */}
-      <div className="flex items-center gap-2">
+      {/* Sinistra — navigazione + titolo */}
+      <div className="flex items-center gap-1.5 sm:gap-2">
         <button
           onClick={() => onNavigate(-1)}
           aria-label="Periodo precedente"
@@ -32,7 +32,7 @@ export function CalendarHeader({ currentDate, view, onNavigate, onToday, onSetVi
         <button
           onClick={onToday}
           aria-label="Vai a oggi"
-          className="px-3 py-1.5 rounded-[3px] font-display text-[11px] cursor-pointer border border-[rgba(15,214,90,0.15)] bg-transparent text-white/40 hover:text-white/70 transition-all"
+          className="px-2.5 py-1.5 rounded-[3px] font-display text-[11px] cursor-pointer border border-[rgba(15,214,90,0.15)] bg-transparent text-white/40 hover:text-white/70 transition-all"
         >
           OGGI
         </button>
@@ -43,45 +43,56 @@ export function CalendarHeader({ currentDate, view, onNavigate, onToday, onSetVi
         >
           ›
         </button>
-        <h2 className="font-display font-black text-[18px] text-white ml-2">{title}</h2>
+        <h2 className="font-display font-black text-[16px] sm:text-[18px] text-white ml-1">{title}</h2>
       </div>
 
-      {/* Centro — switcher vista */}
-      <div
-        className="flex rounded-[3px] overflow-hidden border"
-        style={{ background: 'rgba(13,21,32,0.9)', borderColor: 'rgba(15,214,90,0.12)' }}
-      >
-        {['month', 'week', 'day'].map(v => (
-          <button
-            key={v}
-            onClick={() => onSetView(v)}
-            aria-pressed={view === v}
-            className="px-4 py-1.5 font-display text-[11px] cursor-pointer transition-all border-none"
-            style={view === v
-              ? { background: 'rgba(15,214,90,0.15)', color: '#0fd65a' }
-              : { background: 'transparent', color: 'rgba(255,255,255,0.35)' }
-            }
-          >
-            {v === 'month' ? 'MESE' : v === 'week' ? 'SETTIMANA' : 'GIORNO'}
-          </button>
-        ))}
-      </div>
+      {/* Destra — switcher + azioni */}
+      <div className="flex items-center gap-2">
 
-      {/* Destra — azioni */}
-      <div className="flex gap-2">
+        {/* Switcher vista */}
+        <div
+          className="flex rounded-[3px] overflow-hidden border"
+          style={{ background: 'rgba(13,21,32,0.9)', borderColor: 'rgba(15,214,90,0.12)' }}
+        >
+          {['month', 'week', 'day'].map(v => (
+            <button
+              key={v}
+              onClick={() => onSetView(v)}
+              aria-pressed={view === v}
+              className="px-2.5 sm:px-4 py-1.5 font-display text-[11px] cursor-pointer transition-all border-none"
+              style={view === v
+                ? { background: 'rgba(15,214,90,0.15)', color: '#0fd65a' }
+                : { background: 'transparent', color: 'rgba(255,255,255,0.35)' }
+              }
+            >
+              <span className="sm:hidden">
+                {v === 'month' ? 'M' : v === 'week' ? 'S' : 'G'}
+              </span>
+              <span className="hidden sm:inline">
+                {v === 'month' ? 'MESE' : v === 'week' ? 'SETTIMANA' : 'GIORNO'}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Azioni */}
         <button
           onClick={onNewRecurrence}
-          className="rounded-[3px] px-3 py-1.5 font-display text-[11px] tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
+          aria-label="Nuova ricorrenza"
+          className="rounded-[3px] px-2.5 sm:px-3 py-1.5 font-display text-[11px] tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
           style={{ background: 'rgba(15,214,90,0.12)', color: '#0fd65a', border: '1px solid rgba(15,214,90,0.2)' }}
         >
-          RICORRENZA
+          <span className="sm:hidden">↺</span>
+          <span className="hidden sm:inline">RICORRENZA</span>
         </button>
         <button
           onClick={onNewSlot}
-          className="rounded-[3px] px-3 py-1.5 font-display text-[11px] tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
+          aria-label="Nuova sessione"
+          className="rounded-[3px] px-2.5 sm:px-3 py-1.5 font-display text-[11px] tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
           style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', color: '#080c12' }}
         >
-          NUOVA SESSIONE
+          <span className="sm:hidden">+</span>
+          <span className="hidden sm:inline">NUOVA SESSIONE</span>
         </button>
       </div>
     </div>

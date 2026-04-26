@@ -22,15 +22,15 @@ export function ConfirmDialog({ title, description, confirmLabel = 'CONFERMA', c
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
-        className="p-6 w-full max-w-sm"
+        className="p-6 w-full max-w-sm rx-animate-in"
         style={{ background: '#0d1520', border: '1px solid rgba(15,214,90,0.15)', borderRadius: '4px', boxShadow: '0 20px 60px rgba(0,0,0,0.8)' }}
         onClick={e => e.stopPropagation()}
       >
-        <h3 id="confirm-dialog-title" className="font-display font-black text-[16px] text-white mb-2">
+        <h3 id="confirm-dialog-title" className="font-display font-black text-[16px] text-white m-0 mb-2">
           {title}
         </h3>
         {description && (
-          <p className="font-body text-[13px] text-white/50 mb-6">{description}</p>
+          <p className="font-body text-[13px] text-white/40 leading-relaxed m-0 mb-5">{description}</p>
         )}
         <div className="flex gap-3">
           <button

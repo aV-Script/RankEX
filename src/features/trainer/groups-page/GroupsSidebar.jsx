@@ -18,7 +18,7 @@ export function GroupsSidebar({ groupSearch, onGroupSearchChange, onNewGroup, to
       </button>
 
       <div>
-        <p className="font-display text-[10px] text-white/30 tracking-[3px] mb-2">RICERCA</p>
+        <p className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] mb-2">RICERCA</p>
         <input
           value={groupSearch}
           onChange={e => onGroupSearchChange(e.target.value)}
@@ -28,7 +28,7 @@ export function GroupsSidebar({ groupSearch, onGroupSearchChange, onNewGroup, to
       </div>
 
       <div className="mt-auto">
-        <p className="font-display text-[10px] text-white/20 tracking-[2px]">
+        <p className="font-display text-[11px] font-semibold text-white/20 tracking-[2px]">
           {totalGroups} {totalGroups === 1 ? 'GRUPPO' : 'GRUPPI'}
         </p>
       </div>

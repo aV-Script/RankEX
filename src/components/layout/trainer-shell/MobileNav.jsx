@@ -2,10 +2,6 @@ import { TabItem }      from './TabItem'
 import { useTrainerState } from '../../../context/TrainerContext'
 import { NAV_ITEMS, ORG_ADMIN_NAV_ITEMS, LogoutIcon } from './navItems.config'
 
-/**
- * Navigazione mobile — header fisso + tab bar.
- * onLogout viene dall'esterno per le stesse ragioni della Sidebar.
- */
 export function MobileNav({ page, onNavigate, onLogout }) {
   const { userRole } = useTrainerState()
   const allNavItems  = userRole === 'org_admin'
@@ -17,29 +13,30 @@ export function MobileNav({ page, onNavigate, onLogout }) {
 
       {/* Header */}
       <header
-        className="
-          flex items-center justify-between
-          px-5 py-3 border-b border-white/[.05]
-          sticky top-0 z-30 backdrop-blur-md
-        "
+        className="flex items-center justify-between px-4 py-3 border-b border-white/[.05] sticky top-0 z-30 backdrop-blur-md"
+        style={{ background: 'rgba(7,9,14,0.92)' }}
         aria-label="Header mobile"
       >
+        <div className="w-8" />
         <span className="rx-glow-text font-display font-black text-[17px]">
-          Rank EX
+          RankEX
         </span>
-
         <button
           onClick={onLogout}
           aria-label="Logout"
-          className="text-white/30 hover:text-white/60 transition-colors bg-transparent border-none cursor-pointer"
+          className="w-8 h-8 flex items-center justify-center rounded-[3px] bg-transparent border-none cursor-pointer transition-colors"
+          style={{ color: 'rgba(200,212,224,0.3)' }}
+          onTouchStart={e => { e.currentTarget.style.color = 'rgba(200,212,224,0.7)' }}
+          onTouchEnd={e => { e.currentTarget.style.color = 'rgba(200,212,224,0.3)' }}
         >
           {LogoutIcon}
         </button>
       </header>
 
-      {/* Tab bar */}
+      {/* Tab bar — footer fisso */}
       <nav
-        className="flex border-b border-white/[.05] sticky top-[49px] z-20 backdrop-blur-md"
+        className="fixed bottom-0 left-0 right-0 z-30 flex border-t border-white/[.05] backdrop-blur-md"
+        style={{ background: 'rgba(7,9,14,0.92)' }}
         aria-label="Navigazione mobile"
       >
         {allNavItems.map(item => (

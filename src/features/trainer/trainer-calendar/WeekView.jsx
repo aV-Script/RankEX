@@ -63,7 +63,7 @@ export function WeekView({ currentDate, slots, clients, today, onSlotClick, onEm
               key={dateStr}
               className="flex-1 text-center py-3 border-l border-white/[.04]"
             >
-              <div className="font-display text-[10px] text-white/30 tracking-[1px]">
+              <div className="font-display text-[11px] font-semibold text-white/30 tracking-[1px]">
                 {DAY_NAMES[i]}
               </div>
               <div

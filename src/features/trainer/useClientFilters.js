@@ -31,6 +31,7 @@ const SORT_FNS = {
 export function useClientFilters(clients, groups, isSoccer = false) {
   const [query,           setQuery]           = useState('')
   const [filterCategoria, setFilterCategoria] = useState('tutti')
+  const [filterFascia,    setFilterFascia]    = useState('tutti')
   const [filterGroup,     setFilterGroup]     = useState(null)
   const [sortBy,          setSortBy]          = useState('name')
 
@@ -39,6 +40,14 @@ export function useClientFilters(clients, groups, isSoccer = false) {
     const values = clients.map(c => isSoccer ? c.ruolo : c.categoria)
     const set = new Set(values.filter(Boolean))
     return ['tutti', ...Array.from(set)]
+  }, [clients, isSoccer])
+
+  // Opzioni fascia (solo soccer): 'tutti' | 'soccer' | 'soccer_youth'
+  const fasce = useMemo(() => {
+    if (!isSoccer) return []
+    const values = clients.map(c => c.categoria).filter(Boolean)
+    const set = new Set(values)
+    return set.size > 1 ? ['tutti', ...Array.from(set)] : []
   }, [clients, isSoccer])
 
   // Lista filtrata e ordinata
@@ -56,20 +65,26 @@ export function useClientFilters(clients, groups, isSoccer = false) {
       )
     }
 
+    if (isSoccer && filterFascia !== 'tutti') {
+      list = list.filter(c => c.categoria === filterFascia)
+    }
+
     if (query.trim()) {
       const q = query.trim().toLowerCase()
       list = list.filter(c => c.name?.toLowerCase().includes(q))
     }
 
     return list.sort(SORT_FNS[sortBy] ?? SORT_FNS.name)
-  }, [clients, groups, filterGroup, filterCategoria, query, sortBy, isSoccer])
+  }, [clients, groups, filterGroup, filterCategoria, filterFascia, query, sortBy, isSoccer])
 
   return {
     query,           onQueryChange:     setQuery,
     filterCategoria, onCategoriaChange: setFilterCategoria,
+    filterFascia,    onFasciaChange:    setFilterFascia,
     filterGroup,     onGroupChange:     setFilterGroup,
     sortBy,          onSortByChange:    setSortBy,
     categorie,
+    fasce,
     filteredClients,
   }
 }

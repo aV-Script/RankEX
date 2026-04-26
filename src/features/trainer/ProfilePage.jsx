@@ -83,7 +83,7 @@ export function ProfilePage() {
 
   return (
     <div className="px-6 py-8 max-w-lg">
-      <p className="hidden lg:block font-display text-[10px] text-white/30 tracking-[3px] mb-6">
+      <p className="hidden lg:block font-display text-[11px] font-semibold text-white/30 tracking-[3px] mb-6">
         PROFILO TRAINER
       </p>
 
@@ -98,7 +98,7 @@ export function ProfilePage() {
             </span>
           </div>
           <div>
-            <div className="font-display font-black text-[16px] text-white">Trainer</div>
+            <div className="font-display font-black text-[18px] text-white">Trainer</div>
             <div className="font-body text-[13px] text-white/40 mt-0.5">{user?.email ?? '—'}</div>
           </div>
         </div>
@@ -122,7 +122,7 @@ export function ProfilePage() {
               <polyline points="22,6 12,13 2,6"/>
             </svg>
             <div>
-              <span className="font-body text-[13px] text-white/60">Cambia email</span>
+              <span className="font-display font-bold text-[13px] text-white/70">Cambia email</span>
               <div className="font-body text-[11px] text-white/30 mt-0.5">{user?.email}</div>
             </div>
           </div>
@@ -204,7 +204,7 @@ export function ProfilePage() {
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
-            <span className="font-body text-[13px] text-white/60">Cambia password</span>
+            <span className="font-display font-bold text-[13px] text-white/70">Cambia password</span>
           </div>
           {success
             ? <span className="font-display text-[10px] tracking-wider" style={{ color: '#0fd65a' }}>AGGIORNATA</span>
@@ -318,7 +318,7 @@ export function ProfilePage() {
             <polyline points="16 17 21 12 16 7"/>
             <line x1="21" y1="12" x2="9" y2="12"/>
           </svg>
-          <span className="font-body text-[13px] text-red-400">Logout</span>
+          <span className="font-display font-bold text-[13px] text-red-400">Logout</span>
         </button>
       </div>
     </div>

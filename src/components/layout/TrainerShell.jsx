@@ -29,7 +29,7 @@ export function TrainerShell({ page, onNavigate, children }) {
       />
 
       <main
-        className="flex-1 min-w-0"
+        className="flex-1 min-w-0 pb-[56px] lg:pb-0"
         aria-label="Contenuto principale"
       >
         {children}

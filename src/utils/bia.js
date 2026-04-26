@@ -93,16 +93,13 @@ export function calcBmi(pesoKg, altezzaCm) {
  * Calcola quanti XP assegnare per una misurazione BIA.
  */
 export function calcBiaXP(newBia, prevBia) {
-  // Prima misurazione in assoluto
   if (!prevBia) return XP_BIA.FIRST_MEASUREMENT
 
-  // Conta miglioramenti sui parametri chiave
   let improvements = 0
   BIA_KEY_PARAMS.forEach(key => {
     const prev = prevBia[key]
     const curr = newBia[key]
-    if (prev === null || curr === null) return
-    // fatMassPercent e visceralFat: migliorano se scendono
+    if (prev == null || curr == null) return
     if (key === 'fatMassPercent' || key === 'visceralFat') {
       if (curr < prev) improvements++
     } else {
@@ -110,9 +107,10 @@ export function calcBiaXP(newBia, prevBia) {
     }
   })
 
-  if (improvements >= 2) return XP_BIA.IMPROVEMENT
-  if (improvements === 0) return XP_BIA.REGRESSION
-  return XP_BIA.MAINTENANCE
+  if (improvements === 4) return XP_BIA.ALL
+  if (improvements >= 2)  return XP_BIA.MOST
+  if (improvements === 1) return XP_BIA.PARTIAL
+  return XP_BIA.NONE
 }
 
 /**

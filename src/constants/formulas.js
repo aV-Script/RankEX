@@ -4,8 +4,11 @@
  * Il JSON dei test riferisce il tipo per nome — nessuna funzione nel JSON.
  */
 export const FORMULAS = {
-  y_balance_composite: (vars) =>
-    ((vars.ANT + vars.PM + vars.PL) / (3 * vars.lunghezzaArto)) * 100,
+  y_balance_composite: (vars) => {
+    const dx = (vars.ANT_dx + vars.PM_dx + vars.PL_dx) / (3 * vars.lunghezza_dx) * 100
+    const sx = (vars.ANT_sx + vars.PM_sx + vars.PL_sx) / (3 * vars.lunghezza_sx) * 100
+    return (dx + sx) / 2
+  },
 }
 
 /**

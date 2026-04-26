@@ -8,7 +8,7 @@ import { ClientCalendar } from '../ClientCalendar'
  */
 export function ClientSessionsSummary({ clientId, orgId }) {
   return (
-    <section className="px-6 py-6">
+    <section className="px-4 sm:px-6 py-6">
       <div
         className="rounded-[4px] p-5 rx-card"
       >

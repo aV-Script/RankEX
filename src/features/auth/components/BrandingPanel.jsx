@@ -16,12 +16,12 @@ export function BrandingPanel() {
   return (
     <div
       className="hidden lg:flex flex-col justify-between flex-1 p-14 relative overflow-hidden"
-      style={{ background: '#080c12' }}
+      style={{ background: 'rgba(8,12,18,0.6)' }}
     >
-      <GridOverlay />
+      <div className="rx-hex-bg absolute inset-0 opacity-20 pointer-events-none" />
       <RankDecorations />
 
-      {/* Logo */}
+      {/* Logo testo */}
       <div className="relative z-10">
         <span className="rx-glow-text font-display font-black text-[22px] tracking-wider">
           Rank EX
@@ -48,28 +48,21 @@ export function BrandingPanel() {
         </p>
       </div>
 
-      {/* Stats */}
-      <div className="relative z-10 flex gap-8">
-        {STATS.map(([num, label]) => (
-          <div key={label}>
-            <div className="font-display font-black text-[28px] text-white">{num}</div>
-            <div className="font-body text-[12px] text-white/30 mt-0.5">{label}</div>
-          </div>
-        ))}
+      {/* Stats + credit */}
+      <div className="relative z-10">
+        <div className="flex gap-8 mb-5">
+          {STATS.map(([num, label]) => (
+            <div key={label}>
+              <div className="font-display font-black text-[28px] text-white">{num}</div>
+              <div className="font-body text-[12px] text-white/30 mt-0.5">{label}</div>
+            </div>
+          ))}
+        </div>
+        <p className="font-body text-[10px] tracking-[1.5px]" style={{ color: 'rgba(15,214,90,0.35)' }}>
+          by Dr. Lamberti Valerio
+        </p>
       </div>
     </div>
-  )
-}
-
-function GridOverlay() {
-  return (
-    <div style={{
-      position: 'absolute', inset: 0, opacity: 1,
-      backgroundImage:
-        'linear-gradient(rgba(15,214,90,0.03) 1px, transparent 1px), ' +
-        'linear-gradient(90deg, rgba(15,214,90,0.03) 1px, transparent 1px)',
-      backgroundSize: '48px 48px',
-    }} />
   )
 }
 

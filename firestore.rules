@@ -124,6 +124,26 @@ service cloud.firestore {
         allow create: if isSuperAdmin() ||
           (isOrgMember(orgId) && memberRole(orgId) in ['org_admin', 'trainer'] && withinClientLimit(orgId));
         allow update, delete: if canWrite(orgId);
+
+        // ── Notes (thread + commenti del cliente) ──────────
+        // Trainer: legge, crea thread root e commenti, elimina qualsiasi nota.
+        // Client: legge le proprie note, crea solo commenti (parentId != null),
+        //         elimina solo i propri commenti.
+
+        match /notes/{noteId} {
+          allow read: if canRead(orgId) || isOwnClient(orgId, clientId);
+
+          allow create: if canWrite(orgId) ||
+            (isOwnClient(orgId, clientId) &&
+             request.resource.data.parentId != null &&
+             request.resource.data.authorId == request.auth.uid);
+
+          allow delete: if canWrite(orgId) ||
+            (isOwnClient(orgId, clientId) &&
+             resource.data.authorId == request.auth.uid);
+
+          allow update: if false;
+        }
       }
 
       // ── Slots ─────────────────────────────────────────────
@@ -140,6 +160,16 @@ service cloud.firestore {
       match /groups/{groupId} {
         allow read:  if canRead(orgId);
         allow write: if canWrite(orgId);
+
+        match /notes/{noteId} {
+          allow read:   if canRead(orgId);
+          allow create: if canWrite(orgId) &&
+            request.resource.data.authorId == request.auth.uid;
+          allow delete: if canWrite(orgId) &&
+            (resource.data.authorId == request.auth.uid ||
+             memberRole(orgId) == 'org_admin');
+          allow update: if false;
+        }
       }
 
       // ── Recurrences ───────────────────────────────────────
@@ -156,6 +186,15 @@ service cloud.firestore {
           (isClientOfOrg(orgId) &&
            userProfile().clientId == resource.data.clientId);
         allow write: if canWrite(orgId);
+      }
+
+      // ── Workout Plans ──────────────────────────────────────
+      // Trainer crea e gestisce le schede; client legge solo le schede
+      // assegnate a sé (clientId == proprio clientId nel profilo utente).
+
+      match /workoutPlans/{planId} {
+        allow read:                    if canRead(orgId) || isClientOfOrg(orgId);
+        allow create, update, delete:  if canWrite(orgId);
       }
     }
 

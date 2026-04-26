@@ -57,7 +57,7 @@ export function RecurrenceCard({ recurrence, clients, onClick }) {
 
       <div className="flex items-center justify-between">
         {/* Clienti */}
-        <div className="font-body text-[12px] text-white/40">
+        <div className="font-display font-bold text-[12px] text-white/50">
           {clientNames.length > 0
             ? clientNames.join(', ') + (recurrence.clientIds.length > 3 ? ` +${recurrence.clientIds.length - 3}` : '')
             : 'Nessun cliente'
@@ -71,7 +71,7 @@ export function RecurrenceCard({ recurrence, clients, onClick }) {
           </span>
           {isExpired && status === 'active' && (
             <span
-              className="font-display text-[9px] px-2 py-0.5 rounded-[3px]"
+              className="font-display text-[10px] font-semibold px-2 py-0.5 rounded-[3px]"
               style={{ background: 'rgba(248,113,113,0.12)', color: '#f87171' }}
             >
               SCADUTA

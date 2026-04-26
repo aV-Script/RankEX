@@ -24,7 +24,7 @@ export function TabItem({ item, active, onClick }) {
         {item.icon}
       </span>
       <span
-        className="font-display text-[9px] tracking-[0.5px]"
+        className="font-display text-[10px] tracking-[1px]"
         style={{ color: active ? '#0fd65a' : 'rgba(200,212,224,0.3)' }}
       >
         {item.label.toUpperCase()}

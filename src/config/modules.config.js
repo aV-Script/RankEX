@@ -63,6 +63,15 @@ export const SOCCER_FIXED_TESTS = [
   'beep_test',
 ]
 
+// ── Fasce d'età soccer ────────────────────────────────────────────────────────
+// categoria 'soccer'       → Senior (≥10 anni)
+// categoria 'soccer_youth' → Piccoli (≤9 anni) — per ora stessi test di Senior
+
+export const SOCCER_AGE_GROUPS = [
+  { value: 'soccer',       label: 'Senior',  desc: 'Categoria per atleti di età ≥ 10 anni' },
+  { value: 'soccer_youth', label: 'Piccoli', desc: 'Categoria per atleti di età ≤ 9 anni'  },
+]
+
 // ── Helper: ottieni terminologia ──────────────────────────────────────────────
 
 /**

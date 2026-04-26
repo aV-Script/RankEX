@@ -8,6 +8,7 @@ import { WizardProgress }         from '../../components/modals/new-client-wizar
 import { WizardNav }              from '../../components/modals/new-client-wizard/WizardNav'
 import { StepAnagrafica }         from '../../components/modals/new-client-wizard/steps/StepAnagrafica'
 import { StepCategoria }          from '../../components/modals/new-client-wizard/steps/StepCategoria'
+import { StepFascia }             from '../../components/modals/new-client-wizard/steps/StepFascia'
 import { StepRuolo }              from '../../components/modals/new-client-wizard/steps/StepRuolo'
 import { StepAccount }            from '../../components/modals/new-client-wizard/steps/StepAccount'
 import { StepProfileType }        from '../../components/modals/new-client-wizard/steps/StepProfileType'
@@ -37,7 +38,7 @@ export function NewClientView({ orgId, onAdd, onBack, clients = [] }) {
   return (
     <div className="min-h-screen text-white">
 
-      <div className="flex items-center justify-between px-6 py-4 border-b border-white/[.05]">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-white/[.05]">
         <button
           onClick={onBack}
           className="flex items-center gap-1.5 bg-transparent border-none text-white/30 font-body text-[13px] cursor-pointer hover:text-white/60 transition-colors p-0"
@@ -47,7 +48,7 @@ export function NewClientView({ orgId, onAdd, onBack, clients = [] }) {
         <span className="font-display font-black text-[16px] text-white">
           Nuovo cliente
         </span>
-        <div className="w-24" />
+        <div className="w-20" />
       </div>
 
       {atClientLimit ? (
@@ -151,6 +152,13 @@ function StepContent({ wizard }) {
     <StepCategoria
       categoria={wizard.categoria}
       setCategoria={wizard.setCategoria}
+    />
+  )
+
+  if (currentStep?.type === 'fascia') return (
+    <StepFascia
+      fascia={wizard.fascia}
+      setFascia={wizard.setFascia}
     />
   )
 

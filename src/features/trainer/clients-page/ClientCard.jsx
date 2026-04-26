@@ -1,9 +1,9 @@
-import { memo }                              from 'react'
-import { useClientRank }                     from '../../../hooks/useClientRank'
-import { useTrainerState }                   from '../../../context/TrainerContext'
-import { getModule, PLAYER_ROLES }           from '../../../config/modules.config'
-import { getCategoriaById }                  from '../../../constants'
-import { calcBiaScore, getBiaRankFromScore } from '../../../utils/bia'
+import { memo }                                        from 'react'
+import { useClientRank }                               from '../../../hooks/useClientRank'
+import { useTrainerState }                             from '../../../context/TrainerContext'
+import { getModule, PLAYER_ROLES, SOCCER_AGE_GROUPS }  from '../../../config/modules.config'
+import { getCategoriaById }                            from '../../../constants'
+import { calcBiaScore, getBiaRankFromScore }           from '../../../utils/bia'
 
 export const ClientCard = memo(function ClientCard({ client, onSelect }) {
   const { moduleType }       = useTrainerState()
@@ -18,11 +18,18 @@ export const ClientCard = memo(function ClientCard({ client, onSelect }) {
 
   const categoria   = !isSoccer && client.categoria ? getCategoriaById(client.categoria) : null
   const roleObj     = isSoccer && client.ruolo ? PLAYER_ROLES.find(r => r.value === client.ruolo) : null
+  const fasciaObj   = isSoccer && client.categoria === 'soccer_youth'
+    ? SOCCER_AGE_GROUPS.find(g => g.value === 'soccer_youth')
+    : null
+
+  const xp     = client.xp     ?? 0
+  const xpNext = client.xpNext ?? 500
+  const xpPct  = xpNext > 0 ? Math.min(Math.round((xp / xpNext) * 100), 100) : 0
 
   return (
     <button
       onClick={() => onSelect(client)}
-      className="text-left w-full rounded-[4px] p-4 cursor-pointer transition-all duration-200 flex items-center gap-3 group rx-card"
+      className="text-left w-full rounded-[4px] p-4 cursor-pointer transition-all duration-200 flex items-start gap-3 group rx-card"
       onMouseEnter={e => {
         e.currentTarget.style.background  = color + '0d'
         e.currentTarget.style.borderColor = color + '55'
@@ -47,14 +54,14 @@ export const ClientCard = memo(function ClientCard({ client, onSelect }) {
 
       {/* Info */}
       <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-        <span className="font-body font-bold text-[15px] text-white truncate">
+        <span className="font-display font-bold text-[15px] text-white truncate leading-tight">
           {client.name}
         </span>
 
         <div className="flex items-center gap-2 flex-wrap">
           {/* Livello */}
           <span className="rounded-full px-2 py-0.5 text-[10px] font-display text-white/40 border border-white/10">
-            LVL {client.level}
+            LV.{client.level}
           </span>
 
           {/* Badge: categoria (PT) o ruolo (Soccer) */}
@@ -82,10 +89,34 @@ export const ClientCard = memo(function ClientCard({ client, onSelect }) {
               {roleObj.label}
             </span>
           )}
+          {fasciaObj && (
+            <span
+              className="rounded-full px-2.5 py-0.5 text-[10px] font-display font-bold tracking-wide"
+              style={{
+                background: 'rgba(250,204,21,0.1)',
+                color:      '#facc15',
+                border:     '1px solid rgba(250,204,21,0.3)',
+              }}
+            >
+              {fasciaObj.label}
+            </span>
+          )}
+        </div>
+
+        {/* XP bar mini */}
+        <div className="flex items-center gap-2 mt-0.5">
+          <div className="flex-1 h-[3px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+            <div className="h-full rounded-full" style={{ width: `${xpPct}%`, background: color }} />
+          </div>
+          <span className="font-display text-[9px] shrink-0" style={{ color: color + '99' }}>
+            {xp.toLocaleString()} XP
+          </span>
         </div>
       </div>
 
-      <span className="text-white/20 text-[16px] group-hover:text-white/50 transition-colors shrink-0">›</span>
+      <svg className="shrink-0 text-white/20 group-hover:text-white/50 transition-colors mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
     </button>
   )
 })
