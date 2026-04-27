@@ -5,6 +5,7 @@ import {
   signOut, onAuthStateChanged, sendPasswordResetEmail,
   updatePassword, verifyBeforeUpdateEmail,
   reauthenticateWithCredential, EmailAuthProvider,
+  deleteUser,
 } from 'firebase/auth'
 import { initializeApp }           from 'firebase/app'
 import app                         from '../config'
@@ -53,6 +54,19 @@ export async function changeUserEmail(currentPw, newEmail) {
 
 export async function createClientAccount(email, password) {
   const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password)
-  await signOut(secondaryAuth)
+  // Non facciamo signOut subito: teniamo l'utente secondario attivo
+  // per poterlo eliminare in caso di rollback (vedi rollbackClientAccount).
   return cred.user.uid
+}
+
+export async function finalizeClientAccount() {
+  await signOut(secondaryAuth)
+}
+
+export async function rollbackClientAccount() {
+  const user = secondaryAuth.currentUser
+  if (user) {
+    try { await deleteUser(user) } catch {}
+  }
+  try { await signOut(secondaryAuth) } catch {}
 }
