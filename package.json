@@ -18,7 +18,9 @@
     "deploy:all":       "npm run build && cross-env NODE_OPTIONS=--dns-result-order=ipv4first firebase deploy --only hosting --project fitquest-60a09",
     "deploy:app:dev":   "cross-env NODE_OPTIONS=--dns-result-order=ipv4first vite build --mode development && cross-env NODE_OPTIONS=--dns-result-order=ipv4first firebase deploy --only hosting:app --project rankex-dev",
     "deploy:admin:dev": "cross-env NODE_OPTIONS=--dns-result-order=ipv4first vite build --mode development && cross-env NODE_OPTIONS=--dns-result-order=ipv4first firebase deploy --only hosting:admin --project rankex-dev",
-    "deploy:all:dev":   "cross-env NODE_OPTIONS=--dns-result-order=ipv4first vite build --mode development && cross-env NODE_OPTIONS=--dns-result-order=ipv4first firebase deploy --only hosting --project rankex-dev"
+    "deploy:all:dev":   "cross-env NODE_OPTIONS=--dns-result-order=ipv4first vite build --mode development && cross-env NODE_OPTIONS=--dns-result-order=ipv4first firebase deploy --only hosting --project rankex-dev",
+    "migrate:dataNascita":      "node scripts/migrate-dataNascita.mjs",
+    "migrate:dataNascita:prod": "node scripts/migrate-dataNascita.mjs --prod"
   },
   "dependencies": {
     "firebase": "^10.12.0",

@@ -1,5 +1,6 @@
 import { useState, useMemo }  from 'react'
 import { calcBiaScore }        from '../../utils/bia'
+import { calcAge }             from '../../utils/validation'
 
 /**
  * Gestisce filtri e ordinamento della lista clienti.
@@ -15,7 +16,7 @@ import { calcBiaScore }        from '../../utils/bia'
 function getEffectiveScore(client) {
   const profileType = client.profileType ?? 'tests_only'
   const testScore   = client.media ?? 0
-  const biaScore    = calcBiaScore(client.lastBia, client.sesso, client.eta)
+  const biaScore    = calcBiaScore(client.lastBia, client.sesso, calcAge(client.dataNascita))
 
   if (profileType === 'bia_only')  return biaScore
   if (profileType === 'complete')  return Math.round((testScore + biaScore) / 2)

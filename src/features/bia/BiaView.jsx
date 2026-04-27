@@ -4,6 +4,7 @@ import { ConfirmDialog }                  from '../../components/common/ConfirmD
 import { BiaGaugeBar }                    from './bia-view/BiaGaugeBar'
 import { BIA_PARAMS, BIA_EMPTY }          from '../../constants/bia'
 import { calcBmi }                        from '../../utils/bia'
+import { calcAge }                        from '../../utils/validation'
 
 /**
  * View inline per il campionamento BIA.
@@ -87,7 +88,7 @@ export function BiaView({ client, color, onSave, onBack }) {
       {/* Contenuto */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         <p className="font-body text-[13px] text-white/40 mb-6">
-          {client.name} · {client.sesso} · {client.eta} anni
+          {client.name} · {client.sesso} · {calcAge(client.dataNascita)} anni
           {bmiComputed && (
             <span className="ml-3 font-display text-[11px]" style={{ color: color + 'aa' }}>
               BMI calcolato: {bmiComputed}
@@ -160,7 +161,7 @@ export function BiaView({ client, color, onSave, onBack }) {
                       value={Number(values[param.key])}
                       prevValue={prevBia?.[param.key] ?? null}
                       sex={client.sesso}
-                      age={client.eta}
+                      age={calcAge(client.dataNascita)}
                     />
                   </div>
                 )}
@@ -196,7 +197,7 @@ export function BiaView({ client, color, onSave, onBack }) {
                     value={Number(values[param.key])}
                     prevValue={prevBia?.[param.key] ?? null}
                     sex={client.sesso}
-                    age={client.eta}
+                    age={calcAge(client.dataNascita)}
                   />
                 ))}
                 {BIA_PARAMS.filter(p => !p.computed && values[p.key] !== '').length === 0 && (

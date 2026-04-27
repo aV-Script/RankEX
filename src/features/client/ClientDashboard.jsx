@@ -21,6 +21,7 @@ import { UpgradeCategoryBanner }             from '../bia/UpgradeCategoryBanner'
 import { getProfileCategory }                from '../../constants/bia'
 import { getCategoriaById }                  from '../../constants'
 import { calcBiaScore, getBiaRankFromScore } from '../../utils/bia'
+import { calcAge }                           from '../../utils/validation'
 import { getClientSlots }                    from '../../firebase/services/calendar'
 import { getMonthRange, calcMonthlyCompletion } from '../calendar/useCalendar'
 import { resetPassword }                     from '../../firebase/services/auth'
@@ -115,7 +116,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
   const profileType = client.profileType ?? 'tests_only'
   const profile     = getProfileCategory(profileType)
 
-  const biaScore   = calcBiaScore(client.lastBia, client.sesso, client.eta)
+  const biaScore   = calcBiaScore(client.lastBia, client.sesso, calcAge(client.dataNascita))
   const biaRank    = getBiaRankFromScore(biaScore)
   const biaRankObj = biaScore > 0 ? biaRank : { label: 'F', color: '#4a5568' }
   const biaColor   = biaRankObj.color
@@ -487,7 +488,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
               <section className="px-4 pt-6">
                 <div className="rounded-[4px] p-5 rx-card">
                   <div className="font-display text-[10px] tracking-[3px] uppercase mb-4" style={{ color: '#0fd65a' }}>◈ BIA</div>
-                  <BiaSummary bia={client.lastBia} prevBia={client.biaHistory?.[1] ?? null} sex={client.sesso} age={client.eta} color={biaColor} rank={biaRank.label} />
+                  <BiaSummary bia={client.lastBia} prevBia={client.biaHistory?.[1] ?? null} sex={client.sesso} age={calcAge(client.dataNascita)} color={biaColor} rank={biaRank.label} />
                   <div className="mt-6">
                     <BiaHistoryChart biaHistory={client.biaHistory} color={biaColor} />
                   </div>

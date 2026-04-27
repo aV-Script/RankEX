@@ -4,6 +4,7 @@ import { useTrainerState }                             from '../../../context/Tr
 import { getModule, PLAYER_ROLES, SOCCER_AGE_GROUPS }  from '../../../config/modules.config'
 import { getCategoriaById }                            from '../../../constants'
 import { calcBiaScore, getBiaRankFromScore }           from '../../../utils/bia'
+import { calcAge }                                     from '../../../utils/validation'
 
 export const ClientCard = memo(function ClientCard({ client, onSelect }) {
   const { moduleType }       = useTrainerState()
@@ -11,7 +12,7 @@ export const ClientCard = memo(function ClientCard({ client, onSelect }) {
   const { color: testColor } = useClientRank(client)
 
   const profileType = client.profileType ?? 'tests_only'
-  const biaScore    = calcBiaScore(client.lastBia, client.sesso, client.eta)
+  const biaScore    = calcBiaScore(client.lastBia, client.sesso, calcAge(client.dataNascita))
   const biaRank     = biaScore > 0 ? getBiaRankFromScore(biaScore) : null
   const biaColor    = biaRank?.color ?? '#4a5568'
   const color       = profileType === 'bia_only' ? biaColor : testColor

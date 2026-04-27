@@ -1,8 +1,12 @@
 import { Field, Input } from '../../../ui'
+import { calcAge }     from '../../../../utils/validation'
 
 export function StepAnagrafica({ anagrafica, setAnagrafica, errors }) {
   const update = (key) => (e) =>
     setAnagrafica(p => ({ ...p, [key]: e.target.value }))
+
+  const todayIso = new Date().toISOString().split('T')[0]
+  const computedAge = calcAge(anagrafica.dataNascita)
 
   return (
     <div className="flex flex-col gap-3">
@@ -16,12 +20,15 @@ export function StepAnagrafica({ anagrafica, setAnagrafica, errors }) {
       </Field>
 
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Età" error={errors.eta}>
+        <Field
+          label={computedAge !== null ? `Data di nascita (${computedAge} anni)` : 'Data di nascita'}
+          error={errors.dataNascita}
+        >
           <Input
-            type="number"
-            value={anagrafica.eta}
-            onChange={update('eta')}
-            placeholder="30"
+            type="date"
+            value={anagrafica.dataNascita}
+            onChange={update('dataNascita')}
+            max={todayIso}
           />
         </Field>
         <Field label="Sesso">

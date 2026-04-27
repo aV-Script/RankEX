@@ -7,6 +7,7 @@ import { ClientShell }                    from './client-view/ClientShell'
 import { ClientDashboardPage }            from './client-view/ClientDashboardPage'
 import { NotificationsPanel }             from '../notification/NotificationsPanel'
 import { calcBiaScore, getBiaRankFromScore } from '../../utils/bia'
+import { calcAge }                           from '../../utils/validation'
 
 /**
  * Entry point dell'area cliente.
@@ -17,7 +18,7 @@ export default function ClientView({ clientId, orgId }) {
   const { rankObj: testRankObj, color: testColor } = useClientRank(client)
 
   const profileType = client?.profileType ?? 'tests_only'
-  const biaScore    = calcBiaScore(client?.lastBia, client?.sesso, client?.eta)
+  const biaScore    = calcBiaScore(client?.lastBia, client?.sesso, calcAge(client?.dataNascita))
   const biaRankObj  = biaScore > 0 ? getBiaRankFromScore(biaScore) : { label: 'F', color: '#4a5568' }
 
   const rankObj = profileType === 'bia_only' ? biaRankObj : testRankObj

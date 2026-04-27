@@ -3,7 +3,7 @@ import { getWizardSteps, TOTAL_STEPS_MAP } from './wizard.config'
 import { getTestsForCategoria, applyFormula, getRankFromMedia } from '../../../constants'
 import { calcPercentile, calcStatMedia }   from '../../../utils/percentile'
 import { getFirebaseErrorMessage }         from '../../../utils/firebaseErrors'
-import { validateEmail, validatePassword, validateAge, validateRequired, validateNumber } from '../../../utils/validation'
+import { validateEmail, validatePassword, validateBirthDate, validateRequired, validateNumber, calcAge } from '../../../utils/validation'
 
 /**
  * Calcola il valore finale di un test (con o senza formula composita).
@@ -25,7 +25,7 @@ function calcTestFinalValue(test, tests) {
 
 export function useWizard({ groups, onAdd, onClose, onAddGroup, onToggleClientGroup, isSoccer = false }) {
   const [step,        setStep]        = useState(0)
-  const [anagrafica,  setAnagrafica]  = useState({ name: '', eta: '', sesso: 'M', peso: '', altezza: '' })
+  const [anagrafica,  setAnagrafica]  = useState({ name: '', dataNascita: '', sesso: 'M', peso: '', altezza: '' })
   const [profileType, setProfileType] = useState('tests_only')
   const [categoria,   setCategoria]   = useState('health')
   const [fascia,      setFascia]      = useState('soccer')
@@ -49,19 +49,19 @@ export function useWizard({ groups, onAdd, onClose, onAddGroup, onToggleClientGr
     if (!currentTest) return null
     const finalValue = calcTestFinalValue(currentTest, tests)
     if (finalValue === null) return null
-    return calcPercentile(currentTest.stat, finalValue, anagrafica.sesso, parseInt(anagrafica.eta))
-  }, [currentTest, tests, anagrafica.sesso, anagrafica.eta])
+    return calcPercentile(currentTest.stat, finalValue, anagrafica.sesso, calcAge(anagrafica.dataNascita))
+  }, [currentTest, tests, anagrafica.sesso, anagrafica.dataNascita])
 
   const allStats = useMemo(() => {
     const result = {}
     categoryTests.forEach(test => {
       const finalValue = calcTestFinalValue(test, tests)
       result[test.stat] = finalValue !== null
-        ? calcPercentile(test.stat, finalValue, anagrafica.sesso, parseInt(anagrafica.eta)) ?? 0
+        ? calcPercentile(test.stat, finalValue, anagrafica.sesso, calcAge(anagrafica.dataNascita)) ?? 0
         : 0
     })
     return result
-  }, [tests, categoryTests, anagrafica.sesso, anagrafica.eta])
+  }, [tests, categoryTests, anagrafica.sesso, anagrafica.dataNascita])
 
   const media   = calcStatMedia(allStats)
   const rankObj = getRankFromMedia(media)
@@ -77,15 +77,15 @@ export function useWizard({ groups, onAdd, onClose, onAddGroup, onToggleClientGr
 
   // ── Validazioni ───────────────────────────────────────────────────────────
   const validateAnagrafica = useCallback(() => {
-    const name    = validateRequired(anagrafica.name, 'Nome')
-    const eta     = validateAge(anagrafica.eta)
-    const peso    = validateNumber(anagrafica.peso,    { min: 20, max: 300, label: 'Peso' })
-    const altezza = validateNumber(anagrafica.altezza, { min: 50, max: 250, label: 'Altezza' })
+    const name         = validateRequired(anagrafica.name, 'Nome')
+    const dataNascita  = validateBirthDate(anagrafica.dataNascita)
+    const peso         = validateNumber(anagrafica.peso,    { min: 20, max: 300, label: 'Peso' })
+    const altezza      = validateNumber(anagrafica.altezza, { min: 50, max: 250, label: 'Altezza' })
     const e = {}
-    if (!name.valid)    e.name    = name.error
-    if (!eta.valid)     e.eta     = eta.error
-    if (!peso.valid)    e.peso    = peso.error
-    if (!altezza.valid) e.altezza = altezza.error
+    if (!name.valid)        e.name        = name.error
+    if (!dataNascita.valid) e.dataNascita = dataNascita.error
+    if (!peso.valid)        e.peso        = peso.error
+    if (!altezza.valid)     e.altezza     = altezza.error
     setErrors(e)
     return Object.keys(e).length === 0
   }, [anagrafica])
@@ -123,7 +123,7 @@ export function useWizard({ groups, onAdd, onClose, onAddGroup, onToggleClientGr
     try {
       await onAdd({
         ...anagrafica,
-        eta:         parseInt(anagrafica.eta),
+        dataNascita: anagrafica.dataNascita,
         peso:        parseFloat(anagrafica.peso),
         altezza:     parseFloat(anagrafica.altezza),
         categoria:   isSoccer ? fascia : (profileType === 'bia_only' ? null : categoria),

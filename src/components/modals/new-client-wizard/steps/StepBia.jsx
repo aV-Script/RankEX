@@ -2,6 +2,7 @@ import { BIA_PARAMS, BIA_EMPTY }   from '../../../../constants/bia'
 import { getBiaParamStatus }        from '../../../../utils/bia'
 import { calcBmi }                  from '../../../../utils/bia'
 import { Field }                    from '../../../ui'
+import { calcAge }                  from '../../../../utils/validation'
 
 export function StepBia({ biaValues, setBiaValues, errors, anagrafica }) {
   const bmiComputed = calcBmi(
@@ -40,7 +41,7 @@ export function StepBia({ biaValues, setBiaValues, errors, anagrafica }) {
             param.key,
             Number(val),
             anagrafica.sesso,
-            parseInt(anagrafica.eta)
+            calcAge(anagrafica.dataNascita)
           ) : null
           return (
             <Field

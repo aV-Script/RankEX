@@ -3,6 +3,7 @@ import { createPortal }           from 'react-dom'
 import { getStatsConfig, getCategoriaById, getRankFromMedia } from '../../../constants'
 import { getProfileCategory }     from '../../../constants/bia'
 import { SOCCER_AGE_GROUPS, PLAYER_ROLES } from '../../../config/modules.config'
+import { calcAge }                         from '../../../utils/validation'
 
 const isSoccerCat = (cat) => cat === 'soccer' || cat === 'soccer_youth'
 
@@ -120,7 +121,7 @@ export function ClientReportPrint({ client, color, rankObj, onClose }) {
         {/* Dati anagrafici */}
         <Section title="Dati Anagrafici">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
-            <DataPoint label="Età"     value={client.eta     ? `${client.eta} anni`    : '—'} />
+            <DataPoint label="Età"     value={calcAge(client.dataNascita) != null ? `${calcAge(client.dataNascita)} anni` : '—'} />
             <DataPoint label="Sesso"   value={client.sesso === 'M' ? 'Maschile' : client.sesso === 'F' ? 'Femminile' : '—'} />
             <DataPoint label="Peso"    value={client.peso    ? `${client.peso} kg`     : '—'} />
             <DataPoint label="Altezza" value={client.altezza ? `${client.altezza} cm`  : '—'} />

@@ -1,4 +1,5 @@
 import { Button }           from '../../components/ui'
+import { calcAge }          from '../../utils/validation'
 import { ConfirmDialog }    from '../../components/common/ConfirmDialog'
 import { TestInput }        from '../../components/modals/campionamento-modal/TestInput'
 import { RankPreview }      from '../../components/modals/campionamento-modal/RankPreview'
@@ -50,7 +51,7 @@ export function CampionamentoView({ client, color, onSave, onBack }) {
       <div className="max-w-5xl mx-auto px-6 py-8">
 
         <p className="text-[13px] text-white/40 mb-2">
-          {client.name} · {client.sesso} · {client.eta} anni
+          {client.name} · {client.sesso} · {calcAge(client.dataNascita)} anni
         </p>
         <p className="font-body text-[12px] text-white/25 mb-6 leading-relaxed">
           Il percentile indica la posizione rispetto ai pari età/sesso: 70° = meglio del 70% delle persone simili.

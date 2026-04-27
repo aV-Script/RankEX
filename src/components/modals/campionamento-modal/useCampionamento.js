@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react'
 import { getStatsConfig, applyFormula }   from '../../../constants'
 import { calcPercentileEx, calcStatMedia } from '../../../utils/percentile'
 import { getRankFromMedia }               from '../../../constants'
+import { calcAge }                        from '../../../utils/validation'
 
 // Risolve l'input grezzo di un test (con o senza formula) al valore numerico finale.
 // Restituisce null se i campi sono incompleti/non validi.
@@ -29,7 +30,8 @@ function calcTestResult(test, testValues, sesso, eta) {
 }
 
 export function useCampionamento({ client, onSave, onBack }) {
-  const config = getStatsConfig(client.categoria)
+  const config    = getStatsConfig(client.categoria)
+  const clientAge = calcAge(client.dataNascita)
 
   const EMPTY = Object.fromEntries(
     config.flatMap(t =>
@@ -48,10 +50,10 @@ export function useCampionamento({ client, onSave, onBack }) {
   const liveResults = useMemo(() => {
     const result = {}
     config.forEach(test => {
-      result[test.stat] = calcTestResult(test, testValues, client.sesso, client.eta)
+      result[test.stat] = calcTestResult(test, testValues, client.sesso, clientAge)
     })
     return result
-  }, [testValues, client.sesso, client.eta, config])
+  }, [testValues, client.sesso, clientAge, config])
 
   // Valori numerici (backward-compat con tutto il resto della UI)
   const liveStats = useMemo(() =>
@@ -104,7 +106,7 @@ export function useCampionamento({ client, onSave, onBack }) {
     try {
       const newStats = {}
       config.forEach(test => {
-        newStats[test.stat] = calcTestResult(test, testValues, client.sesso, client.eta).value ?? 0
+        newStats[test.stat] = calcTestResult(test, testValues, client.sesso, clientAge).value ?? 0
       })
       await onSave(newStats, { ...testValues })
       onBack()
@@ -112,7 +114,7 @@ export function useCampionamento({ client, onSave, onBack }) {
       setLoading(false)
       setShowConfirm(false)
     }
-  }, [config, testValues, client.sesso, client.eta, onSave, onBack])
+  }, [config, testValues, client.sesso, clientAge, onSave, onBack])
 
   const updateValue = useCallback((key, value) => {
     setTestValues(p => ({ ...p, [key]: value }))

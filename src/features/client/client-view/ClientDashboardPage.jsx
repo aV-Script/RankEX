@@ -11,6 +11,7 @@ import { NotesSection }                    from '../client-dashboard/NotesSectio
 import { ClientWorkoutSection }            from '../client-dashboard/ClientWorkoutSection'
 import { ClientCalendar }                  from '../ClientCalendar'
 import { PLAYER_ROLES }                    from '../../../config/modules.config'
+import { calcAge }                         from '../../../utils/validation'
 import { ClientBadges }                   from '../ClientBadges'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
@@ -231,7 +232,7 @@ export function ClientDashboardPage({ client, clientId, orgId, color, rankObj, b
           {activeTab === 'bia' && (
             <>
               <section className="px-4 py-6">
-                <BiaSummary bia={client.lastBia} prevBia={client.biaHistory?.[1] ?? null} sex={client.sesso} age={client.eta} color={color} />
+                <BiaSummary bia={client.lastBia} prevBia={client.biaHistory?.[1] ?? null} sex={client.sesso} age={calcAge(client.dataNascita)} color={color} />
               </section>
               <div className="mx-4 h-px" style={{ background: 'rgba(255,255,255,0.04)' }} />
               <section className="px-4 py-6">
