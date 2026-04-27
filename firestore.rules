@@ -105,11 +105,15 @@ service cloud.firestore {
       allow read:   if isSuperAdmin() || isOrgMember(orgId) || isClientOfOrg(orgId);
       allow create, delete: if isSuperAdmin() ||
         (isOrgMember(orgId) && memberRole(orgId) == 'org_admin');
-      // org_admin: update completo. trainer: solo clientCount (batch addClient/deleteClient).
+      // org_admin: update completo.
+      // trainer: solo clientCount, delta esattamente ±1, valore >= 0 (no bypass limiti piano).
       allow update: if isSuperAdmin() ||
         (isOrgMember(orgId) && memberRole(orgId) == 'org_admin') ||
         (isOrgMember(orgId) && memberRole(orgId) == 'trainer' &&
-         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clientCount']));
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clientCount']) &&
+         (request.resource.data.clientCount == resource.data.clientCount + 1 ||
+          request.resource.data.clientCount == resource.data.clientCount - 1) &&
+         request.resource.data.clientCount >= 0);
 
       // ── Members ───────────────────────────────────────────
 
