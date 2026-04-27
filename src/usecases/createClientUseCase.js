@@ -1,4 +1,4 @@
-import { createClientAccount }      from '../firebase/services/auth'
+import { createClientAccount, finalizeClientAccount, rollbackClientAccount } from '../firebase/services/auth'
 import { addClient }                from '../firebase/services/clients'
 import { createUserProfile }        from '../firebase/services/users'
 import { buildNewClient }           from '../utils/gamification'
@@ -15,16 +15,25 @@ import { auditLog, AUDIT_ACTIONS }  from '../utils/auditLog'
  */
 export async function createClientUseCase(orgId, trainerId, formData) {
   const { email, password, ...rest } = formData
-  const clientUid = await createClientAccount(email, password)
-  const data      = buildNewClient(trainerId, rest, NEW_CLIENT_DEFAULTS)
-  const ref       = await addClient(orgId, { ...data, email, clientAuthUid: clientUid })
-  await createUserProfile(clientUid, {
-    role:               'client',
-    orgId,
-    clientId:           ref.id,
-    trainerId,
-    mustChangePassword: true,
-  })
-  auditLog(AUDIT_ACTIONS.CLIENT_CREATED, { clientId: ref.id, clientName: data.name, orgId })
-  return { id: ref.id, ...data, email, clientAuthUid: clientUid }
+  let authCreated = false
+  try {
+    const clientUid = await createClientAccount(email, password)
+    authCreated = true
+    const data  = buildNewClient(trainerId, rest, NEW_CLIENT_DEFAULTS)
+    const ref   = await addClient(orgId, { ...data, email, clientAuthUid: clientUid })
+    await createUserProfile(clientUid, {
+      role:               'client',
+      orgId,
+      clientId:           ref.id,
+      trainerId,
+      mustChangePassword: true,
+    })
+    await finalizeClientAccount()
+    auditLog(AUDIT_ACTIONS.CLIENT_CREATED, { clientId: ref.id, clientName: data.name, orgId })
+    return { id: ref.id, ...data, email, clientAuthUid: clientUid }
+  } catch (err) {
+    if (authCreated) await rollbackClientAccount()
+    else await finalizeClientAccount()
+    throw err
+  }
 }
