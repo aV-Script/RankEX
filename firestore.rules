@@ -102,9 +102,14 @@ service cloud.firestore {
     // ── Organizations ─────────────────────────────────────────
 
     match /organizations/{orgId} {
-      allow read:  if isSuperAdmin() || isOrgMember(orgId) || isClientOfOrg(orgId);
-      allow write: if isSuperAdmin() ||
+      allow read:   if isSuperAdmin() || isOrgMember(orgId) || isClientOfOrg(orgId);
+      allow create, delete: if isSuperAdmin() ||
         (isOrgMember(orgId) && memberRole(orgId) == 'org_admin');
+      // org_admin: update completo. trainer: solo clientCount (batch addClient/deleteClient).
+      allow update: if isSuperAdmin() ||
+        (isOrgMember(orgId) && memberRole(orgId) == 'org_admin') ||
+        (isOrgMember(orgId) && memberRole(orgId) == 'trainer' &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clientCount']));
 
       // ── Members ───────────────────────────────────────────
 
