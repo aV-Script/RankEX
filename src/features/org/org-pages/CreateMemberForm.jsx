@@ -1,5 +1,5 @@
 import { useState }              from 'react'
-import { createClientAccount }   from '../../../firebase/services/auth'
+import { createClientAccount, finalizeClientAccount, rollbackClientAccount } from '../../../firebase/services/auth'
 import { createUserProfile }     from '../../../firebase/services/users'
 import { addMember }             from '../../../firebase/services/org'
 
@@ -23,8 +23,10 @@ export function CreateMemberForm({ orgId, onClose, onCreated }) {
     setSaving(true)
     setError(null)
 
+    let authCreated = false
     try {
       const uid = await createClientAccount(form.email, form.password)
+      authCreated = true
       await createUserProfile(uid, {
         role:  form.role,
         orgId,
@@ -37,8 +39,11 @@ export function CreateMemberForm({ orgId, onClose, onCreated }) {
         email: form.email,
         role:  form.role,
       })
+      await finalizeClientAccount()
       onCreated({ id: uid, name: form.name, email: form.email, role: form.role })
     } catch (err) {
+      if (authCreated) await rollbackClientAccount()
+      else await finalizeClientAccount()
       setError(err.message)
     } finally {
       setSaving(false)
