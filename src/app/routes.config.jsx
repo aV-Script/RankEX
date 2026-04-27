@@ -31,10 +31,13 @@ export const PROTECTED_ROUTES = [
   {
     path:         '/org',
     allowedRoles: ['org_admin'],
-    element:      (user, profile, { org, terminology }) => (
+    element:      (user, profile, { org, terminology, refreshProfile }) => (
       <ErrorBoundary>
         <Suspense fallback={<LoadingScreen />}>
-          <OrgAdminView user={user} profile={profile} org={org} terminology={terminology} />
+          {profile?.mustChangePassword
+            ? <ChangePasswordScreen userId={user.uid} onDone={() => refreshProfile(user.uid)} />
+            : <OrgAdminView user={user} profile={profile} org={org} terminology={terminology} />
+          }
         </Suspense>
       </ErrorBoundary>
     ),
@@ -42,10 +45,13 @@ export const PROTECTED_ROUTES = [
   {
     path:         '/trainer',
     allowedRoles: ['trainer', 'staff_readonly'],
-    element:      (user, profile, { org }) => (
+    element:      (user, profile, { org, refreshProfile }) => (
       <ErrorBoundary>
         <Suspense fallback={<LoadingScreen />}>
-          <TrainerView user={user} profile={profile} org={org} />
+          {profile?.mustChangePassword
+            ? <ChangePasswordScreen userId={user.uid} onDone={() => refreshProfile(user.uid)} />
+            : <TrainerView user={user} profile={profile} org={org} />
+          }
         </Suspense>
       </ErrorBoundary>
     ),
