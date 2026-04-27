@@ -1,16 +1,17 @@
 name: Deploy to Firebase
 
-# Si attiva solo quando il workflow CI completa con successo su main
 on:
   workflow_run:
     workflows: ["CI"]
-    branches: [main]
+    branches: [main, dev]
     types: [completed]
 
 jobs:
-  deploy:
-    # Esegui solo se CI è passato
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+  # ── Produzione — si attiva su main ────────────────────────────────────────
+  deploy-prod:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
 
     steps:
@@ -24,27 +25,64 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Build con le variabili Firebase da GitHub Secrets
-      - name: Build
+      - name: Build (prod)
         run: npm run build
         env:
           VITE_ENV: production
-          VITE_FIREBASE_API_KEY:            ${{ secrets.VITE_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN:        ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID:         ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_STORAGE_BUCKET:     ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_API_KEY:             ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN:         ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID:          ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET:      ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID:             ${{ secrets.VITE_FIREBASE_APP_ID }}
-          VITE_FIREBASE_MEASUREMENT_ID:     ${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}
+          VITE_FIREBASE_APP_ID:              ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_FIREBASE_MEASUREMENT_ID:      ${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}
 
-      # Deploy entrambi i siti hosting (rankex-app + rankex-admin)
-      - name: Deploy Hosting
+      - name: Deploy Hosting (prod)
         run: npx firebase-tools deploy --only hosting --project fitquest-60a09
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
-      # Deploy Firestore rules (idempotente, sicuro farlo ad ogni push)
-      - name: Deploy Firestore Rules
+      - name: Deploy Firestore Rules (prod)
         run: npx firebase-tools deploy --only firestore:rules --project fitquest-60a09
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+  # ── Dev — si attiva su dev ────────────────────────────────────────────────
+  deploy-dev:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'dev'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (dev)
+        run: npm run build -- --mode development
+        env:
+          VITE_ENV: development
+          VITE_FIREBASE_API_KEY:             ${{ secrets.VITE_FIREBASE_API_KEY_DEV }}
+          VITE_FIREBASE_AUTH_DOMAIN:         ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN_DEV }}
+          VITE_FIREBASE_PROJECT_ID:          ${{ secrets.VITE_FIREBASE_PROJECT_ID_DEV }}
+          VITE_FIREBASE_STORAGE_BUCKET:      ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET_DEV }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID_DEV }}
+          VITE_FIREBASE_APP_ID:              ${{ secrets.VITE_FIREBASE_APP_ID_DEV }}
+          VITE_FIREBASE_MEASUREMENT_ID:      ${{ secrets.VITE_FIREBASE_MEASUREMENT_ID_DEV }}
+
+      - name: Deploy Hosting (dev)
+        run: npx firebase-tools deploy --only hosting --project rankex-dev
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Deploy Firestore Rules (dev)
+        run: npx firebase-tools deploy --only firestore:rules --project rankex-dev
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
