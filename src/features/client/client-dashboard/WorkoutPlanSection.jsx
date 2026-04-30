@@ -310,7 +310,10 @@ function ArchivedPlanRow({ plan, color, readonly, onEdit, onDelete }) {
         {!readonly && (
           <button
             onClick={onDelete}
-            className="text-white/15 hover:text-red-400 transition-colors text-[11px] bg-transparent border-none cursor-pointer shrink-0"
+            className="text-[11px] bg-transparent border-none cursor-pointer shrink-0 transition-colors"
+            style={{ color: 'rgba(255,255,255,0.15)' }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#f87171' }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.15)' }}
           >
             ✕
           </button>

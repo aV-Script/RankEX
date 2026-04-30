@@ -214,7 +214,10 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
                 {days.length > 1 && activeDay === i && (
                   <button
                     onClick={() => removeDay(i)}
-                    className="text-white/20 hover:text-red-400 transition-colors text-[11px] bg-transparent border-none cursor-pointer"
+                    className="text-[11px] bg-transparent border-none cursor-pointer transition-colors"
+                    style={{ color: 'rgba(255,255,255,0.2)' }}
+                    onMouseEnter={e => { e.currentTarget.style.color = '#f87171' }}
+                    onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.2)' }}
                   >
                     ✕
                   </button>
@@ -296,7 +299,10 @@ function ExerciseRow({ index, exercise, total, onChange, onRemove }) {
         {total > 1 && (
           <button
             onClick={onRemove}
-            className="text-white/20 hover:text-red-400 transition-colors text-[12px] bg-transparent border-none cursor-pointer shrink-0"
+            className="text-[12px] bg-transparent border-none cursor-pointer shrink-0 transition-colors"
+            style={{ color: 'rgba(255,255,255,0.2)' }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#f87171' }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.2)' }}
           >
             ✕
           </button>
