@@ -469,7 +469,7 @@ src/
 │       └── steps/StepFascia.jsx ← step fascia d'età per soccer_academy
 │
 ├── firebase/
-│   ├── config.js
+│   ├── config.js            ← initializeApp + App Check (ReCaptchaV3Provider, dev debug token)
 │   ├── paths.js             ← path helpers subcollection
 │   └── services/
 │       ├── auth.js          ← changeTrainerPassword, changeUserEmail
@@ -1133,6 +1133,47 @@ config/plans.config.js       → fonte di verità limiti piano
 
 ---
 
+## Sicurezza
+
+### Hardening implementato (apr 2026)
+
+**Firestore Rules:**
+- `memberRole()` null-safe — ritorna `null` se il documento membro non esiste
+- `isOrgAdminForMember()` valida il valore del nuovo `role` (solo `org_admin`, `trainer`, `staff_readonly` — impedisce escalation a `super_admin`)
+- `mustChangePassword` scrivibile dal client solo con valore `false` (non può reimpostarlo a `true`)
+- `memberCount` / `clientCount` modificabili solo in ±1 per batch — nessun reset diretto
+
+**Auth & Session:**
+- `ChangePasswordScreen` richiede re-auth con password temporanea prima di `updatePassword`
+- Session timeout client: 24 ore (era 7 giorni)
+- Audit log su: login, logout, creazione/eliminazione cliente, cambio password, cambio email, cambio ruolo membro, rimozione membro
+
+**Password policy** (`utils/validation.js`):
+```
+validatePassword → minimo 8 caratteri + almeno 1 numero + almeno 1 lettera maiuscola
+```
+
+**HTTP Security Headers** (entrambi i target Firebase Hosting):
+```
+Content-Security-Policy   → script 'self', style 'unsafe-inline', connect Firebase/Google
+X-Frame-Options           → DENY
+X-Content-Type-Options    → nosniff
+Referrer-Policy           → strict-origin-when-cross-origin
+Permissions-Policy        → camera=(), microphone=(), geolocation=()
+```
+
+**App Check** (`firebase/config.js`):
+- Provider: `ReCaptchaV3Provider` con `VITE_RECAPTCHA_SITE_KEY`
+- Prod: enforcement attivo su Firestore e Authentication
+- Dev: App Check non inizializzato (chiave vuota in `.env.development`)
+- Guard: `if (recaptchaKey)` — se la chiave non è presente, App Check non parte
+
+**Limitazioni note (strutturali — richiedono backend):**
+- Session timeout solo client-side (Firebase puro frontend)
+- `signOut()` non revoca il refresh token server-side (~1h residua)
+
+---
+
 ## Ambienti e infrastruttura
 
 ### Progetti Firebase
@@ -1147,6 +1188,12 @@ fitquest-60a09  → produzione     (npm run build / deploy)
 .env.production   → VITE_ENV=production,  credenziali fitquest-60a09
 ```
 Entrambi gitignored. Template: `.env.example`.
+
+Variabili richieste in `.env.production` (non in dev):
+```
+VITE_RECAPTCHA_SITE_KEY=   ← chiave pubblica sito reCAPTCHA v3 (google.com/recaptcha/admin)
+```
+In dev la chiave è vuota → App Check non inizializzato → nessun enforcement su rankex-dev.
 
 ### Hosting Firebase — multisito
 ```
@@ -1169,7 +1216,7 @@ super_admin:    30 min
 org_admin:       2 ore
 trainer:         8 ore
 staff_readonly:  8 ore
-client:          7 giorni
+client:          24 ore
 ```
 Timer si azzera su mousemove / keypress / touchstart / scroll.
 Chiamato in `App.jsx` con `profile?.role`.
@@ -1185,6 +1232,11 @@ AUDIT_ACTIONS.LOGIN / LOGIN_FAILED  → useLoginForm.js
 AUDIT_ACTIONS.LOGOUT                → firebase/services/auth.js
 AUDIT_ACTIONS.CLIENT_CREATED        → usecases/createClientUseCase.js
 AUDIT_ACTIONS.CLIENT_DELETED        → hooks/useClients.js
+AUDIT_ACTIONS.PASSWORD_CHANGED      → firebase/services/auth.js (changeTrainerPassword)
+                                       + features/client/ChangePasswordScreen.jsx
+AUDIT_ACTIONS.EMAIL_CHANGED         → firebase/services/auth.js (changeUserEmail)
+AUDIT_ACTIONS.ROLE_CHANGED          → features/org/org-pages/MembersPage.jsx
+AUDIT_ACTIONS.MEMBER_REMOVED        → features/org/org-pages/MembersPage.jsx
 ```
 **IMPORTANTE:** `getAuth(app)` in `auditLog.js` è chiamato dentro la
 funzione (lazy), non a livello di modulo. Non spostarlo — causerebbe

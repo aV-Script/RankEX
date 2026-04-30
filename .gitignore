@@ -42,3 +42,8 @@ yarn-error.log*
 # OS
 .DS_Store
 Thumbs.db
+
+# File di analisi locali
+*.xlsx
+*.xls
+*.csv
