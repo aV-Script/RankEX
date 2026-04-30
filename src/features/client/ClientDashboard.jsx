@@ -266,7 +266,8 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
             )}
             <button
               onClick={() => setShowDelete(true)}
-              className="border border-red-500/20 rounded-[3px] px-3 py-2 text-red-400/50 font-display text-[10px] cursor-pointer hover:border-red-500/50 hover:text-red-400 transition-all bg-transparent"
+              className="border rounded-[3px] px-3 py-2 font-display text-[10px] cursor-pointer bg-transparent transition-all hover:opacity-85"
+              style={{ color: '#f87171', borderColor: 'rgba(248,113,113,0.2)' }}
               title="Elimina cliente"
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -326,7 +327,8 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
           </button>
           <button
             onClick={() => setShowDelete(true)}
-            className="bg-transparent border border-red-500/20 rounded-[3px] px-2.5 py-1.5 text-red-400/50 font-display text-[10px] cursor-pointer hover:border-red-500/50 hover:text-red-400 transition-all"
+            className="bg-transparent border rounded-[3px] px-2.5 py-1.5 font-display text-[10px] cursor-pointer transition-all hover:opacity-85"
+            style={{ color: '#f87171', borderColor: 'rgba(248,113,113,0.2)' }}
           >
             ELIMINA
           </button>

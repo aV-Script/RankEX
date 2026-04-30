@@ -84,7 +84,8 @@ export function DashboardHeader({ client, rankObj, color, biaRankObj, onBack, on
 
           <button
             onClick={onDelete}
-            className="bg-transparent border border-red-500/20 rounded-[3px] px-3 py-1.5 text-red-400/50 font-display text-[11px] cursor-pointer hover:border-red-500/50 hover:text-red-400 transition-all"
+            className="bg-transparent border rounded-[3px] px-3 py-1.5 font-display text-[11px] cursor-pointer transition-all hover:opacity-85"
+            style={{ borderColor: 'rgba(248,113,113,0.2)', color: '#f87171' }}
           >
             ELIMINA
           </button>

@@ -167,7 +167,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
                 className="input-base text-center font-display font-black text-[16px]"
                 style={{ minWidth: 200 }}
               />
-              <ActionBtn onClick={handleRename} color="#34d399">SALVA</ActionBtn>
+              <ActionBtn onClick={handleRename} color="#0fd65a">SALVA</ActionBtn>
               <ActionBtn onClick={() => { setIsEditing(false); setEditingName(group.name) }} muted>ANNULLA</ActionBtn>
             </>
           ) : (

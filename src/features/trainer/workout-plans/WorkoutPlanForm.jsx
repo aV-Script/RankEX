@@ -224,7 +224,8 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
             {days.length < 7 && (
               <button
                 onClick={addDay}
-                className="font-display text-[11px] text-green-400 hover:text-green-300 transition-colors bg-transparent border-none cursor-pointer px-1"
+                className="font-display text-[11px] bg-transparent border-none cursor-pointer px-1 transition-opacity hover:opacity-70"
+                style={{ color: '#0fd65a' }}
               >
                 + giorno
               </button>
@@ -237,7 +238,8 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
               <span className="font-display text-[11px] font-semibold tracking-[2px] text-white/30">ESERCIZI</span>
               <button
                 onClick={() => addExercise(activeDay)}
-                className="font-display text-[11px] text-green-400 hover:text-green-300 transition-colors bg-transparent border-none cursor-pointer"
+                className="font-display text-[11px] bg-transparent border-none cursor-pointer transition-opacity hover:opacity-70"
+                style={{ color: '#0fd65a' }}
               >
                 + aggiungi
               </button>

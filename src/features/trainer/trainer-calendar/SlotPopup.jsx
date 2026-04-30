@@ -128,7 +128,7 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
           <button
             onClick={onCloseSession}
             className="w-full py-2.5 rounded-[3px] font-display text-[11px] tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
-            style={{ background: 'linear-gradient(135deg, #34d399, #059669)', color: '#fff' }}
+            style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', color: '#080c12' }}
           >
             CHIUDI SESSIONE
           </button>
@@ -137,7 +137,8 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
         {!isCompleted && !isSkipped && isPast && (
           <button
             onClick={onSkip}
-            className="w-full py-2.5 rounded-[3px] font-display text-[11px] cursor-pointer border border-white/10 bg-transparent text-white/40 hover:text-white/60 transition-all"
+            className="w-full py-2.5 rounded-[3px] font-display text-[11px] cursor-pointer border bg-transparent transition-all hover:opacity-85"
+            style={{ borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' }}
           >
             SEGNA COME SALTATA
           </button>
@@ -145,7 +146,8 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
 
         <button
           onClick={onDelete}
-          className="w-full py-2 rounded-[3px] font-display text-[11px] cursor-pointer border border-red-500/20 bg-transparent text-red-400/50 hover:text-red-400 hover:border-red-500/40 transition-all"
+          className="w-full py-2 rounded-[3px] font-display text-[11px] cursor-pointer border bg-transparent transition-all hover:opacity-85"
+          style={{ borderColor: 'rgba(248,113,113,0.2)', color: '#f87171' }}
         >
           ELIMINA
         </button>
