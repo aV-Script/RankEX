@@ -43,7 +43,7 @@ export function useClientFilters(clients, groups, isSoccer = false) {
     return ['tutti', ...Array.from(set)]
   }, [clients, isSoccer])
 
-  // Opzioni fascia (solo soccer): 'tutti' | 'soccer' | 'soccer_youth'
+  // Opzioni fascia (solo soccer): 'tutti' | 'soccer' | 'soccer_youth' | 'soccer_junior'
   const fasce = useMemo(() => {
     if (!isSoccer) return []
     const values = clients.map(c => c.categoria).filter(Boolean)

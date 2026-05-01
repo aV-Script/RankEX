@@ -1,10 +1,16 @@
 import { useState } from 'react'
 import { getTestsForCategoria, CATEGORIE, ALL_TESTS } from '../../constants'
 import { useTrainerState }  from '../../context/TrainerContext'
-import { getModule }        from '../../config/modules.config'
+import { getModule, SOCCER_AGE_GROUPS } from '../../config/modules.config'
 
 const CATEGORY_COLORS = { health: '#34d399', active: '#00c8ff', athlete: '#0066cc' }
 const SOCCER_COLOR    = '#00c8ff'
+
+const FASCIA_COLORS = {
+  soccer_youth:  '#fbbf24',
+  soccer_junior: '#a78bfa',
+  soccer:        '#00c8ff',
+}
 
 export function TestGuidePage() {
   const { moduleType } = useTrainerState()
@@ -14,15 +20,17 @@ export function TestGuidePage() {
   const [selectedTest, setSelectedTest] = useState(getTestsForCategoria('health')[0].key)
   const [menuOpen,     setMenuOpen]     = useState(false)
 
-  // Soccer: usa i 5 test fissi
-  const soccerTests = isSoccer ? ALL_TESTS.filter(t => t.categories.includes('soccer')) : null
+  // Soccer: selettore fascia + test per fascia
+  const [soccerFascia, setSoccerFascia] = useState('soccer')
+  const soccerTests = isSoccer ? ALL_TESTS.filter(t => t.categories.includes(soccerFascia)) : null
   const [soccerSelectedTest, setSoccerSelectedTest] = useState(() =>
     ALL_TESTS.find(t => t.categories.includes('soccer'))?.key ?? null
   )
 
   if (isSoccer) {
-    const currentTest = soccerTests.find(t => t.key === soccerSelectedTest)
-    const guide       = currentTest?.guide
+    const currentTest  = soccerTests?.find(t => t.key === soccerSelectedTest) ?? soccerTests?.[0]
+    const guide        = currentTest?.guide
+    const fasciaColor  = FASCIA_COLORS[soccerFascia] ?? SOCCER_COLOR
 
     return (
       <div className="text-white">
@@ -33,14 +41,35 @@ export function TestGuidePage() {
         <div className="flex min-h-[calc(100vh-57px)]">
           {/* Sidebar desktop */}
           <aside className="hidden lg:flex w-60 xl:w-72 shrink-0 border-r border-white/[.05] flex-col sticky top-[57px] h-[calc(100vh-57px)] overflow-y-auto">
+            {/* Selettore fascia */}
+            <div className="p-4 pb-2 flex flex-col gap-1 border-b border-white/[.05]">
+              <p className="font-display text-[10px] tracking-[2px] text-white/30 mb-1">FASCIA D'ETÀ</p>
+              {SOCCER_AGE_GROUPS.map(g => {
+                const fc = FASCIA_COLORS[g.value] ?? SOCCER_COLOR
+                return (
+                  <button
+                    key={g.value}
+                    onClick={() => { setSoccerFascia(g.value); setSoccerSelectedTest(ALL_TESTS.find(t => t.categories.includes(g.value))?.key ?? null) }}
+                    className="text-left px-3 py-2 rounded-[3px] font-body text-[12px] cursor-pointer border transition-all"
+                    style={soccerFascia === g.value
+                      ? { background: fc + '18', borderColor: fc + '55', color: '#fff' }
+                      : { background: 'transparent', borderColor: 'transparent', color: 'rgba(255,255,255,0.4)' }
+                    }
+                  >
+                    {g.label}
+                    <span className="block font-display text-[10px] opacity-50 mt-0.5">{g.desc}</span>
+                  </button>
+                )
+              })}
+            </div>
             <div className="p-4 flex flex-col gap-2">
               {soccerTests.map(t => (
                 <button
                   key={t.key}
                   onClick={() => setSoccerSelectedTest(t.key)}
                   className="text-left px-3 py-2.5 rounded-[3px] font-body text-[13px] cursor-pointer border transition-all"
-                  style={soccerSelectedTest === t.key
-                    ? { background: SOCCER_COLOR + '18', borderColor: SOCCER_COLOR + '44', color: '#fff' }
+                  style={currentTest?.key === t.key
+                    ? { background: fasciaColor + '18', borderColor: fasciaColor + '44', color: '#fff' }
                     : { background: 'transparent', borderColor: 'transparent', color: 'rgba(255,255,255,0.4)' }
                   }
                 >
@@ -54,14 +83,33 @@ export function TestGuidePage() {
           {/* Mobile */}
           <div className="lg:hidden w-full">
             <div className="px-4 py-4 border-b border-white/[.05]">
+              {/* Selettore fascia mobile */}
+              <div className="flex gap-2 mb-3">
+                {SOCCER_AGE_GROUPS.map(g => {
+                  const fc = FASCIA_COLORS[g.value] ?? SOCCER_COLOR
+                  return (
+                    <button
+                      key={g.value}
+                      onClick={() => { setSoccerFascia(g.value); setSoccerSelectedTest(ALL_TESTS.find(t => t.categories.includes(g.value))?.key ?? null); setMenuOpen(false) }}
+                      className="flex-1 py-1.5 rounded-[3px] font-display text-[10px] tracking-wide cursor-pointer border transition-all"
+                      style={soccerFascia === g.value
+                        ? { background: fc + '22', borderColor: fc + '66', color: fc }
+                        : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)' }
+                      }
+                    >
+                      {g.label}
+                    </button>
+                  )
+                })}
+              </div>
               <button
                 onClick={() => setMenuOpen(o => !o)}
                 className="w-full flex items-center justify-between px-4 py-3 rounded-[3px] cursor-pointer border transition-all"
-                style={{ background: 'rgba(13,21,32,0.9)', borderColor: 'rgba(0,200,255,0.15)' }}
+                style={{ background: 'rgba(13,21,32,0.9)', borderColor: fasciaColor + '33' }}
               >
                 <div className="text-left">
-                  <span className="font-display text-[10px] tracking-[2px] block" style={{ color: SOCCER_COLOR }}>
-                    SOCCER
+                  <span className="font-display text-[10px] tracking-[2px] block" style={{ color: fasciaColor }}>
+                    {SOCCER_AGE_GROUPS.find(g => g.value === soccerFascia)?.label?.toUpperCase() ?? 'SOCCER'}
                   </span>
                   <span className="font-body text-[14px] text-white mt-0.5 block">
                     {currentTest?.label}
@@ -76,24 +124,24 @@ export function TestGuidePage() {
 
               {menuOpen && (
                 <div className="rounded-[3px] overflow-hidden mt-2"
-                  style={{ background: '#0d1520', border: '1px solid rgba(0,200,255,0.15)' }}>
+                  style={{ background: '#0d1520', border: `1px solid ${fasciaColor}33` }}>
                   {soccerTests.map(t => (
                     <button
                       key={t.key}
                       onClick={() => { setSoccerSelectedTest(t.key); setMenuOpen(false) }}
                       className="w-full text-left px-4 py-3 flex items-center justify-between cursor-pointer transition-all border-none"
                       style={{
-                        background:   soccerSelectedTest === t.key ? SOCCER_COLOR + '18' : 'transparent',
+                        background:   currentTest?.key === t.key ? fasciaColor + '18' : 'transparent',
                         borderBottom: '1px solid rgba(255,255,255,0.05)',
                       }}
                     >
                       <span className="font-body text-[14px]"
-                        style={{ color: soccerSelectedTest === t.key ? '#fff' : 'rgba(255,255,255,0.6)' }}>
+                        style={{ color: currentTest?.key === t.key ? '#fff' : 'rgba(255,255,255,0.6)' }}>
                         {t.label}
                       </span>
-                      {soccerSelectedTest === t.key && (
+                      {currentTest?.key === t.key && (
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                          stroke={SOCCER_COLOR} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          stroke={fasciaColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                       )}
@@ -104,7 +152,7 @@ export function TestGuidePage() {
             </div>
             {guide && (
               <div className="px-4 py-6 max-w-3xl mx-auto">
-                <GuideContent test={currentTest} guide={guide} color={SOCCER_COLOR} />
+                <GuideContent test={currentTest} guide={guide} color={fasciaColor} />
               </div>
             )}
           </div>
@@ -112,7 +160,7 @@ export function TestGuidePage() {
           {/* Desktop content */}
           {guide && (
             <main className="hidden lg:block flex-1 px-4 lg:px-6 py-8 max-w-3xl overflow-y-auto">
-              <GuideContent test={currentTest} guide={guide} color={SOCCER_COLOR} />
+              <GuideContent test={currentTest} guide={guide} color={fasciaColor} />
             </main>
           )}
         </div>
@@ -297,7 +345,7 @@ function GuideContent({ test, guide, color }) {
         </h2>
 
         <div className="flex gap-2 mt-3 flex-wrap">
-          <Pill label="Statistica" value={test.stat} color={color} />
+          <Pill label="Statistica" value={test.stat.charAt(0).toUpperCase() + test.stat.slice(1)} color={color} />
           <Pill label="Unità" value={test.unit} color={color} />
           <Pill label="Durata" value={guide.duration} color={color} />
         </div>

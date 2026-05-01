@@ -19,8 +19,8 @@ export const ClientCard = memo(function ClientCard({ client, onSelect }) {
 
   const categoria   = !isSoccer && client.categoria ? getCategoriaById(client.categoria) : null
   const roleObj     = isSoccer && client.ruolo ? PLAYER_ROLES.find(r => r.value === client.ruolo) : null
-  const fasciaObj   = isSoccer && client.categoria === 'soccer_youth'
-    ? SOCCER_AGE_GROUPS.find(g => g.value === 'soccer_youth')
+  const fasciaObj   = isSoccer && client.categoria !== 'soccer'
+    ? SOCCER_AGE_GROUPS.find(g => g.value === client.categoria)
     : null
 
   const xp     = client.xp     ?? 0
@@ -90,18 +90,21 @@ export const ClientCard = memo(function ClientCard({ client, onSelect }) {
               {roleObj.label}
             </span>
           )}
-          {fasciaObj && (
-            <span
-              className="rounded-full px-2.5 py-0.5 text-[10px] font-display font-bold tracking-wide"
-              style={{
-                background: 'rgba(250,204,21,0.1)',
-                color:      '#facc15',
-                border:     '1px solid rgba(250,204,21,0.3)',
-              }}
-            >
-              {fasciaObj.label}
-            </span>
-          )}
+          {fasciaObj && (() => {
+            const fc = client.categoria === 'soccer_junior' ? '#a78bfa' : '#facc15'
+            return (
+              <span
+                className="rounded-full px-2.5 py-0.5 text-[10px] font-display font-bold tracking-wide"
+                style={{
+                  background: fc + '1a',
+                  color:      fc,
+                  border:     `1px solid ${fc}4d`,
+                }}
+              >
+                {fasciaObj.label}
+              </span>
+            )
+          })()}
         </div>
 
         {/* XP bar mini */}

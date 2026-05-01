@@ -134,7 +134,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
   const color   = profileType === 'bia_only' ? biaColor : testColor
   const rankObj = profileType === 'bia_only' ? biaRankObj : testRankObj
 
-  const isSoccer    = ['soccer', 'soccer_youth'].includes(client.categoria)
+  const isSoccer    = ['soccer', 'soccer_youth', 'soccer_junior'].includes(client.categoria)
   const categoriaObj = !isSoccer ? getCategoriaById(client.categoria) : null
   const ruoloObj     = isSoccer
     ? PLAYER_ROLES.find(r => r.value === client.ruolo) ?? null

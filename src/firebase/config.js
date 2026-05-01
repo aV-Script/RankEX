@@ -1,5 +1,4 @@
-import { initializeApp }                          from 'firebase/app'
-import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check'
+import { initializeApp } from 'firebase/app'
 
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
@@ -12,21 +11,5 @@ const firebaseConfig = {
 }
 
 const app = initializeApp(firebaseConfig)
-
-// App Check — blocca richieste Firebase non provenienti da client legittimi.
-// In dev: debug token automatico. La prima esecuzione stampa il token in console:
-//         registrarlo in Firebase Console → App Check → Gestisci token di debug.
-// In prod: reCAPTCHA v3 — VITE_RECAPTCHA_SITE_KEY obbligatoria nel build prod.
-// Se la chiave non è presente, App Check non viene inizializzato (dev senza setup).
-const recaptchaKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY
-if (recaptchaKey) {
-  if (import.meta.env.DEV) {
-    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true
-  }
-  initializeAppCheck(app, {
-    provider: new ReCaptchaV3Provider(recaptchaKey),
-    isTokenAutoRefreshEnabled: true,
-  })
-}
 
 export default app

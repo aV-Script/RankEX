@@ -213,7 +213,7 @@ export const TESTS = [
     direction:   'direct',
     ageGroup:   (age) => age < 10 ? null : age <= 11 ? '10-11' : age <= 13 ? '12-13' : age <= 15 ? '14-15' : age <= 17 ? '16-17' : age <= 40 ? '18-40' : '41-60',
     test:        'Y Balance Test',
-    categories:  ['active', 'soccer', 'soccer_youth'],
+    categories:  ['active', 'soccer'],
     desc:        'Score composito bilaterale normalizzato sulla lunghezza arto.',
     variables: [
       { key: 'ANT_dx',       label: 'Anteriore DX',                          unit: 'cm' },
@@ -266,9 +266,9 @@ export const TESTS = [
     label:      'ESPLOSIVITÀ',
     unit:       'cm',
     direction:  'direct',
-    ageGroup:   (age) => age < 9 ? null : age <= 10 ? '9-10' : age <= 12 ? '11-12' : age <= 14 ? '13-14' : age <= 16 ? '15-16' : age <= 18 ? '17-18' : age <= 29 ? '18-29' : age <= 39 ? '30-39' : age <= 49 ? '40-49' : age <= 59 ? '50-59' : age <= 69 ? '60-69' : '70-79',
+    ageGroup:   (age) => age < 7 ? null : age <= 9 ? '7-9' : age <= 10 ? '9-10' : age <= 12 ? '11-12' : age <= 14 ? '13-14' : age <= 16 ? '15-16' : age <= 18 ? '17-18' : age <= 29 ? '18-29' : age <= 39 ? '30-39' : age <= 49 ? '40-49' : age <= 59 ? '50-59' : age <= 69 ? '60-69' : '70-79',
     test:       'Standing Long Jump',
-    categories: ['active', 'soccer', 'soccer_youth'],
+    categories: ['active', 'soccer', 'soccer_youth', 'soccer_junior'],
     desc:       'Distanza salto in lungo da fermo.',
     guide: {
       duration:  '15 minuti',
@@ -304,9 +304,9 @@ export const TESTS = [
     label:      'VELOCITÀ',
     unit:       'secondi',
     direction:  'inverse',
-    ageGroup:   (age) => age <= 35 ? '18-35' : '36-50',
+    ageGroup:   (age) => age <= 11 ? '7-9' : age <= 35 ? '18-35' : '36-50',
     test:       '10m Sprint',
-    categories: ['active'],
+    categories: ['active', 'soccer_youth'],
     desc:       'Tempo sui 10 metri lanciati.',
     guide: {
       duration:  '15 minuti',
@@ -458,7 +458,7 @@ export const TESTS = [
     direction:  'inverse',
     test:       'Sprint 20m',
     ageGroup:   (age) => age < 8 ? null : age <= 9 ? '8-9' : age <= 11 ? '10-11' : age <= 13 ? '12-13' : age <= 15 ? '14-15' : age <= 17 ? '16-17' : age <= 35 ? '18-35' : '36-50',
-    categories: ['athlete', 'soccer', 'soccer_youth'],
+    categories: ['athlete', 'soccer', 'soccer_junior'],
     desc:       'Tempo sui 20 metri lanciati.',
     guide: {
       duration:  '20 minuti',
@@ -509,7 +509,7 @@ export const TESTS = [
     direction:  'inverse',
     ageGroup:   (age) => age < 10 ? null : age <= 11 ? '10-11' : age <= 13 ? '12-13' : age <= 15 ? '14-15' : age <= 17 ? '16-17' : age <= 35 ? '18-35' : '36-50',
     test:       '505 COD Agility',
-    categories: ['soccer', 'soccer_youth'],
+    categories: ['soccer'],
     desc:       'Tempo di cambio direzione 180° su 5 metri.',
     guide: {
       duration:  '15 minuti',
@@ -539,6 +539,218 @@ export const TESTS = [
     },
   },
 
+  // ── SOCCER YOUTH (7-9) ───────────────────────────────────────────────────────
+
+  {
+    key:        'single_leg_stance',
+    stat:       'equilibrio',
+    label:      'EQUILIBRIO',
+    unit:       'secondi',
+    direction:  'direct',
+    ageGroup:   () => '7-9',
+    test:       'Single Leg Stance',
+    categories: ['soccer_youth'],
+    desc:       'Somma secondi mantenuti su una gamba (3 prove, massimo 90s per gamba).',
+    guide: {
+      duration:  '10 minuti',
+      equipment: [
+        'Cronometro',
+        'Superficie piana antiscivolo',
+      ],
+      warmup: [
+        'Stazione su due piedi 30 secondi',
+        '2 prove leggere per lato (10s ciascuna)',
+      ],
+      protocol: [
+        'L\'atleta si posiziona su una gamba a piedi nudi; ginocchio libero flesso a 90°, mani sui fianchi, sguardo fisso avanti.',
+        'Al via, avviare il cronometro. Fermarsi quando il piede libero tocca terra, il piede d\'appoggio si sposta o le mani si staccano dai fianchi.',
+        'Eseguire 3 prove per gamba con 15 secondi di recupero. Registrare la SOMMA dei secondi delle 3 prove.',
+        'Ripetere con l\'altra gamba. Registrare il TOTALE della gamba migliore.',
+      ],
+      notes: [
+        'Valore massimo teorico: 90 secondi (30s × 3 prove).',
+        'Più secondi = punteggio migliore.',
+        'Piedi nudi per uniformità tra sessioni.',
+      ],
+    },
+  },
+
+  {
+    key:        'shuttle_run_30m',
+    stat:       'resistenza',
+    label:      'RESISTENZA',
+    unit:       'secondi',
+    direction:  'inverse',
+    ageGroup:   () => '7-9',
+    test:       '30m Shuttle Run (6×5m)',
+    categories: ['soccer_youth'],
+    desc:       'Tempo totale navetta 6×5m (resistenza anaerobica lattacida).',
+    guide: {
+      duration:  '10 minuti',
+      equipment: [
+        '2 coni (distanza 5 metri)',
+        'Cronometro',
+      ],
+      warmup: [
+        'Jogging leggero 3 minuti',
+        '2 prove di navetta a intensità ridotta',
+      ],
+      protocol: [
+        'Posizionare due coni a esattamente 5 metri di distanza.',
+        'Al "Via!", l\'atleta percorre 5 metri e tocca terra con la mano (o supera la linea con entrambi i piedi) a ogni cambio di senso.',
+        'Ripetere per 6 frazioni consecutive (totale 30 metri).',
+        'Il cronometro si ferma quando l\'atleta completa la sesta frazione.',
+        '1 unico tentativo al massimo sforzo.',
+      ],
+      notes: [
+        'Meno secondi = punteggio migliore.',
+        'L\'atleta DEVE toccare la linea a ogni inversione — prove invalide altrimenti.',
+      ],
+    },
+  },
+
+  {
+    key:        't_test_mini',
+    stat:       'agilita',
+    label:      'AGILITÀ',
+    unit:       'secondi',
+    direction:  'inverse',
+    ageGroup:   () => '7-9',
+    test:       'T-Test Mini (5m)',
+    categories: ['soccer_youth'],
+    desc:       'Percorso a T con coni a 5 metri (cambio direzione e coordinazione).',
+    guide: {
+      duration:  '15 minuti',
+      equipment: [
+        '4 coni',
+        'Cronometro o fotocellule',
+      ],
+      warmup: [
+        'Jogging 3 minuti',
+        'Esercizi shuffle laterale 2×10m per lato',
+        '2 prove complete non registrate',
+      ],
+      protocol: [
+        'Setup: Cono A (partenza) → 5m → Cono B (centro). Dal Cono B: 5m a sinistra (Cono C) e 5m a destra (Cono D).',
+        'Sprint da A a B. Shuffle laterale da B a C (toccare il cono). Shuffle da C a D passando per B (toccare D). Shuffle da D a B (toccare B). Backpedal da B ad A.',
+        '3 tentativi con almeno 2 minuti di recupero completo. Registrare il TEMPO MIGLIORE.',
+      ],
+      notes: [
+        'L\'atleta deve toccare ogni cono con la mano.',
+        'Non incrociare i piedi durante gli shuffle.',
+        'Prova nulla se non si tocca il cono o si incrociano i piedi.',
+        'Meno secondi = punteggio migliore.',
+      ],
+    },
+  },
+
+  // ── SOCCER JUNIOR (10-13) ────────────────────────────────────────────────────
+
+  {
+    key:        'y_balance_anterior',
+    stat:       'stabilita',
+    label:      'STABILITÀ',
+    unit:       'cm',
+    direction:  'direct',
+    ageGroup:   () => '10-13',
+    test:       'Y-Balance Anterior Reach',
+    categories: ['soccer_junior'],
+    desc:       'Media dei 3 tentativi migliori di reach anteriore (cm), per gamba.',
+    guide: {
+      duration:  '15 minuti',
+      equipment: [
+        'Nastro adesivo a terra a forma di Y (o kit Y-Balance)',
+        'Metro a nastro',
+      ],
+      warmup: [
+        'Stazione monopodalica statica 3×15s per lato',
+        '3 prove di pratica per lato senza registrare',
+      ],
+      protocol: [
+        'Tracciare a terra la direzione anteriore partendo dal punto di appoggio.',
+        'L\'atleta si posiziona in equilibrio su una gamba al centro; con la punta del piede libero raggiunge il massimo lungo la linea anteriore, poi ritorna.',
+        'La prova è nulla se il piede libero tocca terra, il piede d\'appoggio si sposta o l\'atleta perde l\'equilibrio.',
+        '3 prove valide per gamba. Registrare la MEDIA dei 3 valori (cm) per ciascuna gamba. Inserire il valore della gamba peggiore.',
+      ],
+      notes: [
+        'Differenza >4cm tra i due arti segnala asimmetria rilevante (rischio infortuni).',
+        'Piedi nudi per uniformità tra sessioni.',
+        'Più alto il valore = punteggio migliore.',
+      ],
+    },
+  },
+
+  {
+    key:        't_test_soccer_junior',
+    stat:       'agilita',
+    label:      'AGILITÀ',
+    unit:       'secondi',
+    direction:  'inverse',
+    ageGroup:   () => '10-13',
+    test:       'T-Test Standard (10m)',
+    categories: ['soccer_junior'],
+    desc:       'Percorso a T con coni a 10 metri (cambio direzione multi-direzionale).',
+    guide: {
+      duration:  '20 minuti',
+      equipment: [
+        '4 coni',
+        'Cronometro o fotocellule',
+      ],
+      warmup: [
+        'Jogging 5 minuti',
+        'Esercizi shuffle laterale 3×10m per lato',
+        '2 prove complete non registrate',
+      ],
+      protocol: [
+        'Setup: Cono A (partenza) → 10m → Cono B (centro). Dal Cono B: 5m a sinistra (Cono C) e 5m a destra (Cono D).',
+        'Sprint frontale da A a B. Shuffle laterale da B a C (toccare il cono). Shuffle da C a D passando per B (toccare D). Shuffle da D a B (toccare B). Backpedal da B ad A.',
+        '2 tentativi con 3 minuti di recupero completo. Registrare il TEMPO MIGLIORE.',
+      ],
+      notes: [
+        'L\'atleta deve toccare ogni cono.',
+        'Non incrociare i piedi durante gli shuffle — prova nulla.',
+        'Meno secondi = punteggio migliore.',
+      ],
+    },
+  },
+
+  {
+    key:        'six_minute_run',
+    stat:       'resistenza',
+    label:      'RESISTENZA',
+    unit:       'metri',
+    direction:  'direct',
+    ageGroup:   () => '10-13',
+    test:       'Test dei 6 minuti (Mezzo Cooper)',
+    categories: ['soccer_junior'],
+    desc:       'Distanza totale percorsa in 6 minuti di corsa continua.',
+    guide: {
+      duration:  '10 minuti',
+      equipment: [
+        'Pista o campo con percorso misurato',
+        'Cronometro',
+        'Fischietto',
+      ],
+      warmup: [
+        'Camminata e jogging leggero 3 minuti',
+        'Stretching dinamico arti inferiori',
+      ],
+      protocol: [
+        'Misurare un percorso chiuso (es. rettangolo 40×20m = 120m per giro completo).',
+        'Al "Via!", l\'atleta corre il più lontano possibile mantenendo un ritmo costante per 6 minuti esatti.',
+        'Può camminare se necessario, ma l\'obiettivo è massimizzare la distanza.',
+        'Al fischietto di fine, l\'atleta si ferma dove si trova.',
+        'Calcolare la distanza totale: giri completi × lunghezza percorso + metri parziali del giro finale.',
+        '1 unico tentativo. Richiede un breve riscaldamento aerobico precedente.',
+      ],
+      notes: [
+        'Più metri = punteggio migliore.',
+        'Standardizzare sempre il percorso tra le sessioni.',
+        'Non eseguire in condizioni di caldo estremo.',
+      ],
+    },
+  },
+
   {
     key:        'beep_test',
     stat:       'resistenza',
@@ -547,7 +759,7 @@ export const TESTS = [
     direction:  'direct',
     ageGroup:   (age) => age < 8 ? null : age <= 9 ? '8-9' : age <= 11 ? '10-11' : age <= 13 ? '12-13' : age <= 15 ? '14-15' : age <= 17 ? '16-17' : age <= 35 ? '18-35' : '36-50',
     test:       'Beep Test (MSFT)',
-    categories: ['soccer', 'soccer_youth'],
+    categories: ['soccer'],
     desc:       'Livello massimo raggiunto nel Multi-Stage Fitness Test.',
     guide: {
       duration:  '10-25 minuti',

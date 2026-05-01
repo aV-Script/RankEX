@@ -98,6 +98,12 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
     clients.filter(c => group.clientIds.includes(c.id))
   , [clients, group.clientIds])
 
+  const SOCCER_CATS = ['soccer_youth', 'soccer_junior', 'soccer']
+  const mixedFascia = useMemo(() => {
+    const fasce = new Set(allClientsInGroup.map(c => c.categoria).filter(v => SOCCER_CATS.includes(v)))
+    return fasce.size > 1
+  }, [allClientsInGroup])
+
   const filteredClients = useMemo(() =>
     clients.filter(c => c.name.toLowerCase().includes(clientSearch.toLowerCase()))
   , [clients, clientSearch])
@@ -209,6 +215,14 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
             </div>
           </div>
         </section>
+
+        {/* ── Avviso fascia mista ── */}
+        {mixedFascia && (
+          <div className="mx-4 sm:mx-6 mt-3 px-4 py-3 rounded-[3px] font-body text-[12px] leading-relaxed"
+            style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24' }}>
+            ⚠ Questo gruppo contiene atleti di fasce d'età diverse. Classifica, Analisi e Confronto potrebbero non essere significativi.
+          </div>
+        )}
 
         {/* ── Contenuto tab ── */}
         <div key={subView} className="rx-animate-in flex-1">

@@ -25,14 +25,20 @@ con terminologie, test e comportamenti UI diversi.
 - Profili: `tests_only` / `bia_only` / `complete`
 
 **soccer_academy** — accademie calcistiche
-- Fasce d'età: `soccer` (Senior ≥10 anni) / `soccer_youth` (Piccoli ≤9 anni)
+- Fasce d'età: 3 gruppi con test differenziati
+  - `soccer_youth`  → Pulcini    (7-9 anni)
+  - `soccer_junior` → Esordienti (10-13 anni)
+  - `soccer`        → Senior     (14+ anni)
 - Ruolo è solo etichetta visiva: `goalkeeper` / `defender` / `midfielder` / `forward`
-- Test fissi per entrambe le fasce: `y_balance`, `standing_long_jump`,
-  `505_cod_agility`, `sprint_20m`, `beep_test`
+- Test per fascia (definiti in `SOCCER_FIXED_TESTS` dict in `config/modules.config.js`):
+  - Pulcini (7-9):      `single_leg_stance`, `sprint_10m`, `shuttle_run_30m`, `standing_long_jump`, `t_test_mini`
+  - Esordienti (10-13): `y_balance_anterior`, `sprint_20m`, `t_test_soccer_junior`, `standing_long_jump`, `six_minute_run`
+  - Senior (14+):       `y_balance`, `standing_long_jump`, `505_cod_agility`, `sprint_20m`, `beep_test`
 - Terminologia: Coach / Allievo / Squadra / Allenamento
 - Profili: `tests_only` (unico)
-- `client.categoria` = `'soccer'` o `'soccer_youth'` — chiave interna
-  per `getTestsForCategoria`. Non è mostrata in UI (il ruolo è il badge visivo)
+- `client.categoria` = `'soccer_youth'` | `'soccer_junior'` | `'soccer'` — chiave interna
+  per `getTestsForCategoria`. Non è mostrata in UI (il ruolo è il badge visivo).
+  Badge fascia: Pulcini → giallo `#fbbf24`, Esordienti → viola `#a78bfa`, Senior → nessun badge.
 - Configurazione fasce: `SOCCER_AGE_GROUPS` in `config/modules.config.js`
 
 ### Profili cliente (`profileType`)

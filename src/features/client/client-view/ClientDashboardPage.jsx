@@ -73,7 +73,7 @@ export function ClientDashboardPage({ client, clientId, orgId, color, rankObj, b
   const prevStats   = client.campionamenti?.[1]?.stats ?? null
   const profileType = client.profileType ?? 'tests_only'
   const profile     = getProfileCategory(profileType)
-  const isSoccer    = ['soccer', 'soccer_youth'].includes(client.categoria)
+  const isSoccer    = ['soccer', 'soccer_youth', 'soccer_junior'].includes(client.categoria)
   const categoriaObj = !isSoccer ? getCategoriaById(client.categoria) : null
   const ruoloObj     = isSoccer
     ? PLAYER_ROLES.find(r => r.value === client.ruolo) ?? null

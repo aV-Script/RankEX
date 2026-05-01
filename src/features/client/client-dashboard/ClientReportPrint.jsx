@@ -5,7 +5,7 @@ import { getProfileCategory }     from '../../../constants/bia'
 import { SOCCER_AGE_GROUPS, PLAYER_ROLES } from '../../../config/modules.config'
 import { calcAge }                         from '../../../utils/validation'
 
-const isSoccerCat = (cat) => cat === 'soccer' || cat === 'soccer_youth'
+const isSoccerCat = (cat) => cat === 'soccer' || cat === 'soccer_youth' || cat === 'soccer_junior'
 
 export function ClientReportPrint({ client, color, rankObj, onClose }) {
   const profile        = getProfileCategory(client.profileType ?? 'tests_only')

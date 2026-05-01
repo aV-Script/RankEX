@@ -80,7 +80,7 @@ export const Pentagon = memo(function Pentagon({
             fontWeight="600"
             letterSpacing="1"
           >
-            {label}
+            {label.slice(0, 3)}
           </text>
         )
       })}

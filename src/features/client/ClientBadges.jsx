@@ -1,8 +1,20 @@
+import { SOCCER_AGE_GROUPS } from '../../config/modules.config'
+
+const FASCIA_COLORS = {
+  soccer_youth:  '#fbbf24',
+  soccer_junior: '#a78bfa',
+}
+
 /**
  * Badge row condivisa tra ClientDashboard (trainer) e ClientDashboardPage (client).
  * Mostra categoria / ruolo / fascia / rank test / rank BIA.
  */
 export function ClientBadges({ categoriaObj, ruoloObj, color, categoria, hasTests, hasBia, rankObj, biaRankObj }) {
+  const fasciaGroup = (categoria === 'soccer_youth' || categoria === 'soccer_junior')
+    ? SOCCER_AGE_GROUPS.find(g => g.value === categoria)
+    : null
+  const fasciaColor = FASCIA_COLORS[categoria] ?? '#fbbf24'
+
   return (
     <div className="flex items-center gap-2 mt-2.5 flex-wrap justify-center">
       {categoriaObj && (
@@ -21,12 +33,12 @@ export function ClientBadges({ categoriaObj, ruoloObj, color, categoria, hasTest
           {ruoloObj.label.toUpperCase()}
         </span>
       )}
-      {categoria === 'soccer_youth' && (
+      {fasciaGroup && (
         <span
           className="font-display text-[11px] px-3 py-1 rounded-[3px]"
-          style={{ background: '#fbbf2420', color: '#fbbf24', border: '1px solid #fbbf2440' }}
+          style={{ background: fasciaColor + '20', color: fasciaColor, border: `1px solid ${fasciaColor}40` }}
         >
-          PICCOLI
+          {fasciaGroup.label.toUpperCase()}
         </span>
       )}
       {hasTests && rankObj && (

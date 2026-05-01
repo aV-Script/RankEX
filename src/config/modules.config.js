@@ -54,22 +54,23 @@ export const PLAYER_ROLES = [
 
 // ── Test fissi soccer ─────────────────────────────────────────────────────────
 // Per personal_training i test dipendono dalla categoria del cliente.
+// Per soccer i test dipendono dalla fascia d'età (categoria).
 
-export const SOCCER_FIXED_TESTS = [
-  'y_balance',
-  'standing_long_jump',
-  '505_cod_agility',
-  'sprint_20m',
-  'beep_test',
-]
+export const SOCCER_FIXED_TESTS = {
+  soccer_youth:  ['single_leg_stance', 'sprint_10m', 'shuttle_run_30m', 'standing_long_jump', 't_test_mini'],
+  soccer_junior: ['y_balance_anterior', 'sprint_20m', 't_test_soccer_junior', 'standing_long_jump', 'six_minute_run'],
+  soccer:        ['y_balance', 'standing_long_jump', '505_cod_agility', 'sprint_20m', 'beep_test'],
+}
 
 // ── Fasce d'età soccer ────────────────────────────────────────────────────────
-// categoria 'soccer'       → Senior (≥10 anni)
-// categoria 'soccer_youth' → Piccoli (≤9 anni) — per ora stessi test di Senior
+// categoria 'soccer_youth'  → Pulcini    (7-9 anni)
+// categoria 'soccer_junior' → Esordienti (10-13 anni)
+// categoria 'soccer'        → Senior     (14+ anni)
 
 export const SOCCER_AGE_GROUPS = [
-  { value: 'soccer',       label: 'Senior',  desc: 'Categoria per atleti di età ≥ 10 anni' },
-  { value: 'soccer_youth', label: 'Piccoli', desc: 'Categoria per atleti di età ≤ 9 anni'  },
+  { value: 'soccer_youth',  label: 'Pulcini',    desc: 'Atleti 7-9 anni' },
+  { value: 'soccer_junior', label: 'Esordienti', desc: 'Atleti 10-13 anni' },
+  { value: 'soccer',        label: 'Senior',     desc: 'Atleti 14+ anni' },
 ]
 
 // ── Helper: ottieni terminologia ──────────────────────────────────────────────
