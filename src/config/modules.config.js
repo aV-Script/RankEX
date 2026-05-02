@@ -73,6 +73,20 @@ export const SOCCER_AGE_GROUPS = [
   { value: 'soccer',        label: 'Senior',     desc: 'Atleti 14+ anni' },
 ]
 
+// ── Helper: fascia d'età soccer da età anagrafica ─────────────────────────────
+
+/**
+ * Deriva la categoria soccer dall'età del cliente.
+ * @param {number} eta — età in anni
+ * @returns {'soccer_youth'|'soccer_junior'|'soccer'}
+ */
+export function getCategoriaFromEta(eta) {
+  const age = Number(eta)
+  if (isNaN(age) || age < 10) return 'soccer_youth'
+  if (age < 14)               return 'soccer_junior'
+  return 'soccer'
+}
+
 // ── Helper: ottieni terminologia ──────────────────────────────────────────────
 
 /**

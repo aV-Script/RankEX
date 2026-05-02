@@ -8,7 +8,6 @@ import { WizardProgress }         from '../../components/modals/new-client-wizar
 import { WizardNav }              from '../../components/modals/new-client-wizard/WizardNav'
 import { StepAnagrafica }         from '../../components/modals/new-client-wizard/steps/StepAnagrafica'
 import { StepCategoria }          from '../../components/modals/new-client-wizard/steps/StepCategoria'
-import { StepFascia }             from '../../components/modals/new-client-wizard/steps/StepFascia'
 import { StepRuolo }              from '../../components/modals/new-client-wizard/steps/StepRuolo'
 import { StepAccount }            from '../../components/modals/new-client-wizard/steps/StepAccount'
 import { StepProfileType }        from '../../components/modals/new-client-wizard/steps/StepProfileType'
@@ -152,13 +151,6 @@ function StepContent({ wizard }) {
     <StepCategoria
       categoria={wizard.categoria}
       setCategoria={wizard.setCategoria}
-    />
-  )
-
-  if (currentStep?.type === 'fascia') return (
-    <StepFascia
-      fascia={wizard.fascia}
-      setFascia={wizard.setFascia}
     />
   )
 

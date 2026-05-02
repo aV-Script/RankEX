@@ -32,7 +32,6 @@ const FASCIA_STEP = [
 
 const SOCCER_STEPS = [
   { type: 'anagrafica', title: 'Dati anagrafici' },
-  ...FASCIA_STEP,
   ...RUOLO_STEP,
   ...TAIL_STEPS,
 ]

@@ -4,6 +4,7 @@ import { getTestsForCategoria, applyFormula, getRankFromMedia } from '../../../c
 import { calcPercentile, calcStatMedia }   from '../../../utils/percentile'
 import { getFirebaseErrorMessage }         from '../../../utils/firebaseErrors'
 import { validateEmail, validatePassword, validateBirthDate, validateRequired, validateNumber, calcAge } from '../../../utils/validation'
+import { getCategoriaFromEta }             from '../../../config/modules.config'
 
 /**
  * Calcola il valore finale di un test (con o senza formula composita).
@@ -28,7 +29,6 @@ export function useWizard({ groups, onAdd, onClose, onAddGroup, onToggleClientGr
   const [anagrafica,  setAnagrafica]  = useState({ name: '', dataNascita: '', sesso: 'M', peso: '', altezza: '' })
   const [profileType, setProfileType] = useState('tests_only')
   const [categoria,   setCategoria]   = useState('health')
-  const [fascia,      setFascia]      = useState('soccer')
   const [ruolo,       setRuolo]       = useState('goalkeeper')
   const [tests,       setTests]       = useState({})
   const [account,     setAccount]     = useState({ email: '', password: '' })
@@ -126,7 +126,7 @@ export function useWizard({ groups, onAdd, onClose, onAddGroup, onToggleClientGr
         dataNascita: anagrafica.dataNascita,
         peso:        parseFloat(anagrafica.peso),
         altezza:     parseFloat(anagrafica.altezza),
-        categoria:   isSoccer ? fascia : (profileType === 'bia_only' ? null : categoria),
+        categoria:   isSoccer ? getCategoriaFromEta(calcAge(anagrafica.dataNascita)) : (profileType === 'bia_only' ? null : categoria),
         ruolo:       isSoccer ? ruolo : undefined,
         profileType: isSoccer ? 'tests_only' : profileType,
         email:       account.email.trim(),
@@ -141,13 +141,13 @@ export function useWizard({ groups, onAdd, onClose, onAddGroup, onToggleClientGr
   }, [anagrafica, profileType, categoria, account, onAdd, onClose])
 
   return {
-    step, anagrafica, profileType, categoria, fascia, ruolo, account, errors, isLoading: loading,
+    step, anagrafica, profileType, categoria, ruolo, account, errors, isLoading: loading,
     showConfirm, setShowConfirm,
     categoryTests, currentStep, currentTest,
     livePercentile, media, rankObj,
     stepTitle, progressPct,
     isLastStep: step === TOTAL_STEPS - 1,
-    setAnagrafica, setCategoria, setFascia, setRuolo, setAccount,
+    setAnagrafica, setCategoria, setRuolo, setAccount,
     setProfileType: (type) => {
       setProfileType(type)
       if (type === 'bia_only') setTests({})

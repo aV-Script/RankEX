@@ -40,6 +40,8 @@ con terminologie, test e comportamenti UI diversi.
   per `getTestsForCategoria`. Non è mostrata in UI (il ruolo è il badge visivo).
   Badge fascia: Pulcini → giallo `#fbbf24`, Esordienti → viola `#a78bfa`, Senior → nessun badge.
 - Configurazione fasce: `SOCCER_AGE_GROUPS` in `config/modules.config.js`
+- `categoria` derivata automaticamente da `eta` via `getCategoriaFromEta(eta)` in `config/modules.config.js`
+  (età < 10 → `soccer_youth`, 10-13 → `soccer_junior`, 14+ → `soccer`)
 
 ### Profili cliente (`profileType`)
 ```
@@ -471,8 +473,7 @@ src/
 │
 │   (wizard)
 │   components/modals/new-client-wizard/
-│       ├── steps/StepRuolo.jsx  ← step ruolo per soccer_academy
-│       └── steps/StepFascia.jsx ← step fascia d'età per soccer_academy
+│       └── steps/StepRuolo.jsx  ← step ruolo per soccer_academy
 │
 ├── firebase/
 │   ├── config.js            ← initializeApp + App Check (ReCaptchaV3Provider, dev debug token)
@@ -600,13 +601,14 @@ che Piccoli (cioè `fasce.length > 1`). Gestito in `useClientFilters.js`.
 | Campo                | personal_training         | soccer_academy               |
 |----------------------|---------------------------|------------------------------|
 | Categoria            | select obbligatorio        | NON mostrare                 |
-| Fascia d'età         | NON mostrare               | StepFascia (soccer/soccer_youth) |
+| Fascia d'età         | NON mostrare               | NON mostrare — derivata da `eta` |
 | Ruolo                | NON mostrare               | StepRuolo da PLAYER_ROLES    |
-| `categoria` salvato  | valore selezionato         | valore da StepFascia         |
+| `categoria` salvato  | valore selezionato         | `getCategoriaFromEta(calcAge(dataNascita))` |
 | `profileType`        | select (tests/bia/complete)| sempre `'tests_only'`        |
 
-Wizard soccer: **4 step fissi** (anagrafica → fascia → ruolo → account).
-`TOTAL_STEPS_MAP.soccer = 4` in `wizard.config.js`.
+Wizard soccer: **3 step fissi** (anagrafica → ruolo → account).
+`TOTAL_STEPS_MAP.soccer = 3` in `wizard.config.js`.
+La `categoria` (fascia d'età) viene derivata automaticamente dalla data di nascita al momento del submit.
 `isSoccer` viene da `useTrainerState()` → `getModule(moduleType).isSoccer`.
 
 **Blocco piano:** se `clients.length >= getPlanLimits(orgPlan).clients`,
