@@ -89,6 +89,8 @@ export const NEW_CLIENT_DEFAULTS = {
   profileType:        'tests_only',  // 'tests_only' | 'bia_only' | 'complete'
   biaHistory:         [],
   lastBia:            null,
+  wearableEnabled:    false,
+  wearable:           null,
 }
 
 // ── Costanti gamification ─────────────────────────────────────────────────────

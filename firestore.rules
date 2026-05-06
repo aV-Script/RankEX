@@ -144,7 +144,10 @@ service cloud.firestore {
         allow read:   if canRead(orgId) || isOwnClient(orgId, clientId);
         allow create: if isSuperAdmin() ||
           (isOrgMember(orgId) && memberRole(orgId) in ['org_admin', 'trainer'] && withinClientLimit(orgId));
-        allow update, delete: if canWrite(orgId);
+        allow update: if canWrite(orgId) ||
+          (isOwnClient(orgId, clientId) &&
+           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wearable']));
+        allow delete: if canWrite(orgId);
 
         // ── Notes (thread + commenti del cliente) ──────────
         // Trainer: legge, crea thread root e commenti, elimina qualsiasi nota.
