@@ -13,6 +13,7 @@ import { ClientCalendar }                  from '../ClientCalendar'
 import { PLAYER_ROLES }                    from '../../../config/modules.config'
 import { calcAge }                         from '../../../utils/validation'
 import { ClientBadges }                   from '../ClientBadges'
+import { ClientWearableSection }          from './ClientWearableSection'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -60,6 +61,11 @@ const ICON_AVATAR = (
     <circle cx="12" cy="7" r="4"/>
   </svg>
 )
+const ICON_WEARABLE = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+  </svg>
+)
 
 
 /**
@@ -87,6 +93,7 @@ export function ClientDashboardPage({ client, clientId, orgId, color, rankObj, b
     orgId            && { id: 'workout',  label: 'Scheda',     mobileLabel: 'Scheda',  icon: ICON_WORKOUT },
     orgId            && { id: 'notes',    label: 'Note',       mobileLabel: 'Note',    icon: ICON_NOTES },
     { id: 'activity', label: 'Attività',  mobileLabel: 'Log',     icon: ICON_ACTIVITY },
+    client.wearableEnabled && { id: 'wearable', label: 'Wearable', mobileLabel: 'Fit', icon: ICON_WEARABLE },
   ].filter(Boolean)
 
   const defaultTab = profile.hasTests ? 'test' : profile.hasBia ? 'bia' : 'calendar'
@@ -254,6 +261,15 @@ export function ClientDashboardPage({ client, clientId, orgId, color, rankObj, b
             <section className="px-4 py-6">
               <ActivityLog log={client.log} color={color} />
             </section>
+          )}
+
+          {activeTab === 'wearable' && client.wearableEnabled && (
+            <ClientWearableSection
+              orgId={orgId}
+              clientId={clientId}
+              initialWearable={client.wearable ?? null}
+              color={color}
+            />
           )}
 
         </div>

@@ -17,6 +17,7 @@ import { useBia }                            from '../bia/useBia'
 import { useMisure }                         from './useMisure'
 import { XPTrendChart }                      from './client-dashboard/XPTrendChart'
 import { MisureSection }                     from './client-dashboard/MisureSection'
+import { WearableSection }                   from './client-dashboard/WearableSection'
 import { BiaView }                           from '../bia/BiaView'
 import { BiaSummary }                        from '../bia/bia-view/BiaSummary'
 import { BiaHistoryChart }                   from '../bia/bia-view/BiaHistoryChart'
@@ -77,6 +78,11 @@ const ICON_AVATAR = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
     <circle cx="12" cy="7" r="4"/>
+  </svg>
+)
+const ICON_WEARABLE = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
   </svg>
 )
 const ICON_MISURE = (
@@ -158,6 +164,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
     { id: 'note',        label: 'Note',         mobileLabel: 'Note',  icon: ICON_NOTES },
     { id: 'attivita',    label: 'Attività',     mobileLabel: 'Log',   icon: ICON_ACTIVITY },
     { id: 'misure',      label: 'Misure',       mobileLabel: 'Mis.',  icon: ICON_MISURE },
+    { id: 'wearable', label: 'Wearable', mobileLabel: 'Fit', icon: ICON_WEARABLE },
   ].filter(Boolean), [profile.hasTests, profile.hasBia])
 
   const defaultTab      = profile.hasTests ? 'test' : profile.hasBia ? 'bia' : 'allenamento'
@@ -541,6 +548,10 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
                 readonly={readonly}
                 onUpdate={handleUpdateMisure}
               />
+            )}
+
+            {tab === 'wearable' && (
+              <WearableSection client={client} orgId={orgId} color={color} />
             )}
 
           </div>
