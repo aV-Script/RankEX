@@ -1,6 +1,20 @@
 import { useState, useCallback, useMemo } from 'react'
 import { SectionLabel }                   from '../../../components/ui'
 import { ConfirmDialog }                  from '../../../components/common/ConfirmDialog'
+import { ContextNav }                     from '../../../components/layout/ContextNav'
+
+const ICON_BACK = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="15 18 9 12 15 6"/>
+  </svg>
+)
+const ICON_CANCEL_REC = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="15" y1="9" x2="9" y2="15"/>
+    <line x1="9" y1="9" x2="15" y2="15"/>
+  </svg>
+)
 
 const WEEK_DAYS = [
   { value: 1, label: 'Lun' }, { value: 2, label: 'Mar' },
@@ -86,6 +100,16 @@ export function RecurrenceDetailView({
     onBack()
   }, [recurrence.id, onCancel, onBack])
 
+  const recCtxItems = useMemo(() => [
+    { id: '__back__',   label: 'Ricorrenze', icon: ICON_BACK },
+    isActive && { id: '__cancel__', label: 'Cancella', icon: ICON_CANCEL_REC, isDanger: true },
+  ].filter(Boolean), [isActive])
+
+  const handleRecCtxNav = useCallback((id) => {
+    if (id === '__back__') onBack()
+    else if (id === '__cancel__') setShowCancel(true)
+  }, [onBack])
+
   const sectionStyle = {
     background:   'rgba(255,255,255,0.02)',
     border:       '1px solid rgba(255,255,255,0.06)',
@@ -102,16 +126,9 @@ export function RecurrenceDetailView({
 
       {/* Header */}
       <div
-        className="flex items-center justify-between px-4 sm:px-6 py-4"
+        className="flex items-center justify-center px-4 sm:px-6 py-4"
         style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
       >
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 bg-transparent border-none text-white/30 font-body text-[13px] cursor-pointer hover:text-white/60 transition-colors p-0"
-        >
-          ‹ Ricorrenze
-        </button>
-
         <div className="text-center min-w-0">
           <div className="font-display font-black text-[16px] text-white leading-tight">
             {dayLabels(recurrence.days)}
@@ -120,18 +137,6 @@ export function RecurrenceDetailView({
             {recurrence.startTime} — {recurrence.endTime}
           </div>
         </div>
-
-        {isActive ? (
-          <button
-            onClick={() => setShowCancel(true)}
-            className="font-display text-[10px] px-3 py-1.5 cursor-pointer border transition-all bg-transparent"
-            style={{ borderRadius: '3px', color: '#f87171', borderColor: 'rgba(248,113,113,0.2)' }}
-          >
-            CANCELLA
-          </button>
-        ) : (
-          <div style={{ width: 80 }} />
-        )}
       </div>
 
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 flex flex-col gap-5">
@@ -368,6 +373,8 @@ export function RecurrenceDetailView({
           )}
         </section>
       </div>
+
+      <ContextNav items={recCtxItems} activeId={null} onSelect={handleRecCtxNav} />
 
       {showCancel && (
         <ConfirmDialog

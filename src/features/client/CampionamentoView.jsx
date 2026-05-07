@@ -4,6 +4,19 @@ import { ConfirmDialog }    from '../../components/common/ConfirmDialog'
 import { TestInput }        from '../../components/modals/campionamento-modal/TestInput'
 import { RankPreview }      from '../../components/modals/campionamento-modal/RankPreview'
 import { useCampionamento } from '../../components/modals/campionamento-modal/useCampionamento'
+import { ContextNav }       from '../../components/layout/ContextNav'
+
+const ICON_BACK = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="15 18 9 12 15 6"/>
+  </svg>
+)
+const ICON_SAVE = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 11l3 3L22 4"/>
+    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+  </svg>
+)
 
 export function CampionamentoView({ client, color, onSave, onBack }) {
   const {
@@ -26,26 +39,13 @@ export function CampionamentoView({ client, color, onSave, onBack }) {
     setShowConfirm,
   } = useCampionamento({ client, onSave, onBack })
 
+  const campCtxItems = [
+    { id: '__back__', label: 'Dashboard', icon: ICON_BACK },
+    { id: '__save__', label: 'Salva',     icon: ICON_SAVE },
+  ]
+
   return (
     <div className="min-h-screen text-white">
-
-      {/* Header - SOLO DESKTOP */}
-      <div className="hidden lg:flex items-center justify-between px-6 py-4 border-b border-white/[.05]">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 text-white/30 text-[13px] hover:text-white/60 transition-colors"
-        >
-          ‹ Dashboard
-        </button>
-
-        <button
-          onClick={handleRequestSave}
-          className="font-display text-[11px] px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all"
-          style={{ color, borderColor: color + '55', background: color + '11' }}
-        >
-          SALVA CAMPIONAMENTO
-        </button>
-      </div>
 
       {/* Contenuto */}
       <div className="max-w-5xl mx-auto px-6 py-8">
@@ -90,25 +90,14 @@ export function CampionamentoView({ client, color, onSave, onBack }) {
 
         </div>
 
-        {/* AZIONI MOBILE */}
-        <div className="lg:hidden mt-8 flex items-center justify-between">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-1.5 text-white/30 text-[13px] hover:text-white/60 transition-colors"
-          >
-            ‹ Dashboard
-          </button>
-
-          <button
-            onClick={handleRequestSave}
-            className="font-display text-[11px] px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all"
-            style={{ color, borderColor: color + '55', background: color + '11' }}
-          >
-            SALVA CAMPIONAMENTO
-          </button>
-        </div>
-
       </div>
+
+      <ContextNav
+        items={campCtxItems}
+        activeId={null}
+        onSelect={id => { if (id === '__back__') onBack(); else if (id === '__save__') handleRequestSave() }}
+        color={color}
+      />
 
       {showConfirm && (
         <ConfirmDialog

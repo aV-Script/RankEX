@@ -43,11 +43,7 @@ export default function ClientView({ clientId, orgId }) {
   if (!client) return <FullScreenMsg>Profilo non trovato.</FullScreenMsg>
 
   return (
-    <ClientShell
-      color={color}
-      unreadCount={unreadCount}
-      onOpenNotifs={handleOpenNotifs}
-    >
+    <ClientShell>
       <ClientDashboardPage
         client={client}
         clientId={clientId}
@@ -55,6 +51,8 @@ export default function ClientView({ clientId, orgId }) {
         color={color}
         rankObj={rankObj}
         biaRankObj={profileType === 'complete' ? biaRankObj : null}
+        unreadCount={unreadCount}
+        onOpenNotifs={handleOpenNotifs}
       />
 
       {showNotifs && (

@@ -53,7 +53,7 @@ export function RecurrencesPage({ orgId, initialRecurrenceId }) {
       </div>
 
       {/* Lista attive */}
-      <div className="px-6 py-5">
+      <div className="px-6 pt-5 pb-20 lg:pb-5">
         {error ? (
           <div className="text-center py-16">
             <p className="font-body text-[12px]" style={{ color: 'rgba(248,113,113,0.6)' }}>

@@ -1,19 +1,19 @@
-import { useState }                       from 'react'
-import { RankRing }                        from '../../../components/ui/RankRing'
-import { XPBar }                           from '../../../components/ui/XPBar'
-import { ActivityLog, StatsSection }       from '../../../components/ui'
-import { StatsChart }                      from '../StatsChart'
-import { getCategoriaById }                from '../../../constants'
-import { BiaSummary }                      from '../../bia/bia-view/BiaSummary'
-import { BiaHistoryChart }                 from '../../bia/bia-view/BiaHistoryChart'
-import { getProfileCategory }              from '../../../constants/bia'
-import { NotesSection }                    from '../client-dashboard/NotesSection'
-import { ClientWorkoutSection }            from '../client-dashboard/ClientWorkoutSection'
-import { ClientCalendar }                  from '../ClientCalendar'
-import { PLAYER_ROLES }                    from '../../../config/modules.config'
-import { calcAge }                         from '../../../utils/validation'
-import { ClientBadges }                   from '../ClientBadges'
-import { ClientWearableSection }          from './ClientWearableSection'
+import { useState }                from 'react'
+import { XPBar }                   from '../../../components/ui/XPBar'
+import { ActivityLog, StatsSection } from '../../../components/ui'
+import { StatsChart }              from '../StatsChart'
+import { getCategoriaById }        from '../../../constants'
+import { BiaSummary }              from '../../bia/bia-view/BiaSummary'
+import { BiaHistoryChart }         from '../../bia/bia-view/BiaHistoryChart'
+import { getProfileCategory }      from '../../../constants/bia'
+import { NotesSection }            from '../client-dashboard/NotesSection'
+import { ClientWorkoutSection }    from '../client-dashboard/ClientWorkoutSection'
+import { ClientCalendar }          from '../ClientCalendar'
+import { PLAYER_ROLES }            from '../../../config/modules.config'
+import { calcAge }                 from '../../../utils/validation'
+import { ClientBadges }            from '../ClientBadges'
+import { ClientWearableSection }   from './ClientWearableSection'
+import { ClientCircularNav }       from './ClientCircularNav'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -55,261 +55,197 @@ const ICON_ACTIVITY = (
     <polyline points="12 6 12 12 16 14"/>
   </svg>
 )
-const ICON_AVATAR = (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-    <circle cx="12" cy="7" r="4"/>
-  </svg>
-)
 const ICON_WEARABLE = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
   </svg>
 )
-
+const ICON_PROFILE = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+    <circle cx="12" cy="7" r="4"/>
+  </svg>
+)
 
 /**
- * Dashboard cliente (area client) — layout a 2 colonne:
- *   LEFT  → card avatar + rank + gamification
- *   RIGHT → stat tiles + tab nav + contenuto
- *
- * L'header full-width (RankEX + Bell + Logout) è fornito da ClientShell.
+ * Dashboard cliente — layout full-width per sezione.
+ * Navigazione tramite ClientCircularNav (wheel overlay).
  */
-export function ClientDashboardPage({ client, clientId, orgId, color, rankObj, biaRankObj }) {
-  const prevStats   = client.campionamenti?.[1]?.stats ?? null
-  const profileType = client.profileType ?? 'tests_only'
-  const profile     = getProfileCategory(profileType)
-  const isSoccer    = ['soccer', 'soccer_youth', 'soccer_junior'].includes(client.categoria)
+export function ClientDashboardPage({ client, clientId, orgId, color, rankObj, biaRankObj, unreadCount = 0, onOpenNotifs }) {
+  const prevStats    = client.campionamenti?.[1]?.stats ?? null
+  const profileType  = client.profileType ?? 'tests_only'
+  const profile      = getProfileCategory(profileType)
+  const isSoccer     = ['soccer', 'soccer_youth', 'soccer_junior'].includes(client.categoria)
   const categoriaObj = !isSoccer ? getCategoriaById(client.categoria) : null
   const ruoloObj     = isSoccer
     ? PLAYER_ROLES.find(r => r.value === client.ruolo) ?? null
     : null
 
   const TABS = [
-    { id: 'avatar',    label: 'Avatar',     mobileLabel: 'Avatar', icon: ICON_AVATAR,   mobileOnly: true },
-    profile.hasTests && { id: 'test',     label: 'Test',       mobileLabel: 'Test',    icon: ICON_TEST },
-    { id: 'calendar', label: 'Calendario', mobileLabel: 'Cal.',    icon: ICON_CALENDAR },
-    profile.hasBia   && { id: 'bia',      label: 'BIA',        mobileLabel: 'BIA',     icon: ICON_BIA },
-    orgId            && { id: 'workout',  label: 'Scheda',     mobileLabel: 'Scheda',  icon: ICON_WORKOUT },
-    orgId            && { id: 'notes',    label: 'Note',       mobileLabel: 'Note',    icon: ICON_NOTES },
-    { id: 'activity', label: 'Attività',  mobileLabel: 'Log',     icon: ICON_ACTIVITY },
-    client.wearableEnabled && { id: 'wearable', label: 'Wearable', mobileLabel: 'Fit', icon: ICON_WEARABLE },
+    profile.hasTests          && { id: 'test',     label: 'Test',       icon: ICON_TEST },
+    { id: 'calendar',            label: 'Calendario', icon: ICON_CALENDAR },
+    profile.hasBia            && { id: 'bia',      label: 'BIA',        icon: ICON_BIA },
+    orgId                     && { id: 'workout',  label: 'Scheda',     icon: ICON_WORKOUT },
+    orgId                     && { id: 'notes',    label: 'Note',       icon: ICON_NOTES },
+    { id: 'activity',            label: 'Attività',  icon: ICON_ACTIVITY },
+    client.wearableEnabled    && { id: 'wearable', label: 'Wearable',   icon: ICON_WEARABLE },
+    { id: 'profile',             label: 'Profilo',   icon: ICON_PROFILE },
   ].filter(Boolean)
 
   const defaultTab = profile.hasTests ? 'test' : profile.hasBia ? 'bia' : 'calendar'
-  const [activeTab, setActiveTab] = useState(() =>
-    window.innerWidth < 1024 ? 'avatar' : defaultTab
-  )
-
-  const media     = client.media ?? 0
-  const campCount = client.campionamenti?.length ?? 0
+  const [activeTab, setActiveTab] = useState(defaultTab)
 
   return (
-    <div className="flex flex-col lg:flex-row flex-1">
+    <div className="min-h-screen pb-20">
 
-      {/* ── LEFT PANEL ─────────────────────────────────────────────────────── */}
-      <aside
-        className="shrink-0 lg:w-2/5"
-      >
-        {/* Desktop: sticky, centrata verticalmente nell'area visibile */}
-        <div className="hidden lg:flex lg:items-center sticky top-[49px] h-[calc(100vh-49px)]">
-          <section className="px-4 py-6 w-full">
-            <div className="rounded-[4px] p-5 rx-card flex flex-col items-center text-center">
-              {/* Header card */}
-              <div className="w-full flex items-center justify-between mb-5">
-                <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase" style={{ color: '#0fd65a' }}>◈ Atleta</div>
-              </div>
+      <div key={activeTab} className="rx-animate-in">
 
-              {/* Avatar placeholder — visual principale */}
-              <AvatarPlaceholder
-                color={color}
-                rankObj={rankObj}
-                xp={client.xp}
-                xpNext={client.xpNext}
-                level={client.level}
-                biaRankObj={biaRankObj}
-              />
+        {/* ── Profilo ──────────────────────────────────────────────────── */}
+        {activeTab === 'profile' && (
+          <section className="px-4 pt-10 pb-6 flex flex-col items-center gap-5 max-w-lg mx-auto">
 
-              {/* Nome */}
-              <div className="mt-3 font-display font-black text-[24px] text-white leading-tight tracking-wide uppercase">
-                {client.name}
-              </div>
+            <AvatarPlaceholder color={color} level={client.level} />
 
-              {/* Badge categoria / ruolo */}
-              <ClientBadges
-                categoriaObj={categoriaObj}
-                ruoloObj={ruoloObj}
-                color={color}
-                categoria={client.categoria}
-                hasTests={profile.hasTests}
-                hasBia={profile.hasBia}
-                rankObj={rankObj}
-                biaRankObj={biaRankObj ?? rankObj}
-              />
-
-              {/* XP Bar — self-stretch forza larghezza piena nonostante items-center */}
-              <div className="mt-5 self-stretch">
-                <XPBar xp={client.xp} xpNext={client.xpNext} color={color} fullWidth />
-              </div>
+            <div className="font-display font-black text-[26px] text-white leading-tight tracking-wide uppercase text-center">
+              {client.name}
             </div>
-          </section>
-        </div>
-      </aside>
 
-      {/* ── RIGHT PANEL ─────────────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0 lg:pt-8">
-
-        {/* Tab navigation */}
-        <section
-          className="px-4 pt-4 pb-2 sticky top-[49px] z-10 backdrop-blur-md"
-        >
-          <div className="rounded-[4px] rx-card overflow-hidden">
-            <div className="grid grid-flow-col auto-cols-fr px-1 py-1.5">
-              {TABS.map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex flex-col lg:flex-row items-center justify-center gap-1 lg:gap-1.5 px-0.5 lg:px-3 py-2.5 rounded-[3px] font-display tracking-[0.5px] cursor-pointer border transition-all${tab.mobileOnly ? ' lg:hidden' : ''}`}
-                  style={activeTab === tab.id
-                    ? { background: color + '18', borderColor: color + '55', color, fontWeight: 700 }
-                    : { background: 'transparent', borderColor: 'transparent', color: 'rgba(255,255,255,0.35)', fontWeight: 500 }
-                  }
-                >
-                  {tab.icon}
-                  <span className="text-[9px] leading-none lg:hidden">{tab.mobileLabel}</span>
-                  <span className="hidden lg:inline text-[11px]">{tab.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Contenuto tab */}
-        <div className="flex-1">
-        <div key={activeTab} className="rx-animate-in">
-
-          {activeTab === 'avatar' && (
-            <section className="px-4 pt-6 lg:hidden">
-              <div className="rounded-[4px] p-5 rx-card flex flex-col items-center text-center">
-                <div className="w-full flex items-center justify-between mb-5">
-                  <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase" style={{ color: '#0fd65a' }}>◈ Atleta</div>
-                </div>
-                <AvatarPlaceholder color={color} rankObj={rankObj} xp={client.xp} xpNext={client.xpNext} level={client.level} small />
-                <div className="mt-3 font-display font-black text-[24px] text-white leading-tight tracking-wide uppercase">
-                  {client.name}
-                </div>
-                <ClientBadges
-                  categoriaObj={categoriaObj}
-                  ruoloObj={ruoloObj}
-                  color={color}
-                  categoria={client.categoria}
-                  hasTests={profile.hasTests}
-                  hasBia={profile.hasBia}
-                  rankObj={rankObj}
-                  biaRankObj={biaRankObj ?? rankObj}
-                />
-                <div className="mt-5 self-stretch">
-                  <XPBar xp={client.xp} xpNext={client.xpNext} color={color} fullWidth />
-                </div>
-              </div>
-            </section>
-          )}
-
-          {activeTab === 'test' && (
-            <>
-              <section className="px-4 py-6">
-                <div className="rounded-[4px] p-5 rx-card">
-                  <div className="font-display text-[10px] tracking-[3px] uppercase mb-3.5" style={{ color: '#0fd65a' }}>◈ Status</div>
-                  <StatsSection stats={client.stats} prevStats={prevStats} color={color} categoria={client.categoria} />
-                </div>
-              </section>
-              <div className="mx-4 h-px" style={{ background: 'rgba(255,255,255,0.04)' }} />
-              <section className="px-4 py-6">
-                <StatsChart campionamenti={client.campionamenti} color={color} categoria={client.categoria} />
-              </section>
-            </>
-          )}
-
-          {activeTab === 'calendar' && (
-            <div className="px-4 py-6">
-            <ClientCalendar clientId={clientId} orgId={orgId} />
-            </div>
-          )}
-
-          {activeTab === 'bia' && (
-            <>
-              <section className="px-4 py-6">
-                <BiaSummary bia={client.lastBia} prevBia={client.biaHistory?.[1] ?? null} sex={client.sesso} age={calcAge(client.dataNascita)} color={color} />
-              </section>
-              <div className="mx-4 h-px" style={{ background: 'rgba(255,255,255,0.04)' }} />
-              <section className="px-4 py-6">
-                <BiaHistoryChart biaHistory={client.biaHistory} color={color} />
-              </section>
-            </>
-          )}
-
-          {activeTab === 'workout' && (
-            <ClientWorkoutSection orgId={orgId} clientId={clientId} color={color} />
-          )}
-
-          {activeTab === 'notes' && orgId && (
-            <NotesSection orgId={orgId} clientId={clientId} color={color}
-              author={{ role: 'client', name: client.name }} />
-          )}
-
-          {activeTab === 'activity' && (
-            <section className="px-4 py-6">
-              <ActivityLog log={client.log} color={color} />
-            </section>
-          )}
-
-          {activeTab === 'wearable' && client.wearableEnabled && (
-            <ClientWearableSection
-              orgId={orgId}
-              clientId={clientId}
-              initialWearable={client.wearable ?? null}
+            <ClientBadges
+              categoriaObj={categoriaObj}
+              ruoloObj={ruoloObj}
               color={color}
+              categoria={client.categoria}
+              hasTests={profile.hasTests}
+              hasBia={profile.hasBia}
+              rankObj={rankObj}
+              biaRankObj={biaRankObj ?? rankObj}
             />
-          )}
 
-        </div>
-        </div>
+            <div className="self-stretch">
+              <XPBar xp={client.xp} xpNext={client.xpNext} color={color} fullWidth />
+            </div>
+
+            {/* Card account */}
+            <div className="rx-card rounded-[4px] p-5 w-full">
+              <div className="font-display text-[10px] text-white/30 tracking-[3px] mb-4">ACCOUNT</div>
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-12 h-12 rounded-[4px] flex items-center justify-center shrink-0"
+                  style={{ background: color + '22', border: `1px solid ${color}44` }}
+                >
+                  <span className="font-display font-black text-[20px]" style={{ color }}>
+                    {client.name?.[0]?.toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <div className="font-display font-black text-[15px] text-white">{client.name}</div>
+                  <div className="font-body text-[13px] text-white/40 mt-0.5">{client.email ?? '—'}</div>
+                </div>
+              </div>
+            </div>
+
+          </section>
+        )}
+
+        {/* ── Test ─────────────────────────────────────────────────────── */}
+        {activeTab === 'test' && (
+          <>
+            <section className="px-4 py-6">
+              <div className="rounded-[4px] p-5 rx-card">
+                <div className="font-display text-[10px] tracking-[3px] uppercase mb-3.5" style={{ color: '#0fd65a' }}>◈ Status</div>
+                <StatsSection stats={client.stats} prevStats={prevStats} color={color} categoria={client.categoria} />
+              </div>
+            </section>
+            <div className="mx-4 h-px" style={{ background: 'rgba(255,255,255,0.04)' }} />
+            <section className="px-4 py-6">
+              <StatsChart campionamenti={client.campionamenti} color={color} categoria={client.categoria} />
+            </section>
+          </>
+        )}
+
+        {/* ── Calendario ───────────────────────────────────────────────── */}
+        {activeTab === 'calendar' && (
+          <div className="px-4 py-6">
+            <ClientCalendar clientId={clientId} orgId={orgId} />
+          </div>
+        )}
+
+        {/* ── BIA ──────────────────────────────────────────────────────── */}
+        {activeTab === 'bia' && (
+          <>
+            <section className="px-4 py-6">
+              <BiaSummary bia={client.lastBia} prevBia={client.biaHistory?.[1] ?? null} sex={client.sesso} age={calcAge(client.dataNascita)} color={color} />
+            </section>
+            <div className="mx-4 h-px" style={{ background: 'rgba(255,255,255,0.04)' }} />
+            <section className="px-4 py-6">
+              <BiaHistoryChart biaHistory={client.biaHistory} color={color} />
+            </section>
+          </>
+        )}
+
+        {/* ── Scheda ───────────────────────────────────────────────────── */}
+        {activeTab === 'workout' && (
+          <ClientWorkoutSection orgId={orgId} clientId={clientId} color={color} />
+        )}
+
+        {/* ── Note ─────────────────────────────────────────────────────── */}
+        {activeTab === 'notes' && orgId && (
+          <NotesSection orgId={orgId} clientId={clientId} color={color}
+            author={{ role: 'client', name: client.name }} />
+        )}
+
+        {/* ── Attività ─────────────────────────────────────────────────── */}
+        {activeTab === 'activity' && (
+          <section className="px-4 py-6">
+            <ActivityLog log={client.log} color={color} />
+          </section>
+        )}
+
+        {/* ── Wearable ─────────────────────────────────────────────────── */}
+        {activeTab === 'wearable' && client.wearableEnabled && (
+          <ClientWearableSection
+            orgId={orgId}
+            clientId={clientId}
+            initialWearable={client.wearable ?? null}
+            color={color}
+          />
+        )}
+
       </div>
+
+      <ClientCircularNav
+        tabs={TABS}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        unreadCount={unreadCount}
+        onOpenNotifs={onOpenNotifs}
+        color={color}
+        clientName={client.name}
+      />
     </div>
   )
 }
 
 // ── AvatarPlaceholder ─────────────────────────────────────────────────────────
 
-function AvatarPlaceholder({ color, rankObj, xp, xpNext, level, biaRankObj, compact = false, small = false }) {
-  if (compact) {
-    return <RankRing rankObj={rankObj} xp={xp} xpNext={xpNext} size={72} animated={false} />
-  }
-
-  const W = small ? 110 : 174
-  const H = small ? 138 : 218
-
+function AvatarPlaceholder({ color, level }) {
   return (
-    <div style={{ width: W }}>
-      {/* Card portrait */}
+    <div style={{ width: 174 }}>
       <div
         className="relative overflow-hidden rounded-[4px]"
         style={{
-          height: H,
+          height: 218,
           background: 'linear-gradient(170deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%)',
           border: `1px solid ${color}28`,
         }}
       >
-        {/* Pattern esagonale */}
         <div className="absolute inset-0 bg-hex" style={{ opacity: 0.14 }} />
 
-        {/* Alone colore in alto */}
         <div className="absolute top-0 left-0 right-0 h-28"
           style={{ background: `radial-gradient(ellipse at 50% -20%, ${color}22 0%, transparent 65%)` }} />
 
-        {/* Silhouette atleta */}
         <div className="absolute inset-0 flex items-center justify-center" style={{ paddingBottom: 28 }}>
-          <svg viewBox="0 0 80 112" width={small ? 58 : 90} height={small ? 80 : 126}>
+          <svg viewBox="0 0 80 112" width={90} height={126}>
             <circle cx="40" cy="26" r="19" fill={color} opacity="0.18" />
             <circle cx="40" cy="26" r="19" fill="none" stroke={color} strokeWidth="1.4" opacity="0.45" />
             <path d="M6,112 Q6,62 40,62 Q74,62 74,112Z" fill={color} opacity="0.14" />
@@ -318,11 +254,9 @@ function AvatarPlaceholder({ color, rankObj, xp, xpNext, level, biaRankObj, comp
           </svg>
         </div>
 
-        {/* Gradiente basso */}
         <div className="absolute bottom-0 left-0 right-0 h-20"
           style={{ background: `linear-gradient(to top, ${color}22, transparent)` }} />
 
-        {/* Badge livello — top-left */}
         <div
           className="absolute top-2 left-2 font-display font-black text-[10px] px-1.5 py-0.5 rounded-[3px]"
           style={{ background: 'rgba(0,0,0,0.65)', color, border: `1px solid ${color}50` }}
@@ -330,18 +264,13 @@ function AvatarPlaceholder({ color, rankObj, xp, xpNext, level, biaRankObj, comp
           LV.{level}
         </div>
 
-        {/* Watermark */}
-        {!small && (
-          <div
-            className="absolute bottom-2.5 right-2.5 font-display text-[7px] tracking-[3px] uppercase"
-            style={{ color: color + '45' }}
-          >
-            Avatar
-          </div>
-        )}
+        <div
+          className="absolute bottom-2.5 right-2.5 font-display text-[7px] tracking-[3px] uppercase"
+          style={{ color: color + '45' }}
+        >
+          Avatar
+        </div>
       </div>
-
     </div>
   )
 }
-

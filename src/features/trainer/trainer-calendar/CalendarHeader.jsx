@@ -6,7 +6,7 @@ const MONTH_NAMES = [
 /**
  * Header del calendario con navigazione, switcher vista e bottoni azioni.
  */
-export function CalendarHeader({ currentDate, view, onNavigate, onToday, onSetView, onNewSlot, onNewRecurrence }) {
+export function CalendarHeader({ currentDate, view, onNavigate, onToday }) {
   const d     = new Date(currentDate + 'T12:00')
   const year  = d.getFullYear()
   const month = d.getMonth()
@@ -46,55 +46,6 @@ export function CalendarHeader({ currentDate, view, onNavigate, onToday, onSetVi
         <h2 className="font-display font-black text-[16px] sm:text-[18px] text-white ml-1">{title}</h2>
       </div>
 
-      {/* Destra — switcher + azioni */}
-      <div className="flex items-center gap-2">
-
-        {/* Switcher vista */}
-        <div
-          className="flex rounded-[3px] overflow-hidden border"
-          style={{ background: 'rgba(13,21,32,0.9)', borderColor: 'rgba(15,214,90,0.12)' }}
-        >
-          {['month', 'week', 'day'].map(v => (
-            <button
-              key={v}
-              onClick={() => onSetView(v)}
-              aria-pressed={view === v}
-              className="px-2.5 sm:px-4 py-1.5 font-display text-[11px] cursor-pointer transition-all border-none"
-              style={view === v
-                ? { background: 'rgba(15,214,90,0.15)', color: '#0fd65a' }
-                : { background: 'transparent', color: 'rgba(255,255,255,0.35)' }
-              }
-            >
-              <span className="sm:hidden">
-                {v === 'month' ? 'M' : v === 'week' ? 'S' : 'G'}
-              </span>
-              <span className="hidden sm:inline">
-                {v === 'month' ? 'MESE' : v === 'week' ? 'SETTIMANA' : 'GIORNO'}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        {/* Azioni */}
-        <button
-          onClick={onNewRecurrence}
-          aria-label="Nuova ricorrenza"
-          className="rounded-[3px] px-2.5 sm:px-3 py-1.5 font-display text-[11px] tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
-          style={{ background: 'rgba(15,214,90,0.12)', color: '#0fd65a', border: '1px solid rgba(15,214,90,0.2)' }}
-        >
-          <span className="sm:hidden">↺</span>
-          <span className="hidden sm:inline">RICORRENZA</span>
-        </button>
-        <button
-          onClick={onNewSlot}
-          aria-label="Nuova sessione"
-          className="rounded-[3px] px-2.5 sm:px-3 py-1.5 font-display text-[11px] tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
-          style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', color: '#080c12' }}
-        >
-          <span className="sm:hidden">+</span>
-          <span className="hidden sm:inline">NUOVA SESSIONE</span>
-        </button>
-      </div>
     </div>
   )
 }

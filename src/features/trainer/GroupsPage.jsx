@@ -78,7 +78,7 @@ export function GroupsPage({ orgId }) {
         totalGroups={groups.length}
       />
 
-      <main className="flex-1 px-4 sm:px-6 py-6 min-w-0">
+      <main className="flex-1 px-4 sm:px-6 pt-6 pb-20 lg:pb-6 min-w-0">
 
         {/* Header */}
         <div className="hidden lg:flex items-center justify-between mb-5">

@@ -16,6 +16,7 @@ import {
   removeClientFromGroupSlots,
 } from '../../../features/calendar/calendarGroupUtils'
 import { EmptyState } from '../../../components/ui'
+import { ContextNav } from '../../../components/layout/ContextNav'
 
 const CLIENTS_PAGE_SIZE = 8
 
@@ -59,6 +60,28 @@ const ICON_NOTES = (
     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
   </svg>
 )
+const ICON_RENAME = (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+  </svg>
+)
+const ICON_PDF = (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+    <polyline points="14 2 14 8 20 8"/>
+    <line x1="12" y1="18" x2="12" y2="12"/>
+    <polyline points="9 15 12 18 15 15"/>
+  </svg>
+)
+const ICON_DELETE = (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6"/>
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+    <path d="M10 11v6M14 11v6"/>
+    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+  </svg>
+)
 
 const TABS = [
   { id: 'manage',      label: 'Gestione',  icon: ICON_MANAGE      },
@@ -67,6 +90,9 @@ const TABS = [
   { id: 'comparison', label: 'Confronto', icon: ICON_COMPARE     },
   { id: 'sessions',   label: 'Sessioni',  icon: ICON_SESSIONS    },
   { id: 'notes',      label: 'Note',      icon: ICON_NOTES       },
+  { id: '__rename__', label: 'Rinomina',  icon: ICON_RENAME      },
+  { id: '__pdf__',    label: 'PDF',       icon: ICON_PDF         },
+  { id: '__delete__', label: 'Elimina',   icon: ICON_DELETE, isDanger: true },
 ]
 
 // ── Componente principale ─────────────────────────────────────────────────────
@@ -147,74 +173,44 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
     onBack()
   }, [group.id, onDelete, onBack])
 
+  const handleContextSelect = useCallback((id) => {
+    if (id === '__rename__') setIsEditing(true)
+    else if (id === '__pdf__')    setShowPrint(true)
+    else if (id === '__delete__') setShowDelete(true)
+    else setSubView(id)
+  }, [])
+
   return (
     <div className="min-h-screen text-white flex flex-col">
 
       {/* ── Header sticky ── */}
-      <header className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-white/[.05] sticky top-0 z-30 backdrop-blur-md shrink-0">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 bg-transparent border-none text-white/30 font-body text-[13px] cursor-pointer hover:text-white/60 transition-colors p-0"
-        >
-          ‹ Gruppi
-        </button>
-
-        <div className="flex items-center gap-2">
-          {isEditing ? (
-            <>
-              <input
-                autoFocus
-                value={editingName}
-                onChange={e => setEditingName(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter')  handleRename()
-                  if (e.key === 'Escape') { setIsEditing(false); setEditingName(group.name) }
-                }}
-                className="input-base text-center font-display font-black text-[16px]"
-                style={{ minWidth: 200 }}
-              />
-              <ActionBtn onClick={handleRename} color="#0fd65a">SALVA</ActionBtn>
-              <ActionBtn onClick={() => { setIsEditing(false); setEditingName(group.name) }} muted>ANNULLA</ActionBtn>
-            </>
-          ) : (
-            <div className="flex flex-col items-center">
-              <span className="font-display font-black text-[16px] text-white truncate max-w-[140px] sm:max-w-xs">{group.name}</span>
-              <span className="font-body text-[11px] text-white/25">{group.clientIds.length} {group.clientIds.length === 1 ? 'atleta' : 'atleti'}</span>
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          {!isEditing && <ActionBtn onClick={() => setIsEditing(true)}>RINOMINA</ActionBtn>}
-          <ActionBtn onClick={() => setShowPrint(true)}>PDF</ActionBtn>
-          <ActionBtn onClick={() => setShowDelete(true)} danger>ELIMINA</ActionBtn>
-        </div>
+      <header className="flex items-center justify-center px-4 sm:px-6 py-4 border-b border-white/[.05] sticky top-0 z-30 backdrop-blur-md shrink-0">
+        {isEditing ? (
+          <div className="flex items-center gap-2">
+            <input
+              autoFocus
+              value={editingName}
+              onChange={e => setEditingName(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter')  handleRename()
+                if (e.key === 'Escape') { setIsEditing(false); setEditingName(group.name) }
+              }}
+              className="input-base text-center font-display font-black text-[16px]"
+              style={{ minWidth: 160, maxWidth: 240 }}
+            />
+            <ActionBtn onClick={handleRename} color="#0fd65a">SALVA</ActionBtn>
+            <ActionBtn onClick={() => { setIsEditing(false); setEditingName(group.name) }} muted>ANN.</ActionBtn>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center">
+            <span className="font-display font-black text-[16px] text-white truncate max-w-[200px] sm:max-w-xs">{group.name}</span>
+            <span className="font-body text-[11px] text-white/25">{group.clientIds.length} {group.clientIds.length === 1 ? 'atleta' : 'atleti'}</span>
+          </div>
+        )}
       </header>
 
       {/* ── Body ── */}
       <div className="max-w-5xl mx-auto w-full flex flex-col flex-1">
-
-        {/* ── Tab nav — rx-card sticky ── */}
-        <section className="px-4 pb-2 pt-3 sticky top-[57px] z-10 backdrop-blur-md">
-          <div className="rounded-[4px] rx-card overflow-hidden">
-            <div className="grid grid-flow-col auto-cols-fr px-1 py-2">
-              {TABS.map(t => (
-                <button
-                  key={t.id}
-                  onClick={() => setSubView(t.id)}
-                  className="flex items-center justify-center gap-1.5 px-1 sm:px-3 py-2 rounded-[3px] font-display text-[11px] tracking-[0.5px] cursor-pointer border transition-all"
-                  style={subView === t.id
-                    ? { background: 'rgba(15,214,90,0.15)', borderColor: 'rgba(15,214,90,0.4)', color: '#0fd65a' }
-                    : { background: 'transparent', borderColor: 'transparent', color: 'rgba(255,255,255,0.35)' }
-                  }
-                >
-                  {t.icon}
-                  <span className="hidden sm:inline">{t.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* ── Avviso fascia mista ── */}
         {mixedFascia && (
@@ -374,6 +370,8 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
 
         </div> {/* fine rx-animate-in */}
       </div>
+
+      <ContextNav items={TABS} activeId={subView} onSelect={handleContextSelect} />
 
       {showPrint && (
         <GroupReportPrint
