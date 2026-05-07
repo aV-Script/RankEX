@@ -1,20 +1,26 @@
-import { useState, useCallback }  from 'react'
-import { useGroups }              from '../../hooks/useGroups'
-import { useTrainerNav }          from './useTrainerNav'
-import { useTrainerState }        from '../../context/TrainerContext'
-import { getModule }              from '../../config/modules.config'
-import { useClientFilters }       from './useClientFilters'
-import { usePagination }          from '../../hooks/usePagination'
-import { ClientCard }             from './clients-page/ClientCard'
-import { FiltersSidebar }         from './clients-page/FiltersSidebar'
-import { MobileControls }         from './clients-page/MobileControls'
-import { Pagination }             from '../../components/common/Pagination'
-import { NewClientView }          from './NewClientView'
-import { Skeleton }               from '../../components/common/Skeleton'
-import { EmptyState }             from '../../components/ui'
-import { PAGINATION_PAGE_SIZE }  from '../../config/app.config'
+import { useState, useCallback }         from 'react'
+import { useGroups }                      from '../../hooks/useGroups'
+import { useTrainerNav }                  from './useTrainerNav'
+import { useTrainerState }                from '../../context/TrainerContext'
+import { getModule }                      from '../../config/modules.config'
+import { PLAYER_ROLES, SOCCER_AGE_GROUPS } from '../../config/modules.config'
+import { useClientFilters }              from './useClientFilters'
+import { usePagination }                 from '../../hooks/usePagination'
+import { ClientCard }                    from './clients-page/ClientCard'
+import { Pagination }                    from '../../components/common/Pagination'
+import { NewClientView }                 from './NewClientView'
+import { Skeleton }                      from '../../components/common/Skeleton'
+import { EmptyState }                    from '../../components/ui'
+import { PAGINATION_PAGE_SIZE }          from '../../config/app.config'
+import { ContextNav }                    from '../../components/layout/ContextNav'
 
 const PAGE_SIZE = PAGINATION_PAGE_SIZE
+
+const SORT_OPTIONS = [
+  ['name',  'Nome A→Z'],
+  ['rank',  'Rank'],
+  ['level', 'Livello'],
+]
 
 const ICON_CLIENTS = (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -24,18 +30,28 @@ const ICON_CLIENTS = (
     <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
   </svg>
 )
+const ICON_NEW_CLIENT = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+    <circle cx="9" cy="7" r="4"/>
+    <line x1="19" y1="8" x2="19" y2="14"/>
+    <line x1="16" y1="11" x2="22" y2="11"/>
+  </svg>
+)
+
+const CLIENTS_CTX = [{ id: '__new__', label: 'Nuovo', icon: ICON_NEW_CLIENT }]
 
 export function ClientsPage({ orgId, clients = [], clientsLoading: loading = false, clientsError: error = null, onAddClient }) {
-  const { moduleType }  = useTrainerState()
-  const isSoccer        = getModule(moduleType).isSoccer
-  const { groups }      = useGroups(orgId)
-  const { selectClient }                             = useTrainerNav()
-  const filters                                      = useClientFilters(clients, groups, isSoccer)
-  const [view, setView]                              = useState('list')
+  const { moduleType } = useTrainerState()
+  const isSoccer       = getModule(moduleType).isSoccer
+  const { groups }     = useGroups(orgId)
+  const { selectClient } = useTrainerNav()
+  const filters          = useClientFilters(clients, groups, isSoccer)
+  const [view, setView]  = useState('list')
 
   const pagination = usePagination(filters.filteredClients, PAGE_SIZE)
 
-  const handleAdd    = useCallback(async (formData) => {
+  const handleAdd = useCallback(async (formData) => {
     const newClient = await onAddClient(formData)
     if (newClient) selectClient(newClient)
     return newClient
@@ -54,50 +70,62 @@ export function ClientsPage({ orgId, clients = [], clientsLoading: loading = fal
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="min-h-screen">
 
-      <FiltersSidebar
-        {...filters}
-        groups={groups}
-        isSoccer={isSoccer}
-        onNewClient={() => setView('new')}
-      />
-
-      <main className="flex-1 px-4 sm:px-6 pt-6 pb-20 lg:pb-6 min-w-0">
-
-        {/* Titolo mobile */}
-        <div className="lg:hidden mb-4">
-          <h1 className="font-display font-black text-[22px] text-white m-0">I tuoi clienti</h1>
+      {/* ── Intestazione + filtri ─────────────────────────────────────────────── */}
+      <div className="px-4 sm:px-6 pt-5 pb-3 flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <h1 className="font-display font-black text-[22px] sm:text-[24px] text-white m-0">
+            I tuoi clienti
+          </h1>
           {!loading && (
-            <p className="font-body text-white/30 text-[13px] m-0 mt-0.5">
-              {filters.filteredClients.length} {filters.filteredClients.length === 1 ? 'cliente' : 'clienti'}
-            </p>
+            <span className="font-display text-[11px] text-white/30">
+              {filters.filteredClients.length}{' '}
+              {filters.filteredClients.length === 1 ? 'cliente' : 'clienti'}
+            </span>
           )}
         </div>
 
-        <MobileControls
-          query={filters.query}
-          onQueryChange={filters.onQueryChange}
-          sortBy={filters.sortBy}
-          onSortByChange={filters.onSortByChange}
-          onNewClient={() => setView('new')}
+        <input
+          placeholder="Cerca per nome..."
+          value={filters.query}
+          onChange={e => filters.onQueryChange(e.target.value)}
+          className="input-base w-full"
         />
 
-        {/* Header desktop */}
-        <div className="hidden lg:flex items-center justify-between mb-5">
-          <div>
-            <h1 className="font-display font-black text-[24px] text-white m-0">
-              I tuoi clienti
-            </h1>
-            <p className="font-body text-white/30 text-[13px] m-0 mt-0.5">
-              {loading
-                ? ' '
-                : `${filters.filteredClients.length} ${filters.filteredClients.length === 1 ? 'cliente' : 'clienti'}`
-              }
-            </p>
-          </div>
-        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {SORT_OPTIONS.map(([val, label]) => (
+            <FilterChip key={val} active={filters.sortBy === val} onClick={() => filters.onSortByChange(val)}>
+              {label}
+            </FilterChip>
+          ))}
 
+          {filters.categorie.length > 1 && filters.categorie.map(val => {
+            const label = isSoccer && val !== 'tutti'
+              ? (PLAYER_ROLES.find(r => r.value === val)?.label ?? val)
+              : val.charAt(0).toUpperCase() + val.slice(1)
+            return (
+              <FilterChip key={val} active={filters.filterCategoria === val} onClick={() => filters.onCategoriaChange(val)}>
+                {label}
+              </FilterChip>
+            )
+          })}
+
+          {isSoccer && filters.fasce.length > 1 && filters.fasce.map(val => {
+            const label = val === 'tutti'
+              ? 'Tutti'
+              : (SOCCER_AGE_GROUPS.find(g => g.value === val)?.label ?? val)
+            return (
+              <FilterChip key={val} active={filters.filterFascia === val} onClick={() => filters.onFasciaChange(val)}>
+                {label}
+              </FilterChip>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* ── Lista ─────────────────────────────────────────────────────────────── */}
+      <main className="px-4 sm:px-6 pb-24">
         {error && (
           <div className="rounded-[3px] px-4 py-2.5 bg-red-500/10 border border-red-400/20 mb-4">
             <p className="text-red-400 font-body text-[13px] m-0">{error}</p>
@@ -121,18 +149,34 @@ export function ClientsPage({ orgId, clients = [], clientsLoading: loading = fal
           <div className="rx-animate-in">
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
               {pagination.paginatedItems.map(client => (
-                <ClientCard
-                  key={client.id}
-                  client={client}
-                  onSelect={handleSelect}
-                />
+                <ClientCard key={client.id} client={client} onSelect={handleSelect} />
               ))}
             </div>
-
             <Pagination {...pagination} />
           </div>
         )}
       </main>
+
+      <ContextNav
+        items={CLIENTS_CTX}
+        activeId={null}
+        onSelect={id => { if (id === '__new__') setView('new') }}
+      />
     </div>
+  )
+}
+
+function FilterChip({ active, onClick, children }) {
+  return (
+    <button
+      onClick={onClick}
+      className="rounded-[3px] px-2.5 py-1 font-display text-[10px] tracking-wide cursor-pointer border transition-all whitespace-nowrap"
+      style={active
+        ? { background: 'rgba(15,214,90,0.12)', borderColor: 'rgba(15,214,90,0.35)', color: '#0fd65a' }
+        : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)' }
+      }
+    >
+      {children}
+    </button>
   )
 }
