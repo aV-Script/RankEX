@@ -31,7 +31,7 @@ import { getMonthRange, calcMonthlyCompletion } from '../calendar/useCalendar'
 import { resetPassword }                     from '../../firebase/services/auth'
 import { PLAYER_ROLES }                      from '../../config/modules.config'
 import { ClientBadges }                      from './ClientBadges'
-import { ContextNav }                        from '../../components/layout/ContextNav'
+import { useRegisterContextMenu }            from '../../context/NavMenuContext'
 import { getAuth }                           from 'firebase/auth'
 import app                                   from '../../firebase/config'
 
@@ -249,6 +249,8 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
     else                                 setActiveTab(id)
   }, [handleResetPassword, onBack])
 
+  useRegisterContextMenu('Atleta', contextItems, tab, handleContextNav)
+
   // ── Views overlay ─────────────────────────────────────────────────────────
   if (view === 'campionamento') {
     return (
@@ -396,7 +398,6 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
         </div>
       </div>
 
-      <ContextNav items={contextItems} activeId={tab} onSelect={handleContextNav} color={color} />
 
       {showDelete && (
         <DeleteDialog clientName={client.name} onConfirm={handleDelete} onCancel={() => setShowDelete(false)} />

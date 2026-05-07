@@ -4,7 +4,8 @@ import { ConfirmDialog }    from '../../components/common/ConfirmDialog'
 import { TestInput }        from '../../components/modals/campionamento-modal/TestInput'
 import { RankPreview }      from '../../components/modals/campionamento-modal/RankPreview'
 import { useCampionamento } from '../../components/modals/campionamento-modal/useCampionamento'
-import { ContextNav }       from '../../components/layout/ContextNav'
+import { useCallback }      from 'react'
+import { useRegisterContextMenu } from '../../context/NavMenuContext'
 
 const ICON_BACK = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -17,6 +18,10 @@ const ICON_SAVE = (
     <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
   </svg>
 )
+const CAMP_CTX = [
+  { id: '__back__', label: 'Dashboard', icon: ICON_BACK },
+  { id: '__save__', label: 'Salva',     icon: ICON_SAVE },
+]
 
 export function CampionamentoView({ client, color, onSave, onBack }) {
   const {
@@ -39,10 +44,12 @@ export function CampionamentoView({ client, color, onSave, onBack }) {
     setShowConfirm,
   } = useCampionamento({ client, onSave, onBack })
 
-  const campCtxItems = [
-    { id: '__back__', label: 'Dashboard', icon: ICON_BACK },
-    { id: '__save__', label: 'Salva',     icon: ICON_SAVE },
-  ]
+  const handleCampCtx = useCallback(id => {
+    if (id === '__back__') onBack()
+    else if (id === '__save__') handleRequestSave()
+  }, [onBack, handleRequestSave])
+
+  useRegisterContextMenu('Test', CAMP_CTX, null, handleCampCtx)
 
   return (
     <div className="min-h-screen text-white">
@@ -91,13 +98,6 @@ export function CampionamentoView({ client, color, onSave, onBack }) {
         </div>
 
       </div>
-
-      <ContextNav
-        items={campCtxItems}
-        activeId={null}
-        onSelect={id => { if (id === '__back__') onBack(); else if (id === '__save__') handleRequestSave() }}
-        color={color}
-      />
 
       {showConfirm && (
         <ConfirmDialog

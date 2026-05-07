@@ -8,7 +8,7 @@ import { GroupDetailView }                from './groups-page/GroupDetailView'
 import { Skeleton }                       from '../../components/common/Skeleton'
 import { EmptyState }                     from '../../components/ui'
 import { PAGINATION_PAGE_SIZE }           from '../../config/app.config'
-import { ContextNav }                     from '../../components/layout/ContextNav'
+import { useRegisterContextMenu }         from '../../context/NavMenuContext'
 
 const GROUPS_PAGE_SIZE = PAGINATION_PAGE_SIZE
 
@@ -32,6 +32,9 @@ export function GroupsPage({ orgId }) {
   const [groupSearch,   setGroupSearch]   = useState('')
   const [showNew,       setShowNew]       = useState(false)
   const [newGroupName,  setNewGroupName]  = useState('')
+
+  const ctxItems = view === 'list' ? GROUPS_CTX : []
+  useRegisterContextMenu('Gruppi', ctxItems, null, id => { if (id === '__new__') setShowNew(true) })
 
   const filteredGroups = useMemo(() =>
     groups.filter(g => g.name.toLowerCase().includes(groupSearch.toLowerCase()))
@@ -164,11 +167,6 @@ export function GroupsPage({ orgId }) {
         )}
       </main>
 
-      <ContextNav
-        items={GROUPS_CTX}
-        activeId={null}
-        onSelect={id => { if (id === '__new__') setShowNew(true) }}
-      />
     </div>
   )
 }

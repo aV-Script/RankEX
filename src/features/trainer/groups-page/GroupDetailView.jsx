@@ -16,7 +16,7 @@ import {
   removeClientFromGroupSlots,
 } from '../../../features/calendar/calendarGroupUtils'
 import { EmptyState } from '../../../components/ui'
-import { ContextNav } from '../../../components/layout/ContextNav'
+import { useRegisterContextMenu } from '../../../context/NavMenuContext'
 
 const CLIENTS_PAGE_SIZE = 8
 
@@ -82,9 +82,15 @@ const ICON_DELETE = (
     <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
   </svg>
 )
+const ICON_BACK = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="15 18 9 12 15 6"/>
+  </svg>
+)
 
 const TABS = [
-  { id: 'manage',      label: 'Gestione',  icon: ICON_MANAGE      },
+  { id: '__back__',    label: 'Gruppi',    icon: ICON_BACK        },
+  { id: 'manage',     label: 'Gestione',  icon: ICON_MANAGE      },
   { id: 'leaderboard', label: 'Classifica',icon: ICON_LEADERBOARD },
   { id: 'analysis',   label: 'Analisi',   icon: ICON_ANALYSIS    },
   { id: 'comparison', label: 'Confronto', icon: ICON_COMPARE     },
@@ -174,11 +180,14 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
   }, [group.id, onDelete, onBack])
 
   const handleContextSelect = useCallback((id) => {
-    if (id === '__rename__') setIsEditing(true)
+    if (id === '__back__')    onBack()
+    else if (id === '__rename__') setIsEditing(true)
     else if (id === '__pdf__')    setShowPrint(true)
     else if (id === '__delete__') setShowDelete(true)
     else setSubView(id)
-  }, [])
+  }, [onBack])
+
+  useRegisterContextMenu('Gruppo', TABS, subView, handleContextSelect)
 
   return (
     <div className="min-h-screen text-white flex flex-col">
@@ -371,7 +380,6 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
         </div> {/* fine rx-animate-in */}
       </div>
 
-      <ContextNav items={TABS} activeId={subView} onSelect={handleContextSelect} />
 
       {showPrint && (
         <GroupReportPrint

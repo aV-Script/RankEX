@@ -5,7 +5,7 @@ import { BiaGaugeBar }                    from './bia-view/BiaGaugeBar'
 import { BIA_PARAMS, BIA_EMPTY }          from '../../constants/bia'
 import { calcBmi }                        from '../../utils/bia'
 import { calcAge }                        from '../../utils/validation'
-import { ContextNav }                     from '../../components/layout/ContextNav'
+import { useRegisterContextMenu }         from '../../context/NavMenuContext'
 
 const ICON_BACK = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -84,6 +84,8 @@ export function BiaView({ client, color, onSave, onBack }) {
     if (id === '__back__') onBack()
     else if (id === '__save__') handleRequestSave()
   }, [onBack, handleRequestSave])
+
+  useRegisterContextMenu('BIA', BIA_CTX_ITEMS, null, handleBiaCtxNav)
 
   return (
     <div className="min-h-screen text-white">
@@ -240,13 +242,6 @@ export function BiaView({ client, color, onSave, onBack }) {
           </div>
         </div>
       </div>
-
-      <ContextNav
-        items={BIA_CTX_ITEMS}
-        activeId={null}
-        onSelect={handleBiaCtxNav}
-        color={color}
-      />
 
       {showConfirm && (
         <ConfirmDialog

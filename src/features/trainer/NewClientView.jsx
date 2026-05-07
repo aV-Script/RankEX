@@ -3,7 +3,7 @@ import { useTrainerState }        from '../../context/TrainerContext'
 import { getModule }              from '../../config/modules.config'
 import { getPlanLimits }          from '../../config/plans.config'
 import { ConfirmDialog }          from '../../components/common/ConfirmDialog'
-import { ContextNav }             from '../../components/layout/ContextNav'
+import { useRegisterContextMenu } from '../../context/NavMenuContext'
 
 const ICON_BACK = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -27,6 +27,8 @@ export function NewClientView({ orgId, onAdd, onBack, clients = [] }) {
   const planLimits                                  = getPlanLimits(orgPlan)
   const atClientLimit                               = clients.length >= planLimits.clients
   const { groups, handleAddGroup, handleToggleClient } = useGroups(orgId)
+
+  useRegisterContextMenu('Cliente', NEW_CLIENT_CTX, null, id => { if (id === '__back__') onBack() })
 
   const wizard = useWizard({
     orgId,
@@ -94,7 +96,6 @@ export function NewClientView({ orgId, onAdd, onBack, clients = [] }) {
         </>
       )}
 
-      <ContextNav items={NEW_CLIENT_CTX} activeId={null} onSelect={id => { if (id === '__back__') onBack() }} />
     </div>
   )
 }

@@ -12,7 +12,7 @@ import { NewClientView }                 from './NewClientView'
 import { Skeleton }                      from '../../components/common/Skeleton'
 import { EmptyState }                    from '../../components/ui'
 import { PAGINATION_PAGE_SIZE }          from '../../config/app.config'
-import { ContextNav }                    from '../../components/layout/ContextNav'
+import { useRegisterContextMenu }        from '../../context/NavMenuContext'
 
 const PAGE_SIZE = PAGINATION_PAGE_SIZE
 
@@ -48,6 +48,9 @@ export function ClientsPage({ orgId, clients = [], clientsLoading: loading = fal
   const { selectClient } = useTrainerNav()
   const filters          = useClientFilters(clients, groups, isSoccer)
   const [view, setView]  = useState('list')
+
+  const ctxItems = view === 'list' ? CLIENTS_CTX : []
+  useRegisterContextMenu('Clienti', ctxItems, null, id => { if (id === '__new__') setView('new') })
 
   const pagination = usePagination(filters.filteredClients, PAGE_SIZE)
 
@@ -157,11 +160,6 @@ export function ClientsPage({ orgId, clients = [], clientsLoading: loading = fal
         )}
       </main>
 
-      <ContextNav
-        items={CLIENTS_CTX}
-        activeId={null}
-        onSelect={id => { if (id === '__new__') setView('new') }}
-      />
     </div>
   )
 }

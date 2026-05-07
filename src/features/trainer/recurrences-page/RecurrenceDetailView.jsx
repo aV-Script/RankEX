@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { SectionLabel }                   from '../../../components/ui'
 import { ConfirmDialog }                  from '../../../components/common/ConfirmDialog'
-import { ContextNav }                     from '../../../components/layout/ContextNav'
+import { useRegisterContextMenu }         from '../../../context/NavMenuContext'
 
 const ICON_BACK = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -109,6 +109,8 @@ export function RecurrenceDetailView({
     if (id === '__back__') onBack()
     else if (id === '__cancel__') setShowCancel(true)
   }, [onBack])
+
+  useRegisterContextMenu('Ricorrenza', recCtxItems, null, handleRecCtxNav)
 
   const sectionStyle = {
     background:   'rgba(255,255,255,0.02)',
@@ -374,7 +376,6 @@ export function RecurrenceDetailView({
         </section>
       </div>
 
-      <ContextNav items={recCtxItems} activeId={null} onSelect={handleRecCtxNav} />
 
       {showCancel && (
         <ConfirmDialog

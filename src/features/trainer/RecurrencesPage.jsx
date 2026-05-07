@@ -1,12 +1,12 @@
-import { useState }              from 'react'
-import { useRecurrences }       from '../../features/calendar/useRecurrences'
-import { useClients }           from '../../hooks/useClients'
-import { RecurrenceDetailView } from './recurrences-page/RecurrenceDetailView'
-import { RecurrenceCard }       from './recurrences-page/RecurrenceCard'
-import { usePagination }        from '../../hooks/usePagination'
-import { Pagination }           from '../../components/common/Pagination'
-import { EmptyState }           from '../../components/ui'
-import { ContextNav }           from '../../components/layout/ContextNav'
+import { useState, useMemo, useCallback } from 'react'
+import { useRecurrences }                from '../../features/calendar/useRecurrences'
+import { useClients }                    from '../../hooks/useClients'
+import { RecurrenceDetailView }          from './recurrences-page/RecurrenceDetailView'
+import { RecurrenceCard }                from './recurrences-page/RecurrenceCard'
+import { usePagination }                 from '../../hooks/usePagination'
+import { Pagination }                    from '../../components/common/Pagination'
+import { EmptyState }                    from '../../components/ui'
+import { useRegisterContextMenu }        from '../../context/NavMenuContext'
 
 const ICON_ARCHIVE = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -15,6 +15,8 @@ const ICON_ARCHIVE = (
     <line x1="10" y1="12" x2="14" y2="12"/>
   </svg>
 )
+const ARCHIVE_CTX  = [{ id: '__archive__', label: 'Archivio', icon: ICON_ARCHIVE }]
+const EMPTY_ITEMS  = []
 
 export function RecurrencesPage({ orgId, initialRecurrenceId }) {
   const {
@@ -30,6 +32,10 @@ export function RecurrencesPage({ orgId, initialRecurrenceId }) {
 
   const active   = recurrences.filter(r => (r.status ?? 'active') === 'active')
   const archived = recurrences.filter(r => ['ended', 'cancelled'].includes(r.status ?? ''))
+
+  const archiveItems  = useMemo(() => archived.length > 0 ? ARCHIVE_CTX : EMPTY_ITEMS, [archived.length])
+  const handleArchive = useCallback(() => setShowArchive(v => !v), [])
+  useRegisterContextMenu('Ricorrenze', archiveItems, showArchive ? '__archive__' : null, handleArchive)
   const selected = recurrences.find(r => r.id === selectedId) ?? null
 
   const { paginatedItems: paginatedActive, ...activePagination } = usePagination(active, 10)
@@ -117,13 +123,6 @@ export function RecurrencesPage({ orgId, initialRecurrenceId }) {
         )}
       </div>
 
-      {archived.length > 0 && (
-        <ContextNav
-          items={[{ id: '__archive__', label: 'Archivio', icon: ICON_ARCHIVE }]}
-          activeId={showArchive ? '__archive__' : null}
-          onSelect={() => setShowArchive(v => !v)}
-        />
-      )}
     </div>
   )
 }

@@ -10,7 +10,7 @@ import { CloseSessionModal }               from './trainer-calendar/CloseSession
 import { AddSlotModal }                    from './trainer-calendar/AddSlotModal'
 import { RecurrenceModal }                 from './trainer-calendar/RecurrenceModal'
 import { useGroups }                       from '../../hooks/useGroups'
-import { ContextNav }                      from '../../components/layout/ContextNav'
+import { useRegisterContextMenu }          from '../../context/NavMenuContext'
 
 const ICON_CAL_MONTH = (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -122,6 +122,8 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
     else if (id === '__recurrence__') setRecurrenceModal(true)
   }, [setView, today])
 
+  useRegisterContextMenu('Calendario', CALENDAR_NAV_ITEMS, view, handleContextNav)
+
   const pastPlannedCount = slots.filter(s => s.status === 'planned' && s.date < today).length
 
   const viewProps = {
@@ -217,7 +219,6 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
         />
       )}
 
-      <ContextNav items={CALENDAR_NAV_ITEMS} activeId={view} onSelect={handleContextNav} />
     </div>
   )
 }
