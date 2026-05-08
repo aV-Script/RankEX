@@ -43,6 +43,10 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
+# Firebase Admin SDK — chiave privata service account
+service-account.json
+service-account*.json
+
 # File di analisi locali
 *.xlsx
 *.xls
