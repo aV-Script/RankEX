@@ -340,9 +340,13 @@ export const TABLES = {
   // Y-Balance Anterior Reach (cm, media 3 prove per gamba) — diretta
   // Fonte: protocollo FMS standardizzato per età evolutiva 10-13 anni
   // F = M (nessun dato normativo differenziato per questa fascia)
+  // Y-Balance Anterior Reach normalizzato (%LL) — score composito bilaterale
+  // Formula: ((ANT_dx/lunghezza_dx) + (ANT_sx/lunghezza_sx)) / 2 × 100
+  // Fonte: adattato da Gribble et al. 2012 + dati normativi pediatrici Y-Balance 10-13 anni
+  // F = M (nessun dato normativo differenziato per questa fascia)
   y_balance_anterior: {
-    M: { '10-13': { 0:4, 5:5, 10:6, 20:9, 30:11, 40:12, 50:14, 60:16, 70:17, 80:19, 90:21, 95:22, 100:26 } },
-    F: { '10-13': { 0:4, 5:5, 10:6, 20:9, 30:11, 40:12, 50:14, 60:16, 70:17, 80:19, 90:21, 95:22, 100:26 } },
+    M: { '10-13': { 0:40, 5:52, 10:56, 20:62, 30:66, 40:69, 50:72, 60:75, 70:78, 80:81, 90:85, 95:88, 100:100 } },
+    F: { '10-13': { 0:40, 5:52, 10:56, 20:62, 30:66, 40:69, 50:72, 60:75, 70:78, 80:81, 90:85, 95:88, 100:100 } },
   },
 
   // T-Test Standard 10m (secondi) — inversa
