@@ -206,14 +206,15 @@ export const TESTS = [
   // ── ACTIVE ──────────────────────────────────────────────────────────────────
 
   {
-    key:         'y_balance',
-    stat:        'stabilita',
-    label:       'STABILITÀ',
-    unit:        '%',
-    direction:   'direct',
-    ageGroup:   (age) => age < 10 ? null : age <= 11 ? '10-11' : age <= 13 ? '12-13' : age <= 15 ? '14-15' : age <= 17 ? '16-17' : age <= 40 ? '18-40' : '41-60',
-    test:        'Y Balance Test',
-    categories:  ['active', 'soccer'],
+    key:             'y_balance',
+    stat:            'stabilita',
+    label:           'STABILITÀ',
+    unit:            '%',
+    direction:       'direct',
+    ageGroup:        (age) => age < 10 ? null : age <= 11 ? '10-11' : age <= 13 ? '12-13' : age <= 15 ? '14-15' : age <= 17 ? '16-17' : age <= 40 ? '18-40' : '41-60',
+    asymmetryConfig: { keyA: 'ANT_dx', keyB: 'ANT_sx', threshold: 4 },
+    test:            'Y Balance Test',
+    categories:      ['active', 'soccer'],
     desc:        'Score composito bilaterale normalizzato sulla lunghezza arto.',
     variables: [
       { key: 'ANT_dx',       label: 'Anteriore DX',                          unit: 'cm' },
@@ -647,14 +648,15 @@ export const TESTS = [
   // ── SOCCER JUNIOR (10-13) ────────────────────────────────────────────────────
 
   {
-    key:         'y_balance_anterior',
-    stat:        'stabilita',
-    label:       'STABILITÀ',
-    unit:        '%',
-    direction:   'direct',
-    ageGroup:    () => '10-13',
-    test:        'Y-Balance Anterior Reach',
-    categories:  ['soccer_junior'],
+    key:             'y_balance_anterior',
+    stat:            'stabilita',
+    label:           'STABILITÀ',
+    unit:            '%',
+    direction:       'direct',
+    ageGroup:        () => '10-13',
+    asymmetryConfig: { keyA: 'ANT_dx', keyB: 'ANT_sx', threshold: 4 },
+    test:            'Y-Balance Anterior Reach',
+    categories:      ['soccer_junior'],
     desc:        'Score composito bilaterale normalizzato sulla lunghezza arto — solo direzione anteriore.',
     variables: [
       { key: 'ANT_dx',       label: 'Anteriore DX (gamba DX in appoggio)', unit: 'cm' },

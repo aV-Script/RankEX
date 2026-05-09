@@ -65,6 +65,20 @@ export function useCampionamento({ client, onSave, onBack }) {
     Object.fromEntries(Object.entries(liveResults).map(([k, r]) => [k, r.outOfRange]))
   , [liveResults])
 
+  // Flags asimmetria per test con asymmetryConfig (|keyA - keyB| > threshold)
+  const asymmetryAlerts = useMemo(() => {
+    const result = {}
+    config.forEach(test => {
+      if (!test.asymmetryConfig) return
+      const { keyA, keyB, threshold } = test.asymmetryConfig
+      const a = testValues[keyA]
+      const b = testValues[keyB]
+      if (a === '' || b === '' || a === undefined || b === undefined) return
+      result[test.stat] = Math.abs(Number(a) - Number(b)) > threshold
+    })
+    return result
+  }, [config, testValues])
+
   const statsForPreview = useMemo(() => {
     const result = {}
     config.forEach(t => {
@@ -128,6 +142,7 @@ export function useCampionamento({ client, onSave, onBack }) {
     showConfirm,
     liveStats,
     ageWarnings,
+    asymmetryAlerts,
     statsForPreview,
     newMedia,
     newRankObj,

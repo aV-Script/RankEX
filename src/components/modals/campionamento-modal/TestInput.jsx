@@ -4,7 +4,7 @@ import { Input } from '../../ui'
  * Card singolo test con input e percentile live.
  * Gestisce sia test semplici che test con variabili multiple.
  */
-export function TestInput({ test, testValues, livePercentile, prevValue, errors, ageWarning, onUpdate }) {
+export function TestInput({ test, testValues, livePercentile, prevValue, errors, ageWarning, asymmetryAlert, onUpdate }) {
   const delta = livePercentile !== null && prevValue !== undefined
     ? livePercentile - prevValue
     : null
@@ -114,6 +114,19 @@ export function TestInput({ test, testValues, livePercentile, prevValue, errors,
           <span style={{ color: '#fbbf24', fontSize: 11 }}>⚠</span>
           <span className="font-body text-[10px] leading-tight" style={{ color: '#fbbf24cc' }}>
             Età fuori fascia normativa — percentile stimato dalla fascia più vicina disponibile
+          </span>
+        </div>
+      )}
+
+      {/* Warning asimmetria DX/SX */}
+      {asymmetryAlert && (
+        <div
+          className="mt-2 flex items-center gap-1.5 rounded-[3px] px-2 py-1"
+          style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.25)' }}
+        >
+          <span style={{ color: '#f87171', fontSize: 11 }}>⚠</span>
+          <span className="font-body text-[10px] leading-tight" style={{ color: '#f87171cc' }}>
+            Asimmetria DX/SX &gt;4 cm — rischio infortuni rilevato
           </span>
         </div>
       )}

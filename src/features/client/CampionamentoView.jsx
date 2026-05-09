@@ -32,6 +32,7 @@ export function CampionamentoView({ client, color, onSave, onBack }) {
     showConfirm,
     liveStats,
     ageWarnings,
+    asymmetryAlerts,
     statsForPreview,
     newMedia,
     newRankObj,
@@ -77,6 +78,7 @@ export function CampionamentoView({ client, color, onSave, onBack }) {
                 prevValue={client.stats?.[test.stat]}
                 errors={errors}
                 ageWarning={ageWarnings[test.stat]}
+                asymmetryAlert={asymmetryAlerts[test.stat]}
                 onUpdate={updateValue}
               />
             ))}
