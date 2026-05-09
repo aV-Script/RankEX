@@ -5,6 +5,24 @@ import { BiaGaugeBar }                    from './bia-view/BiaGaugeBar'
 import { BIA_PARAMS, BIA_EMPTY }          from '../../constants/bia'
 import { calcBmi }                        from '../../utils/bia'
 import { calcAge }                        from '../../utils/validation'
+import { useRegisterContextMenu }         from '../../context/NavMenuContext'
+
+const ICON_BACK = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="15 18 9 12 15 6"/>
+  </svg>
+)
+const ICON_SAVE = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 11l3 3L22 4"/>
+    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+  </svg>
+)
+
+const BIA_CTX_ITEMS = [
+  { id: '__back__', label: 'Dashboard', icon: ICON_BACK },
+  { id: '__save__', label: 'Salva BIA', icon: ICON_SAVE },
+]
 
 /**
  * View inline per il campionamento BIA.
@@ -62,27 +80,21 @@ export function BiaView({ client, color, onSave, onBack }) {
 
   const prevBia = client.lastBia ?? null
 
+  const handleBiaCtxNav = useCallback((id) => {
+    if (id === '__back__') onBack()
+    else if (id === '__save__') handleRequestSave()
+  }, [onBack, handleRequestSave])
+
+  useRegisterContextMenu('BIA', BIA_CTX_ITEMS, null, handleBiaCtxNav)
+
   return (
     <div className="min-h-screen text-white">
 
       {/* Header */}
-      <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-white/[.05]">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 bg-transparent border-none text-white/30 font-body text-[13px] cursor-pointer hover:text-white/60 transition-colors p-0"
-        >
-          ‹ Dashboard
-        </button>
+      <div className="flex items-center justify-center px-4 sm:px-6 py-4 border-b border-white/[.05]">
         <span className="font-display font-black text-[16px] text-white">
           Nuova misurazione BIA
         </span>
-        <button
-          onClick={handleRequestSave}
-          className="font-display text-[11px] px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all hover:opacity-80"
-          style={{ color, borderColor: color + '55', background: color + '11' }}
-        >
-          SALVA BIA
-        </button>
       </div>
 
       {/* Contenuto */}

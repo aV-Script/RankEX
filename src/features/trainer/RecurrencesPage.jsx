@@ -1,11 +1,22 @@
-import { useState }              from 'react'
-import { useRecurrences }       from '../../features/calendar/useRecurrences'
-import { useClients }           from '../../hooks/useClients'
-import { RecurrenceDetailView } from './recurrences-page/RecurrenceDetailView'
-import { RecurrenceCard }       from './recurrences-page/RecurrenceCard'
-import { usePagination }        from '../../hooks/usePagination'
-import { Pagination }           from '../../components/common/Pagination'
-import { EmptyState }           from '../../components/ui'
+import { useState, useMemo, useCallback } from 'react'
+import { useRecurrences }                from '../../features/calendar/useRecurrences'
+import { useClients }                    from '../../hooks/useClients'
+import { RecurrenceDetailView }          from './recurrences-page/RecurrenceDetailView'
+import { RecurrenceCard }                from './recurrences-page/RecurrenceCard'
+import { usePagination }                 from '../../hooks/usePagination'
+import { Pagination }                    from '../../components/common/Pagination'
+import { EmptyState }                    from '../../components/ui'
+import { useRegisterContextMenu }        from '../../context/NavMenuContext'
+
+const ICON_ARCHIVE = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="21 8 21 21 3 21 3 8"/>
+    <rect x="1" y="3" width="22" height="5"/>
+    <line x1="10" y1="12" x2="14" y2="12"/>
+  </svg>
+)
+const ARCHIVE_CTX  = [{ id: '__archive__', label: 'Archivio', icon: ICON_ARCHIVE }]
+const EMPTY_ITEMS  = []
 
 export function RecurrencesPage({ orgId, initialRecurrenceId }) {
   const {
@@ -21,6 +32,10 @@ export function RecurrencesPage({ orgId, initialRecurrenceId }) {
 
   const active   = recurrences.filter(r => (r.status ?? 'active') === 'active')
   const archived = recurrences.filter(r => ['ended', 'cancelled'].includes(r.status ?? ''))
+
+  const archiveItems  = useMemo(() => archived.length > 0 ? ARCHIVE_CTX : EMPTY_ITEMS, [archived.length])
+  const handleArchive = useCallback(() => setShowArchive(v => !v), [])
+  useRegisterContextMenu('Ricorrenze', archiveItems, showArchive ? '__archive__' : null, handleArchive)
   const selected = recurrences.find(r => r.id === selectedId) ?? null
 
   const { paginatedItems: paginatedActive, ...activePagination } = usePagination(active, 10)
@@ -53,7 +68,7 @@ export function RecurrencesPage({ orgId, initialRecurrenceId }) {
       </div>
 
       {/* Lista attive */}
-      <div className="px-6 py-5">
+      <div className="px-6 pt-5 pb-20 lg:pb-5">
         {error ? (
           <div className="text-center py-16">
             <p className="font-body text-[12px]" style={{ color: 'rgba(248,113,113,0.6)' }}>
@@ -88,35 +103,26 @@ export function RecurrencesPage({ orgId, initialRecurrenceId }) {
           </div>
         )}
 
-        {/* Archivio collassabile */}
-        {archived.length > 0 && (
-          <div className="mt-8">
-            <button
-              onClick={() => setShowArchive(v => !v)}
-              className="flex items-center gap-2 font-display text-[10px] tracking-[2px] text-white/25 hover:text-white/45 transition-colors cursor-pointer bg-transparent border-none p-0"
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-                style={{ transform: showArchive ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }}>
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
+        {/* Archivio */}
+        {showArchive && archived.length > 0 && (
+          <div className="mt-8 rx-animate-in">
+            <p className="font-display text-[10px] tracking-[2px] text-white/25 mb-3">
               ARCHIVIO ({archived.length})
-            </button>
-
-            {showArchive && (
-              <div className="flex flex-col gap-3 mt-3 rx-animate-in">
-                {archived.map(rec => (
-                  <RecurrenceCard
-                    key={rec.id}
-                    recurrence={rec}
-                    clients={clients}
-                    onClick={() => setSelectedId(rec.id)}
-                  />
-                ))}
-              </div>
-            )}
+            </p>
+            <div className="flex flex-col gap-3">
+              {archived.map(rec => (
+                <RecurrenceCard
+                  key={rec.id}
+                  recurrence={rec}
+                  clients={clients}
+                  onClick={() => setSelectedId(rec.id)}
+                />
+              ))}
+            </div>
           </div>
         )}
       </div>
+
     </div>
   )
 }

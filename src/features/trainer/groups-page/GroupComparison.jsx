@@ -22,6 +22,11 @@ export function GroupComparison({ clients }) {
     [selected, clients]
   )
 
+  const unselectedClients = useMemo(
+    () => clients.filter(c => !selected.includes(c.id)),
+    [clients, selected]
+  )
+
   const statCols = useMemo(() => {
     const keys = new Set()
     selectedClients.forEach(c => Object.keys(c.stats ?? {}).forEach(k => keys.add(k)))
@@ -31,7 +36,7 @@ export function GroupComparison({ clients }) {
     }))
   }, [selectedClients])
 
-  const selectorPagination = usePagination(clients, SELECTOR_PAGE_SIZE)
+  const selectorPagination = usePagination(unselectedClients, SELECTOR_PAGE_SIZE)
 
   const handleToggle = (id) => {
     setSelected(prev => {
@@ -53,33 +58,62 @@ export function GroupComparison({ clients }) {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
 
       {/* Col 1: Selettore atleti */}
-      <div className="rounded-[4px] p-5 rx-card">
+      <div className="rounded-[4px] p-5 rx-card min-w-0">
         <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-1" style={{ color: '#0fd65a' }}>
           ◈ Confronto atleti
         </div>
         <div className="font-display text-[10px] text-white/25 tracking-[1px] mb-4">
-          MAX {MAX_SELECTED} · {selected.length} selezionati
+          {selected.length}/{MAX_SELECTED} selezionati
         </div>
-        <div className="flex flex-col gap-2">
-          {selectorPagination.paginatedItems.map(c => {
-            const selIdx  = selected.indexOf(c.id)
-            const disabled = selIdx === -1 && selected.length >= MAX_SELECTED
-            return (
-              <ComparisonAthleteRow
-                key={c.id}
-                client={c}
-                selIdx={selIdx}
-                disabled={disabled}
-                onToggle={() => handleToggle(c.id)}
-              />
-            )
-          })}
-        </div>
-        <Pagination {...selectorPagination} />
+
+        {/* Selezionati — sempre visibili */}
+        {selectedClients.length > 0 && (
+          <div className={selected.length < MAX_SELECTED ? 'mb-4' : ''}>
+            <div className="font-display text-[9px] tracking-[1.5px] text-white/20 mb-2 uppercase">
+              Selezionati
+            </div>
+            <div className="flex flex-col gap-2">
+              {selectedClients.map((c, i) => (
+                <ComparisonAthleteRow
+                  key={c.id}
+                  client={c}
+                  selIdx={i}
+                  disabled={false}
+                  onToggle={() => handleToggle(c.id)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Non selezionati — paginati, solo se c'è ancora spazio */}
+        {selected.length < MAX_SELECTED && (
+          <div>
+            {selectedClients.length > 0 && unselectedClients.length > 0 && (
+              <div className="font-display text-[9px] tracking-[1.5px] text-white/20 mb-2 uppercase">
+                Aggiungi
+              </div>
+            )}
+            <div className="flex flex-col gap-2">
+              {selectorPagination.paginatedItems.map(c => (
+                <ComparisonAthleteRow
+                  key={c.id}
+                  client={c}
+                  selIdx={-1}
+                  disabled={false}
+                  onToggle={() => handleToggle(c.id)}
+                />
+              ))}
+            </div>
+            {unselectedClients.length > SELECTOR_PAGE_SIZE && (
+              <Pagination {...selectorPagination} />
+            )}
+          </div>
+        )}
       </div>
 
       {/* Col 2: Radar (centro) */}
-      <div className="rounded-[4px] p-5 rx-card flex flex-col items-center gap-4">
+      <div className="rounded-[4px] p-5 rx-card flex flex-col items-center gap-4 min-w-0">
         <div className="w-full font-display text-[11px] font-semibold tracking-[2px] uppercase" style={{ color: '#0fd65a' }}>◈ Radar</div>
         {selectedClients.length > 0 && statCols.length > 0 ? (
           <div style={{ width: '100%', aspectRatio: '1 / 1' }}>
@@ -102,15 +136,15 @@ export function GroupComparison({ clients }) {
       </div>
 
       {/* Col 3: Tabella valori */}
-      <div className="rounded-[4px] p-5 rx-card">
+      <div className="rounded-[4px] p-5 rx-card min-w-0">
         <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-4" style={{ color: '#0fd65a' }}>◈ Valori</div>
         {selectedClients.length > 0 && statCols.length > 0 ? (
           <>
             <div className="flex gap-3 flex-wrap mb-4">
               {selectedClients.map((c, i) => (
-                <div key={c.id} className="flex items-center gap-1.5">
+                <div key={c.id} className="flex items-center gap-1.5 min-w-0">
                   <span className="w-2 h-2 rounded-full shrink-0" style={{ background: COMPARISON_COLORS[i] }} />
-                  <span className="font-display font-bold text-[12px]" style={{ color: COMPARISON_COLORS[i] }}>{c.name}</span>
+                  <span className="font-display font-bold text-[12px] truncate" style={{ color: COMPARISON_COLORS[i] }}>{c.name}</span>
                 </div>
               ))}
             </div>
@@ -153,7 +187,6 @@ const PentagonMulti = memo(function PentagonMulti({ clients, statKeys, statLabel
 
   return (
     <svg width="100%" height="100%" viewBox={`${-vbPad} ${-vbPad} ${vbSize} ${vbSize}`} style={{ display: 'block' }}>
-      {/* Grid rings */}
       {[0.25, 0.5, 0.75, 1].map(f => (
         <polygon key={f}
           points={outerPoints.map(p =>
@@ -162,11 +195,9 @@ const PentagonMulti = memo(function PentagonMulti({ clients, statKeys, statLabel
           fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1"
         />
       ))}
-      {/* Spokes */}
       {outerPoints.map((p, i) => (
         <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
       ))}
-      {/* Stat areas — first client on top */}
       {[...clients].reverse().map((client, revIdx) => {
         const i     = clients.length - 1 - revIdx
         const color = colors[i]
@@ -181,7 +212,6 @@ const PentagonMulti = memo(function PentagonMulti({ clients, statKeys, statLabel
           </g>
         )
       })}
-      {/* Labels */}
       {statLabels.map((label, i) => {
         const lx = cx + (R + 28) * Math.cos(angles[i])
         const ly = cy + (R + 28) * Math.sin(angles[i])
@@ -204,27 +234,27 @@ function ComparisonAthleteRow({ client, selIdx, disabled, onToggle }) {
 
   return (
     <div
-      className="flex items-center justify-between px-4 py-3 rounded-[3px] transition-all"
+      className="flex items-center justify-between px-3 py-2.5 rounded-[3px] transition-all"
       style={isSelected
         ? { background: `${color}0d`, border: `1px solid ${color}33` }
         : { background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }
       }
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5 min-w-0">
         <div
           className="w-2 h-2 rounded-full shrink-0"
           style={{ background: isSelected ? color : 'transparent', border: isSelected ? 'none' : '1px solid rgba(255,255,255,0.1)' }}
         />
         <div
-          className="w-8 h-8 rounded-[3px] flex items-center justify-center shrink-0"
+          className="w-7 h-7 rounded-[3px] flex items-center justify-center shrink-0"
           style={{ background: isSelected ? `${color}18` : 'rgba(255,255,255,0.05)' }}
         >
           <span className="font-display text-[11px] font-bold" style={{ color: isSelected ? color : 'rgba(255,255,255,0.35)' }}>
             {client.name?.[0]?.toUpperCase()}
           </span>
         </div>
-        <div>
-          <div className="font-display font-bold text-[13px] text-white/80">{client.name}</div>
+        <div className="min-w-0">
+          <div className="font-display font-bold text-[12px] text-white/80 truncate">{client.name}</div>
           {client.rank && (
             <div className="font-display text-[10px] text-white/30 mt-0.5">
               {client.rank} · Lv.{client.level}
@@ -235,13 +265,13 @@ function ComparisonAthleteRow({ client, selIdx, disabled, onToggle }) {
       <button
         onClick={onToggle}
         disabled={disabled}
-        className="font-display text-[10px] px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+        className="font-display text-[10px] px-2.5 py-1.5 rounded-[3px] cursor-pointer border transition-all disabled:opacity-30 disabled:cursor-not-allowed shrink-0 ml-2"
         style={isSelected
           ? { color: '#f87171', borderColor: 'rgba(248,113,113,0.2)', background: 'transparent' }
           : { color: '#0fd65a', borderColor: 'rgba(15,214,90,0.2)',   background: 'rgba(15,214,90,0.06)' }
         }
       >
-        {isSelected ? 'RIMUOVI' : 'AGGIUNGI'}
+        {isSelected ? '−' : '+'}
       </button>
     </div>
   )
@@ -251,15 +281,15 @@ function ComparisonAthleteRow({ client, selIdx, disabled, onToggle }) {
 
 function ComparisonTable({ clients, statCols }) {
   return (
-    <table style={{ borderCollapse: 'separate', borderSpacing: 0, width: '100%' }}>
+    <table style={{ borderCollapse: 'separate', borderSpacing: 0, width: '100%', tableLayout: 'fixed' }}>
       <thead>
         <tr>
-          <th className="text-left pb-3" style={{ minWidth: 90 }}>
+          <th className="text-left pb-3" style={{ width: '44%' }}>
             <span className="font-display text-[10px] font-semibold tracking-[1px] text-white/25">STAT</span>
           </th>
           {clients.map((c, i) => (
-            <th key={c.id} className="pb-3 px-2 text-right" style={{ minWidth: 60 }}>
-              <span className="font-display text-[10px] font-semibold tracking-[1px]" style={{ color: COMPARISON_COLORS[i] }}>
+            <th key={c.id} className="pb-3 px-1 text-right">
+              <span className="font-display text-[10px] font-semibold tracking-[1px] block truncate" style={{ color: COMPARISON_COLORS[i] }}>
                 {c.name.split(' ')[0].toUpperCase()}
               </span>
             </th>
@@ -269,14 +299,14 @@ function ComparisonTable({ clients, statCols }) {
       <tbody>
         {statCols.map(col => (
           <tr key={col.key}>
-            <td className="py-1.5 pr-2 border-t border-white/[.04]">
-              <span className="font-display text-[10px] text-white/35">{col.label}</span>
+            <td className="py-1.5 pr-2 border-t border-white/[.04]" style={{ overflow: 'hidden' }}>
+              <span className="font-display text-[10px] text-white/35 block truncate">{col.label}</span>
             </td>
             {clients.map((c, i) => {
               const val   = c.stats?.[col.key]
               const isMax = val != null && clients.every(o => o.id === c.id || (o.stats?.[col.key] ?? -1) <= val)
               return (
-                <td key={c.id} className="py-1.5 px-2 text-right border-t border-white/[.04]">
+                <td key={c.id} className="py-1.5 px-1 text-right border-t border-white/[.04]">
                   <span
                     className="font-display font-black text-[13px]"
                     style={{ color: val != null ? (isMax ? COMPARISON_COLORS[i] : 'rgba(255,255,255,0.4)') : 'rgba(255,255,255,0.15)' }}

@@ -3,6 +3,14 @@ import { useTrainerState }        from '../../context/TrainerContext'
 import { getModule }              from '../../config/modules.config'
 import { getPlanLimits }          from '../../config/plans.config'
 import { ConfirmDialog }          from '../../components/common/ConfirmDialog'
+import { useRegisterContextMenu } from '../../context/NavMenuContext'
+
+const ICON_BACK = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="15 18 9 12 15 6"/>
+  </svg>
+)
+const NEW_CLIENT_CTX = [{ id: '__back__', label: 'Clienti', icon: ICON_BACK }]
 import { useWizard }              from '../../components/modals/new-client-wizard/useWizard'
 import { WizardProgress }         from '../../components/modals/new-client-wizard/WizardProgress'
 import { WizardNav }              from '../../components/modals/new-client-wizard/WizardNav'
@@ -19,6 +27,8 @@ export function NewClientView({ orgId, onAdd, onBack, clients = [] }) {
   const planLimits                                  = getPlanLimits(orgPlan)
   const atClientLimit                               = clients.length >= planLimits.clients
   const { groups, handleAddGroup, handleToggleClient } = useGroups(orgId)
+
+  useRegisterContextMenu('Cliente', NEW_CLIENT_CTX, null, id => { if (id === '__back__') onBack() })
 
   const wizard = useWizard({
     orgId,
@@ -37,17 +47,10 @@ export function NewClientView({ orgId, onAdd, onBack, clients = [] }) {
   return (
     <div className="min-h-screen text-white">
 
-      <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-white/[.05]">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 bg-transparent border-none text-white/30 font-body text-[13px] cursor-pointer hover:text-white/60 transition-colors p-0"
-        >
-          ‹ Clienti
-        </button>
+      <div className="flex items-center justify-center px-4 sm:px-6 py-4 border-b border-white/[.05]">
         <span className="font-display font-black text-[16px] text-white">
           Nuovo cliente
         </span>
-        <div className="w-20" />
       </div>
 
       {atClientLimit ? (
@@ -55,7 +58,6 @@ export function NewClientView({ orgId, onAdd, onBack, clients = [] }) {
           current={clients.length}
           limit={planLimits.clients}
           plan={orgPlan}
-          onBack={onBack}
         />
       ) : null}
 
@@ -93,11 +95,12 @@ export function NewClientView({ orgId, onAdd, onBack, clients = [] }) {
           )}
         </>
       )}
+
     </div>
   )
 }
 
-function PlanLimitScreen({ current, limit, plan, onBack }) {
+function PlanLimitScreen({ current, limit, plan }) {
   return (
     <div className="max-w-md mx-auto px-6 py-16 flex flex-col items-center gap-4 text-center">
       <div
@@ -118,13 +121,6 @@ function PlanLimitScreen({ current, limit, plan, onBack }) {
       <p className="font-body text-[12px] text-white/25">
         Contatta il tuo amministratore per aggiornare il piano.
       </p>
-      <button
-        onClick={onBack}
-        className="mt-4 px-6 py-2.5 font-display text-[12px] cursor-pointer rounded-[3px] border"
-        style={{ color: 'rgba(255,255,255,0.4)', borderColor: 'rgba(255,255,255,0.1)', background: 'transparent' }}
-      >
-        ‹ TORNA INDIETRO
-      </button>
     </div>
   )
 }

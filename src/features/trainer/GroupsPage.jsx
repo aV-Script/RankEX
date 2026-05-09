@@ -5,31 +5,43 @@ import { usePagination }                  from '../../hooks/usePagination'
 import { Pagination }                     from '../../components/common/Pagination'
 import { GroupCard }                      from './groups-page/GroupCard'
 import { GroupDetailView }                from './groups-page/GroupDetailView'
-import { GroupsSidebar }                  from './groups-page/GroupsSidebar'
 import { Skeleton }                       from '../../components/common/Skeleton'
 import { EmptyState }                     from '../../components/ui'
 import { PAGINATION_PAGE_SIZE }           from '../../config/app.config'
+import { useRegisterContextMenu }         from '../../context/NavMenuContext'
 
 const GROUPS_PAGE_SIZE = PAGINATION_PAGE_SIZE
+
+const ICON_NEW_GROUP = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="7" height="7"/>
+    <rect x="14" y="3" width="7" height="7"/>
+    <rect x="14" y="14" width="7" height="7"/>
+    <rect x="3" y="14" width="7" height="7"/>
+  </svg>
+)
+
+const GROUPS_CTX = [{ id: '__new__', label: 'Nuovo', icon: ICON_NEW_GROUP }]
 
 export function GroupsPage({ orgId }) {
   const { groups, isLoading, handleAddGroup, handleRenameGroup, handleToggleClient, handleDeleteGroup } = useGroups(orgId)
   const { clients } = useClients(orgId)
 
-  const [view,         setView]         = useState('list') // 'list' | 'detail'
+  const [view,          setView]          = useState('list')
   const [selectedGroup, setSelectedGroup] = useState(null)
-  const [groupSearch,  setGroupSearch]  = useState('')
-  const [showNew,      setShowNew]      = useState(false)
-  const [newGroupName, setNewGroupName] = useState('')
+  const [groupSearch,   setGroupSearch]   = useState('')
+  const [showNew,       setShowNew]       = useState(false)
+  const [newGroupName,  setNewGroupName]  = useState('')
 
-  // ── Filtro e paginazione gruppi ───────────────────────────────────────────
+  const ctxItems = view === 'list' ? GROUPS_CTX : []
+  useRegisterContextMenu('Gruppi', ctxItems, null, id => { if (id === '__new__') setShowNew(true) })
+
   const filteredGroups = useMemo(() =>
     groups.filter(g => g.name.toLowerCase().includes(groupSearch.toLowerCase()))
   , [groups, groupSearch])
 
   const pagination = usePagination(filteredGroups, GROUPS_PAGE_SIZE)
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
   const handleCreate = useCallback(async () => {
     if (!newGroupName.trim()) return
     await handleAddGroup(newGroupName.trim())
@@ -47,12 +59,10 @@ export function GroupsPage({ orgId }) {
     setSelectedGroup(null)
   }, [])
 
-  // Aggiorna selectedGroup quando i gruppi cambiano
   const currentGroup = useMemo(() =>
     selectedGroup ? groups.find(g => g.id === selectedGroup.id) ?? selectedGroup : null
   , [groups, selectedGroup])
 
-  // ── Vista dettaglio ───────────────────────────────────────────────────────
   if (view === 'detail' && currentGroup) {
     return (
       <GroupDetailView
@@ -67,97 +77,78 @@ export function GroupsPage({ orgId }) {
     )
   }
 
-  // ── Vista lista ───────────────────────────────────────────────────────────
   return (
-    <div className="flex min-h-screen">
+    <div className="min-h-screen">
 
-      <GroupsSidebar
-        groupSearch={groupSearch}
-        onGroupSearchChange={setGroupSearch}
-        onNewGroup={() => setShowNew(true)}
-        totalGroups={groups.length}
-      />
-
-      <main className="flex-1 px-4 sm:px-6 py-6 min-w-0">
-
-        {/* Header */}
-        <div className="hidden lg:flex items-center justify-between mb-5">
-          <div>
-            <h1 className="font-display font-black text-[24px] text-white m-0">
-              I tuoi gruppi
-            </h1>
-            <p className="font-body text-white/30 text-[13px] m-0 mt-0.5">
-              {isLoading
-                ? '\u00a0'
-                : `${filteredGroups.length} ${filteredGroups.length === 1 ? 'gruppo' : 'gruppi'}`
-              }
-            </p>
-          </div>
+      {/* ── Intestazione + ricerca ────────────────────────────────────────────── */}
+      <div className="px-4 sm:px-6 pt-5 pb-3 flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <h1 className="font-display font-black text-[22px] sm:text-[24px] text-white m-0">
+            I tuoi gruppi
+          </h1>
+          {!isLoading && (
+            <span className="font-display text-[11px] text-white/30">
+              {filteredGroups.length}{' '}
+              {filteredGroups.length === 1 ? 'gruppo' : 'gruppi'}
+            </span>
+          )}
         </div>
 
-        {/* Mobile — ricerca + nuovo */}
-        <div className="lg:hidden mb-5">
-          <div className="flex items-center justify-between mb-3">
-            <h1 className="font-display font-black text-[22px] text-white m-0">Gruppi</h1>
-            <button
-              onClick={() => setShowNew(true)}
-              className="px-4 py-2 text-[11px] rounded-[3px] font-display tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
-              style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', color: '#080c12' }}
-            >
-              NUOVO
-            </button>
-          </div>
+        <input
+          value={groupSearch}
+          onChange={e => setGroupSearch(e.target.value)}
+          placeholder="Cerca gruppo..."
+          className="input-base w-full"
+        />
+      </div>
+
+      {/* ── Form nuovo gruppo ─────────────────────────────────────────────────── */}
+      {showNew && (
+        <div
+          className="mx-4 sm:mx-6 mb-3 rounded-[4px] p-4 flex gap-3"
+          style={{ background: 'rgba(15,214,90,0.06)', border: '1px solid rgba(15,214,90,0.15)' }}
+        >
           <input
-            value={groupSearch}
-            onChange={e => setGroupSearch(e.target.value)}
-            placeholder="Cerca gruppo..."
-            className="input-base w-full"
+            autoFocus
+            value={newGroupName}
+            onChange={e => setNewGroupName(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter')  handleCreate()
+              if (e.key === 'Escape') { setShowNew(false); setNewGroupName('') }
+            }}
+            placeholder="Nome gruppo..."
+            className="input-base flex-1"
           />
-        </div>
-
-        {/* Form nuovo gruppo */}
-        {showNew && (
-          <div
-            className="rounded-[4px] p-4 mb-5 flex gap-3"
-            style={{ background: 'rgba(15,214,90,0.06)', border: '1px solid rgba(15,214,90,0.15)' }}
+          <button
+            onClick={handleCreate}
+            className="font-display text-[11px] px-4 py-2 rounded-[3px] cursor-pointer border-0 transition-opacity hover:opacity-85"
+            style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', color: '#080c12' }}
           >
-            <input
-              autoFocus
-              value={newGroupName}
-              onChange={e => setNewGroupName(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter')  handleCreate()
-                if (e.key === 'Escape') { setShowNew(false); setNewGroupName('') }
-              }}
-              placeholder="Nome gruppo..."
-              className="input-base flex-1"
-            />
-            <button
-              onClick={handleCreate}
-              className="font-display text-[11px] px-4 py-2 rounded-[3px] cursor-pointer border-0 transition-opacity hover:opacity-85"
-              style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', color: '#080c12' }}
-            >
-              CREA
-            </button>
-            <button
-              onClick={() => { setShowNew(false); setNewGroupName('') }}
-              className="font-display text-[11px] px-4 py-2 rounded-[3px] cursor-pointer border border-white/10 bg-transparent text-white/40 hover:text-white/70 transition-all"
-            >
-              ANNULLA
-            </button>
-          </div>
-        )}
+            CREA
+          </button>
+          <button
+            onClick={() => { setShowNew(false); setNewGroupName('') }}
+            className="font-display text-[11px] px-4 py-2 rounded-[3px] cursor-pointer border border-white/10 bg-transparent text-white/40 hover:text-white/70 transition-all"
+          >
+            ANNULLA
+          </button>
+        </div>
+      )}
 
-        {/* Lista gruppi */}
+      {/* ── Lista gruppi ──────────────────────────────────────────────────────── */}
+      <main className="px-4 sm:px-6 pb-24">
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             <Skeleton variant="card" count={6} />
           </div>
         ) : filteredGroups.length === 0 ? (
           <EmptyState
-            icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>}
+            icon={ICON_NEW_GROUP}
             title={groups.length === 0 ? 'Nessun gruppo' : 'Nessun risultato'}
-            description={groups.length === 0 ? 'Crea il primo gruppo per organizzare i clienti.' : 'Prova a cambiare il termine di ricerca.'}
+            description={groups.length === 0
+              ? 'Crea il primo gruppo per organizzare i clienti.'
+              : 'Prova a cambiare il termine di ricerca.'
+            }
           />
         ) : (
           <div className="rx-animate-in">
@@ -175,6 +166,7 @@ export function GroupsPage({ orgId }) {
           </div>
         )}
       </main>
+
     </div>
   )
 }
