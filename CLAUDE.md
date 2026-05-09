@@ -779,41 +779,67 @@ athlete (5):  drop_jump_rsi, t_test_agility, yo_yo_ir1,
 `dinamometro_hand_grip` e `ymca_step_test` condivisi
 tra health e active → `categories: ['health', 'active']`
 
-### soccer_academy — fissi per tutte le fasce
+### soccer_academy — test per fascia (3 fasce implementate)
 ```
-y_balance, standing_long_jump, 505_cod_agility,
-sprint_20m, beep_test
+Pulcini (7-9):      single_leg_stance, sprint_10m, shuttle_run_30m, standing_long_jump, t_test_mini
+Esordienti (10-13): y_balance_anterior, sprint_20m, t_test_soccer_junior, standing_long_jump, six_minute_run
+Senior (14+):       y_balance, standing_long_jump, 505_cod_agility, sprint_20m, beep_test
 ```
-Entrambe le fasce (Senior e Piccoli) usano gli stessi test per ora.
-Ogni test ha `categories: ['soccer', 'soccer_youth']`
-(o `['active', 'soccer', 'soccer_youth']` per test condivisi con PT).
-Quando verranno definiti test differenziati per Piccoli, basta aggiungere
-nuovi test con `categories: ['soccer_youth']` in `constants/tests.js`.
+Il campo `categories` in `constants/tests.js` specifica a quali fasce appartiene ogni test:
+- test esclusivi Pulcini    → `categories: ['soccer_youth']`
+- test esclusivi Esordienti → `categories: ['soccer_junior']`
+- test esclusivi Senior     → `categories: ['soccer']`
+- `standing_long_jump` condiviso tra tutte e 3 → `categories: ['soccer_youth', 'soccer_junior', 'soccer']`
+- test condivisi con PT     → aggiungere anche `'active'` / `'athlete'` ecc.
 
-### Tabelle percentili — fasce giovani soccer (aggiornato apr 2026)
+### Tabelle percentili soccer — stato e fonti (aggiornato mag 2026)
 
-Tabelle normative giovanili aggiunte in `utils/tables.js` basate su
-dati pubblicati in letteratura. Dove i dati femminili non esistono, si
-usano i valori maschili. Età 3-5: nessun dato disponibile → `getAgeGroupClamped`
-clampla alla fascia minima disponibile → `outOfRange: true` → il campionamento
-viene salvato con il percentile stimato e l'operatore vede il banner ambra di avviso.
+#### Test Senior (14+) e condivisi — da fonte normativa, candidati rollback
+Tabelle aggiunte in `utils/tables.js`. I valori attuali differiscono dall'Excel di
+riferimento (`rankex-tabelle-percentili.xlsx`) — il branch `calibrazione-percentili-soccer`
+contiene le correzioni, in attesa di approvazione.
 
-| Test               | Min età | Fasce aggiunte                  | Fonte dati                                        | F = M? |
-|--------------------|---------|----------------------------------|---------------------------------------------------|--------|
-| `y_balance`        | 10      | 10-11, 12-13, 14-15, 16-17      | Zwicker et al. 2020 (LQ Composite Score)          | Sì     |
-| `standing_long_jump`| 9      | 9-10, 11-12, 13-14, 15-16, 17-18 + adulti 18-29…70-79 | Thomas et al. 2020 youth M+F; Cartwright 2025 adulti M; F adulti: stime | No — F reali youth, F adulti stime |
-| `sprint_20m`       | 8       | 8-9, 10-11, 12-13, 14-15, 16-17| Nikolaidis et al. 2016 (soccer U10-U35)           | Sì     |
-| `505_cod_agility`  | 10      | 10-11, 12-13, 14-15, 16-17      | Haff & Triplett 2015 + soccer U11-U17             | Sì     |
-| `beep_test`        | 8       | 8-9, 10-11, 12-13, 14-15, 16-17| LeBlanc & Tomkinson 2016 (livelli, M e F separati)| No — dati F reali |
+| Test               | Min età | Fasce                           | Fonte dati                                         | Stato in tables.js     |
+|--------------------|---------|----------------------------------|----------------------------------------------------|------------------------|
+| `y_balance`        | 10      | 10-11, 12-13, 14-15, 16-17, adulti | Zwicker et al. 2020                             | ⚠ da rollback (fasce giovani) |
+| `standing_long_jump`| 9      | 7-9 stima + 10-11 → 36-50       | Thomas et al. 2020 youth; adulti: stime            | ⚠ da rollback (10-11+) |
+| `sprint_20m`       | 8       | 8-9 → 36-50                     | Nikolaidis et al. 2016                             | ⚠ da rollback          |
+| `505_cod_agility`  | 10      | 10-11 → 36-50                   | Haff & Triplett 2015                               | ⚠ da rollback          |
+| `beep_test`        | 8       | 8-9 → 36-50                     | LeBlanc & Tomkinson 2016                           | ✓ identico all'Excel   |
+
+#### Test Pulcini (7-9) e Esordienti (10-13) — stime interne
+Nessuna norma pubblicata disponibile per queste fasce/test.
+I valori sono stime interne calibrate sui dati VDP5 — NON sono norme validate.
+Il banner ambra di avviso (`outOfRange: true`) appare automaticamente in campionamento.
+
+| Test                  | Fascia   | Note                                          |
+|-----------------------|----------|-----------------------------------------------|
+| `single_leg_stance`   | 7-9      | nessuna fonte normativa per questa età        |
+| `sprint_10m`          | 7-9      | stima interna                                 |
+| `shuttle_run_30m`     | 7-9      | calibrata su dati VDP5                        |
+| `t_test_mini`         | 7-9      | nessuna fonte normativa per questa età        |
+| `y_balance_anterior`  | 10-13    | adattamento Gribble 2012 non validato         |
+| `t_test_soccer_junior`| 10-13    | calibrata su dati VDP5                        |
+| `six_minute_run`      | 10-13    | Cooper generico non specifico per soccer      |
 
 **Regola ageGroup per test soccer:**
 ```js
 y_balance:          age < 10 → null | 10-11 | 12-13 | 14-15 | 16-17 | 18-40 | 41-60
-standing_long_jump: age < 9  → null | 9-10 | 11-12 | 13-14 | 15-16 | 17-18 | 18-29 | 30-39 | 40-49 | 50-59 | 60-69 | 70-79
+standing_long_jump: age < 7  → null | 7-9 (stima) | 10-11 | 12-13 | 14-15 | 16-17 | 18-35 | 36-50
 sprint_20m:         age < 8  → null | 8-9 | 10-11 | 12-13 | 14-15 | 16-17 | 18-35 | 36-50
 505_cod_agility:    age < 10 → null | 10-11 | 12-13 | 14-15 | 16-17 | 18-35 | 36-50
 beep_test:          age < 8  → null | 8-9 | 10-11 | 12-13 | 14-15 | 16-17 | 18-35 | 36-50
+single_leg_stance:  age < 7  → null | 7-9
+sprint_10m:         age < 7  → null | 7-9 (stima) | 18-35 | 36-50 (adulti)
+shuttle_run_30m:    age < 7  → null | 7-9
+t_test_mini:        age < 7  → null | 7-9
+y_balance_anterior: age < 10 → null | 10-13
+t_test_soccer_junior:age < 10→ null | 10-13
+six_minute_run:     age < 10 → null | 10-13
 ```
+
+**Documento di riferimento:** `rankex-tabelle-percentili-v2.xlsx` (non tracciato in git, desktop locale)
+Codice colore: 🟢 verde = verificato · 🔴 rosso = da rollback · 🟡 ambra = stima interna
 
 ### Y Balance Test — formula bilaterale
 Il test raccoglie i valori di **entrambi gli arti** (DX e SX) separatamente:
@@ -1005,7 +1031,11 @@ getWorkoutPlanForClient → firebase/services/workoutPlans (client: scheda attiv
 ### Nuovo test atletico
 1. Aggiungi in `constants/tests.js` con tutti i campi
 2. Aggiungi tabella percentili in `utils/tables.js`
-3. Se soccer → `categories: ['soccer', 'soccer_youth']` (entrambe le fasce)
+3. Se soccer: imposta `categories` in base alla fascia specifica:
+   - solo Pulcini    → `['soccer_youth']`
+   - solo Esordienti → `['soccer_junior']`
+   - solo Senior     → `['soccer']`
+   - più fasce       → es. `['soccer_junior', 'soccer']`
 4. Nessun altro file da modificare
 
 ### Nuova pagina trainer
@@ -1078,7 +1108,7 @@ className={`... ${t.mobileOnly ? 'lg:hidden' : ''}`}
   - `useMisure(orgId, clientId)` → `{ misure, handleUpdateMisure }` — salva su `clients/{clientId}.misure[]`
 - **XPTrendChart**: `XPTrendChart.jsx` — grafico XP accumulato per Giorno/Settimana/Mese
   - Legge `client.log[]` (ogni entry ha `ts: Date.now()` da `gamification.js`)
-  - `scripts/migrate-logTimestamps.mjs` — script one-shot per backfill `ts` sui log esistenti pre-apr 2026
+  - Il backfill `ts` sui log pre-apr 2026 è già stato eseguito in produzione
 
 ### Export PDF atleta
 - Componente: `ClientReportPrint.jsx` in `client-dashboard/`
@@ -1252,7 +1282,7 @@ conflitto con `setPersistence` in `auth.js`.
 
 ### Branching e CI/CD
 ```
-dev   → sviluppo quotidiano, push liberi → CI (lint + test + build)
+dev   → sviluppo quotidiano, push liberi → CI (lint + build)
 main  → produzione, solo merge da dev   → CI + Deploy automatico Firebase
 ```
 Workflow GitHub Actions:
