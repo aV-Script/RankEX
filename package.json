@@ -23,7 +23,8 @@
     "migrate:dataNascita:prod": "node scripts/migrate-dataNascita.mjs --prod",
     "migrate:logTimestamps": "node scripts/migrate-logTimestamps.mjs",
     "migrate:logTimestamps:prod": "node scripts/migrate-logTimestamps.mjs --prod",
-    "import:vdp5:05-05-26": "node scripts/import-vdp5-05-05-26.mjs"
+    "import:vdp5:05-05-26": "node scripts/import-vdp5-05-05-26.mjs",
+    "migrate:potenza": "node scripts/migrate-potenza-to-esplosivita.mjs"
   },
   "dependencies": {
     "firebase": "^10.12.0",

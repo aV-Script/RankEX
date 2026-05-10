@@ -154,7 +154,7 @@ const STAT_MAP = {
   sprint_10m:           'velocita',
   shuttle_run_30m:      'resistenza',
   t_test_mini:          'agilita',
-  standing_long_jump:   'potenza',
+  standing_long_jump:   'esplosivita',
   y_balance_anterior:   'stabilita',
   t_test_soccer_junior: 'agilita',
   six_minute_run:       'resistenza',
