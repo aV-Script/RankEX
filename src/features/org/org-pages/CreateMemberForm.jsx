@@ -118,7 +118,7 @@ export function CreateMemberForm({ orgId, onClose, onCreated }) {
             type="submit"
             disabled={saving}
             className="flex-1 py-2.5 font-display text-[12px] font-bold cursor-pointer border-0 disabled:opacity-40"
-            style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', borderRadius: '3px', color: '#080c12' }}
+            style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', borderRadius: '3px', color: '#0fd65a' }}
           >
             {saving ? 'CREAZIONE...' : 'CREA'}
           </button>

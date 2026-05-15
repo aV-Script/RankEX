@@ -99,9 +99,9 @@ export function Textarea({ className = '', ...props }) {
 // ─── Button ───────────────────────────────────────────────────────────────────
 const VARIANT_STYLES = {
   primary: {
-    background: 'linear-gradient(135deg, #1aff6e 0%, #0fd65a 30%, #00c8ff 70%, #4db8ff 100%)',
-    border:     'none',
-    color:      '#080c12',
+    background: 'rgba(15,214,90,0.07)',
+    border:     '1px solid rgba(15,214,90,0.35)',
+    color:      '#0fd65a',
     fontWeight: 700,
   },
   danger: {

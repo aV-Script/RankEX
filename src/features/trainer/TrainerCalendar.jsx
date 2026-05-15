@@ -143,6 +143,9 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
         view={view}
         onNavigate={navigate}
         onToday={goToToday}
+        onViewChange={setView}
+        onAddSession={() => setAddModal({ date: today, startTime: '09:00' })}
+        onAddRecurrence={() => setRecurrenceModal(true)}
       />
 
       {pastPlannedCount > 0 && (

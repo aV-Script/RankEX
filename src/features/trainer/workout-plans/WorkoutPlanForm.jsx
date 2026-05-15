@@ -263,13 +263,17 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
 
         {/* Azioni */}
         <div className="flex justify-end gap-3">
-          <button onClick={onBack} className="btn btn-ghost text-[12px] px-4 py-2">
+          <button
+            onClick={onBack}
+            className="font-display text-[11px] tracking-[1.5px] px-4 py-2 rounded-[3px] cursor-pointer border transition-all"
+            style={{ background: 'transparent', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(200,212,224,0.5)' }}
+          >
             ANNULLA
           </button>
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="btn btn-primary text-[12px] px-6 py-2 disabled:opacity-40"
+            className="rx-btn-primary font-display text-[11px] tracking-[1.5px] px-6 py-2 rounded-[3px] cursor-pointer disabled:opacity-40"
           >
             {loading ? '…' : initialData ? 'SALVA' : 'CREA SCHEDA'}
           </button>

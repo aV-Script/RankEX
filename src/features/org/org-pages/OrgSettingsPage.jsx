@@ -88,7 +88,7 @@ export function OrgSettingsPage({ org, orgId }) {
           onClick={handleSave}
           disabled={saving}
           className="py-3 rounded-[3px] font-display text-[12px] font-bold cursor-pointer border-0 transition-opacity hover:opacity-85 disabled:opacity-40 mt-2"
-          style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', color: '#080c12' }}
+          style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', color: '#0fd65a' }}
         >
           {saving ? 'SALVATAGGIO...' : 'SALVA IMPOSTAZIONI'}
         </button>

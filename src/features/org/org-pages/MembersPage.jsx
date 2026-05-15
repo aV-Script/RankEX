@@ -72,7 +72,7 @@ export function MembersPage({ orgId, org }) {
           onClick={() => !atTrainerLimit && setShowCreate(true)}
           disabled={atTrainerLimit}
           className="font-display text-[11px] px-4 py-2 rounded-[3px] border-0 transition-opacity hover:opacity-85 disabled:opacity-40 disabled:cursor-not-allowed"
-          style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', color: '#080c12', fontWeight: 700, cursor: atTrainerLimit ? 'not-allowed' : 'pointer' }}
+          style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', color: '#0fd65a', fontWeight: 700, cursor: atTrainerLimit ? 'not-allowed' : 'pointer' }}
         >
           + AGGIUNGI
         </button>

@@ -119,8 +119,9 @@ export function RecurrenceDetailView({
   }
 
   const saveBtnStyle = {
-    background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)',
-    borderRadius: '3px', color: '#080c12', fontWeight: 700,
+    background: 'rgba(15,214,90,0.07)',
+    border: '1px solid rgba(15,214,90,0.35)',
+    borderRadius: '3px', color: '#0fd65a', fontWeight: 700,
   }
 
   return (
@@ -432,7 +433,7 @@ function ActionRow({ onCancel, onSave, saving, saveLabel = 'SALVA', saveDisabled
         onClick={onSave}
         disabled={saving || saveDisabled}
         className="flex-1 py-2 font-display text-[11px] cursor-pointer border-0 disabled:opacity-40 transition-opacity hover:opacity-85"
-        style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', borderRadius: '3px', color: '#080c12', fontWeight: 700 }}
+        style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', borderRadius: '3px', color: '#0fd65a', fontWeight: 700 }}
       >
         {saving ? 'ATTENDERE...' : saveLabel}
       </button>

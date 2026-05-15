@@ -81,12 +81,20 @@ export function ClientsPage({ orgId, clients = [], clientsLoading: loading = fal
           <h1 className="font-display font-black text-[22px] sm:text-[24px] text-white m-0">
             I tuoi clienti
           </h1>
-          {!loading && (
-            <span className="font-display text-[11px] text-white/30">
-              {filters.filteredClients.length}{' '}
-              {filters.filteredClients.length === 1 ? 'cliente' : 'clienti'}
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {!loading && (
+              <span className="font-display text-[11px] text-white/30">
+                {filters.filteredClients.length}{' '}
+                {filters.filteredClients.length === 1 ? 'cliente' : 'clienti'}
+              </span>
+            )}
+            <button
+              onClick={() => setView('new')}
+              className="rx-btn-primary font-display text-[10px] tracking-[1.5px] py-1.5 px-3 rounded-[3px] cursor-pointer"
+            >
+              + NUOVO
+            </button>
+          </div>
         </div>
 
         <input
@@ -96,34 +104,46 @@ export function ClientsPage({ orgId, clients = [], clientsLoading: loading = fal
           className="input-base w-full"
         />
 
-        <div className="flex flex-wrap gap-1.5">
-          {SORT_OPTIONS.map(([val, label]) => (
-            <FilterChip key={val} active={filters.sortBy === val} onClick={() => filters.onSortByChange(val)}>
-              {label}
-            </FilterChip>
-          ))}
+        <div className="flex flex-col gap-2">
 
-          {filters.categorie.length > 1 && filters.categorie.map(val => {
-            const label = isSoccer && val !== 'tutti'
-              ? (PLAYER_ROLES.find(r => r.value === val)?.label ?? val)
-              : val.charAt(0).toUpperCase() + val.slice(1)
-            return (
-              <FilterChip key={val} active={filters.filterCategoria === val} onClick={() => filters.onCategoriaChange(val)}>
+          <FilterRow label="Ordina">
+            {SORT_OPTIONS.map(([val, label]) => (
+              <FilterChip key={val} active={filters.sortBy === val} onClick={() => filters.onSortByChange(val)}>
                 {label}
               </FilterChip>
-            )
-          })}
+            ))}
+          </FilterRow>
 
-          {isSoccer && filters.fasce.length > 1 && filters.fasce.map(val => {
-            const label = val === 'tutti'
-              ? 'Tutti'
-              : (SOCCER_AGE_GROUPS.find(g => g.value === val)?.label ?? val)
-            return (
-              <FilterChip key={val} active={filters.filterFascia === val} onClick={() => filters.onFasciaChange(val)}>
-                {label}
-              </FilterChip>
-            )
-          })}
+          {filters.categorie.length > 1 && (
+            <FilterRow label={isSoccer ? 'Ruolo' : 'Categoria'}>
+              {filters.categorie.map(val => {
+                const label = isSoccer && val !== 'tutti'
+                  ? (PLAYER_ROLES.find(r => r.value === val)?.label ?? val)
+                  : val.charAt(0).toUpperCase() + val.slice(1)
+                return (
+                  <FilterChip key={val} active={filters.filterCategoria === val} onClick={() => filters.onCategoriaChange(val)}>
+                    {label}
+                  </FilterChip>
+                )
+              })}
+            </FilterRow>
+          )}
+
+          {isSoccer && filters.fasce.length > 1 && (
+            <FilterRow label="Fascia">
+              {filters.fasce.map(val => {
+                const label = val === 'tutti'
+                  ? 'Tutti'
+                  : (SOCCER_AGE_GROUPS.find(g => g.value === val)?.label ?? val)
+                return (
+                  <FilterChip key={val} active={filters.filterFascia === val} onClick={() => filters.onFasciaChange(val)}>
+                    {label}
+                  </FilterChip>
+                )
+              })}
+            </FilterRow>
+          )}
+
         </div>
       </div>
 
@@ -160,6 +180,17 @@ export function ClientsPage({ orgId, clients = [], clientsLoading: loading = fal
         )}
       </main>
 
+    </div>
+  )
+}
+
+function FilterRow({ label, children }) {
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <span className="font-display text-[9px] tracking-[2px] uppercase shrink-0 w-[52px] text-right" style={{ color: 'rgba(200,212,224,0.22)' }}>
+        {label}
+      </span>
+      <div className="flex flex-wrap gap-1.5">{children}</div>
     </div>
   )
 }

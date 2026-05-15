@@ -3,10 +3,16 @@ const MONTH_NAMES = [
   'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'
 ]
 
+const VIEW_OPTS = [
+  { id: 'month', label: 'M' },
+  { id: 'week',  label: 'S' },
+  { id: 'day',   label: 'G' },
+]
+
 /**
  * Header del calendario con navigazione, switcher vista e bottoni azioni.
  */
-export function CalendarHeader({ currentDate, view, onNavigate, onToday }) {
+export function CalendarHeader({ currentDate, view, onNavigate, onToday, onViewChange, onAddSession, onAddRecurrence }) {
   const d     = new Date(currentDate + 'T12:00')
   const year  = d.getFullYear()
   const month = d.getMonth()
@@ -44,6 +50,59 @@ export function CalendarHeader({ currentDate, view, onNavigate, onToday }) {
           ›
         </button>
         <h2 className="font-display font-black text-[16px] sm:text-[18px] text-white ml-1">{title}</h2>
+      </div>
+
+      {/* Destra — switcher vista + azioni */}
+      <div className="flex items-center gap-2">
+
+        {/* Switcher Mese / Settimana / Giorno */}
+        {onViewChange && (
+          <div className="flex rounded-[3px] overflow-hidden border border-white/[.08]">
+            {VIEW_OPTS.map(opt => (
+              <button
+                key={opt.id}
+                onClick={() => onViewChange(opt.id)}
+                aria-pressed={view === opt.id}
+                className="px-2.5 py-1.5 font-display text-[10px] tracking-[1.5px] cursor-pointer border-none transition-all"
+                style={{
+                  background: view === opt.id ? 'rgba(15,214,90,0.15)' : 'transparent',
+                  color:      view === opt.id ? '#0fd65a' : 'rgba(200,212,224,0.35)',
+                  borderRight: opt.id !== 'day' ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* + Sessione */}
+        {onAddSession && (
+          <button
+            onClick={onAddSession}
+            aria-label="Aggiungi sessione"
+            className="px-3 py-1.5 rounded-[3px] font-display text-[10px] tracking-[1.5px] uppercase cursor-pointer transition-all border"
+            style={{
+              background:   'rgba(15,214,90,0.12)',
+              borderColor:  'rgba(15,214,90,0.3)',
+              color:        '#0fd65a',
+            }}
+          >
+            + Sessione
+          </button>
+        )}
+
+        {/* + Ricorrenza */}
+        {onAddRecurrence && (
+          <button
+            onClick={onAddRecurrence}
+            aria-label="Aggiungi ricorrenza"
+            className="px-3 py-1.5 rounded-[3px] font-display text-[10px] tracking-[1.5px] uppercase cursor-pointer transition-all border border-white/[.08] bg-transparent text-white/40 hover:text-white/60 hover:border-white/20"
+          >
+            + Ricorrenza
+          </button>
+        )}
+
       </div>
 
     </div>

@@ -8,6 +8,8 @@ export const Pentagon = memo(function Pentagon({
   color = '#0fd65a',
   size = 180,
   fluid = false,
+  gridColor  = 'rgba(255,255,255,0.06)',
+  labelColor = 'rgba(255,255,255,0.5)',
 }) {
   const cx = size / 2
   const cy = size / 2
@@ -49,14 +51,9 @@ export const Pentagon = memo(function Pentagon({
             `${(cx + (p.x - cx) * f).toFixed(1)},${(cy + (p.y - cy) * f).toFixed(1)}`
           ).join(' ')}
           fill="none"
-          stroke="rgba(255,255,255,0.06)"
+          stroke={gridColor}
           strokeWidth="1"
         />
-      ))}
-
-      {/* Spokes */}
-      {outerPoints.map((p, i) => (
-        <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
       ))}
 
       {/* Stat area */}
@@ -75,7 +72,7 @@ export const Pentagon = memo(function Pentagon({
             textAnchor="middle"
             dominantBaseline="middle"
             fontSize={size > 160 ? 10 : 9}
-            fill="rgba(255,255,255,0.5)"
+            fill={labelColor}
             fontFamily="Montserrat"
             fontWeight="600"
             letterSpacing="1"

@@ -152,8 +152,9 @@ export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
             disabled={presentCount === 0 && slotClients.length > 0}
             className="flex-1 py-2.5 rounded-[3px] font-display text-[12px] cursor-pointer border-0 transition-opacity hover:opacity-85 disabled:opacity-40"
             style={{
-              background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)',
-              color: '#080c12'
+              background: 'rgba(15,214,90,0.07)',
+              border: '1px solid rgba(15,214,90,0.35)',
+              color: '#0fd65a'
             }}
           >
             CHIUDI SESSIONE

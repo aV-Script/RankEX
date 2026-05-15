@@ -62,9 +62,26 @@ export function RecurrencesPage({ orgId, initialRecurrenceId }) {
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         <h1 className="font-display font-black text-[22px] text-white m-0">Ricorrenze</h1>
-        <span className="font-display text-[11px] text-white/30">
-          {active.length} attive
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="font-display text-[11px] text-white/30">{active.length} attive</span>
+          {archived.length > 0 && (
+            <button
+              onClick={() => setShowArchive(v => !v)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[3px] font-display text-[10px] tracking-[1.5px] uppercase cursor-pointer border transition-all"
+              style={showArchive ? {
+                background:  'rgba(15,214,90,0.1)',
+                borderColor: 'rgba(15,214,90,0.28)',
+                color:       '#0fd65a',
+              } : {
+                background:  'transparent',
+                borderColor: 'rgba(255,255,255,0.08)',
+                color:       'rgba(200,212,224,0.4)',
+              }}
+            >
+              {ICON_ARCHIVE} Archivio ({archived.length})
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Lista attive */}

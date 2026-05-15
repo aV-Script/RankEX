@@ -180,7 +180,7 @@ export function ProfilePage() {
                   onClick={handleEmailSubmit}
                   disabled={emailLoading}
                   className="flex-1 py-2.5 font-display text-[12px] font-bold cursor-pointer transition-opacity hover:opacity-85 disabled:opacity-50 border-none"
-                  style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', borderRadius: '3px', color: '#080c12' }}
+                  style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', borderRadius: '3px', color: '#0fd65a' }}
                 >
                   {emailLoading ? 'INVIO...' : 'INVIA VERIFICA'}
                 </button>
@@ -296,7 +296,7 @@ export function ProfilePage() {
                   onClick={handleSubmit}
                   disabled={loading}
                   className="flex-1 py-2.5 font-display text-[12px] font-bold cursor-pointer transition-opacity hover:opacity-85 disabled:opacity-50 border-none"
-                  style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', borderRadius: '3px', color: '#080c12' }}
+                  style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', borderRadius: '3px', color: '#0fd65a' }}
                 >
                   {loading ? 'SALVATAGGIO...' : 'AGGIORNA'}
                 </button>

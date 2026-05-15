@@ -160,7 +160,7 @@ export function MisureSection({ client, color, isSoccer, readonly, onUpdate }) {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="btn btn-primary px-4 py-2 text-[11px] disabled:opacity-50 cursor-pointer"
+              className="rx-btn-primary font-display text-[10px] tracking-[1.5px] px-4 py-2 rounded-[3px] cursor-pointer disabled:opacity-50"
             >
               {saving ? '…' : 'AGGIORNA'}
             </button>

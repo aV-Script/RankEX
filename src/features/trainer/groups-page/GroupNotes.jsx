@@ -98,7 +98,7 @@ export function GroupNotes({ orgId, groupId }) {
             onClick={handleSubmit}
             disabled={!text.trim() || submitting}
             className="font-display text-[11px] px-4 py-2 rounded-[3px] cursor-pointer border-0 transition-opacity hover:opacity-85 disabled:opacity-40"
-            style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', color: '#080c12' }}
+            style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', color: '#0fd65a' }}
           >
             {submitting ? '…' : 'PUBBLICA'}
           </button>

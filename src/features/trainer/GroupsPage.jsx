@@ -86,12 +86,20 @@ export function GroupsPage({ orgId }) {
           <h1 className="font-display font-black text-[22px] sm:text-[24px] text-white m-0">
             I tuoi gruppi
           </h1>
-          {!isLoading && (
-            <span className="font-display text-[11px] text-white/30">
-              {filteredGroups.length}{' '}
-              {filteredGroups.length === 1 ? 'gruppo' : 'gruppi'}
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {!isLoading && (
+              <span className="font-display text-[11px] text-white/30">
+                {filteredGroups.length}{' '}
+                {filteredGroups.length === 1 ? 'gruppo' : 'gruppi'}
+              </span>
+            )}
+            <button
+              onClick={() => setShowNew(true)}
+              className="rx-btn-primary font-display text-[10px] tracking-[1.5px] py-1.5 px-3 rounded-[3px] cursor-pointer"
+            >
+              + NUOVO
+            </button>
+          </div>
         </div>
 
         <input
@@ -122,7 +130,7 @@ export function GroupsPage({ orgId }) {
           <button
             onClick={handleCreate}
             className="font-display text-[11px] px-4 py-2 rounded-[3px] cursor-pointer border-0 transition-opacity hover:opacity-85"
-            style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', color: '#080c12' }}
+            style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', color: '#0fd65a' }}
           >
             CREA
           </button>

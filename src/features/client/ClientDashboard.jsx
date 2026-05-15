@@ -147,8 +147,11 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
 
   const [view,         setView]        = useState('dashboard')
   const [activeTab,    setActiveTab]   = useState(null)
-  const [showDelete,   setShowDelete]  = useState(false)
-  const [showReport,   setShowReport]  = useState(false)
+  const [showDelete,      setShowDelete]      = useState(false)
+  const [showReport,      setShowReport]      = useState(false)
+  const [showPrintPicker, setShowPrintPicker] = useState(false)
+  const [printMode,       setPrintMode]       = useState('dark')
+  const [showActions,     setShowActions]     = useState(false)
   const [sessionsData, setSessionsData] = useState(null)
   const [resetState,   setResetState]  = useState('idle')
 
@@ -243,7 +246,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
     if      (id === '__back__')          onBack()
     else if (id === '__campionamento__') setView('campionamento')
     else if (id === '__bia_rec__')       setView('bia')
-    else if (id === '__pdf__')           setShowReport(true)
+    else if (id === '__pdf__')           setShowPrintPicker(true)
     else if (id === '__reset_pw__')      handleResetPassword()
     else if (id === '__delete__')        setShowDelete(true)
     else                                 setActiveTab(id)
@@ -276,12 +279,96 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
   return (
     <div className="min-h-screen text-white flex flex-col">
 
-      {/* ── Header ────────────────────────────────────────────────────────────── */}
-      <header className="border-b border-white/[.05] sticky top-0 z-30 backdrop-blur-md shrink-0">
-        <div className="flex items-center justify-center px-4 py-3">
-          <div className="font-display font-black text-[14px] tracking-wide text-white truncate">
-            {client.name}
+      {/* ── Header + tab bar — riga unica ─────────────────────────────────────── */}
+      <header
+        className="border-b border-white/[.05] sticky top-0 z-30 backdrop-blur-md shrink-0 flex items-stretch"
+        style={{ background: 'rgba(7,9,14,0.92)', height: 44 }}
+      >
+        {/* ← Back */}
+        <button
+          onClick={onBack}
+          aria-label="Torna ai clienti"
+          className="w-10 flex items-center justify-center shrink-0 bg-transparent border-none text-white/40 hover:text-white/70 transition-colors cursor-pointer"
+        >
+          {ICON_BACK}
+        </button>
+
+        {/* Tab bar — centrati */}
+        <div className="flex-1 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+          <div className="flex items-center justify-center min-w-full h-full">
+            {[
+              { id: 'atleta',      label: 'Atleta',      icon: ICON_AVATAR },
+              profile.hasTests && { id: 'test',        label: 'Test',        icon: ICON_TEST },
+              profile.hasBia   && { id: 'bia',         label: 'BIA',         icon: ICON_BIA },
+              { id: 'allenamento', label: 'Allenamento', icon: ICON_WORKOUT },
+              { id: 'calendario',  label: 'Calendario',  icon: ICON_CALENDAR },
+              { id: 'note',        label: 'Note',        icon: ICON_NOTES },
+              { id: 'attivita',    label: 'Attività',    icon: ICON_ACTIVITY },
+              { id: 'misure',      label: 'Misure',      icon: ICON_MISURE },
+              { id: 'wearable',    label: 'Wearable',    icon: ICON_WEARABLE },
+            ].filter(Boolean).map(t => (
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id)}
+                aria-current={tab === t.id ? 'page' : undefined}
+                className="flex items-center gap-1.5 px-3 h-full shrink-0 cursor-pointer border-none bg-transparent relative transition-colors"
+                style={{ color: tab === t.id ? '#0fd65a' : 'rgba(200,212,224,0.35)' }}
+              >
+                {tab === t.id && (
+                  <div
+                    className="absolute bottom-0 left-2 right-2 h-[2px] rounded-t-sm"
+                    style={{ background: 'linear-gradient(90deg,#0fd65a,#00c8ff)', boxShadow: '0 0 6px rgba(15,214,90,0.45)' }}
+                  />
+                )}
+                <span style={{ display: 'flex', filter: tab === t.id ? 'drop-shadow(0 0 4px rgba(15,214,90,0.5))' : 'none' }}>
+                  {t.icon}
+                </span>
+                <span className="font-display text-[9px] tracking-[1px] uppercase whitespace-nowrap">{t.label}</span>
+              </button>
+            ))}
           </div>
+        </div>
+
+        {/* Divisore */}
+        <div className="w-px self-stretch my-2" style={{ background: 'rgba(255,255,255,0.06)' }} />
+
+        {/* ⋮ Overflow actions */}
+        <div className="relative shrink-0">
+          <button
+            onClick={() => setShowActions(v => !v)}
+            aria-label="Azioni"
+            className="w-10 h-full flex items-center justify-center bg-transparent border-none text-white/40 hover:text-white/70 transition-colors cursor-pointer"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/>
+            </svg>
+          </button>
+          {showActions && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowActions(false)} />
+              <div
+                className="absolute right-0 top-full mt-1 z-50 min-w-[168px] py-1 rounded-[4px]"
+                style={{ background: 'rgba(13,20,30,0.98)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}
+              >
+                <button onClick={() => { setShowActions(false); setShowPrintPicker(true) }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-white/60 hover:text-white hover:bg-white/[.04] transition-colors cursor-pointer bg-transparent border-none text-left font-display text-[10px] tracking-[1.5px] uppercase">
+                  {ICON_PDF} Esporta PDF
+                </button>
+                {client.email && (
+                  <button onClick={() => { setShowActions(false); handleResetPassword() }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-white/60 hover:text-white hover:bg-white/[.04] transition-colors cursor-pointer bg-transparent border-none text-left font-display text-[10px] tracking-[1.5px] uppercase">
+                    {ICON_RESET_PW} Reset password
+                  </button>
+                )}
+                <div className="h-px my-1" style={{ background: 'rgba(255,255,255,0.06)' }} />
+                <button onClick={() => { setShowActions(false); setShowDelete(true) }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-red-900/20 transition-colors cursor-pointer bg-transparent border-none text-left font-display text-[10px] tracking-[1.5px] uppercase"
+                  style={{ color: '#f87171' }}>
+                  {ICON_DELETE_CLIENT} Elimina
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </header>
 
@@ -311,7 +398,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
         <div key={tab} className="rx-animate-in">
 
           {tab === 'atleta' && (
-            <section className="px-4 pt-6 max-w-lg mx-auto">
+            <section className="px-4 pt-4 max-w-lg mx-auto flex flex-col gap-3">
               <div className="rounded-[4px] p-6 rx-card flex flex-col items-center text-center gap-4">
                 <div className="w-full flex items-center justify-between">
                   <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase" style={{ color: '#0fd65a' }}>◈ Atleta</div>
@@ -339,7 +426,18 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
           {tab === 'test' && profile.hasTests && (
             <section className="px-4 pt-6">
               <div className="rounded-[4px] p-5 rx-card">
-                <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-4" style={{ color: '#0fd65a' }}>◈ Status</div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase" style={{ color: '#0fd65a' }}>◈ Status</div>
+                  {!readonly && (
+                    <button
+                      onClick={() => setView('campionamento')}
+                      className="font-display text-[10px] tracking-[1px] px-3 py-1.5 rounded-[3px] border cursor-pointer transition-all"
+                      style={{ color, borderColor: color + '55', background: color + '11' }}
+                    >
+                      + CAMPIONAMENTO
+                    </button>
+                  )}
+                </div>
                 <div className="rounded-[4px] p-5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <StatsSection stats={client.stats} prevStats={prevStats} color={color} categoria={client.categoria} />
                 </div>
@@ -353,7 +451,18 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
           {tab === 'bia' && profile.hasBia && (
             <section className="px-4 pt-6">
               <div className="rounded-[4px] p-5 rx-card">
-                <div className="font-display text-[10px] tracking-[3px] uppercase mb-4" style={{ color: '#0fd65a' }}>◈ BIA</div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="font-display text-[10px] tracking-[3px] uppercase" style={{ color: '#0fd65a' }}>◈ BIA</div>
+                  {!readonly && (
+                    <button
+                      onClick={() => setView('bia')}
+                      className="font-display text-[10px] tracking-[1px] px-3 py-1.5 rounded-[3px] border cursor-pointer transition-all"
+                      style={{ color: biaColor, borderColor: biaColor + '55', background: biaColor + '11' }}
+                    >
+                      + RILEVAMENTO
+                    </button>
+                  )}
+                </div>
                 <BiaSummary bia={client.lastBia} prevBia={client.biaHistory?.[1] ?? null} sex={client.sesso} age={calcAge(client.dataNascita)} color={biaColor} rank={biaRank.label} />
                 <div className="mt-6">
                   <BiaHistoryChart biaHistory={client.biaHistory} color={biaColor} />
@@ -402,9 +511,84 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
       {showDelete && (
         <DeleteDialog clientName={client.name} onConfirm={handleDelete} onCancel={() => setShowDelete(false)} />
       )}
-      {showReport && (
-        <ClientReportPrint client={client} color={color} rankObj={rankObj} onClose={() => setShowReport(false)} />
+      {showPrintPicker && (
+        <PrintPickerModal
+          onSelect={(mode) => { setPrintMode(mode); setShowPrintPicker(false); setShowReport(true) }}
+          onCancel={() => setShowPrintPicker(false)}
+        />
       )}
+      {showReport && (
+        <ClientReportPrint client={client} color={color} rankObj={rankObj} mode={printMode} onClose={() => setShowReport(false)} />
+      )}
+    </div>
+  )
+}
+
+// ── PrintPickerModal ──────────────────────────────────────────────────────────
+
+function PrintPickerModal({ onSelect, onCancel }) {
+  return (
+    <div className="fixed inset-0 z-[9998] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.72)' }}>
+      <div
+        className="rounded-xl p-6 flex flex-col gap-5"
+        style={{ background: '#0c1219', border: '1px solid #1e293b', width: 360, boxShadow: '0 24px 64px rgba(0,0,0,0.8)' }}
+      >
+        <div>
+          <div className="font-display font-black tracking-[3px] text-[13px] text-white uppercase mb-1">
+            Esporta PDF
+          </div>
+          <div className="text-[11px] text-white/40 font-body">
+            Scegli il formato di stampa
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          {/* Dark */}
+          <button
+            onClick={() => onSelect('dark')}
+            className="flex items-center gap-4 p-4 rounded-lg text-left cursor-pointer transition-colors"
+            style={{ background: '#07090e', border: '1px solid #1e293b' }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = '#0ec452'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = '#1e293b'}
+          >
+            <div className="flex-shrink-0 w-10 h-10 rounded flex items-center justify-center" style={{ background: '#0f1820' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0ec452" strokeWidth="1.8">
+                <path d="M21 15.9A9 9 0 1 1 8.1 3a7 7 0 0 0 12.9 12.9z"/>
+              </svg>
+            </div>
+            <div>
+              <div className="font-display font-bold text-[11px] tracking-[1.5px] text-white uppercase mb-0.5">Colore — Dark</div>
+              <div className="text-[10px] text-white/40">Sfondo scuro, colori rank completi</div>
+            </div>
+          </button>
+
+          {/* B&W */}
+          <button
+            onClick={() => onSelect('bw')}
+            className="flex items-center gap-4 p-4 rounded-lg text-left cursor-pointer transition-colors"
+            style={{ background: '#07090e', border: '1px solid #1e293b' }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = '#94a3b8'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = '#1e293b'}
+          >
+            <div className="flex-shrink-0 w-10 h-10 rounded flex items-center justify-center" style={{ background: '#0f1820' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.8">
+                <circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18" strokeWidth="1.2"/>
+              </svg>
+            </div>
+            <div>
+              <div className="font-display font-bold text-[11px] tracking-[1.5px] text-white uppercase mb-0.5">B&amp;N — Economica</div>
+              <div className="text-[10px] text-white/40">Sfondo bianco, scala di grigi, meno inchiostro</div>
+            </div>
+          </button>
+        </div>
+
+        <button
+          onClick={onCancel}
+          className="text-white/30 hover:text-white/60 text-[10px] font-display tracking-[2px] uppercase transition-colors bg-transparent border-none cursor-pointer self-center"
+        >
+          Annulla
+        </button>
+      </div>
     </div>
   )
 }

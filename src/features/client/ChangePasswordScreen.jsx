@@ -106,7 +106,7 @@ export default function ChangePasswordScreen({ userId, onDone }) {
 
             <button onClick={handleSubmit} disabled={loading}
               className="w-full py-3.5 rounded-[3px] font-display text-[13px] font-bold tracking-widest text-white cursor-pointer transition-opacity hover:opacity-90 disabled:opacity-50 mt-2"
-              style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', border: 'none', color: '#080c12' }}>
+              style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', color: '#0fd65a' }}>
               {loading ? 'SALVATAGGIO...' : 'ENTRA IN RANK EX →'}
             </button>
           </div>

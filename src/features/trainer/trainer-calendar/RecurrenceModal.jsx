@@ -183,7 +183,7 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
           onClick={() => canSave && onSave({ clientIds: selectedClients, groupIds: selectedGroups, days: selectedDays, startDate, endDate, startTime, endTime })}
           disabled={!canSave}
           className="w-full py-3 font-display text-[12px] tracking-widest border-0 transition-opacity"
-          style={{ background: 'linear-gradient(135deg, #1aff6e, #0fd65a, #00c8ff)', borderRadius: '3px', color: '#080c12', fontWeight: 700, opacity: canSave ? 1 : 0.4, cursor: canSave ? 'pointer' : 'not-allowed' }}
+          style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', borderRadius: '3px', color: '#0fd65a', fontWeight: 700, opacity: canSave ? 1 : 0.4, cursor: canSave ? 'pointer' : 'not-allowed' }}
         >
           CREA RICORRENZA
         </button>
