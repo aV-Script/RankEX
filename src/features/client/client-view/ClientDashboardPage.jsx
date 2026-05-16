@@ -10,10 +10,23 @@ import { ClientCalendar }          from '../ClientCalendar'
 import { calcAge }                 from '../../../utils/validation'
 import { ClientWearableSection }   from './ClientWearableSection'
 import { ClientCircularNav }       from './ClientCircularNav'
-import { ClientHUD }               from './ClientHUD'
+import { ClientHub }               from './ClientHub'
+import { AvatarEditor }            from './avatar/AvatarEditor'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
+const ICON_HOME = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="8" r="4"/>
+    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+  </svg>
+)
+const ICON_AVATAR_EDIT = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 20h9"/>
+    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+  </svg>
+)
 const ICON_TEST = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
@@ -58,16 +71,13 @@ const ICON_WEARABLE = (
   </svg>
 )
 
-/**
- * Dashboard cliente — layout full-width per sezione.
- * Navigazione tramite ClientCircularNav (wheel overlay).
- */
 export function ClientDashboardPage({ client, clientId, orgId, color, rankObj, biaRankObj, unreadCount = 0, onOpenNotifs }) {
   const prevStats   = client.campionamenti?.[1]?.stats ?? null
   const profileType = client.profileType ?? 'tests_only'
   const profile     = getProfileCategory(profileType)
 
-  const TABS = [
+  // Tab 'home' sempre primo — è la schermata avatar/hub
+  const CONTENT_TABS = [
     profile.hasTests       && { id: 'test',     label: 'Test',       icon: ICON_TEST },
     { id: 'calendar',         label: 'Calendario', icon: ICON_CALENDAR },
     profile.hasBia         && { id: 'bia',      label: 'BIA',        icon: ICON_BIA },
@@ -75,83 +85,109 @@ export function ClientDashboardPage({ client, clientId, orgId, color, rankObj, b
     orgId                  && { id: 'notes',    label: 'Note',       icon: ICON_NOTES },
     { id: 'activity',         label: 'Attività',  icon: ICON_ACTIVITY },
     client.wearableEnabled && { id: 'wearable', label: 'Wearable',   icon: ICON_WEARABLE },
+    { id: 'avatar_edit',      label: 'Avatar',    icon: ICON_AVATAR_EDIT },
   ].filter(Boolean)
 
-  const defaultTab = profile.hasTests ? 'test' : profile.hasBia ? 'bia' : 'calendar'
-  const [activeTab, setActiveTab] = useState(defaultTab)
+  // TABS include 'home' per la ruota (viene mostrato come prima voce)
+  const TABS = [
+    { id: 'home', label: 'Avatar', icon: ICON_HOME },
+    ...CONTENT_TABS,
+  ]
+
+  const [activeTab, setActiveTab] = useState('home')
 
   return (
     <div className="min-h-screen flex flex-col pb-20">
 
-      <ClientHUD client={client} color={color} rankObj={rankObj} activeTab={activeTab} tabs={TABS} />
+      {activeTab === 'home' ? (
+        // ── Hub screen: avatar al centro + nav radiale (desktop) / solo avatar (mobile)
+        <ClientHub
+          client={client}
+          color={color}
+          rankObj={rankObj}
+          tabs={CONTENT_TABS}
+          onTabChange={setActiveTab}
+        />
+      ) : (
+        // ── Contenuto sezione selezionata
+        <div key={activeTab} className="rx-animate-in">
 
-      <div key={activeTab} className="rx-animate-in">
+          {/* ── Test ───────────────────────────────────────────────────── */}
+          {activeTab === 'test' && (
+            <>
+              <section className="px-4 py-6">
+                <div className="rounded-[4px] p-5 rx-card">
+                  <div className="font-display text-[10px] tracking-[3px] uppercase mb-3.5" style={{ color: '#0fd65a' }}>◈ Status</div>
+                  <StatsSection stats={client.stats} prevStats={prevStats} color={color} categoria={client.categoria} />
+                </div>
+              </section>
+              <div className="mx-4 h-px" style={{ background: 'rgba(255,255,255,0.04)' }} />
+              <section className="px-4 py-6">
+                <StatsChart campionamenti={client.campionamenti} color={color} categoria={client.categoria} />
+              </section>
+            </>
+          )}
 
-        {/* ── Test ─────────────────────────────────────────────────────── */}
-        {activeTab === 'test' && (
-          <>
+          {/* ── Calendario ─────────────────────────────────────────────── */}
+          {activeTab === 'calendar' && (
+            <div className="px-4 py-6">
+              <ClientCalendar clientId={clientId} orgId={orgId} />
+            </div>
+          )}
+
+          {/* ── BIA ────────────────────────────────────────────────────── */}
+          {activeTab === 'bia' && (
+            <>
+              <section className="px-4 py-6">
+                <BiaSummary bia={client.lastBia} prevBia={client.biaHistory?.[1] ?? null} sex={client.sesso} age={calcAge(client.dataNascita)} color={color} />
+              </section>
+              <div className="mx-4 h-px" style={{ background: 'rgba(255,255,255,0.04)' }} />
+              <section className="px-4 py-6">
+                <BiaHistoryChart biaHistory={client.biaHistory} color={color} />
+              </section>
+            </>
+          )}
+
+          {/* ── Scheda ─────────────────────────────────────────────────── */}
+          {activeTab === 'workout' && (
+            <ClientWorkoutSection orgId={orgId} clientId={clientId} color={color} />
+          )}
+
+          {/* ── Note ───────────────────────────────────────────────────── */}
+          {activeTab === 'notes' && orgId && (
+            <NotesSection orgId={orgId} clientId={clientId} color={color}
+              author={{ role: 'client', name: client.name }} />
+          )}
+
+          {/* ── Attività ───────────────────────────────────────────────── */}
+          {activeTab === 'activity' && (
             <section className="px-4 py-6">
-              <div className="rounded-[4px] p-5 rx-card">
-                <div className="font-display text-[10px] tracking-[3px] uppercase mb-3.5" style={{ color: '#0fd65a' }}>◈ Status</div>
-                <StatsSection stats={client.stats} prevStats={prevStats} color={color} categoria={client.categoria} />
-              </div>
+              <ActivityLog log={client.log} color={color} />
             </section>
-            <div className="mx-4 h-px" style={{ background: 'rgba(255,255,255,0.04)' }} />
-            <section className="px-4 py-6">
-              <StatsChart campionamenti={client.campionamenti} color={color} categoria={client.categoria} />
-            </section>
-          </>
-        )}
+          )}
 
-        {/* ── Calendario ───────────────────────────────────────────────── */}
-        {activeTab === 'calendar' && (
-          <div className="px-4 py-6">
-            <ClientCalendar clientId={clientId} orgId={orgId} />
-          </div>
-        )}
+          {/* ── Wearable ───────────────────────────────────────────────── */}
+          {activeTab === 'wearable' && client.wearableEnabled && (
+            <ClientWearableSection
+              orgId={orgId}
+              clientId={clientId}
+              initialWearable={client.wearable ?? null}
+              color={color}
+            />
+          )}
 
-        {/* ── BIA ──────────────────────────────────────────────────────── */}
-        {activeTab === 'bia' && (
-          <>
-            <section className="px-4 py-6">
-              <BiaSummary bia={client.lastBia} prevBia={client.biaHistory?.[1] ?? null} sex={client.sesso} age={calcAge(client.dataNascita)} color={color} />
-            </section>
-            <div className="mx-4 h-px" style={{ background: 'rgba(255,255,255,0.04)' }} />
-            <section className="px-4 py-6">
-              <BiaHistoryChart biaHistory={client.biaHistory} color={color} />
-            </section>
-          </>
-        )}
+          {/* ── Avatar editor ──────────────────────────────────────────── */}
+          {activeTab === 'avatar_edit' && (
+            <AvatarEditor
+              client={client}
+              clientId={clientId}
+              orgId={orgId}
+              color={color}
+            />
+          )}
 
-        {/* ── Scheda ───────────────────────────────────────────────────── */}
-        {activeTab === 'workout' && (
-          <ClientWorkoutSection orgId={orgId} clientId={clientId} color={color} />
-        )}
-
-        {/* ── Note ─────────────────────────────────────────────────────── */}
-        {activeTab === 'notes' && orgId && (
-          <NotesSection orgId={orgId} clientId={clientId} color={color}
-            author={{ role: 'client', name: client.name }} />
-        )}
-
-        {/* ── Attività ─────────────────────────────────────────────────── */}
-        {activeTab === 'activity' && (
-          <section className="px-4 py-6">
-            <ActivityLog log={client.log} color={color} />
-          </section>
-        )}
-
-        {/* ── Wearable ─────────────────────────────────────────────────── */}
-        {activeTab === 'wearable' && client.wearableEnabled && (
-          <ClientWearableSection
-            orgId={orgId}
-            clientId={clientId}
-            initialWearable={client.wearable ?? null}
-            color={color}
-          />
-        )}
-
-      </div>
+        </div>
+      )}
 
       <ClientCircularNav
         tabs={TABS}
@@ -165,4 +201,3 @@ export function ClientDashboardPage({ client, clientId, orgId, color, rankObj, b
     </div>
   )
 }
-
