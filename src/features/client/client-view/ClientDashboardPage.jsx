@@ -1,19 +1,16 @@
 import { useState }                from 'react'
-import { XPBar }                   from '../../../components/ui/XPBar'
 import { ActivityLog, StatsSection } from '../../../components/ui'
 import { StatsChart }              from '../StatsChart'
-import { getCategoriaById }        from '../../../constants'
 import { BiaSummary }              from '../../bia/bia-view/BiaSummary'
 import { BiaHistoryChart }         from '../../bia/bia-view/BiaHistoryChart'
 import { getProfileCategory }      from '../../../constants/bia'
 import { NotesSection }            from '../client-dashboard/NotesSection'
 import { ClientWorkoutSection }    from '../client-dashboard/ClientWorkoutSection'
 import { ClientCalendar }          from '../ClientCalendar'
-import { PLAYER_ROLES }            from '../../../config/modules.config'
 import { calcAge }                 from '../../../utils/validation'
-import { ClientBadges }            from '../ClientBadges'
 import { ClientWearableSection }   from './ClientWearableSection'
 import { ClientCircularNav }       from './ClientCircularNav'
+import { ClientHUD }               from './ClientHUD'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -60,92 +57,35 @@ const ICON_WEARABLE = (
     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
   </svg>
 )
-const ICON_PROFILE = (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-    <circle cx="12" cy="7" r="4"/>
-  </svg>
-)
 
 /**
  * Dashboard cliente — layout full-width per sezione.
  * Navigazione tramite ClientCircularNav (wheel overlay).
  */
 export function ClientDashboardPage({ client, clientId, orgId, color, rankObj, biaRankObj, unreadCount = 0, onOpenNotifs }) {
-  const prevStats    = client.campionamenti?.[1]?.stats ?? null
-  const profileType  = client.profileType ?? 'tests_only'
-  const profile      = getProfileCategory(profileType)
-  const isSoccer     = ['soccer', 'soccer_youth', 'soccer_junior'].includes(client.categoria)
-  const categoriaObj = !isSoccer ? getCategoriaById(client.categoria) : null
-  const ruoloObj     = isSoccer
-    ? PLAYER_ROLES.find(r => r.value === client.ruolo) ?? null
-    : null
+  const prevStats   = client.campionamenti?.[1]?.stats ?? null
+  const profileType = client.profileType ?? 'tests_only'
+  const profile     = getProfileCategory(profileType)
 
   const TABS = [
-    profile.hasTests          && { id: 'test',     label: 'Test',       icon: ICON_TEST },
-    { id: 'calendar',            label: 'Calendario', icon: ICON_CALENDAR },
-    profile.hasBia            && { id: 'bia',      label: 'BIA',        icon: ICON_BIA },
-    orgId                     && { id: 'workout',  label: 'Scheda',     icon: ICON_WORKOUT },
-    orgId                     && { id: 'notes',    label: 'Note',       icon: ICON_NOTES },
-    { id: 'activity',            label: 'Attività',  icon: ICON_ACTIVITY },
-    client.wearableEnabled    && { id: 'wearable', label: 'Wearable',   icon: ICON_WEARABLE },
-    { id: 'profile',             label: 'Profilo',   icon: ICON_PROFILE },
+    profile.hasTests       && { id: 'test',     label: 'Test',       icon: ICON_TEST },
+    { id: 'calendar',         label: 'Calendario', icon: ICON_CALENDAR },
+    profile.hasBia         && { id: 'bia',      label: 'BIA',        icon: ICON_BIA },
+    orgId                  && { id: 'workout',  label: 'Scheda',     icon: ICON_WORKOUT },
+    orgId                  && { id: 'notes',    label: 'Note',       icon: ICON_NOTES },
+    { id: 'activity',         label: 'Attività',  icon: ICON_ACTIVITY },
+    client.wearableEnabled && { id: 'wearable', label: 'Wearable',   icon: ICON_WEARABLE },
   ].filter(Boolean)
 
   const defaultTab = profile.hasTests ? 'test' : profile.hasBia ? 'bia' : 'calendar'
   const [activeTab, setActiveTab] = useState(defaultTab)
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen flex flex-col pb-20">
+
+      <ClientHUD client={client} color={color} rankObj={rankObj} activeTab={activeTab} tabs={TABS} />
 
       <div key={activeTab} className="rx-animate-in">
-
-        {/* ── Profilo ──────────────────────────────────────────────────── */}
-        {activeTab === 'profile' && (
-          <section className="px-4 pt-10 pb-6 flex flex-col items-center gap-5 max-w-lg mx-auto">
-
-            <AvatarPlaceholder color={color} level={client.level} />
-
-            <div className="font-display font-black text-[26px] text-white leading-tight tracking-wide uppercase text-center">
-              {client.name}
-            </div>
-
-            <ClientBadges
-              categoriaObj={categoriaObj}
-              ruoloObj={ruoloObj}
-              color={color}
-              categoria={client.categoria}
-              hasTests={profile.hasTests}
-              hasBia={profile.hasBia}
-              rankObj={rankObj}
-              biaRankObj={biaRankObj ?? rankObj}
-            />
-
-            <div className="self-stretch">
-              <XPBar xp={client.xp} xpNext={client.xpNext} color={color} fullWidth />
-            </div>
-
-            {/* Card account */}
-            <div className="rx-card rounded-[4px] p-5 w-full">
-              <div className="font-display text-[10px] text-white/30 tracking-[3px] mb-4">ACCOUNT</div>
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-12 h-12 rounded-[4px] flex items-center justify-center shrink-0"
-                  style={{ background: color + '22', border: `1px solid ${color}44` }}
-                >
-                  <span className="font-display font-black text-[20px]" style={{ color }}>
-                    {client.name?.[0]?.toUpperCase()}
-                  </span>
-                </div>
-                <div>
-                  <div className="font-display font-black text-[15px] text-white">{client.name}</div>
-                  <div className="font-body text-[13px] text-white/40 mt-0.5">{client.email ?? '—'}</div>
-                </div>
-              </div>
-            </div>
-
-          </section>
-        )}
 
         {/* ── Test ─────────────────────────────────────────────────────── */}
         {activeTab === 'test' && (
@@ -226,51 +166,3 @@ export function ClientDashboardPage({ client, clientId, orgId, color, rankObj, b
   )
 }
 
-// ── AvatarPlaceholder ─────────────────────────────────────────────────────────
-
-function AvatarPlaceholder({ color, level }) {
-  return (
-    <div style={{ width: 174 }}>
-      <div
-        className="relative overflow-hidden rounded-[4px]"
-        style={{
-          height: 218,
-          background: 'linear-gradient(170deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%)',
-          border: `1px solid ${color}28`,
-        }}
-      >
-        <div className="absolute inset-0 bg-hex" style={{ opacity: 0.14 }} />
-
-        <div className="absolute top-0 left-0 right-0 h-28"
-          style={{ background: `radial-gradient(ellipse at 50% -20%, ${color}22 0%, transparent 65%)` }} />
-
-        <div className="absolute inset-0 flex items-center justify-center" style={{ paddingBottom: 28 }}>
-          <svg viewBox="0 0 80 112" width={90} height={126}>
-            <circle cx="40" cy="26" r="19" fill={color} opacity="0.18" />
-            <circle cx="40" cy="26" r="19" fill="none" stroke={color} strokeWidth="1.4" opacity="0.45" />
-            <path d="M6,112 Q6,62 40,62 Q74,62 74,112Z" fill={color} opacity="0.14" />
-            <path d="M6,112 Q6,62 40,62 Q74,62 74,112Z" fill="none" stroke={color} strokeWidth="1.4" opacity="0.38" />
-            <path d="M24,62 Q28,76 40,78 Q52,76 56,62" fill="none" stroke={color} strokeWidth="1" opacity="0.2" />
-          </svg>
-        </div>
-
-        <div className="absolute bottom-0 left-0 right-0 h-20"
-          style={{ background: `linear-gradient(to top, ${color}22, transparent)` }} />
-
-        <div
-          className="absolute top-2 left-2 font-display font-black text-[10px] px-1.5 py-0.5 rounded-[3px]"
-          style={{ background: 'rgba(0,0,0,0.65)', color, border: `1px solid ${color}50` }}
-        >
-          LV.{level}
-        </div>
-
-        <div
-          className="absolute bottom-2.5 right-2.5 font-display text-[7px] tracking-[3px] uppercase"
-          style={{ color: color + '45' }}
-        >
-          Avatar
-        </div>
-      </div>
-    </div>
-  )
-}
