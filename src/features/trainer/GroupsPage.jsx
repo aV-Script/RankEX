@@ -82,32 +82,20 @@ export function GroupsPage({ orgId }) {
 
       {/* ── Intestazione + ricerca ────────────────────────────────────────────── */}
       <div className="px-4 sm:px-6 pt-5 pb-3 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h1 className="font-display font-black text-[22px] sm:text-[24px] text-white m-0">
-            I tuoi gruppi
-          </h1>
-          <div className="flex items-center gap-3">
-            {!isLoading && (
-              <span className="font-display text-[11px] text-white/30">
-                {filteredGroups.length}{' '}
-                {filteredGroups.length === 1 ? 'gruppo' : 'gruppi'}
-              </span>
-            )}
-            <button
-              onClick={() => setShowNew(true)}
-              className="rx-btn-primary font-display text-[10px] tracking-[1.5px] py-1.5 px-3 rounded-[3px] cursor-pointer"
-            >
-              + NUOVO
-            </button>
-          </div>
+        <div className="flex items-center gap-2">
+          <input
+            value={groupSearch}
+            onChange={e => setGroupSearch(e.target.value)}
+            placeholder="Cerca gruppo..."
+            className="input-base input-compact flex-1"
+          />
+          <button
+            onClick={() => setShowNew(true)}
+            className="rx-btn-primary font-display text-[10px] tracking-[1.5px] py-1.5 px-3 rounded-[3px] cursor-pointer shrink-0"
+          >
+            + NUOVO
+          </button>
         </div>
-
-        <input
-          value={groupSearch}
-          onChange={e => setGroupSearch(e.target.value)}
-          placeholder="Cerca gruppo..."
-          className="input-base w-full"
-        />
       </div>
 
       {/* ── Form nuovo gruppo ─────────────────────────────────────────────────── */}

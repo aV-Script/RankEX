@@ -20,7 +20,7 @@ export const PROTECTED_ROUTES = [
   {
     path:         '/admin',
     allowedRoles: ['super_admin'],
-    element:      (user, profile, helpers) => (
+    element:      (user, profile, _helpers) => (
       <ErrorBoundary>
         <Suspense fallback={<LoadingScreen />}>
           <SuperAdminView user={user} profile={profile} />

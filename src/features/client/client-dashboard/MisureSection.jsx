@@ -12,8 +12,7 @@ function MisureLineChart({ data = [], dataKey, label, unit, color }) {
   if (sorted.length < 2) {
     return (
       <div
-        className="rounded-[4px] p-4 mt-4"
-        style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
+        className="rounded-[4px] p-4 mt-4 rx-card"
       >
         <div className="font-display text-[10px] tracking-[3px] uppercase mb-2" style={{ color: '#0fd65a' }}>
           ◈ {label}
@@ -132,7 +131,7 @@ export function MisureSection({ client, color, isSoccer, readonly, onUpdate }) {
 
         {/* Form aggiornamento — solo trainer, non readonly */}
         {!readonly && (
-          <div className="flex gap-3 items-end pt-2 pb-1 border-t border-white/[.04]">
+          <div className="flex gap-3 items-end pt-2 pb-1">
             <div className="flex flex-col gap-1">
               <label className="font-display text-[9px] text-white/30 tracking-[1.5px]">PESO (kg)</label>
               <input

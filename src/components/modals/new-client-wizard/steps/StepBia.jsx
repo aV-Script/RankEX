@@ -1,4 +1,4 @@
-import { BIA_PARAMS, BIA_EMPTY }   from '../../../../constants/bia'
+import { BIA_PARAMS }              from '../../../../constants/bia'
 import { getBiaParamStatus }        from '../../../../utils/bia'
 import { calcBmi }                  from '../../../../utils/bia'
 import { Field }                    from '../../../ui'

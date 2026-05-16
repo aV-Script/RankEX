@@ -1,6 +1,5 @@
 import { useState }            from 'react'
 import { ConfirmDialog }       from '../../components/common/ConfirmDialog'
-import { getProfileCategory }  from '../../constants/bia'
 
 const WarningIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -15,7 +14,7 @@ const WarningIcon = () => (
  * Banner upgrade categoria — mostrato nel dashboard trainer
  * quando il cliente non ha uno dei due moduli.
  */
-export function UpgradeCategoryBanner({ client, color, onUpgrade }) {
+export function UpgradeCategoryBanner({ client, _color, onUpgrade }) {
   const [showConfirm, setShowConfirm] = useState(false)
   const [loading,     setLoading]     = useState(false)
 

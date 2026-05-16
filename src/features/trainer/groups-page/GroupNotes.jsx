@@ -4,6 +4,7 @@ import { getGroupNotes, addGroupNote, deleteGroupNote } from '../../../firebase/
 import { useTrainerState }                   from '../../../context/TrainerContext'
 import { usePagination }                     from '../../../hooks/usePagination'
 import { Pagination }                        from '../../../components/common/Pagination'
+import { useToast }                          from '../../../hooks/useToast'
 
 const NOTES_PAGE_SIZE = 8
 
@@ -15,6 +16,7 @@ const ROLE_LABELS = {
 
 export function GroupNotes({ orgId, groupId }) {
   const { userRole } = useTrainerState()
+  const toast = useToast()
   const [notes,       setNotes]       = useState([])
   const [loading,     setLoading]     = useState(true)
   const [text,        setText]        = useState('')
@@ -57,8 +59,8 @@ export function GroupNotes({ orgId, groupId }) {
         createdAt:  new Date().toISOString(),
       }, ...prev])
       setText('')
-    } catch (err) {
-      console.error('[GroupNotes] addGroupNote failed', err)
+    } catch {
+      toast.error('Impossibile aggiungere la nota')
     } finally {
       setSubmitting(false)
     }
@@ -71,8 +73,8 @@ export function GroupNotes({ orgId, groupId }) {
     try {
       await deleteGroupNote(orgId, groupId, noteId)
       setNotes(prev => prev.filter(n => n.id !== noteId))
-    } catch (err) {
-      console.error('[GroupNotes] deleteGroupNote failed', err)
+    } catch {
+      toast.error('Impossibile eliminare la nota')
     } finally {
       setDeletingId(null)
     }

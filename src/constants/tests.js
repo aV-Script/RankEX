@@ -798,29 +798,5 @@ export const TESTS = [
         'Evitare il test in condizioni di caldo estremo o dopo allenamenti intensi.',
       ],
     },
-    guide: {
-      duration:  '15 minuti',
-      equipment: [
-        'Pedana di forza o app My Jump 2',
-        'Superficie rigida',
-      ],
-      warmup: [
-        'Jogging 5 minuti',
-        'Squat 2×10 leggeri',
-        'Squat jump progressivi 3×5 al 60, 80, 95%',
-        'Riposo 2 minuti',
-      ],
-      protocol: [
-        'Il soggetto si posiziona in piedi con mani sui fianchi (NO arm swing).',
-        'Eseguire un rapido abbassamento fino a ~90° di flessione delle ginocchia, poi saltare verticalmente.',
-        'Il sistema registra l\'altezza del salto in cm.',
-        '5 prove con 60 secondi di recupero. Registrare il VALORE MIGLIORE.',
-      ],
-      notes: [
-        'Le mani devono restare sui fianchi per tutta la durata del salto.',
-        'Non è consentito un secondo countermovement: il movimento è continuo.',
-        'Valori medi M 18-35: ~35-42cm. Elite M: >55cm. Medie F: ~25-32cm.',
-      ],
-    },
   },
 ]

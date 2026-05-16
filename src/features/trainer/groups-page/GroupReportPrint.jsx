@@ -78,7 +78,7 @@ export function GroupReportPrint({ group, clients, mode = 'dark', onClose }) {
       window.removeEventListener('afterprint', onClose)
       document.getElementById('rankex-print-style')?.remove()
     }
-  }, [onClose])
+  }, [onClose, BG])
 
   // Classifica
   const sorted = [...clients]

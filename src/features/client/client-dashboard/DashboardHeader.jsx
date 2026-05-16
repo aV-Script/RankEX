@@ -7,7 +7,7 @@ import { resetPassword }           from '../../../firebase/services/auth'
  * Hero section del dashboard cliente.
  * Mostra rank ring, nome, categoria, XP bar e azioni (back + elimina + reset pw).
  */
-export function DashboardHeader({ client, rankObj, color, biaRankObj, onBack, onDelete, onExport }) {
+export function DashboardHeader({ client, rankObj, _color, biaRankObj, _onBack, onDelete, onExport }) {
   const categoria = getCategoriaById(client.categoria)
   const [resetState, setResetState] = useState('idle') // 'idle' | 'loading' | 'sent' | 'error'
 

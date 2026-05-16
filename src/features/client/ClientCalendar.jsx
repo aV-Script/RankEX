@@ -42,11 +42,6 @@ export function ClientCalendar({ clientId, orgId, clients }) {
   const prevMonth = () => setCurrentMonth(m => { if (m === 1) { setCurrentYear(y => y-1); return 12 } return m-1 })
   const nextMonth = () => setCurrentMonth(m => { if (m === 12) { setCurrentYear(y => y+1); return 1 } return m+1 })
 
-  // Preview XP in base allo streak attuale
-  const previewXP = useMemo(() => {
-    if (!client) return 0
-    return calcSessionXP(client.baseXP ?? 50, calcStreakPreview(client))
-  }, [client])
 
   return (
     <div className="flex flex-col gap-4">

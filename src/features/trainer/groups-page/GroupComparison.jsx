@@ -4,7 +4,7 @@ import { usePagination }           from '../../../hooks/usePagination'
 import { Pagination }              from '../../../components/common/Pagination'
 
 const COMPARISON_COLORS  = ['#0fd65a', '#2ecfff', '#ffd700']
-const MAX_SELECTED       = 3
+const MAX_SELECTED       = 2
 const SELECTOR_PAGE_SIZE = 6
 
 export function GroupComparison({ clients }) {

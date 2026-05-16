@@ -6,8 +6,6 @@ import { useMemo } from 'react'
  * Su mobile mostra solo prev/next e indicatore pagina.
  */
 export function Pagination({ page, totalPages, goTo, next, prev, hasNext, hasPrev, from, to, total }) {
-  if (totalPages <= 1) return null
-
   // Genera array di pagine da mostrare — max 5 pagine visibili
   const pages = useMemo(() => {
     const delta = 2
@@ -27,6 +25,8 @@ export function Pagination({ page, totalPages, goTo, next, prev, hasNext, hasPre
     }
     return range
   }, [page, totalPages])
+
+  if (totalPages <= 1) return null
 
   return (
     <div className="flex flex-col items-center gap-3 mt-6">

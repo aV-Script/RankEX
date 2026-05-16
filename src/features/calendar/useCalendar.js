@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   getTrainerSlots, addSlot, updateSlot, deleteSlot,
   addRecurrence,
@@ -21,7 +21,8 @@ export function useCalendar(orgId) {
   const [loading, setLoading]       = useState(false)
   const [currentDate, setCurrentDate] = useState(new Date().toISOString().slice(0, 10))
   const [view, setView]             = useState('week') // 'month' | 'week' | 'day'
-  const toast = useToast()
+  const { success: toastSuccess, error: toastError } = useToast()
+  const initialLoadDone = useRef(false)
 
   // ── Calcola il range in base alla vista ────────────────────────────────
   const getRange = useCallback((date, v) => {
@@ -35,11 +36,15 @@ export function useCalendar(orgId) {
 
   const fetchSlots = useCallback(() => {
     if (!orgId) return
-    setLoading(true)
+    if (!initialLoadDone.current) setLoading(true)
     getTrainerSlots(orgId, from, to)
-      .then(setSlots)
+      .then(data => {
+        setSlots(data)
+        initialLoadDone.current = true
+      })
+      .catch(() => toastError('Impossibile caricare le sessioni'))
       .finally(() => setLoading(false))
-  }, [orgId, from, to])
+  }, [orgId, from, to, toastError])
 
   useEffect(() => { fetchSlots() }, [fetchSlots])
 
@@ -58,52 +63,63 @@ export function useCalendar(orgId) {
 
   // ── Add slot ──────────────────────────────────────────────────────────
   const handleAddSlot = useCallback(async ({ date, startTime, endTime, clientIds, groupIds = [] }) => {
-    const existing = slots.find(s => s.date === date && s.startTime === startTime)
-    if (existing) {
-      const newClientIds = clientIds.filter(id => !existing.clientIds.includes(id))
-      const newGroupIds  = groupIds.filter(id => !existing.groupIds?.includes(id))
-      if (newClientIds.length === 0 && newGroupIds.length === 0) return existing
+    try {
+      const existing = slots.find(s => s.date === date && s.startTime === startTime)
+      if (existing) {
+        const newClientIds = clientIds.filter(id => !existing.clientIds.includes(id))
+        const newGroupIds  = groupIds.filter(id => !existing.groupIds?.includes(id))
+        if (newClientIds.length === 0 && newGroupIds.length === 0) return existing
 
-      const updated = {
-        ...existing,
-        clientIds: [...existing.clientIds, ...newClientIds],
-        groupIds:  [...(existing.groupIds ?? []), ...newGroupIds],
+        const updated = {
+          ...existing,
+          clientIds: [...existing.clientIds, ...newClientIds],
+          groupIds:  [...(existing.groupIds ?? []), ...newGroupIds],
+        }
+        await updateSlot(orgId, existing.id, { clientIds: updated.clientIds, groupIds: updated.groupIds })
+        setSlots(prev => prev.map(s => s.id === existing.id ? updated : s))
+        return updated
       }
-      await updateSlot(orgId, existing.id, { clientIds: updated.clientIds, groupIds: updated.groupIds })
-      setSlots(prev => prev.map(s => s.id === existing.id ? updated : s))
-      return updated
-    }
 
-    const ref = await addSlot(orgId, { date, startTime, endTime, clientIds, groupIds })
-    const newSlot = {
-      id: ref.id, date, startTime, endTime,
-      clientIds, groupIds,
-      status: SLOT_STATUS.PLANNED, attendees: [], absentees: [],
-      recurrenceId: null,
+      const ref = await addSlot(orgId, { date, startTime, endTime, clientIds, groupIds })
+      const newSlot = {
+        id: ref.id, date, startTime, endTime,
+        clientIds, groupIds,
+        status: SLOT_STATUS.PLANNED, attendees: [], absentees: [],
+        recurrenceId: null,
+      }
+      setSlots(prev => [...prev, newSlot])
+      return newSlot
+    } catch {
+      toastError('Impossibile aggiungere la sessione')
+      return null
     }
-    setSlots(prev => [...prev, newSlot])
-    return newSlot
-  }, [orgId, slots])
+  }, [orgId, slots, toastError])
 
   // ── Add recurrence ─────────────────────────────────────────────────────
   const handleAddRecurrence = useCallback(async ({
     clientIds, groupIds, days, startDate, endDate, startTime, endTime
   }) => {
-    const recRef = await addRecurrence(orgId, {
-      clientIds, groupIds, days,
-      startDate, endDate, startTime, endTime,
-    })
-    const recurrenceId = recRef.id
-    const dates = generateRecurrenceDates(startDate, endDate, days)
+    try {
+      const recRef = await addRecurrence(orgId, {
+        clientIds, groupIds, days,
+        startDate, endDate, startTime, endTime,
+      })
+      const recurrenceId = recRef.id
+      const dates = generateRecurrenceDates(startDate, endDate, days)
 
-    for (const date of dates) {
-      const slot = await handleAddSlot({ date, startTime, endTime, clientIds, groupIds })
-      if (slot?.id) await updateSlot(orgId, slot.id, { recurrenceId })
+      for (const date of dates) {
+        const slot = await handleAddSlot({ date, startTime, endTime, clientIds, groupIds })
+        if (slot?.id) await updateSlot(orgId, slot.id, { recurrenceId })
+      }
+
+      fetchSlots()
+      return recurrenceId
+    } catch {
+      toastError('Impossibile creare la ricorrenza')
+      fetchSlots()
+      return null
     }
-
-    fetchSlots()
-    return recurrenceId
-  }, [orgId, handleAddSlot, fetchSlots])
+  }, [orgId, handleAddSlot, fetchSlots, toastError])
 
   // ── Close slot ─────────────────────────────────────────────────────────
   const handleCloseSlot = useCallback(async (slotId, attendeeIds, clientsData) => {
@@ -122,13 +138,12 @@ export function useCalendar(orgId) {
 
     try {
       await closeSessionUseCase(orgId, slot, attendeeIds, clientsData)
-      toast.success('Sessione chiusa · +XP assegnata')
-    } catch (err) {
-      console.error('[closeSession]', err)
+      toastSuccess('Sessione chiusa · +XP assegnata')
+    } catch {
       setSlots(prev => prev.map(s => s.id === slotId ? snapshot : s))
-      toast.error('Impossibile chiudere la sessione')
+      toastError('Impossibile chiudere la sessione')
     }
-  }, [orgId, slots, toast])
+  }, [orgId, slots, toastSuccess, toastError])
 
   // ── Skip slot ──────────────────────────────────────────────────────────
   const handleSkipSlot = useCallback(async (slotId) => {
@@ -140,8 +155,9 @@ export function useCalendar(orgId) {
       await skipSlot(orgId, slotId)
     } catch {
       setSlots(prev => prev.map(s => s.id === slotId ? snapshot : s))
+      toastError('Impossibile saltare la sessione')
     }
-  }, [orgId, slots])
+  }, [orgId, slots, toastError])
 
   // ── Delete slot ────────────────────────────────────────────────────────
   const handleDeleteSlot = useCallback(async (slotId) => {
@@ -151,19 +167,28 @@ export function useCalendar(orgId) {
       await deleteSlot(orgId, slotId)
     } catch {
       if (snapshot) setSlots(prev => [...prev, snapshot])
+      toastError('Impossibile eliminare la sessione')
     }
-  }, [orgId, slots])
+  }, [orgId, slots, toastError])
 
   // ── Group handlers ─────────────────────────────────────────────────────
   const handleAddClientToGroupSlots = useCallback(async (groupId, clientId) => {
-    await addClientToGroupSlots(orgId, groupId, clientId)
-    fetchSlots()
-  }, [orgId, fetchSlots])
+    try {
+      await addClientToGroupSlots(orgId, groupId, clientId)
+      fetchSlots()
+    } catch {
+      toastError('Impossibile aggiornare le sessioni del gruppo')
+    }
+  }, [orgId, fetchSlots, toastError])
 
   const handleRemoveClientFromGroupSlots = useCallback(async (groupId, clientId) => {
-    await removeClientFromGroupSlots(orgId, groupId, clientId)
-    fetchSlots()
-  }, [orgId, fetchSlots])
+    try {
+      await removeClientFromGroupSlots(orgId, groupId, clientId)
+      fetchSlots()
+    } catch {
+      toastError('Impossibile aggiornare le sessioni del gruppo')
+    }
+  }, [orgId, fetchSlots, toastError])
 
   // ── Controllo max sessioni mensili per un cliente ──────────────────────
   const isClientOverMonthlyLimit = useCallback((client, date) => {

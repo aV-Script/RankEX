@@ -98,7 +98,7 @@ export function useClientWearable(orgId, clientId, initialWearable) {
         }))
         toast.success('Google Fit collegato')
       })
-      .catch((err) => {
+      .catch(() => {
         if (!cancelled) toast.error('Errore durante il collegamento')
       })
       .finally(() => {
@@ -112,7 +112,7 @@ export function useClientWearable(orgId, clientId, initialWearable) {
     try {
       await linkGoogleFit(orgId, clientId)
       // La pagina naviga verso Google — il codice sotto non viene eseguito
-    } catch (err) {
+    } catch {
       toast.error('Errore durante il collegamento')
       setLoading(false)
     }

@@ -1167,6 +1167,7 @@ utils/auditLog.js            → getAuth lazy — non spostare a livello modulo
 utils/env.js                 → fonte di verità ambienti e domini
 components/common/DomainGuard.jsx → logica separazione domini
 config/plans.config.js       → fonte di verità limiti piano
+utils/validation.js          → importato da 16 file; firma validatePassword usata ovunque
 ```
 
 ---

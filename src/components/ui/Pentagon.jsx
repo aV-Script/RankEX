@@ -15,11 +15,14 @@ export const Pentagon = memo(function Pentagon({
   const cy = size / 2
   const R  = size * 0.42
 
-  const angles = statKeys.map((_, i) => (Math.PI * 2 * i) / statKeys.length - Math.PI / 2)
+  const angles = useMemo(
+    () => statKeys.map((_, i) => (Math.PI * 2 * i) / statKeys.length - Math.PI / 2),
+    [statKeys]
+  )
 
   const outerPoints = useMemo(
     () => angles.map(a => ({ x: cx + R * Math.cos(a), y: cy + R * Math.sin(a) })),
-    [cx, cy, R, statKeys.join()]
+    [cx, cy, R, angles]
   )
 
   const statPoints = useMemo(
@@ -28,7 +31,7 @@ export const Pentagon = memo(function Pentagon({
       const r   = (val / 100) * R
       return { x: cx + r * Math.cos(angles[i]), y: cy + r * Math.sin(angles[i]) }
     }),
-    [stats, statKeys, cx, cy, R]
+    [stats, statKeys, cx, cy, R, angles]
   )
 
   const toPath = pts =>

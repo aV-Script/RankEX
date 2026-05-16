@@ -26,9 +26,6 @@ const RUOLO_STEP = [
   { type: 'ruolo', title: 'Ruolo giocatore' },
 ]
 
-const FASCIA_STEP = [
-  { type: 'fascia', title: 'Fascia d\'età' },
-]
 
 const SOCCER_STEPS = [
   { type: 'anagrafica', title: 'Dati anagrafici' },

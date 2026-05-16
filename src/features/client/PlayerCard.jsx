@@ -3,7 +3,7 @@ import { RankRing }       from '../../components/ui/RankRing'
 import { useClientRank }  from '../../hooks/useClientRank'
 import { getStatsConfig, getCategoriaById } from '../../constants'
 
-export function PlayerCard({ client, onEnter }) {
+export function PlayerCard({ client, _onEnter }) {
   const { rankObj, color } = useClientRank(client)
   const xpPct  = client.xpNext > 0 ? Math.round((client.xp / client.xpNext) * 100) : 0
   const config = getStatsConfig(client.categoria)

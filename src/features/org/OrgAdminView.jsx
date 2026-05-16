@@ -1,4 +1,3 @@
-import { useState }        from 'react'
 import { TrainerProvider } from '../../context/TrainerContext'
 import { ReadonlyProvider } from '../../context/ReadonlyContext'
 import { TrainerShell }    from '../../components/layout/TrainerShell'

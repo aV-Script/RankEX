@@ -77,32 +77,20 @@ export function ClientsPage({ orgId, clients = [], clientsLoading: loading = fal
 
       {/* ── Intestazione + filtri ─────────────────────────────────────────────── */}
       <div className="px-4 sm:px-6 pt-5 pb-3 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h1 className="font-display font-black text-[22px] sm:text-[24px] text-white m-0">
-            I tuoi clienti
-          </h1>
-          <div className="flex items-center gap-3">
-            {!loading && (
-              <span className="font-display text-[11px] text-white/30">
-                {filters.filteredClients.length}{' '}
-                {filters.filteredClients.length === 1 ? 'cliente' : 'clienti'}
-              </span>
-            )}
-            <button
-              onClick={() => setView('new')}
-              className="rx-btn-primary font-display text-[10px] tracking-[1.5px] py-1.5 px-3 rounded-[3px] cursor-pointer"
-            >
-              + NUOVO
-            </button>
-          </div>
+        <div className="flex items-center gap-2">
+          <input
+            placeholder="Cerca per nome..."
+            value={filters.query}
+            onChange={e => filters.onQueryChange(e.target.value)}
+            className="input-base input-compact flex-1"
+          />
+          <button
+            onClick={() => setView('new')}
+            className="rx-btn-primary font-display text-[10px] tracking-[1.5px] py-1.5 px-3 rounded-[3px] cursor-pointer shrink-0"
+          >
+            + NUOVO
+          </button>
         </div>
-
-        <input
-          placeholder="Cerca per nome..."
-          value={filters.query}
-          onChange={e => filters.onQueryChange(e.target.value)}
-          className="input-base w-full"
-        />
 
         <div className="flex flex-col gap-2">
 

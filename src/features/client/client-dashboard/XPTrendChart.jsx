@@ -60,10 +60,7 @@ export function XPTrendChart({ log = [], color }) {
   }, [log, bucket])
 
   return (
-    <div
-      className="rounded-[4px] p-5"
-      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
-    >
+    <div className="rounded-[4px] p-5 rx-card">
       <div className="flex items-center justify-between mb-4">
         <div className="font-display text-[10px] tracking-[3px] uppercase" style={{ color: '#0fd65a' }}>
           ◈ Andamento XP

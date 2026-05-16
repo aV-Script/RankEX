@@ -1,6 +1,6 @@
 import {
-  collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc,
-  doc, query, where, writeBatch, increment,
+  collection, getDocs, getDoc, updateDoc,
+  doc, query, writeBatch, increment,
 } from 'firebase/firestore'
 import { db }          from './db'
 import { clientsPath } from '../paths'

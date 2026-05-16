@@ -42,11 +42,10 @@ function ChampionCard({ label, maxVal, winners }) {
         border: '1px solid rgba(255,215,0,0.15)',
       }}
     >
-      <div className="flex items-center justify-between gap-1">
+      <div className="flex items-center gap-1">
         <span className="font-display text-[10px] font-semibold tracking-[1.5px] text-white/35 truncate uppercase">
           {label}
         </span>
-        <span className="text-[11px] shrink-0">🥇</span>
       </div>
       <div className="flex flex-col gap-0.5">
         {winners.map(w => (

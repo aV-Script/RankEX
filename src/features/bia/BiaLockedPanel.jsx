@@ -1,7 +1,7 @@
 /**
  * Pannello BIA bloccato — mostrato al cliente che non ha la BIA.
  */
-export function BiaLockedPanel({ profileType, color }) {
+export function BiaLockedPanel({ profileType, _color }) {
   const isTestsOnly = profileType === 'tests_only'
   const lockedLabel = isTestsOnly ? 'Bioimpedenziometria' : 'Test atletici'
   const lockedDesc  = isTestsOnly
