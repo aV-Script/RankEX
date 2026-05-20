@@ -82,10 +82,8 @@ export function CampionamentoView({ client, _color, onSave, onBack }) {
                 onUpdate={updateValue}
               />
             ))}
-            <div className="lg:hidden flex justify-center mt-2">
-              <Button size="sm" onClick={handleRequestSave} disabled={loading}>
-                SALVA
-              </Button>
+            <div className="lg:hidden mt-2">
+              <Button onClick={handleRequestSave} disabled={loading}>SALVA</Button>
             </div>
           </div>
 
@@ -100,11 +98,7 @@ export function CampionamentoView({ client, _color, onSave, onBack }) {
               oldMedia={oldMedia}
               filledCount={filledCount}
             />
-            <div className="flex justify-center">
-              <Button size="sm" onClick={handleRequestSave} disabled={loading}>
-                SALVA
-              </Button>
-            </div>
+            <Button onClick={handleRequestSave} disabled={loading}>SALVA</Button>
           </div>
 
         </div>
