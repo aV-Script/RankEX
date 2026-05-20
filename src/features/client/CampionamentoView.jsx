@@ -4,24 +4,6 @@ import { ConfirmDialog }    from '../../components/common/ConfirmDialog'
 import { TestInput }        from '../../components/modals/campionamento-modal/TestInput'
 import { RankPreview }      from '../../components/modals/campionamento-modal/RankPreview'
 import { useCampionamento } from '../../components/modals/campionamento-modal/useCampionamento'
-import { useCallback }      from 'react'
-import { useRegisterContextMenu } from '../../context/NavMenuContext'
-
-const ICON_BACK = (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="15 18 9 12 15 6"/>
-  </svg>
-)
-const ICON_SAVE = (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9 11l3 3L22 4"/>
-    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-  </svg>
-)
-const CAMP_CTX = [
-  { id: '__back__', label: 'Dashboard', icon: ICON_BACK },
-  { id: '__save__', label: 'Salva',     icon: ICON_SAVE },
-]
 
 export function CampionamentoView({ client, _color, onSave, onBack }) {
   const {
@@ -44,13 +26,6 @@ export function CampionamentoView({ client, _color, onSave, onBack }) {
     handleConfirmSave,
     setShowConfirm,
   } = useCampionamento({ client, onSave, onBack })
-
-  const handleCampCtx = useCallback(id => {
-    if (id === '__back__') onBack()
-    else if (id === '__save__') handleRequestSave()
-  }, [onBack, handleRequestSave])
-
-  useRegisterContextMenu('Test', CAMP_CTX, null, handleCampCtx)
 
   return (
     <div className="min-h-screen text-white">
@@ -82,13 +57,14 @@ export function CampionamentoView({ client, _color, onSave, onBack }) {
                 onUpdate={updateValue}
               />
             ))}
-            <div className="lg:hidden mt-2">
-              <Button onClick={handleRequestSave} disabled={loading}>SALVA</Button>
+            <div className="lg:hidden mt-2 grid grid-cols-2 gap-2">
+              <Button size="sm" variant="ghost" onClick={onBack}>INDIETRO</Button>
+              <Button size="sm" onClick={handleRequestSave} disabled={loading}>SALVA</Button>
             </div>
           </div>
 
           {/* Preview desktop */}
-          <div className="hidden lg:flex flex-col gap-4 w-80 shrink-0 sticky top-6">
+          <div className="hidden lg:flex flex-col gap-4 w-72 shrink-0 sticky top-6">
             <RankPreview
               client={client}
               statsForPreview={statsForPreview}
@@ -98,7 +74,10 @@ export function CampionamentoView({ client, _color, onSave, onBack }) {
               oldMedia={oldMedia}
               filledCount={filledCount}
             />
-            <Button onClick={handleRequestSave} disabled={loading}>SALVA</Button>
+            <div className="grid grid-cols-2 gap-2">
+              <Button size="sm" variant="ghost" onClick={onBack}>INDIETRO</Button>
+              <Button size="sm" onClick={handleRequestSave} disabled={loading}>SALVA</Button>
+            </div>
           </div>
 
         </div>

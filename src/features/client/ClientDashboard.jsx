@@ -237,28 +237,6 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
 
   useRegisterContextMenu('Atleta', contextItems, tab, handleContextNav)
 
-  // ── Views overlay ─────────────────────────────────────────────────────────
-  if (view === 'campionamento') {
-    return (
-      <CampionamentoView
-        client={client}
-        color={color}
-        onSave={handleSaveCampionamento}
-        onBack={() => setView('dashboard')}
-      />
-    )
-  }
-  if (view === 'bia') {
-    return (
-      <BiaView
-        client={client}
-        color={color}
-        onSave={(biaData) => handleSaveBia(client, biaData)}
-        onBack={() => setView('dashboard')}
-      />
-    )
-  }
-
   return (
     <div className="min-h-screen text-white flex flex-col">
 
@@ -292,7 +270,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
             ].filter(Boolean).map(t => (
               <button
                 key={t.id}
-                onClick={() => setActiveTab(t.id)}
+                onClick={() => { setView('dashboard'); setActiveTab(t.id) }}
                 aria-current={tab === t.id ? 'page' : undefined}
                 className="flex items-center gap-1.5 px-3 h-full shrink-0 cursor-pointer border-none bg-transparent relative transition-colors"
                 style={{ color: tab === t.id ? '#0fd65a' : 'rgba(200,212,224,0.35)' }}
@@ -356,7 +334,23 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
       </header>
 
       {/* ── Body ──────────────────────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {view === 'campionamento' && (
+        <CampionamentoView
+          client={client}
+          color={color}
+          onSave={handleSaveCampionamento}
+          onBack={() => setView('dashboard')}
+        />
+      )}
+      {view === 'bia' && (
+        <BiaView
+          client={client}
+          color={color}
+          onSave={(biaData) => handleSaveBia(client, biaData)}
+          onBack={() => setView('dashboard')}
+        />
+      )}
+      <div className={`flex-1 flex flex-col min-w-0 ${view !== 'dashboard' ? 'hidden' : ''}`}>
 
         {/* Banner upgrade — solo per bia_only (manca i test); il caso tests_only è gestito nel tab BIA */}
         {profileType === 'bia_only' && (

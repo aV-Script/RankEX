@@ -117,7 +117,7 @@ const VARIANT_STYLES = {
 }
 
 export function Button({ variant = 'primary', size = 'md', loading, disabled, className = '', children, ...props }) {
-  const padding = size === 'sm' ? '5px 10px' : '12px 16px'
+  const padding = size === 'sm' ? '8px 14px' : '12px 16px'
   return (
     <button
       disabled={loading || disabled}
