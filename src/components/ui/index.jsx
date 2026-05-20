@@ -116,7 +116,8 @@ const VARIANT_STYLES = {
   },
 }
 
-export function Button({ variant = 'primary', loading, disabled, className = '', children, ...props }) {
+export function Button({ variant = 'primary', size = 'md', loading, disabled, className = '', children, ...props }) {
+  const padding = size === 'sm' ? '5px 10px' : '12px 16px'
   return (
     <button
       disabled={loading || disabled}
@@ -129,7 +130,7 @@ export function Button({ variant = 'primary', loading, disabled, className = '',
       style={{
         ...VARIANT_STYLES[variant],
         borderRadius: '3px',
-        padding:      '12px 16px',
+        padding,
       }}
       {...props}
     >
