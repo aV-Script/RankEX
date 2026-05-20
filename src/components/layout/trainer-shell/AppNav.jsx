@@ -9,7 +9,6 @@ export function AppNav({ page, onNavigate, onLogout }) {
     : NAV_ITEMS
 
   const activeIndex = allNavItems.findIndex(item => item.id === page)
-  const pillPct     = 100 / allNavItems.length
   const touchStartX = useRef(null)
   const touchStartY = useRef(null)
 
@@ -45,7 +44,7 @@ export function AppNav({ page, onNavigate, onLogout }) {
         </span>
 
         {/* Nav items — truly centered */}
-        <nav className="flex items-center justify-center gap-0.5 w-full">
+        <nav className="flex items-center justify-center gap-0.5 w-full self-stretch">
           {allNavItems.map(item => {
             const active = page === item.id
             return (
@@ -53,17 +52,8 @@ export function AppNav({ page, onNavigate, onLogout }) {
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
                 aria-current={active ? 'page' : undefined}
-                className="flex items-center gap-1.5 px-3 h-8 rounded-[3px] cursor-pointer border-none transition-all font-display text-[11px] tracking-[1.5px] uppercase"
-                style={active ? {
-                  background:  'rgba(15,214,90,0.1)',
-                  border:      '1px solid rgba(15,214,90,0.28)',
-                  color:       '#0fd65a',
-                  boxShadow:   '0 0 10px rgba(15,214,90,0.12)',
-                } : {
-                  background:  'transparent',
-                  border:      '1px solid transparent',
-                  color:       'rgba(200,212,224,0.38)',
-                }}
+                className="relative flex items-center gap-1.5 px-3 h-full cursor-pointer border-none bg-transparent font-display text-[11px] tracking-[1.5px] uppercase transition-colors"
+                style={{ color: active ? '#0fd65a' : 'rgba(200,212,224,0.38)' }}
                 onMouseEnter={e => {
                   if (!active) e.currentTarget.style.color = 'rgba(200,212,224,0.75)'
                 }}
@@ -71,7 +61,16 @@ export function AppNav({ page, onNavigate, onLogout }) {
                   if (!active) e.currentTarget.style.color = 'rgba(200,212,224,0.38)'
                 }}
               >
-                <span style={{ display: 'flex', opacity: active ? 1 : 0.7 }}>{item.icon}</span>
+                {active && (
+                  <div
+                    aria-hidden="true"
+                    className="absolute bottom-0 left-2 right-2 h-[2px] rounded-t-sm"
+                    style={{ background: 'linear-gradient(90deg,#0fd65a,#00c8ff)', boxShadow: '0 0 6px rgba(15,214,90,0.45)' }}
+                  />
+                )}
+                <span style={{ display: 'flex', filter: active ? 'drop-shadow(0 0 4px rgba(15,214,90,0.5))' : 'none' }}>
+                  {item.icon}
+                </span>
                 {item.label}
               </button>
             )
@@ -122,24 +121,6 @@ export function AppNav({ page, onNavigate, onLogout }) {
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          {activeIndex >= 0 && (
-            <div
-              aria-hidden="true"
-              style={{
-                position:   'absolute',
-                top:        6,
-                bottom:     6,
-                left:       `calc(${activeIndex * pillPct}% + 6px)`,
-                width:      `calc(${pillPct}% - 12px)`,
-                borderRadius: 8,
-                background: 'rgba(15,214,90,0.08)',
-                border:     '1px solid rgba(15,214,90,0.16)',
-                boxShadow:  '0 0 10px rgba(15,214,90,0.08)',
-                transition: 'left 240ms cubic-bezier(0.34,1.56,0.64,1)',
-                pointerEvents: 'none',
-              }}
-            />
-          )}
           {allNavItems.map(item => {
             const active = page === item.id
             return (
@@ -149,20 +130,22 @@ export function AppNav({ page, onNavigate, onLogout }) {
                 aria-label={item.label}
                 aria-current={active ? 'page' : undefined}
                 className="flex-1 flex flex-col items-center gap-1 py-2.5 cursor-pointer relative border-none bg-transparent"
+                style={{ color: active ? '#0fd65a' : 'rgba(200,212,224,0.3)', transition: 'color 150ms' }}
               >
+                {active && (
+                  <div
+                    aria-hidden="true"
+                    className="absolute top-0 left-2 right-2 h-[2px] rounded-b-sm"
+                    style={{ background: 'linear-gradient(90deg,#0fd65a,#00c8ff)', boxShadow: '0 0 6px rgba(15,214,90,0.45)' }}
+                  />
+                )}
                 <span style={{
-                  color:      active ? '#0fd65a' : 'rgba(200,212,224,0.3)',
-                  transform:  active ? 'scale(1.12)' : 'scale(1)',
-                  transition: 'color 150ms, transform 200ms cubic-bezier(0.34,1.56,0.64,1)',
-                  display:    'flex',
-                  filter:     active ? 'drop-shadow(0 0 6px rgba(15,214,90,0.5))' : 'none',
+                  display: 'flex',
+                  filter:  active ? 'drop-shadow(0 0 6px rgba(15,214,90,0.5))' : 'none',
                 }}>
                   {item.icon}
                 </span>
-                <span
-                  className="font-display text-[10px] tracking-[1px]"
-                  style={{ color: active ? '#0fd65a' : 'rgba(200,212,224,0.3)', transition: 'color 150ms' }}
-                >
+                <span className="font-display text-[10px] tracking-[1px]">
                   {item.label.toUpperCase()}
                 </span>
               </button>

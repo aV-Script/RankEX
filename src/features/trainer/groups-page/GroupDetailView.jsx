@@ -8,17 +8,20 @@ import { GroupChampions }                            from './GroupChampions'
 import { GroupAnalysis }                             from './GroupAnalysis'
 import { GroupComparison }                           from './GroupComparison'
 import { getSlotsByGroup }                           from '../../../firebase/services/calendar'
-import { SLOT_STATUS }                               from '../../../constants/slotStatus'
 import { GroupReportPrint }                          from './GroupReportPrint'
 import { GroupNotes }                               from './GroupNotes'
+import { GroupSessionsPanel }                        from './GroupSessionsPanel'
 import {
   addClientToGroupSlots,
   removeClientFromGroupSlots,
 } from '../../../features/calendar/calendarGroupUtils'
 import { EmptyState } from '../../../components/ui'
 import { useRegisterContextMenu } from '../../../context/NavMenuContext'
+import { useToast }           from '../../../hooks/useToast'
+import { PrintPickerModal }   from '../../../components/common/PrintPickerModal'
 
 const CLIENTS_PAGE_SIZE = 8
+const SOCCER_CATS = ['soccer_youth', 'soccer_junior', 'soccer']
 
 // ── Icone tab ─────────────────────────────────────────────────────────────────
 
@@ -104,6 +107,7 @@ const TABS = [
 // ── Componente principale ─────────────────────────────────────────────────────
 
 export function GroupDetailView({ group, clients, orgId, onToggleClient, onRename, onDelete, onBack }) {
+  const toast = useToast()
   const [subView,      setSubView]      = useState('manage')
   const [clientSearch, setClientSearch] = useState('')
   const [isEditing,    setIsEditing]    = useState(false)
@@ -133,7 +137,6 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
     clients.filter(c => group.clientIds.includes(c.id))
   , [clients, group.clientIds])
 
-  const SOCCER_CATS = ['soccer_youth', 'soccer_junior', 'soccer']
   const mixedFascia = useMemo(() => {
     const fasce = new Set(allClientsInGroup.map(c => c.categoria).filter(v => SOCCER_CATS.includes(v)))
     return fasce.size > 1
@@ -143,7 +146,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
     clients.filter(c => c.name.toLowerCase().includes(clientSearch.toLowerCase()))
   , [clients, clientSearch])
 
-  const clientsInGroup    = useMemo(() => filteredClients.filter(c =>  group.clientIds.includes(c.id)), [filteredClients, group.clientIds])
+  const clientsInGroup    = allClientsInGroup
   const clientsNotInGroup = useMemo(() => filteredClients.filter(c => !group.clientIds.includes(c.id)), [filteredClients, group.clientIds])
 
   const inGroupPagination    = usePagination(clientsInGroup,    CLIENTS_PAGE_SIZE)
@@ -164,12 +167,12 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
       } else {
         await addClientToGroupSlots(orgId, group.id, client.id)
       }
-    } catch (err) {
-      console.error('[GroupDetailView] toggleClient failed', err)
+    } catch {
+      toast.error('Impossibile aggiornare il gruppo')
     } finally {
       setToggling(null)
     }
-  }, [toggleDialog, group.id, onToggleClient, orgId])
+  }, [toggleDialog, group.id, onToggleClient, orgId, toast])
 
   const handleRename = useCallback(async () => {
     if (!editingName.trim() || editingName === group.name) { setIsEditing(false); return }
@@ -228,7 +231,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
               <ActionBtn onClick={() => { setIsEditing(false); setEditingName(group.name) }} muted>ANN.</ActionBtn>
             </div>
           ) : (
-            <div className="flex items-center justify-center min-w-full h-full">
+            <div className="flex items-center justify-center h-full min-w-full w-fit">
               {[
                 { id: 'manage',      label: 'Gestione',  icon: ICON_MANAGE      },
                 { id: 'leaderboard', label: 'Classifica',icon: ICON_LEADERBOARD },
@@ -324,11 +327,11 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
             />
           ) : (
             <div className="px-4 sm:px-6 pt-4 pb-12 flex flex-col gap-4">
+              <GroupChampions clients={allClientsInGroup} />
               <div className="rounded-[4px] p-5 rx-card">
                 <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-5" style={{ color: '#0fd65a' }}>◈ Classifica</div>
                 <GroupLeaderboard clients={allClientsInGroup} />
               </div>
-              <GroupChampions clients={allClientsInGroup} />
             </div>
           )
         )}
@@ -363,14 +366,6 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
 
         {subView === 'manage' && (
           <div className="px-4 sm:px-6 pt-4 pb-12 flex flex-col gap-4">
-
-            {/* Search bar full-width */}
-            <input
-              value={clientSearch}
-              onChange={e => setClientSearch(e.target.value)}
-              placeholder="Cerca atleta per nome..."
-              className="input-base w-full"
-            />
 
             {/* Tre colonne */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
@@ -422,9 +417,15 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
 
               {/* Col 3: Da aggiungere */}
               <div className="rounded-[4px] p-5 rx-card">
-                <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-5" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>
                   ◈ Da aggiungere <span className="text-white/25 ml-1">({clientsNotInGroup.length})</span>
                 </div>
+                <input
+                  value={clientSearch}
+                  onChange={e => setClientSearch(e.target.value)}
+                  placeholder="Cerca per nome..."
+                  className="input-base w-full mb-4"
+                />
                 {notInGroupPagination.paginatedItems.length === 0 ? (
                   <EmptyState
                     icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>}
@@ -501,251 +502,6 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
       )}
     </div>
   )
-}
-
-// ── PrintPickerModal ──────────────────────────────────────────────────────────
-
-function PrintPickerModal({ onSelect, onCancel }) {
-  return (
-    <div className="fixed inset-0 z-[9998] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.72)' }}>
-      <div className="rounded-xl p-6 flex flex-col gap-5" style={{ background: '#0c1219', border: '1px solid #1e293b', width: 360, boxShadow: '0 24px 64px rgba(0,0,0,0.8)' }}>
-        <div>
-          <div className="font-display font-black tracking-[3px] text-[13px] text-white uppercase mb-1">Esporta PDF</div>
-          <div className="text-[11px] text-white/40 font-body">Scegli il formato di stampa</div>
-        </div>
-        <div className="flex flex-col gap-3">
-          <button
-            onClick={() => onSelect('dark')}
-            className="flex items-center gap-4 p-4 rounded-lg text-left cursor-pointer transition-colors"
-            style={{ background: '#07090e', border: '1px solid #1e293b' }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = '#0ec452'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = '#1e293b'}
-          >
-            <div className="flex-shrink-0 w-10 h-10 rounded flex items-center justify-center" style={{ background: '#0f1820' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0ec452" strokeWidth="1.8">
-                <path d="M21 15.9A9 9 0 1 1 8.1 3a7 7 0 0 0 12.9 12.9z"/>
-              </svg>
-            </div>
-            <div>
-              <div className="font-display font-bold text-[11px] tracking-[1.5px] text-white uppercase mb-0.5">Colore — Dark</div>
-              <div className="text-[10px] text-white/40">Sfondo scuro, colori rank completi</div>
-            </div>
-          </button>
-          <button
-            onClick={() => onSelect('bw')}
-            className="flex items-center gap-4 p-4 rounded-lg text-left cursor-pointer transition-colors"
-            style={{ background: '#07090e', border: '1px solid #1e293b' }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = '#94a3b8'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = '#1e293b'}
-          >
-            <div className="flex-shrink-0 w-10 h-10 rounded flex items-center justify-center" style={{ background: '#0f1820' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.8">
-                <circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18" strokeWidth="1.2"/>
-              </svg>
-            </div>
-            <div>
-              <div className="font-display font-bold text-[11px] tracking-[1.5px] text-white uppercase mb-0.5">B&amp;N — Economica</div>
-              <div className="text-[10px] text-white/40">Sfondo bianco, scala di grigi, meno inchiostro</div>
-            </div>
-          </button>
-        </div>
-        <button onClick={onCancel} className="text-white/30 hover:text-white/60 text-[10px] font-display tracking-[2px] uppercase transition-colors bg-transparent border-none cursor-pointer self-center">
-          Annulla
-        </button>
-      </div>
-    </div>
-  )
-}
-
-// ── Componenti locali ─────────────────────────────────────────────────────────
-
-function GroupSessionsPanel({ slots, loading }) {
-  const today = new Date().toISOString().slice(0, 10)
-
-  const upcoming = useMemo(() =>
-    slots
-      .filter(s => s.date >= today && s.status === SLOT_STATUS.PLANNED)
-      .sort((a, b) => a.date.localeCompare(b.date))
-  , [slots, today])
-
-  const recent = useMemo(() =>
-    slots
-      .filter(s => s.date < today && s.status === SLOT_STATUS.COMPLETED)
-      .sort((a, b) => b.date.localeCompare(a.date))
-  , [slots, today])
-
-  const upcomingPagination = usePagination(upcoming, 5)
-  const recentPagination   = usePagination(recent,   10)
-
-  const stats = useMemo(() => {
-    const month30ago = new Date()
-    month30ago.setDate(month30ago.getDate() - 30)
-    const cutoff = month30ago.toISOString().slice(0, 10)
-
-    const completedLast30 = slots.filter(s =>
-      s.status === SLOT_STATUS.COMPLETED && s.date >= cutoff && s.date < today
-    )
-    const allCompleted = slots.filter(s =>
-      s.status === SLOT_STATUS.COMPLETED && s.date < today
-    )
-
-    let attendanceRate = null
-    if (allCompleted.length > 0) {
-      const ratioSum = allCompleted.reduce((sum, s) => {
-        const invited  = s.clientIds?.length ?? 0
-        const attended = s.attendees?.length ?? 0
-        return sum + (invited > 0 ? attended / invited : 1)
-      }, 0)
-      attendanceRate = Math.round(ratioSum / allCompleted.length * 100)
-    }
-
-    return {
-      completedLast30: completedLast30.length,
-      plannedCount:    upcoming.length,
-      attendanceRate,
-    }
-  }, [slots, today, upcoming])
-
-  if (loading) return (
-    <div className="rounded-[4px] p-5 rx-card">
-      <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-4" style={{ color: '#0fd65a' }}>◈ Sessioni</div>
-      <div className="flex flex-col gap-2">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="skeleton h-10 rounded-[3px]" />
-        ))}
-      </div>
-    </div>
-  )
-
-  const isEmpty = upcoming.length === 0 && recent.length === 0
-
-  return (
-    <div className="rounded-[4px] p-5 rx-card">
-      <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-4" style={{ color: '#0fd65a' }}>◈ Sessioni</div>
-
-      {/* Stats row */}
-      <div className="grid grid-cols-3 gap-2 mb-5">
-        <SessionStat label="COMPLETATE (30GG)" value={stats.completedLast30} />
-        <SessionStat label="IN PROGRAMMA"      value={stats.plannedCount} />
-        <SessionStat
-          label="PRESENZE MEDIE"
-          value={stats.attendanceRate != null ? `${stats.attendanceRate}%` : '—'}
-          highlight={stats.attendanceRate != null && stats.attendanceRate >= 75}
-        />
-      </div>
-
-      {isEmpty ? (
-        <EmptyState
-          icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>}
-          title="Nessuna sessione"
-          description="Le sessioni del gruppo appariranno qui dopo la chiusura dal calendario."
-        />
-      ) : (
-        <div className="flex flex-col lg:flex-row gap-4">
-
-          {/* Prossime */}
-          {upcoming.length > 0 && (
-            <div className="flex-1">
-              <div className="font-display text-[10px] tracking-[1.5px] text-white/30 mb-2">
-                PROSSIME ({upcoming.length})
-              </div>
-              <div
-                className="rounded-[3px] overflow-hidden"
-                style={{ border: '1px solid rgba(255,255,255,0.05)' }}
-              >
-                {upcomingPagination.paginatedItems.map((slot, i) => (
-                  <SlotRow key={slot.id} slot={slot} upcoming border={i < upcomingPagination.paginatedItems.length - 1} />
-                ))}
-              </div>
-              <Pagination {...upcomingPagination} />
-            </div>
-          )}
-
-          {/* Recenti */}
-          {recent.length > 0 && (
-            <div className="flex-1">
-              <div className="font-display text-[10px] tracking-[1.5px] text-white/30 mb-2">
-                RECENTI ({recent.length})
-              </div>
-              <div
-                className="rounded-[3px] overflow-hidden"
-                style={{ border: '1px solid rgba(255,255,255,0.05)' }}
-              >
-                {recentPagination.paginatedItems.map((slot, i) => (
-                  <SlotRow key={slot.id} slot={slot} border={i < recentPagination.paginatedItems.length - 1} />
-                ))}
-              </div>
-              <Pagination {...recentPagination} />
-            </div>
-          )}
-
-        </div>
-      )}
-    </div>
-  )
-}
-
-function SessionStat({ label, value, highlight }) {
-  return (
-    <div
-      className="px-3 py-2.5 rounded-[3px] flex flex-col gap-1"
-      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
-    >
-      <span className="font-display text-[10px] tracking-[1px] text-white/30">{label}</span>
-      <span
-        className="font-display font-black text-[17px] leading-tight"
-        style={{ color: highlight ? '#0fd65a' : 'rgba(255,255,255,0.75)' }}
-      >
-        {value}
-      </span>
-    </div>
-  )
-}
-
-function SlotRow({ slot, upcoming, border }) {
-  const dateLabel = formatSlotDate(slot.date)
-  const timeLabel = slot.startTime ? `${slot.startTime}${slot.endTime ? ` – ${slot.endTime}` : ''}` : null
-  const attended  = slot.attendees?.length ?? 0
-  const invited   = slot.clientIds?.length ?? 0
-
-  return (
-    <div
-      className="flex items-center justify-between px-3 py-2.5"
-      style={{
-        background: upcoming ? 'rgba(46,207,255,0.04)' : 'rgba(255,255,255,0.02)',
-        borderBottom: border ? '1px solid rgba(255,255,255,0.04)' : 'none',
-      }}
-    >
-      <div className="flex items-center gap-3">
-        <div
-          className="w-1.5 h-1.5 rounded-full shrink-0"
-          style={{ background: upcoming ? '#2ecfff' : '#0fd65a' }}
-        />
-        <div>
-          <div className="font-display text-[12px] text-white/70">{dateLabel}</div>
-          {timeLabel && (
-            <div className="font-body text-[11px] text-white/30 mt-0.5">{timeLabel}</div>
-          )}
-        </div>
-      </div>
-      {!upcoming && invited > 0 && (
-        <div className="font-display text-[11px]" style={{ color: attended === invited ? '#0fd65a' : 'rgba(255,255,255,0.3)' }}>
-          {attended}/{invited}
-        </div>
-      )}
-      {upcoming && (
-        <div className="font-display text-[10px] tracking-[0.5px]" style={{ color: '#2ecfff66' }}>
-          PIANIF.
-        </div>
-      )}
-    </div>
-  )
-}
-
-function formatSlotDate(dateStr) {
-  if (!dateStr) return ''
-  const d = new Date(dateStr + 'T12:00')
-  return d.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' })
 }
 
 function ClientRow({ client, inGroup, loading, onToggle }) {

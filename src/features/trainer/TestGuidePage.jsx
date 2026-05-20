@@ -34,49 +34,54 @@ export function TestGuidePage() {
 
     return (
       <div className="text-white">
-        <div className="hidden lg:flex items-center px-4 lg:px-6 py-4 border-b border-white/[.05]">
-          <h1 className="font-display font-black text-[20px] m-0">Guida Test</h1>
-        </div>
-
-        <div className="flex min-h-[calc(100vh-57px)]">
+          <div className="flex min-h-[calc(100vh-57px)]">
           {/* Sidebar desktop */}
           <aside className="hidden lg:flex w-60 xl:w-72 shrink-0 border-r border-white/[.05] flex-col sticky top-[57px] h-[calc(100vh-57px)] overflow-y-auto">
-            {/* Selettore fascia */}
-            <div className="p-4 pb-2 flex flex-col gap-1 border-b border-white/[.05]">
-              <p className="font-display text-[10px] tracking-[2px] text-white/30 mb-1">FASCIA D'ETÀ</p>
+            {/* Tab fascia */}
+            <div className="flex shrink-0 border-b border-white/[.05]">
               {SOCCER_AGE_GROUPS.map(g => {
-                const fc = FASCIA_COLORS[g.value] ?? SOCCER_COLOR
+                const fc     = FASCIA_COLORS[g.value] ?? SOCCER_COLOR
+                const active = soccerFascia === g.value
                 return (
                   <button
                     key={g.value}
                     onClick={() => { setSoccerFascia(g.value); setSoccerSelectedTest(ALL_TESTS.find(t => t.categories.includes(g.value))?.key ?? null) }}
-                    className="text-left px-3 py-2 rounded-[3px] font-body text-[12px] cursor-pointer border transition-all"
-                    style={soccerFascia === g.value
-                      ? { background: fc + '18', borderColor: fc + '55', color: '#fff' }
-                      : { background: 'transparent', borderColor: 'transparent', color: 'rgba(255,255,255,0.4)' }
-                    }
+                    className="relative flex-1 flex items-center justify-center py-3 font-display text-[9px] tracking-widest cursor-pointer border-none bg-transparent transition-colors"
+                    style={{ color: active ? fc : 'rgba(255,255,255,0.3)' }}
                   >
-                    {g.label}
-                    <span className="block font-display text-[10px] opacity-50 mt-0.5">{g.desc}</span>
+                    {active && (
+                      <div
+                        aria-hidden="true"
+                        className="absolute bottom-0 left-1 right-1 h-[2px] rounded-t-sm"
+                        style={{ background: `linear-gradient(90deg,${fc},${fc}88)`, boxShadow: `0 0 6px ${fc}44` }}
+                      />
+                    )}
+                    {g.label.toUpperCase()}
                   </button>
                 )
               })}
             </div>
-            <div className="p-4 flex flex-col gap-2">
-              {soccerTests.map(t => (
-                <button
-                  key={t.key}
-                  onClick={() => setSoccerSelectedTest(t.key)}
-                  className="text-left px-3 py-2.5 rounded-[3px] font-body text-[13px] cursor-pointer border transition-all"
-                  style={currentTest?.key === t.key
-                    ? { background: fasciaColor + '18', borderColor: fasciaColor + '44', color: '#fff' }
-                    : { background: 'transparent', borderColor: 'transparent', color: 'rgba(255,255,255,0.4)' }
-                  }
-                >
-                  {t.label}
-                  <span className="block font-display text-[10px] opacity-50 mt-0.5">{t.test}</span>
-                </button>
-              ))}
+            <div className="p-4 flex flex-col gap-1">
+              {soccerTests.map(t => {
+                const active = currentTest?.key === t.key
+                return (
+                  <button
+                    key={t.key}
+                    onClick={() => setSoccerSelectedTest(t.key)}
+                    className="text-left px-3 py-2.5 rounded-[3px] font-body text-[13px] cursor-pointer border-none bg-transparent transition-colors"
+                    style={{ color: active ? '#fff' : 'rgba(255,255,255,0.4)' }}
+                    onMouseEnter={e => { if (!active) e.currentTarget.style.color = 'rgba(255,255,255,0.7)' }}
+                    onMouseLeave={e => { if (!active) e.currentTarget.style.color = 'rgba(255,255,255,0.4)' }}
+                  >
+                    <span className="flex items-center gap-2">
+                      {active && <span className="w-1 h-1 rounded-full shrink-0" style={{ background: fasciaColor }} />}
+                      {!active && <span className="w-1 h-1 rounded-full shrink-0 opacity-0" />}
+                      {t.label.charAt(0) + t.label.slice(1).toLowerCase()}
+                    </span>
+                    <span className="block font-display text-[10px] mt-0.5 pl-3" style={{ color: active ? fasciaColor + 'aa' : 'rgba(255,255,255,0.2)' }}>{t.test}</span>
+                  </button>
+                )
+              })}
             </div>
           </aside>
 
@@ -137,7 +142,7 @@ export function TestGuidePage() {
                     >
                       <span className="font-body text-[14px]"
                         style={{ color: currentTest?.key === t.key ? '#fff' : 'rgba(255,255,255,0.6)' }}>
-                        {t.label}
+                        {t.label.charAt(0) + t.label.slice(1).toLowerCase()}
                       </span>
                       {currentTest?.key === t.key && (
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -190,50 +195,57 @@ export function TestGuidePage() {
   return (
     <div className="text-white">
 
-      {/* Header desktop */}
-      <div className="hidden lg:flex items-center px-4 lg:px-6 py-4 border-b border-white/[.05]">
-        <h1 className="font-display font-black text-[20px] m-0">Guida Test</h1>
-      </div>
-
       <div className="flex min-h-[calc(100vh-57px)]">
 
         {/* Sidebar desktop */}
         <aside className="hidden lg:flex w-60 xl:w-72 shrink-0 border-r border-white/[.05] flex-col sticky top-[57px] h-[calc(100vh-57px)] overflow-y-auto">
 
-          {/* Categorie */}
-          <div className="flex border-b border-white/[.05]">
-            {CATEGORIE.map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => handleSelectCat(cat.id)}
-                className="flex-1 py-3 font-display text-[10px] tracking-widest cursor-pointer border-none transition-all"
-                style={{
-                  background: selectedCat === cat.id ? cat.color + '18' : 'transparent',
-                  color: selectedCat === cat.id ? cat.color : 'rgba(255,255,255,0.3)',
-                  borderBottom: selectedCat === cat.id ? `2px solid ${cat.color}` : '2px solid transparent',
-                }}
-              >
-                {cat.label.toUpperCase()}
-              </button>
-            ))}
+          {/* Tab categorie */}
+          <div className="flex shrink-0 border-b border-white/[.05]">
+            {CATEGORIE.map(cat => {
+              const active = selectedCat === cat.id
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => handleSelectCat(cat.id)}
+                  className="relative flex-1 flex items-center justify-center py-3 font-display text-[9px] tracking-widest cursor-pointer border-none bg-transparent transition-colors"
+                  style={{ color: active ? cat.color : 'rgba(255,255,255,0.3)' }}
+                >
+                  {active && (
+                    <div
+                      aria-hidden="true"
+                      className="absolute bottom-0 left-1 right-1 h-[2px] rounded-t-sm"
+                      style={{ background: `linear-gradient(90deg,${cat.color},${cat.color}88)`, boxShadow: `0 0 6px ${cat.color}44` }}
+                    />
+                  )}
+                  {cat.label.toUpperCase()}
+                </button>
+              )
+            })}
           </div>
 
           {/* Lista test */}
-          <div className="p-4 flex flex-col gap-2">
-            {tests.map(t => (
-              <button
-                key={t.key}
-                onClick={() => setSelectedTest(t.key)}
-                className="text-left px-3 py-2.5 rounded-[3px] font-body text-[13px] cursor-pointer border transition-all"
-                style={selectedTest === t.key
-                  ? { background: catColor + '18', borderColor: catColor + '44', color: '#fff' }
-                  : { background: 'transparent', borderColor: 'transparent', color: 'rgba(255,255,255,0.4)' }
-                }
-              >
-                {t.label}
-                <span className="block font-display text-[10px] opacity-50 mt-0.5">{t.test}</span>
-              </button>
-            ))}
+          <div className="p-4 flex flex-col gap-1">
+            {tests.map(t => {
+              const active = selectedTest === t.key
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => setSelectedTest(t.key)}
+                  className="text-left px-3 py-2.5 rounded-[3px] font-body text-[13px] cursor-pointer border-none bg-transparent transition-colors"
+                  style={{ color: active ? '#fff' : 'rgba(255,255,255,0.4)' }}
+                  onMouseEnter={e => { if (!active) e.currentTarget.style.color = 'rgba(255,255,255,0.7)' }}
+                  onMouseLeave={e => { if (!active) e.currentTarget.style.color = 'rgba(255,255,255,0.4)' }}
+                >
+                  <span className="flex items-center gap-2">
+                    {active && <span className="w-1 h-1 rounded-full shrink-0" style={{ background: catColor }} />}
+                    {!active && <span className="w-1 h-1 rounded-full shrink-0 opacity-0" />}
+                    {t.label.charAt(0) + t.label.slice(1).toLowerCase()}
+                  </span>
+                  <span className="block font-display text-[10px] mt-0.5 pl-3" style={{ color: active ? catColor + 'aa' : 'rgba(255,255,255,0.2)' }}>{t.test}</span>
+                </button>
+              )
+            })}
           </div>
         </aside>
 
@@ -297,7 +309,7 @@ export function TestGuidePage() {
                     <div>
                       <span className="font-body text-[14px]"
                         style={{ color: selectedTest === t.key ? '#fff' : 'rgba(255,255,255,0.6)' }}>
-                        {t.label}
+                        {t.label.charAt(0) + t.label.slice(1).toLowerCase()}
                       </span>
                       <span className="block font-display text-[10px] opacity-40 mt-0.5">{t.test}</span>
                     </div>
@@ -336,10 +348,6 @@ function GuideContent({ test, guide, color }) {
   return (
     <>
       <div className="mb-10">
-        <p className="font-display text-[10px] tracking-[3px] mb-2" style={{ color }}>
-          GUIDA ESECUZIONE TEST
-        </p>
-
         <h2 className="font-display font-black text-[28px] lg:text-[32px] leading-tight m-0">
           {test.test}
         </h2>
@@ -352,47 +360,47 @@ function GuideContent({ test, guide, color }) {
       </div>
 
       <GuideSection title="Attrezzatura necessaria">
-        <ul className="flex flex-col gap-3">
+        <ul className="flex flex-col gap-2">
           {guide.equipment.map((item, i) => (
-            <li key={i} className="flex gap-2.5 items-start">
-              <span className="w-1.5 h-1.5 rounded-full mt-[6px]" style={{ background: color }} />
-              <span className="text-[14px] text-white/70">{item}</span>
+            <li key={i} className="flex gap-2.5 items-start rounded-[3px] px-3 py-2.5"
+              style={{ background: 'rgba(13,21,32,0.9)', border: `1px solid ${color}14` }}>
+              <span className="mt-0.5 text-[12px] shrink-0" style={{ color }}>{i + 1}</span>
+              <span className="text-[13px] text-white/60">{item}</span>
             </li>
           ))}
         </ul>
       </GuideSection>
 
       <GuideSection title="Riscaldamento">
-        <ol className="flex flex-col gap-3">
+        <ol className="flex flex-col gap-2">
           {guide.warmup.map((step, i) => (
-            <li key={i} className="flex gap-3 items-start">
-              <span className="text-[11px] text-white/25 mt-[2px] w-4">{i + 1}</span>
-              <span className="text-[14px] text-white/70">{step}</span>
+            <li key={i} className="flex gap-2.5 items-start rounded-[3px] px-3 py-2.5"
+              style={{ background: 'rgba(13,21,32,0.9)', border: `1px solid ${color}14` }}>
+              <span className="mt-0.5 text-[12px] shrink-0" style={{ color }}>{i + 1}</span>
+              <span className="text-[13px] text-white/60">{step}</span>
             </li>
           ))}
         </ol>
       </GuideSection>
 
       <GuideSection title="Protocollo di esecuzione">
-        <ol className="flex flex-col gap-4">
+        <ol className="flex flex-col gap-2">
           {guide.protocol.map((step, i) => (
-            <li key={i} className="flex gap-4 items-start">
-              <span className="font-display font-black text-[13px] w-7 h-7 rounded-[3px] flex items-center justify-center mt-[2px]"
-                style={{ background: color + '22', color }}>
-                {i + 1}
-              </span>
-              <span className="text-[14px] text-white/80">{step}</span>
+            <li key={i} className="flex gap-2.5 items-start rounded-[3px] px-3 py-2.5"
+              style={{ background: 'rgba(13,21,32,0.9)', border: `1px solid ${color}14` }}>
+              <span className="mt-0.5 text-[12px] shrink-0" style={{ color }}>{i + 1}</span>
+              <span className="text-[13px] text-white/60">{step}</span>
             </li>
           ))}
         </ol>
       </GuideSection>
 
       <GuideSection title="Note operative">
-        <ul className="flex flex-col gap-3">
+        <ul className="flex flex-col gap-2">
           {guide.notes.map((note, i) => (
             <li key={i} className="flex gap-2.5 items-start rounded-[3px] px-3 py-2.5"
-              style={{ background: 'rgba(13,21,32,0.9)', border: '1px solid rgba(15,214,90,0.08)' }}>
-              <span className="mt-0.5 text-[12px]" style={{ color }}>{i+1}</span>
+              style={{ background: 'rgba(13,21,32,0.9)', border: `1px solid ${color}14` }}>
+              <span className="mt-0.5 text-[12px] shrink-0" style={{ color }}>{i + 1}</span>
               <span className="text-[13px] text-white/60">{note}</span>
             </li>
           ))}

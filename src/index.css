@@ -147,6 +147,13 @@ body, #root {
 }
 .input-base::placeholder { color: rgba(255,255,255,0.2); }
 
+@media (min-width: 1024px) {
+  .input-base.input-compact {
+    padding:   7px 12px;
+    font-size: 13px;
+  }
+}
+
 select.input-base {
   color:      #ffffff;
   background: var(--rx-surface);

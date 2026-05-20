@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { getAuth }                          from 'firebase/auth'
 import app                                  from '../firebase/config'
 import { getNotes, addNote, deleteNoteItem } from '../firebase/services/notes'
+import { useToast }                         from './useToast'
 
 /**
  * Hook per la gestione delle note/commenti di un cliente.
@@ -11,17 +12,18 @@ import { getNotes, addNote, deleteNoteItem } from '../firebase/services/notes'
  * @param {{ role: string, name: string }} author — ruolo e nome dell'utente corrente
  */
 export function useNotes(orgId, clientId, author) {
+  const { error: toastError } = useToast()
   const [notes,   setNotes]   = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!orgId || !clientId) return
     setLoading(true)
-    getNotes(orgId, clientId).then(data => {
-      setNotes(data)
-      setLoading(false)
-    })
-  }, [orgId, clientId])
+    getNotes(orgId, clientId)
+      .then(data => setNotes(data))
+      .catch(() => toastError('Impossibile caricare le note'))
+      .finally(() => setLoading(false))
+  }, [orgId, clientId, toastError])
 
   // Raggruppamento: thread root (parentId null) + loro commenti
   const threads = notes
@@ -42,10 +44,14 @@ export function useNotes(orgId, clientId, author) {
       authorRole: author.role,
       parentId:   null,
     }
-    const ref  = await addNote(orgId, clientId, data)
-    const item = { id: ref.id, ...data, createdAt: new Date().toISOString() }
-    setNotes(prev => [...prev, item])
-  }, [orgId, clientId, author])
+    try {
+      const ref  = await addNote(orgId, clientId, data)
+      const item = { id: ref.id, ...data, createdAt: new Date().toISOString() }
+      setNotes(prev => [...prev, item])
+    } catch {
+      toastError('Impossibile aggiungere la nota')
+    }
+  }, [orgId, clientId, author, toastError])
 
   const handleAddComment = useCallback(async (parentId, text) => {
     if (!text.trim()) return
@@ -56,17 +62,24 @@ export function useNotes(orgId, clientId, author) {
       authorRole: author.role,
       parentId,
     }
-    const ref  = await addNote(orgId, clientId, data)
-    const item = { id: ref.id, ...data, createdAt: new Date().toISOString() }
-    setNotes(prev => [...prev, item])
-  }, [orgId, clientId, author])
+    try {
+      const ref  = await addNote(orgId, clientId, data)
+      const item = { id: ref.id, ...data, createdAt: new Date().toISOString() }
+      setNotes(prev => [...prev, item])
+    } catch {
+      toastError('Impossibile aggiungere il commento')
+    }
+  }, [orgId, clientId, author, toastError])
 
   const handleDelete = useCallback(async (noteId) => {
-    // Elimina nota e tutti i suoi commenti (se è un thread root)
     const toDelete = notes.filter(n => n.id === noteId || n.parentId === noteId)
-    await Promise.all(toDelete.map(n => deleteNoteItem(orgId, clientId, n.id)))
-    setNotes(prev => prev.filter(n => n.id !== noteId && n.parentId !== noteId))
-  }, [orgId, clientId, notes])
+    try {
+      await Promise.all(toDelete.map(n => deleteNoteItem(orgId, clientId, n.id)))
+      setNotes(prev => prev.filter(n => n.id !== noteId && n.parentId !== noteId))
+    } catch {
+      toastError('Impossibile eliminare la nota')
+    }
+  }, [orgId, clientId, notes, toastError])
 
   return { threads, loading, handleAddThread, handleAddComment, handleDelete }
 }

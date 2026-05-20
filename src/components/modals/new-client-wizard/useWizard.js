@@ -24,7 +24,7 @@ function calcTestFinalValue(test, tests) {
   return tests[test.key] === '' || isNaN(val) ? null : val
 }
 
-export function useWizard({ groups, onAdd, onClose, onAddGroup, onToggleClientGroup, isSoccer = false }) {
+export function useWizard({ _groups, onAdd, onClose, _onAddGroup, _onToggleClientGroup, isSoccer = false }) {
   const [step,        setStep]        = useState(0)
   const [anagrafica,  setAnagrafica]  = useState({ name: '', dataNascita: '', sesso: 'M', peso: '', altezza: '' })
   const [profileType, setProfileType] = useState('tests_only')
@@ -138,7 +138,7 @@ export function useWizard({ groups, onAdd, onClose, onAddGroup, onToggleClientGr
       setLoading(false)
       setShowConfirm(false)
     }
-  }, [anagrafica, profileType, categoria, account, onAdd, onClose])
+  }, [anagrafica, profileType, categoria, ruolo, isSoccer, account, onAdd, onClose])
 
   return {
     step, anagrafica, profileType, categoria, ruolo, account, errors, isLoading: loading,

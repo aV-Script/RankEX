@@ -3,7 +3,7 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid,
 } from 'recharts'
-import { ALL_TESTS, getRankFromMedia } from '../../../constants/index'
+import { ALL_TESTS } from '../../../constants/index'
 
 function heatColor(val) {
   if (val == null) return { bg: 'transparent', text: 'rgba(255,255,255,0.15)' }
@@ -13,35 +13,6 @@ function heatColor(val) {
 }
 
 export function GroupAnalysis({ clients }) {
-  // ── Più migliorati ──────────────────────────────────────────────────────────
-  const improved = useMemo(() => {
-    return clients
-      .map(c => {
-        const camps = c.campionamenti ?? []
-        if (camps.length < 2) return {
-          client: c,
-          improved: null, stable: null, regressed: null,
-          isFirst: camps.length === 1, noData: camps.length === 0,
-        }
-        const latest  = camps[0].stats ?? {}
-        const prev    = camps[1].stats ?? {}
-        const allKeys = new Set([...Object.keys(latest), ...Object.keys(prev)])
-        let imp = 0, sta = 0, reg = 0
-        allKeys.forEach(k => {
-          const n = latest[k] ?? 0
-          const p = prev[k]   ?? 0
-          if (n > p) imp++; else if (n < p) reg++; else sta++
-        })
-        return { client: c, improved: imp, stable: sta, regressed: reg, isFirst: false, noData: false }
-      })
-      .sort((a, b) => {
-        if (a.noData && !b.noData) return 1
-        if (!a.noData && b.noData) return -1
-        if (a.isFirst && !b.isFirst) return 1
-        if (!a.isFirst && b.isFirst) return -1
-        return (b.improved ?? 0) - (a.improved ?? 0)
-      })
-  }, [clients])
 
   // ── Heatmap ─────────────────────────────────────────────────────────────────
   const { statCols, heatRows, averageRow } = useMemo(() => {
@@ -111,29 +82,8 @@ export function GroupAnalysis({ clients }) {
       {/* Riga 2 — Andamento nel tempo (full width) */}
       <GroupTrendChart clients={clients} />
 
-      {/* Riga 3 — 1/3 Più migliorati + 2/3 Heatmap */}
-      <div className="flex flex-col lg:flex-row gap-4 items-start">
-
-        {/* Più migliorati — 1/3 */}
-        <div className="w-full lg:w-[33%] rounded-[4px] p-5 rx-card">
-          <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-5" style={{ color: '#0fd65a' }}>◈ Più migliorati</div>
-          <div
-            className="rounded-[3px] p-4 flex flex-col gap-2"
-            style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}
-          >
-            {improved.map(({ client, improved: imp, stable: sta, regressed: reg, isFirst, noData }) => (
-              <ImprovementRow
-                key={client.id}
-                client={client}
-                improved={imp} stable={sta} regressed={reg}
-                isFirst={isFirst} noData={noData}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Heatmap — 2/3 */}
-        <div className="w-full lg:w-[67%] rounded-[4px] p-5 rx-card">
+      {/* Riga 3 — Heatmap full width */}
+      <div className="rounded-[4px] p-5 rx-card">
           <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-5" style={{ color: '#0fd65a' }}>◈ Heatmap gruppo</div>
           {statCols.length > 0 ? (
             <div
@@ -203,8 +153,6 @@ export function GroupAnalysis({ clients }) {
           ) : (
             <p className="font-body text-[13px] text-white/20">Nessun campionamento registrato.</p>
           )}
-        </div>
-
       </div>
 
     </div>
@@ -229,53 +177,6 @@ function StatTile({ label, value, sub, gold, positive, negative }) {
       <span className="font-display text-[10px] font-semibold tracking-[1.5px]" style={{ color: 'rgba(255,255,255,0.28)' }}>{label}</span>
       <span className="font-display font-black text-[15px] leading-tight truncate" style={{ color }}>{value}</span>
       {sub && <span className="font-display text-[11px]" style={{ color: color + 'aa' }}>{sub}</span>}
-    </div>
-  )
-}
-
-function ImprovementRow({ client, improved, stable, regressed, isFirst, noData }) {
-  const rankObj = client.media != null ? getRankFromMedia(client.media) : null
-
-  return (
-    <div className="flex items-center gap-3 py-2 border-b border-white/[.04] last:border-0">
-      <div
-        className="w-8 h-8 rounded-[3px] flex items-center justify-center shrink-0"
-        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
-      >
-        <span className="font-display text-[11px] font-bold text-white/35">
-          {client.name?.[0]?.toUpperCase()}
-        </span>
-      </div>
-
-      <div className="flex-1 min-w-0">
-        <div className="font-display font-bold text-[13px] text-white/80 truncate">{client.name}</div>
-        {rankObj && (
-          <div className="font-display text-[10px] mt-0.5" style={{ color: rankObj.color }}>
-            {rankObj.label} · Lv.{client.level}
-          </div>
-        )}
-      </div>
-
-      <div className="shrink-0">
-        {noData  && <span className="font-display text-[11px] text-white/20">Nessun dato</span>}
-        {isFirst && <span className="font-display text-[11px] text-white/30">Primo camp.</span>}
-        {!noData && !isFirst && (
-          <div className="flex items-center gap-2">
-            <Delta value={improved}  color="#0fd65a" symbol="↑" />
-            <Delta value={stable}    color="rgba(255,255,255,0.25)" symbol="=" />
-            <Delta value={regressed} color="#f87171" symbol="↓" />
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function Delta({ value, color, symbol }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      <span className="font-display font-black text-[14px] leading-none" style={{ color }}>{value}</span>
-      <span className="font-display text-[11px]" style={{ color }}>{symbol}</span>
     </div>
   )
 }

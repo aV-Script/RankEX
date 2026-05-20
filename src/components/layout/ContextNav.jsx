@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal }                from 'react-dom'
 
 // ── Costanti ──────────────────────────────────────────────────────────────────
@@ -47,7 +47,7 @@ export function ContextNav({ items, activeId, onSelect, color = '#0fd65a' }) {
     const fn = e => { if (e.key === 'Escape') triggerClose(null) }
     document.addEventListener('keydown', fn)
     return () => document.removeEventListener('keydown', fn)
-  }, [open, closing])
+  }, [open, closing, triggerClose])
 
   const xs         = vp.w < 390
   const WHEEL_R    = xs ? 115 : mobile ? 145 : 215
@@ -68,7 +68,7 @@ export function ContextNav({ items, activeId, onSelect, color = '#0fd65a' }) {
 
   const activeItem = items.find(it => it.id === activeId) ?? null
 
-  function triggerClose(intent) {
+  const triggerClose = useCallback((intent) => {
     if (closing) return
     intentRef.current = intent
     setClosing(true)
@@ -77,7 +77,7 @@ export function ContextNav({ items, activeId, onSelect, color = '#0fd65a' }) {
       setClosing(false)
       if (intent) onSelect(intent)
     }, WAIT)
-  }
+  }, [closing, onSelect, WAIT])
 
   // ── Trigger button ─────────────────────────────────────────────────────────
   const triggerButton = (

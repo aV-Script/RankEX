@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useTrainerState }  from '../../../context/TrainerContext'
 import { useNavMenus }      from '../../../context/NavMenuContext'
 import { NAV_ITEMS, ORG_ADMIN_NAV_ITEMS, LogoutIcon } from './navItems.config'
@@ -52,7 +52,7 @@ export function CircularNav({ page, onNavigate, onLogout }) {
     const fn = e => { if (e.key === 'Escape') triggerClose(null) }
     document.addEventListener('keydown', fn)
     return () => document.removeEventListener('keydown', fn)
-  }, [open, closing, switching])
+  }, [open, closing, switching, triggerClose])
 
   // Clamp menuIndex when context menus are removed
   const totalMenus = 1 + contextMenus.length
@@ -109,7 +109,7 @@ export function CircularNav({ page, onNavigate, onLogout }) {
   const hasMultipleMenus = allMenus.length > 1
 
   // ── Actions ──────────────────────────────────────────────────────────────────
-  function triggerClose(actionFn) {
+  const triggerClose = useCallback((actionFn) => {
     if (closing || switching) return
     clearTimeout(switchTimerRef.current)
     intentRef.current = actionFn
@@ -119,7 +119,7 @@ export function CircularNav({ page, onNavigate, onLogout }) {
       setClosing(false)
       actionFn?.()
     }, WAIT)
-  }
+  }, [closing, switching, WAIT])
 
   function handleOpen() {
     setMenuIndex(contextMenus.length > 0 ? contextMenus.length : 0)

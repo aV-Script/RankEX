@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { logout } from '../../../firebase/services/auth'
 
 const TRIG_SIZE    = 48
@@ -53,13 +53,6 @@ export function ClientCircularNav({
     return () => window.removeEventListener('resize', fn)
   }, [])
 
-  useEffect(() => {
-    if (!open || closing) return
-    const fn = e => { if (e.key === 'Escape') triggerClose(null) }
-    document.addEventListener('keydown', fn)
-    return () => document.removeEventListener('keydown', fn)
-  }, [open, closing])
-
   const xs         = vp.w < 390
   const WHEEL_R    = xs ? 115 : mobile ? 145 : 215
   const ITEM_SIZE  = xs ? 56  : mobile ? 68  : 80
@@ -86,7 +79,7 @@ export function ClientCircularNav({
   const HUB_DELAY = Math.round(items.length * 0.55) * ITEM_STAGGER
   const WAIT      = HUB_DELAY + HUB_DUR + 50
 
-  function triggerClose(intent) {
+  const triggerClose = useCallback((intent) => {
     if (closing) return
     intentRef.current = intent
     setClosing(true)
@@ -97,7 +90,14 @@ export function ClientCircularNav({
       else if (intent === '__notifs__') onOpenNotifs?.()
       else if (intent)                  onTabChange(intent)
     }, WAIT)
-  }
+  }, [closing, onOpenNotifs, onTabChange, WAIT])
+
+  useEffect(() => {
+    if (!open || closing) return
+    const fn = e => { if (e.key === 'Escape') triggerClose(null) }
+    document.addEventListener('keydown', fn)
+    return () => document.removeEventListener('keydown', fn)
+  }, [open, closing, triggerClose])
 
   // ── Trigger button (sempre visibile quando chiuso) ─────────────────
   const triggerButton = (

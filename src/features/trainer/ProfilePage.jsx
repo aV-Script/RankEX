@@ -82,11 +82,7 @@ export function ProfilePage() {
   }, [emailForm, user?.email])
 
   return (
-    <div className="px-6 py-8 max-w-lg">
-      <p className="hidden lg:block font-display text-[11px] font-semibold text-white/30 tracking-[3px] mb-6">
-        PROFILO TRAINER
-      </p>
-
+    <div className="px-6 py-8 max-w-lg mx-auto">
       {/* Card account */}
       <div className="rounded-[4px] p-5 mb-4"
         style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>

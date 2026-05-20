@@ -1,10 +1,8 @@
-import { useAuth } from '../../auth/useAuth'
-
 /**
  * Pagina profilo del cliente.
  * Mostra info account e accesso alla player card.
  */
-export function ClientProfilePage({ client, color, onCard }) {
+export function ClientProfilePage({ client, color, _onCard }) {
   return (
     <div className="px-6 py-8 max-w-lg">
       <p className="font-display text-[10px] text-white/30 tracking-[3px] mb-6">PROFILO</p>

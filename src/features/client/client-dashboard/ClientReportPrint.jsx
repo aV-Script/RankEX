@@ -49,7 +49,7 @@ const PALETTE = {
   },
 }
 
-export function ClientReportPrint({ client, color, rankObj, mode = 'dark', onClose }) {
+export function ClientReportPrint({ client, _color, rankObj, mode = 'dark', onClose }) {
   const p = { ...(PALETTE[mode] ?? PALETTE.dark), mode }
   const { BG, SURFACE, RAISED, BORDER, PRI, SEC, TER, GREEN, TRACK } = p
   const rankColor = mode === 'bw' ? '#2d3748' : (rankObj?.color ?? GREEN)
@@ -90,7 +90,7 @@ export function ClientReportPrint({ client, color, rankObj, mode = 'dark', onClo
       window.removeEventListener('afterprint', onClose)
       document.getElementById('rankex-print-style')?.remove()
     }
-  }, [onClose])
+  }, [onClose, BG])
 
   const stats       = client.stats ?? {}
   // campionamenti[0] = più recente, [1] = precedente per il delta

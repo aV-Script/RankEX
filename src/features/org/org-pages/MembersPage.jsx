@@ -13,8 +13,6 @@ const ROLE_OPTIONS = [
   { value: 'org_admin',      label: 'Admin' },
 ]
 
-const ROLE_LABELS = Object.fromEntries(ROLE_OPTIONS.map(r => [r.value, r.label]))
-
 export function MembersPage({ orgId, org }) {
   const [members,    setMembers]    = useState([])
   const [loading,    setLoading]    = useState(true)

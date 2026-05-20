@@ -14,8 +14,7 @@ export function BiaHistoryChart({ biaHistory, color }) {
   if (!biaHistory || biaHistory.length < 2) {
     return (
       <div
-        className="rounded-[4px] p-5"
-        style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
+        className="rounded-[4px] p-5 rx-card"
       >
         <SectionLabel>◈ Andamento BIA</SectionLabel>
         <p className="text-white/20 font-body text-[13px] text-center py-4">

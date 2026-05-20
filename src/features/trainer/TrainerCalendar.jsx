@@ -163,7 +163,7 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
         </div>
       )}
 
-      {isLoading ? (
+      {isLoading && slots.length === 0 ? (
         <div className="flex-1 flex flex-col gap-3 p-6">
           <Skeleton variant="list" count={8} />
         </div>
@@ -208,7 +208,7 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
           groups={groups}
           slots={slots}
           onClose={() => setAddModal(null)}
-          onSave={async (data) => { await handleAddSlot(data); setAddModal(null) }}
+          onSave={async (data) => { const slot = await handleAddSlot(data); if (slot) setAddModal(null) }}
         />
       )}
 
@@ -218,7 +218,7 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
           clients={clients}
           groups={groups}
           onClose={() => setRecurrenceModal(false)}
-          onSave={async (data) => { await handleAddRecurrence(data); setRecurrenceModal(false) }}
+          onSave={async (data) => { const id = await handleAddRecurrence(data); if (id) setRecurrenceModal(false) }}
         />
       )}
 

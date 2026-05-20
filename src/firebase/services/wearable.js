@@ -62,25 +62,6 @@ function extractFloatValues(data) {
   })
 }
 
-function extractSleepHours(data) {
-  return (data?.bucket ?? []).map(b => {
-    const points = b.dataset?.[0]?.point ?? []
-    const totalMs = points.reduce((sum, p) => {
-      if (p.value?.[0]?.intVal === 1) return sum // escludi AWAKE
-      const startMs = parseInt(p.startTimeNanos ?? '0') / 1e6
-      const endMs   = parseInt(p.endTimeNanos   ?? '0') / 1e6
-      return sum + Math.max(0, endMs - startMs)
-    }, 0)
-    return Math.round((totalMs / 3600000) * 10) / 10
-  })
-}
-
-function avg(arr) {
-  if (!arr?.length) return null
-  const nonZero = arr.filter(v => v > 0)
-  if (!nonZero.length) return null
-  return Math.round((nonZero.reduce((s, v) => s + v, 0) / nonZero.length) * 10) / 10
-}
 
 function avgInt(arr) {
   if (!arr?.length) return null

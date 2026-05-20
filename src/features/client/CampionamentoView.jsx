@@ -1,4 +1,3 @@
-import { Button }           from '../../components/ui'
 import { calcAge }          from '../../utils/validation'
 import { ConfirmDialog }    from '../../components/common/ConfirmDialog'
 import { TestInput }        from '../../components/modals/campionamento-modal/TestInput'
@@ -23,7 +22,7 @@ const CAMP_CTX = [
   { id: '__save__', label: 'Salva',     icon: ICON_SAVE },
 ]
 
-export function CampionamentoView({ client, color, onSave, onBack }) {
+export function CampionamentoView({ client, _color, onSave, onBack }) {
   const {
     config,
     testValues,

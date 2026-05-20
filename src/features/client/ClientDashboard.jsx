@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useClientRank }                    from '../../hooks/useClientRank'
 import { useReadonly }                       from '../../context/ReadonlyContext'
 import { useTrainerState }                   from '../../context/TrainerContext'
@@ -26,14 +26,13 @@ import { getProfileCategory }                from '../../constants/bia'
 import { getCategoriaById }                  from '../../constants'
 import { calcBiaScore, getBiaRankFromScore } from '../../utils/bia'
 import { calcAge }                           from '../../utils/validation'
-import { getClientSlots }                    from '../../firebase/services/calendar'
-import { getMonthRange, calcMonthlyCompletion } from '../calendar/useCalendar'
 import { resetPassword }                     from '../../firebase/services/auth'
 import { PLAYER_ROLES }                      from '../../config/modules.config'
 import { ClientBadges }                      from './ClientBadges'
 import { useRegisterContextMenu }            from '../../context/NavMenuContext'
 import { getAuth }                           from 'firebase/auth'
 import app                                   from '../../firebase/config'
+import { PrintPickerModal }                  from '../../components/common/PrintPickerModal'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -152,22 +151,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
   const [showPrintPicker, setShowPrintPicker] = useState(false)
   const [printMode,       setPrintMode]       = useState('dark')
   const [showActions,     setShowActions]     = useState(false)
-  const [sessionsData, setSessionsData] = useState(null)
   const [resetState,   setResetState]  = useState('idle')
-
-  useEffect(() => {
-    if (!orgId || !client.id) return
-    const now = new Date()
-    const { from, to } = getMonthRange(now.getFullYear(), now.getMonth() + 1)
-    getClientSlots(orgId, client.id, from, to).then(slots => {
-      const { planned, completed, pct } = calcMonthlyCompletion(slots, client.id)
-      const today    = now.toISOString().slice(0, 10)
-      const upcoming = slots
-        .filter(s => s.date >= today && s.status === 'planned')
-        .sort((a, b) => a.date.localeCompare(b.date))[0] ?? null
-      setSessionsData({ planned, completed, pct, upcoming })
-    })
-  }, [orgId, client.id])
 
   const { handleSaveBia, handleUpgradeProfile } = useBia()
   const { handleUpdateMisure }                  = useMisure()
@@ -190,7 +174,6 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
     : null
 
   const prevStats = client.campionamenti?.[1]?.stats ?? null
-  const media     = client.media ?? 0
   const campCount = client.campionamenti?.length ?? 0
 
   const trainerAuthor = {
@@ -202,7 +185,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
     { id: '__back__',    label: 'Clienti',     icon: ICON_BACK },
     { id: 'atleta',      label: 'Atleta',      icon: ICON_AVATAR },
     profile.hasTests && { id: 'test',        label: 'Test',        icon: ICON_TEST },
-    profile.hasBia   && { id: 'bia',         label: 'BIA',         icon: ICON_BIA },
+    { id: 'bia',         label: 'BIA',         icon: ICON_BIA },
     { id: 'allenamento', label: 'Allenamento', icon: ICON_WORKOUT },
     { id: 'calendario',  label: 'Calendario',  icon: ICON_CALENDAR },
     { id: 'note',        label: 'Note',        icon: ICON_NOTES },
@@ -293,13 +276,13 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
           {ICON_BACK}
         </button>
 
-        {/* Tab bar — centrati */}
+        {/* Tab bar */}
         <div className="flex-1 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-          <div className="flex items-center justify-center min-w-full h-full">
+          <div className="flex items-center justify-center h-full min-w-full w-fit">
             {[
               { id: 'atleta',      label: 'Atleta',      icon: ICON_AVATAR },
               profile.hasTests && { id: 'test',        label: 'Test',        icon: ICON_TEST },
-              profile.hasBia   && { id: 'bia',         label: 'BIA',         icon: ICON_BIA },
+              { id: 'bia',         label: 'BIA',         icon: ICON_BIA },
               { id: 'allenamento', label: 'Allenamento', icon: ICON_WORKOUT },
               { id: 'calendario',  label: 'Calendario',  icon: ICON_CALENDAR },
               { id: 'note',        label: 'Note',        icon: ICON_NOTES },
@@ -375,10 +358,12 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
       {/* ── Body ──────────────────────────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0">
 
-        {/* Banner upgrade */}
-        <div className="px-4 pt-3">
-          <UpgradeCategoryBanner client={client} color={color} onUpgrade={handleUpgradeProfile} />
-        </div>
+        {/* Banner upgrade — solo per bia_only (manca i test); il caso tests_only è gestito nel tab BIA */}
+        {profileType === 'bia_only' && (
+          <div className="px-4 pt-3">
+            <UpgradeCategoryBanner client={client} color={color} onUpgrade={handleUpgradeProfile} />
+          </div>
+        )}
 
         {/* Banner primo campionamento */}
         {campCount === 0 && !readonly && profile.hasTests && (
@@ -438,9 +423,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
                     </button>
                   )}
                 </div>
-                <div className="rounded-[4px] p-5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                  <StatsSection stats={client.stats} prevStats={prevStats} color={color} categoria={client.categoria} />
-                </div>
+                <StatsSection stats={client.stats} prevStats={prevStats} color={color} categoria={client.categoria} />
                 <div className="mt-6">
                   <StatsChart campionamenti={client.campionamenti} color={color} categoria={client.categoria} />
                 </div>
@@ -448,27 +431,31 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
             </section>
           )}
 
-          {tab === 'bia' && profile.hasBia && (
-            <section className="px-4 pt-6">
-              <div className="rounded-[4px] p-5 rx-card">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="font-display text-[10px] tracking-[3px] uppercase" style={{ color: '#0fd65a' }}>◈ BIA</div>
-                  {!readonly && (
-                    <button
-                      onClick={() => setView('bia')}
-                      className="font-display text-[10px] tracking-[1px] px-3 py-1.5 rounded-[3px] border cursor-pointer transition-all"
-                      style={{ color: biaColor, borderColor: biaColor + '55', background: biaColor + '11' }}
-                    >
-                      + RILEVAMENTO
-                    </button>
-                  )}
-                </div>
-                <BiaSummary bia={client.lastBia} prevBia={client.biaHistory?.[1] ?? null} sex={client.sesso} age={calcAge(client.dataNascita)} color={biaColor} rank={biaRank.label} />
-                <div className="mt-6">
+          {tab === 'bia' && (
+            profile.hasBia ? (
+              <section className="px-4 pt-6">
+                <div className="rounded-[4px] p-5 rx-card flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <div className="font-display text-[10px] tracking-[3px] uppercase" style={{ color: '#0fd65a' }}>◈ BIA</div>
+                    {!readonly && (
+                      <button
+                        onClick={() => setView('bia')}
+                        className="font-display text-[10px] tracking-[1px] px-3 py-1.5 rounded-[3px] border cursor-pointer transition-all"
+                        style={{ color: biaColor, borderColor: biaColor + '55', background: biaColor + '11' }}
+                      >
+                        + RILEVAMENTO
+                      </button>
+                    )}
+                  </div>
+                  <BiaSummary bia={client.lastBia} prevBia={client.biaHistory?.[1] ?? null} sex={client.sesso} age={calcAge(client.dataNascita)} color={biaColor} rank={biaRank.label} />
                   <BiaHistoryChart biaHistory={client.biaHistory} color={biaColor} />
                 </div>
+              </section>
+            ) : (
+              <div className="px-4 pt-6">
+                <UpgradeCategoryBanner client={client} color={color} onUpgrade={handleUpgradeProfile} />
               </div>
-            </section>
+            )
           )}
 
           {tab === 'allenamento' && (
@@ -524,75 +511,6 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
   )
 }
 
-// ── PrintPickerModal ──────────────────────────────────────────────────────────
-
-function PrintPickerModal({ onSelect, onCancel }) {
-  return (
-    <div className="fixed inset-0 z-[9998] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.72)' }}>
-      <div
-        className="rounded-xl p-6 flex flex-col gap-5"
-        style={{ background: '#0c1219', border: '1px solid #1e293b', width: 360, boxShadow: '0 24px 64px rgba(0,0,0,0.8)' }}
-      >
-        <div>
-          <div className="font-display font-black tracking-[3px] text-[13px] text-white uppercase mb-1">
-            Esporta PDF
-          </div>
-          <div className="text-[11px] text-white/40 font-body">
-            Scegli il formato di stampa
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-3">
-          {/* Dark */}
-          <button
-            onClick={() => onSelect('dark')}
-            className="flex items-center gap-4 p-4 rounded-lg text-left cursor-pointer transition-colors"
-            style={{ background: '#07090e', border: '1px solid #1e293b' }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = '#0ec452'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = '#1e293b'}
-          >
-            <div className="flex-shrink-0 w-10 h-10 rounded flex items-center justify-center" style={{ background: '#0f1820' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0ec452" strokeWidth="1.8">
-                <path d="M21 15.9A9 9 0 1 1 8.1 3a7 7 0 0 0 12.9 12.9z"/>
-              </svg>
-            </div>
-            <div>
-              <div className="font-display font-bold text-[11px] tracking-[1.5px] text-white uppercase mb-0.5">Colore — Dark</div>
-              <div className="text-[10px] text-white/40">Sfondo scuro, colori rank completi</div>
-            </div>
-          </button>
-
-          {/* B&W */}
-          <button
-            onClick={() => onSelect('bw')}
-            className="flex items-center gap-4 p-4 rounded-lg text-left cursor-pointer transition-colors"
-            style={{ background: '#07090e', border: '1px solid #1e293b' }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = '#94a3b8'}
-            onMouseLeave={e => e.currentTarget.style.borderColor = '#1e293b'}
-          >
-            <div className="flex-shrink-0 w-10 h-10 rounded flex items-center justify-center" style={{ background: '#0f1820' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.8">
-                <circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18" strokeWidth="1.2"/>
-              </svg>
-            </div>
-            <div>
-              <div className="font-display font-bold text-[11px] tracking-[1.5px] text-white uppercase mb-0.5">B&amp;N — Economica</div>
-              <div className="text-[10px] text-white/40">Sfondo bianco, scala di grigi, meno inchiostro</div>
-            </div>
-          </button>
-        </div>
-
-        <button
-          onClick={onCancel}
-          className="text-white/30 hover:text-white/60 text-[10px] font-display tracking-[2px] uppercase transition-colors bg-transparent border-none cursor-pointer self-center"
-        >
-          Annulla
-        </button>
-      </div>
-    </div>
-  )
-}
-
 // ── AvatarPlaceholder ─────────────────────────────────────────────────────────
 
 /**
@@ -603,7 +521,7 @@ function PrintPickerModal({ onSelect, onCancel }) {
  *   compact    — versione mini per mobile (solo ring senza card)
  *   biaRankObj — se presente, mostra un chip BIA rank
  */
-function AvatarPlaceholder({ color, rankObj, xp, xpNext, level, biaRankObj, compact = false, small = false }) {
+function AvatarPlaceholder({ color, rankObj, xp, xpNext, level, _biaRankObj, compact = false, small = false }) {
   if (compact) {
     return <RankRing rankObj={rankObj} xp={xp} xpNext={xpNext} size={72} animated={false} />
   }
