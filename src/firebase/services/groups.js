@@ -1,6 +1,6 @@
 import {
   collection, getDocs, addDoc, updateDoc, deleteDoc,
-  doc, query,
+  doc, query, writeBatch,
 } from 'firebase/firestore'
 import { db }         from './db'
 import { groupsPath } from '../paths'
@@ -23,11 +23,14 @@ export const deleteGroup = (orgId, id) =>
   deleteDoc(doc(db, groupsPath(orgId), id))
 
 export async function removeClientFromAllGroups(orgId, clientId) {
-  const groups   = await getGroups(orgId)
-  const promises = groups
-    .filter(g => g.clientIds.includes(clientId))
-    .map(g => updateGroup(orgId, g.id, {
-      clientIds: g.clientIds.filter(id => id !== clientId)
-    }))
-  await Promise.all(promises)
+  const groups    = await getGroups(orgId)
+  const toUpdate  = groups.filter(g => g.clientIds.includes(clientId))
+  if (toUpdate.length === 0) return
+  const batch = writeBatch(db)
+  toUpdate.forEach(g => {
+    batch.update(doc(db, groupsPath(orgId), g.id), {
+      clientIds: g.clientIds.filter(id => id !== clientId),
+    })
+  })
+  await batch.commit()
 }

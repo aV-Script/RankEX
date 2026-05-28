@@ -1,6 +1,6 @@
 import {
   collection, getDocs, addDoc, updateDoc, deleteDoc,
-  doc, query, where,
+  doc, query, where, writeBatch,
 } from 'firebase/firestore'
 import { db }               from './db'
 import { notificationsPath } from '../paths'
@@ -31,11 +31,13 @@ export const markNotificationRead = (orgId, id) =>
 
 export const markAllNotificationsRead = async (orgId, clientId, readAt = new Date().toISOString()) => {
   const notifs = await getNotifications(orgId, clientId)
-  await Promise.all(
-    notifs.filter(n => !n.read).map(n =>
-      updateDoc(doc(db, notificationsPath(orgId), n.id), { read: true, readAt })
-    )
-  )
+  const unread = notifs.filter(n => !n.read)
+  if (unread.length === 0) return
+  const batch = writeBatch(db)
+  unread.forEach(n => {
+    batch.update(doc(db, notificationsPath(orgId), n.id), { read: true, readAt })
+  })
+  await batch.commit()
 }
 
 export const deleteNotification = (orgId, id) =>

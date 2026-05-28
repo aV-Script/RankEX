@@ -25,6 +25,7 @@ export function AdminDashboard({ onSelectOrg }) {
   useEffect(() => {
     getOrganizations()
       .then(setOrgs)
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
 

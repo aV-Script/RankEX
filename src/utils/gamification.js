@@ -217,7 +217,8 @@ export function buildBiaUpdate(client, newBia) {
       xpNext,
       level,
     },
-    xpEarned: xpToAdd,
+    xpEarned:         xpToAdd,
+    isFirstMeasurement: prevBia === null,
   }
 }
 

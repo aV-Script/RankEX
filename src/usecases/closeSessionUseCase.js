@@ -1,11 +1,13 @@
-import { buildSessionUpdate } from '../utils/gamification'
-import { closeSlot }          from '../firebase/services/calendar'
-import { updateClient }       from '../firebase/services/clients'
-import { addNotification }    from '../firebase/services/notifications'
+import { writeBatch, doc, collection }              from 'firebase/firestore'
+import { db }                                        from '../firebase/services/db'
+import { slotsPath, clientsPath, notificationsPath } from '../firebase/paths'
+import { buildSessionUpdate }                        from '../utils/gamification'
+import { SLOT_STATUS }                               from '../constants/slotStatus'
 
 /**
- * Chiude una sessione: aggiorna lo slot, assegna XP e streak agli attendees,
- * invia notifiche a presenti e assenti.
+ * Chiude una sessione in modo atomico: aggiorna lo slot, assegna XP e streak
+ * agli attendees, azzera la streak agli absentees, invia tutte le notifiche.
+ * Un unico batch.commit() garantisce che tutte le scritture riescano o nessuna.
  *
  * @param {string}   orgId
  * @param {object}   slot        — slot da chiudere (deve avere id, date, clientIds)
@@ -14,48 +16,51 @@ import { addNotification }    from '../firebase/services/notifications'
  */
 export async function closeSessionUseCase(orgId, slot, attendeeIds, clients) {
   const absenteeIds = slot.clientIds.filter(id => !attendeeIds.includes(id))
+  const batch       = writeBatch(db)
 
-  await closeSlot(orgId, slot.id, { attendees: attendeeIds, absentees: absenteeIds })
+  batch.update(doc(db, slotsPath(orgId), slot.id), {
+    status:    SLOT_STATUS.COMPLETED,
+    attendees: attendeeIds,
+    absentees: absenteeIds,
+  })
 
-  await Promise.all(
-    attendeeIds.map(async clientId => {
-      const client = clients.find(c => c.id === clientId)
-      if (!client) return
+  for (const clientId of attendeeIds) {
+    const client = clients.find(c => c.id === clientId)
+    if (!client) continue
 
-      const { update, xpGain } = buildSessionUpdate(
-        client,
-        client.baseXP ?? 50,
-        'Sessione di allenamento'
-      )
+    const { update, xpGain } = buildSessionUpdate(client, client.baseXP ?? 50, 'Sessione di allenamento')
 
-      await updateClient(orgId, client.id, update)
+    batch.update(doc(db, clientsPath(orgId), client.id), update)
 
-      if (client.clientAuthUid) {
-        await addNotification(orgId, {
-          clientId: client.id,
-          message:  `Sessione del ${slot.date} completata! +${xpGain} XP (streak ${update.sessionStreak})`,
-          date:     new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }),
-          type:     'session',
-        })
-      }
-    })
-  )
+    if (client.clientAuthUid) {
+      batch.set(doc(collection(db, notificationsPath(orgId))), {
+        clientId:  client.id,
+        message:   `Sessione del ${slot.date} completata! +${xpGain} XP (streak ${update.sessionStreak})`,
+        date:      new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }),
+        type:      'session',
+        read:      false,
+        createdAt: new Date().toISOString(),
+      })
+    }
+  }
 
-  await Promise.all(
-    absenteeIds.map(async clientId => {
-      const client = clients.find(c => c.id === clientId)
-      if (!client) return
+  for (const clientId of absenteeIds) {
+    const client = clients.find(c => c.id === clientId)
+    if (!client) continue
 
-      await updateClient(orgId, client.id, { sessionStreak: 0 })
+    batch.update(doc(db, clientsPath(orgId), client.id), { sessionStreak: 0 })
 
-      if (client.clientAuthUid) {
-        await addNotification(orgId, {
-          clientId: client.id,
-          message:  `Sessione del ${slot.date} — assenza registrata. Streak azzerata.`,
-          date:     new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }),
-          type:     'absence',
-        })
-      }
-    })
-  )
+    if (client.clientAuthUid) {
+      batch.set(doc(collection(db, notificationsPath(orgId))), {
+        clientId:  client.id,
+        message:   `Sessione del ${slot.date} — assenza registrata. Streak azzerata.`,
+        date:      new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }),
+        type:      'absence',
+        read:      false,
+        createdAt: new Date().toISOString(),
+      })
+    }
+  }
+
+  await batch.commit()
 }

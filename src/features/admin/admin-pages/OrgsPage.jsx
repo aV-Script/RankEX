@@ -24,6 +24,7 @@ export function OrgsPage({ onSelectOrg, currentUserUid }) {
   useEffect(() => {
     getOrganizations()
       .then(setOrgs)
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
 

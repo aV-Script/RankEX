@@ -26,20 +26,26 @@ export function MembersPage({ orgId, org }) {
     setLoading(true)
     getMembers(orgId)
       .then(setMembers)
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [orgId])
 
   useEffect(() => { fetchMembers() }, [fetchMembers])
 
   const handleRemove = useCallback(async () => {
-    await removeMember(orgId, confirmRemove.id)
-    auditLog(AUDIT_ACTIONS.MEMBER_REMOVED, {
-      memberId:   confirmRemove.id,
-      memberName: confirmRemove.name ?? confirmRemove.email ?? confirmRemove.id,
-      orgId,
-    })
-    setMembers(prev => prev.filter(m => m.id !== confirmRemove.id))
-    setConfirmRemove(null)
+    try {
+      await removeMember(orgId, confirmRemove.id)
+      auditLog(AUDIT_ACTIONS.MEMBER_REMOVED, {
+        memberId:   confirmRemove.id,
+        memberName: confirmRemove.name ?? confirmRemove.email ?? confirmRemove.id,
+        orgId,
+      })
+      setMembers(prev => prev.filter(m => m.id !== confirmRemove.id))
+    } catch {
+      // errore loggato in console
+    } finally {
+      setConfirmRemove(null)
+    }
   }, [orgId, confirmRemove])
 
   const handleRoleChange = useCallback(async (member, newRole) => {

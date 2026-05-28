@@ -13,10 +13,10 @@ export function ClientWorkoutSection({ orgId, clientId, color }) {
 
   useEffect(() => {
     if (!orgId || !clientId) return
-    getWorkoutPlanForClient(orgId, clientId).then(active => {
-      setPlan(active)
-      setLoading(false)
-    })
+    getWorkoutPlanForClient(orgId, clientId)
+      .then(active => setPlan(active))
+      .catch(() => {})
+      .finally(() => setLoading(false))
   }, [orgId, clientId])
 
   if (loading) return null

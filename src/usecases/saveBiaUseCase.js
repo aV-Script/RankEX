@@ -3,24 +3,26 @@ import { db }                                        from '../firebase/services/
 import { clientsPath, notificationsPath }            from '../firebase/paths'
 
 /**
- * Persiste il campionamento su Firestore e invia la notifica al cliente
- * in un unico batch atomico.
+ * Persiste una misurazione BIA e invia la notifica in un unico batch atomico.
  *
  * @param {string} orgId
- * @param {object} client — cliente completo (deve avere id, clientAuthUid, rank)
- * @param {object} update — oggetto già calcolato da buildCampionamentoUpdate
+ * @param {object} client    — cliente completo (deve avere id, clientAuthUid)
+ * @param {number} xpEarned  — XP guadagnati (per il testo e la condizione notifica)
+ * @param {object} update    — oggetto già calcolato da buildBiaUpdate
  */
-export async function saveCampionamentoUseCase(orgId, client, update) {
+export async function saveBiaUseCase(orgId, client, xpEarned, update, isFirstMeasurement = false) {
   const batch = writeBatch(db)
 
   batch.update(doc(db, clientsPath(orgId), client.id), update)
 
-  if (client.clientAuthUid) {
+  if (client.clientAuthUid && xpEarned > 0) {
     batch.set(doc(collection(db, notificationsPath(orgId))), {
       clientId:  client.id,
-      message:   `Il tuo trainer ha aggiornato i tuoi parametri — nuovo rank: ${update.rank}`,
+      message:   isFirstMeasurement
+        ? `Prima misurazione BIA completata! +${xpEarned} XP`
+        : `BIA aggiornata — +${xpEarned} XP guadagnati!`,
       date:      new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }),
-      type:      'campionamento',
+      type:      'bia',
       read:      false,
       createdAt: new Date().toISOString(),
     })

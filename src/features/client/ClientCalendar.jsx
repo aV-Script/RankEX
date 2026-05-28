@@ -17,7 +17,7 @@ export function ClientCalendar({ clientId, orgId, clients }) {
   // Ottieni i dati delle sessioni del client
   useEffect(() => {
     if (!orgId || !clientId) return
-    getClientSlots(orgId, clientId, from, to).then(setSlots)
+    getClientSlots(orgId, clientId, from, to).then(setSlots).catch(() => {})
   }, [orgId, clientId, from, to])
 
   const client = clients?.find(c => c.id === clientId)

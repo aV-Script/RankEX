@@ -33,6 +33,7 @@ export function OrgDetailView({ org, onBack }) {
       getClients(org.id),
     ])
       .then(([m, c]) => { setMembers(m); setClients(c) })
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [org.id])
 
@@ -42,9 +43,14 @@ export function OrgDetailView({ org, onBack }) {
   }
 
   const handleRemove = useCallback(async () => {
-    await removeMember(org.id, confirmRemove.id)
-    setMembers(prev => prev.filter(m => m.id !== confirmRemove.id))
-    setConfirmRemove(null)
+    try {
+      await removeMember(org.id, confirmRemove.id)
+      setMembers(prev => prev.filter(m => m.id !== confirmRemove.id))
+    } catch {
+      // silent — errore loggato in console
+    } finally {
+      setConfirmRemove(null)
+    }
   }, [org.id, confirmRemove])
 
   const handleRoleChange = useCallback(async (member, newRole) => {
