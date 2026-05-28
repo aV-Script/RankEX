@@ -1,8 +1,9 @@
+import { writeBatch, doc, arrayUnion, arrayRemove } from 'firebase/firestore'
+import { db }                                       from '../../firebase/services/db'
+import { slotsPath }                                from '../../firebase/paths'
 import {
   getSlotsByGroup,
   getGroupRecurrences,
-  addClientToSlot,
-  removeClientFromSlot,
   addClientToRecurrence,
   removeClientFromRecurrence,
 } from '../../firebase/services/calendar'
@@ -43,14 +44,19 @@ export async function addClientToGroupSlots(orgId, groupId, clientId) {
     s => !s.recurrenceId && !s.clientIds.includes(clientId)
   )
 
-  await Promise.all([
-    ...nonRecurringSlots.map(s => addClientToSlot(orgId, s.id, clientId)),
-    ...recurrences.map(r =>
-      !r.clientIds.includes(clientId)
-        ? addClientToRecurrence(orgId, r.id, clientId)
-        : Promise.resolve()
-    ),
-  ])
+  if (nonRecurringSlots.length > 0) {
+    const batch = writeBatch(db)
+    nonRecurringSlots.forEach(s => {
+      batch.update(doc(db, slotsPath(orgId), s.id), { clientIds: arrayUnion(clientId) })
+    })
+    await batch.commit()
+  }
+
+  await Promise.all(
+    recurrences
+      .filter(r => !r.clientIds.includes(clientId))
+      .map(r => addClientToRecurrence(orgId, r.id, clientId))
+  )
 }
 
 /**
@@ -69,12 +75,17 @@ export async function removeClientFromGroupSlots(orgId, groupId, clientId) {
     s => !s.recurrenceId && s.clientIds.includes(clientId)
   )
 
-  await Promise.all([
-    ...nonRecurringSlots.map(s => removeClientFromSlot(orgId, s.id, clientId)),
-    ...recurrences.map(r =>
-      r.clientIds.includes(clientId)
-        ? removeClientFromRecurrence(orgId, r.id, clientId)
-        : Promise.resolve()
-    ),
-  ])
+  if (nonRecurringSlots.length > 0) {
+    const batch = writeBatch(db)
+    nonRecurringSlots.forEach(s => {
+      batch.update(doc(db, slotsPath(orgId), s.id), { clientIds: arrayRemove(clientId) })
+    })
+    await batch.commit()
+  }
+
+  await Promise.all(
+    recurrences
+      .filter(r => r.clientIds.includes(clientId))
+      .map(r => removeClientFromRecurrence(orgId, r.id, clientId))
+  )
 }

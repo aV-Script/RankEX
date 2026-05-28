@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback }   from 'react'
 import { getWizardSteps, TOTAL_STEPS_MAP } from './wizard.config'
 import { getTestsForCategoria, applyFormula, getRankFromMedia } from '../../../constants'
-import { calcPercentile, calcStatMedia }   from '../../../utils/percentile'
+import { calcPercentileEx, calcStatMedia }  from '../../../utils/percentile'
 import { getFirebaseErrorMessage }         from '../../../utils/firebaseErrors'
 import { validateEmail, validatePassword, validateBirthDate, validateRequired, validateNumber, calcAge } from '../../../utils/validation'
 import { getCategoriaFromEta }             from '../../../config/modules.config'
@@ -24,7 +24,7 @@ function calcTestFinalValue(test, tests) {
   return tests[test.key] === '' || isNaN(val) ? null : val
 }
 
-export function useWizard({ _groups, onAdd, onClose, _onAddGroup, _onToggleClientGroup, isSoccer = false }) {
+export function useWizard({ onAdd, onClose, isSoccer = false }) {
   const [step,        setStep]        = useState(0)
   const [anagrafica,  setAnagrafica]  = useState({ name: '', dataNascita: '', sesso: 'M', peso: '', altezza: '' })
   const [profileType, setProfileType] = useState('tests_only')
@@ -39,7 +39,11 @@ export function useWizard({ _groups, onAdd, onClose, _onAddGroup, _onToggleClien
   const WIZARD_STEPS = useMemo(() => getWizardSteps(profileType, isSoccer), [profileType, isSoccer])
   const TOTAL_STEPS  = isSoccer ? TOTAL_STEPS_MAP.soccer : TOTAL_STEPS_MAP[profileType]
 
-  const categoryTests = getTestsForCategoria(categoria)
+  const categoriaEffettiva = isSoccer
+    ? (getCategoriaFromEta(calcAge(anagrafica.dataNascita)) ?? 'soccer')
+    : categoria
+
+  const categoryTests = getTestsForCategoria(categoriaEffettiva)
   const currentStep   = WIZARD_STEPS[step]
   const currentTest   = currentStep?.type === 'test'
     ? categoryTests[currentStep.index]
@@ -49,7 +53,7 @@ export function useWizard({ _groups, onAdd, onClose, _onAddGroup, _onToggleClien
     if (!currentTest) return null
     const finalValue = calcTestFinalValue(currentTest, tests)
     if (finalValue === null) return null
-    return calcPercentile(currentTest.stat, finalValue, anagrafica.sesso, calcAge(anagrafica.dataNascita))
+    return calcPercentileEx(currentTest.stat, finalValue, anagrafica.sesso, calcAge(anagrafica.dataNascita), currentTest.key).value
   }, [currentTest, tests, anagrafica.sesso, anagrafica.dataNascita])
 
   const allStats = useMemo(() => {
@@ -57,7 +61,7 @@ export function useWizard({ _groups, onAdd, onClose, _onAddGroup, _onToggleClien
     categoryTests.forEach(test => {
       const finalValue = calcTestFinalValue(test, tests)
       result[test.stat] = finalValue !== null
-        ? calcPercentile(test.stat, finalValue, anagrafica.sesso, calcAge(anagrafica.dataNascita)) ?? 0
+        ? calcPercentileEx(test.stat, finalValue, anagrafica.sesso, calcAge(anagrafica.dataNascita), test.key).value ?? 0
         : 0
     })
     return result
@@ -141,7 +145,7 @@ export function useWizard({ _groups, onAdd, onClose, _onAddGroup, _onToggleClien
   }, [anagrafica, profileType, categoria, ruolo, isSoccer, account, onAdd, onClose])
 
   return {
-    step, anagrafica, profileType, categoria, ruolo, account, errors, isLoading: loading,
+    step, anagrafica, profileType, categoria: categoriaEffettiva, ruolo, account, errors, isLoading: loading,
     showConfirm, setShowConfirm,
     categoryTests, currentStep, currentTest,
     livePercentile, media, rankObj,

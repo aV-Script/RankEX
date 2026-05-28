@@ -22,6 +22,7 @@ export function GroupToggleDialog({
   useEffect(() => {
     getGroupTogglePreview(orgId, group.id)
       .then(setPreview)
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [orgId, group.id])
 

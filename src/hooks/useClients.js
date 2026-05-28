@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useTrainerDispatch, ACTIONS }      from '../context/TrainerContext'
-import { getClients, updateClient, deleteClient } from '../firebase/services/clients'
-import { addNotification }          from '../firebase/services/notifications'
+import { getClients, deleteClient }  from '../firebase/services/clients'
 import { buildCampionamentoUpdate, buildXPUpdate } from '../utils/gamification'
 import { createClientUseCase }      from '../usecases/createClientUseCase'
 import { saveCampionamentoUseCase } from '../usecases/saveCampionamentoUseCase'
+import { saveXPUseCase }            from '../usecases/saveXPUseCase'
 import { useToast }                 from './useToast'
 import { getFirebaseErrorMessage }  from '../utils/firebaseErrors'
 import { auditLog, AUDIT_ACTIONS }  from '../utils/auditLog'
@@ -82,15 +82,7 @@ export function useClients(orgId, userId) {
     dispatch({ type: ACTIONS.SELECT_CLIENT, payload: { ...client, ...update } })
 
     try {
-      await updateClient(orgId, client.id, update)
-      if (client.clientAuthUid) {
-        await addNotification(orgId, {
-          clientId: client.id,
-          message:  `Hai guadagnato ${xpToAdd} XP — ${note || 'aggiunto dal trainer'}!`,
-          date:     new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }),
-          type:     'xp',
-        })
-      }
+      await saveXPUseCase(orgId, client, xpToAdd, note, update)
     } catch {
       updateLocal(client.id, snapshot)
       dispatch({ type: ACTIONS.SELECT_CLIENT, payload: snapshot })

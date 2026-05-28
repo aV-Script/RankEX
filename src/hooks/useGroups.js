@@ -35,14 +35,16 @@ export function useGroups(orgId) {
 
   // ── Rename group — ottimistico con rollback ───────────────────────────────
   const handleRenameGroup = useCallback(async (id, name) => {
-    const snapshot = groups.find(g => g.id === id)
+    const oldName = groups.find(g => g.id === id)?.name
 
     setGroups(prev => prev.map(g => g.id === id ? { ...g, name } : g))
 
     try {
       await updateGroup(orgId, id, { name })
     } catch {
-      if (snapshot) setGroups(prev => prev.map(g => g.id === id ? snapshot : g))
+      if (oldName !== undefined) {
+        setGroups(prev => prev.map(g => g.id === id ? { ...g, name: oldName } : g))
+      }
     }
   }, [orgId, groups])
 

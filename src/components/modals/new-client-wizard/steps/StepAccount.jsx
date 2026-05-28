@@ -1,8 +1,12 @@
-import { Field, Input } from '../../../ui'
-import { CATEGORIE }    from '../../../../constants'
+import { Field, Input }      from '../../../ui'
+import { CATEGORIE }          from '../../../../constants'
+import { SOCCER_AGE_GROUPS }  from '../../../../config/modules.config'
 
 export function StepAccount({ account, setAccount, errors, anagrafica, categoria, rankObj, media }) {
-  const categoriaLabel = CATEGORIE.find(c => c.id === categoria)?.label ?? categoria
+  const categoriaLabel =
+    CATEGORIE.find(c => c.id === categoria)?.label ??
+    SOCCER_AGE_GROUPS.find(g => g.value === categoria)?.label ??
+    categoria
 
   return (
     <div className="flex flex-col gap-4">

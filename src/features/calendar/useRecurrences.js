@@ -9,8 +9,7 @@ import {
   addClientToRecurrence,
   removeClientFromRecurrence,
   generateRecurrenceDates,
-  addSlot,
-  updateSlot,
+  addRecurrenceSlots,
 } from '../../firebase/services/calendar'
 
 /**
@@ -46,10 +45,7 @@ export function useRecurrences(orgId) {
     const recurrenceId = recRef.id
     const dates        = generateRecurrenceDates(startDate, endDate, days)
 
-    for (const date of dates) {
-      const ref = await addSlot(orgId, { date, startTime, endTime, clientIds, groupIds })
-      await updateSlot(orgId, ref.id, { recurrenceId })
-    }
+    await addRecurrenceSlots(orgId, dates, { startTime, endTime, clientIds, groupIds }, recurrenceId)
 
     const newRec = {
       id: recurrenceId, clientIds, groupIds,
@@ -117,17 +113,11 @@ export function useRecurrences(orgId) {
       )
 
       await updateRecurrence(orgId, recurrenceId, { endDate: newEndDate })
-
-      for (const date of newDates) {
-        const ref = await addSlot(orgId, {
-          date,
-          startTime: rec.startTime,
-          endTime:   rec.endTime,
-          clientIds: rec.clientIds,
-          groupIds:  rec.groupIds,
-        })
-        await updateSlot(orgId, ref.id, { recurrenceId })
-      }
+      await addRecurrenceSlots(
+        orgId, newDates,
+        { startTime: rec.startTime, endTime: rec.endTime, clientIds: rec.clientIds, groupIds: rec.groupIds },
+        recurrenceId,
+      )
     } catch {
       setRecurrences(prev => prev.map(r =>
         r.id === recurrenceId ? snapshot : r

@@ -53,6 +53,20 @@ export const addSlot = (orgId, data) =>
     createdAt: new Date().toISOString(),
   })
 
+export const addRecurrenceSlots = (orgId, dates, { startTime, endTime, clientIds, groupIds }, recurrenceId) => {
+  if (dates.length === 0) return Promise.resolve()
+  const batch     = writeBatch(db)
+  const createdAt = new Date().toISOString()
+  dates.forEach(date => {
+    const ref = doc(collection(db, slotsPath(orgId)))
+    batch.set(ref, {
+      date, startTime, endTime, clientIds, groupIds, recurrenceId,
+      status: SLOT_STATUS.PLANNED, attendees: [], absentees: [], createdAt,
+    })
+  })
+  return batch.commit()
+}
+
 export const updateSlot = (orgId, id, data) =>
   updateDoc(doc(db, slotsPath(orgId), id), data)
 

@@ -37,9 +37,13 @@ export function useNotifications(orgId, clientId) {
 
   const markAllRead = useCallback(async () => {
     const readAt = new Date().toISOString()
-    await markAllNotificationsRead(orgId, clientId, readAt)
-    setNotifications(prev => prev.map(n => n.read ? n : { ...n, read: true, readAt }))
-    setUnreadCount(0)
+    try {
+      await markAllNotificationsRead(orgId, clientId, readAt)
+      setNotifications(prev => prev.map(n => n.read ? n : { ...n, read: true, readAt }))
+      setUnreadCount(0)
+    } catch {
+      // silent — le notifiche rimangono non lette
+    }
   }, [orgId, clientId])
 
   const remove = useCallback(async (id) => {

@@ -16,6 +16,9 @@ export function useNotes(orgId, clientId, author) {
   const [notes,   setNotes]   = useState([])
   const [loading, setLoading] = useState(true)
 
+  // UID catturato al mount — currentUser è garantito non-null se il componente è visibile
+  const authorId = getAuth(app).currentUser?.uid ?? ''
+
   useEffect(() => {
     if (!orgId || !clientId) return
     setLoading(true)
@@ -33,13 +36,11 @@ export function useNotes(orgId, clientId, author) {
       comments: notes.filter(n => n.parentId === root.id),
     }))
 
-  const getAuthorId = () => getAuth(app).currentUser?.uid ?? ''
-
   const handleAddThread = useCallback(async (text) => {
     if (!text.trim()) return
     const data = {
       text:       text.trim(),
-      authorId:   getAuthorId(),
+      authorId,
       authorName: author.name,
       authorRole: author.role,
       parentId:   null,
@@ -51,13 +52,13 @@ export function useNotes(orgId, clientId, author) {
     } catch {
       toastError('Impossibile aggiungere la nota')
     }
-  }, [orgId, clientId, author, toastError])
+  }, [orgId, clientId, author, authorId, toastError])
 
   const handleAddComment = useCallback(async (parentId, text) => {
     if (!text.trim()) return
     const data = {
       text:       text.trim(),
-      authorId:   getAuthorId(),
+      authorId,
       authorName: author.name,
       authorRole: author.role,
       parentId,
@@ -69,7 +70,7 @@ export function useNotes(orgId, clientId, author) {
     } catch {
       toastError('Impossibile aggiungere il commento')
     }
-  }, [orgId, clientId, author, toastError])
+  }, [orgId, clientId, author, authorId, toastError])
 
   const handleDelete = useCallback(async (noteId) => {
     const toDelete = notes.filter(n => n.id === noteId || n.parentId === noteId)
