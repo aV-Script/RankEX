@@ -52,3 +52,15 @@ service-account*.json
 *.xlsx
 *.xls
 *.csv
+
+# Test — output generati
+playwright-report/
+test-results/
+*.png
+e2e/.auth/
+
+# Environment test (contiene credenziali)
+.env.test
+
+# Log Windows temp
+*.log

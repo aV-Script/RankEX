@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>RankEX — User Stories</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 11pt;
+    color: #1a1a2e;
+    background: #fff;
+    padding: 40px 52px;
+    max-width: 920px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  h1 {
+    font-size: 22pt;
+    font-weight: 800;
+    color: #0d1117;
+    border-bottom: 3px solid #0ec452;
+    padding-bottom: 8px;
+    margin: 32px 0 14px;
+  }
+
+  h2 {
+    font-size: 13pt;
+    font-weight: 700;
+    color: #fff;
+    background: #0d1520;
+    padding: 7px 14px;
+    margin: 36px 0 12px;
+    border-left: 4px solid #0ec452;
+    border-radius: 3px;
+    page-break-before: always;
+  }
+  h2:first-of-type { page-break-before: avoid; }
+
+  h3 { font-size: 12pt; color: #0d1520; margin: 20px 0 6px; }
+
+  h4 {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #0d1520;
+    background: #f0fdf4;
+    border-left: 3px solid #0ec452;
+    padding: 5px 10px;
+    margin: 22px 0 6px;
+    border-radius: 2px;
+    page-break-after: avoid;
+  }
+
+  p {
+    margin: 5px 0 10px;
+    color: #2d3748;
+  }
+
+  blockquote {
+    border-left: 3px solid #cbd5e0;
+    padding: 4px 14px;
+    color: #718096;
+    font-style: italic;
+    margin: 6px 0 12px;
+    font-size: 10pt;
+  }
+
+  em { font-style: italic; }
+  strong { font-weight: 700; color: #1a202c; }
+
+  code {
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: 9.5pt;
+    background: #f1f5f9;
+    color: #1e4d2b;
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid #e2e8f0;
+  }
+
+  pre {
+    background: #0d1520;
+    color: #e2e8f0;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin: 8px 0 12px;
+    font-size: 9pt;
+    overflow-x: auto;
+  }
+  pre code {
+    background: none;
+    border: none;
+    color: inherit;
+    padding: 0;
+    font-size: inherit;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 16px;
+    font-size: 10pt;
+    page-break-inside: avoid;
+  }
+  th {
+    background: #0d1520;
+    color: #fff;
+    text-align: left;
+    padding: 6px 10px;
+    font-weight: 600;
+    font-size: 9.5pt;
+  }
+  td {
+    padding: 5px 10px;
+    border-bottom: 1px solid #e2e8f0;
+    color: #2d3748;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #f8fafc; }
+
+  hr {
+    border: none;
+    border-top: 1px solid #e2e8f0;
+    margin: 18px 0;
+  }
+
+  ul, ol {
+    margin: 6px 0 10px 20px;
+    color: #2d3748;
+  }
+  li { margin: 3px 0; }
+
+  /* US card: h4 + next p treated as a block */
+  h4 + p {
+    margin-top: 2px;
+    color: #374151;
+  }
+
+  /* italic file reference at end of each US */
+  h4 ~ p > em:only-child {
+    display: block;
+    font-size: 9.5pt;
+    color: #6b7280;
+    margin-top: 4px;
+    font-style: normal;
+  }
+  h4 ~ p > em:only-child code {
+    background: #f0fdf4;
+    color: #065f46;
+    border-color: #a7f3d0;
+    font-size: 9pt;
+  }
+
+  @media print {
+    body { padding: 16px 24px; font-size: 10pt; }
+    h2 { page-break-before: always; font-size: 12pt; }
+    h2:first-of-type { page-break-before: avoid; }
+    h4 { page-break-after: avoid; }
+    table, pre { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<h1>RankEX — User Stories</h1>
+<blockquote>
+<p>Estratte dal codice sorgente · Versione maggio 2026 · 95 US totali<br>Formato espanso: ogni US include storia, contesto e file di riferimento.</p>
+</blockquote>
+<hr>
+<h2>Autenticazione</h2>
+<h4>US-001 — Login</h4>
+<p><strong>Come</strong> utente non autenticato <strong>voglio</strong> inserire email e password <strong>per</strong> accedere alla piattaforma in base al mio ruolo.</p>
+<p>Il form autentica tramite Firebase Auth. Al successo il sistema carica il profilo da <code>/users/{uid}</code>, legge il ruolo e reindirizza alla view corretta: trainer/org_admin/staff_readonly → TrainerShell, client → ClientView, super_admin → AdminShell. Se il flag <code>mustChangePassword</code> è <code>true</code>, il client viene bloccato su ChangePasswordScreen prima di raggiungere la dashboard. Gli errori Firebase (credenziali errate, utente disabilitato) vengono tradotti in messaggi leggibili in italiano.</p>
+<p><em><code>features/auth/LoginPage.jsx</code></em></p>
+<hr>
+<h4>US-002 — Reset password via email</h4>
+<p><strong>Come</strong> utente registrato <strong>voglio</strong> richiedere il reset della password via email <strong>per</strong> recuperare l&#39;accesso se la dimentico.</p>
+<p>Firebase invia un link di reset all&#39;indirizzo inserito. Dopo l&#39;invio compare una schermata di conferma. La funzione è accessibile anche ai client che hanno perso la password temporanea, senza richiedere autenticazione attiva.</p>
+<p><em><code>features/auth/components/ResetForm.jsx</code></em></p>
+<hr>
+<h4>US-003 — Cambio password obbligatorio al primo accesso</h4>
+<p><strong>Come</strong> client che accede per la prima volta <strong>voglio</strong> essere forzato a cambiare la password temporanea <strong>per</strong> proteggere il mio account da subito.</p>
+<p>Quando il trainer crea un cliente, il flag <code>mustChangePassword: true</code> viene scritto in <code>/users/{uid}</code>. Al login, <code>ClientView</code> intercetta il flag e mostra <code>ChangePasswordScreen</code> prima della dashboard. Il client deve inserire la password temporanea corrente (re-auth) e scegliere una nuova password che rispetti la policy (min 8 caratteri, almeno 1 numero, 1 maiuscola). Solo dopo il cambio il flag viene azzerato a <code>false</code> e la dashboard diventa accessibile.</p>
+<p><em><code>features/client/ChangePasswordScreen.jsx</code></em></p>
+<hr>
+<h4>US-004 — Logout automatico per inattività</h4>
+<p><strong>Come</strong> utente autenticato <strong>voglio</strong> essere disconnesso automaticamente dopo un periodo di inattività <strong>per</strong> garantire la sicurezza della sessione.</p>
+<p><code>useSessionTimeout(role)</code> ascolta eventi <code>mousemove</code>, <code>keypress</code>, <code>touchstart</code>, <code>scroll</code>. Se l&#39;intervallo scade senza attività, esegue il logout. Le soglie variano per ruolo: super_admin 30 min, org_admin 2 ore, trainer/staff 8 ore, client 24 ore. Protegge sessioni dimenticate aperte su dispositivi condivisi o postazioni pubbliche.</p>
+<p><em><code>hooks/useSessionTimeout.js</code></em></p>
+<hr>
+<h4>US-005 — Logout esplicito</h4>
+<p><strong>Come</strong> utente autenticato <strong>voglio</strong> fare logout esplicito <strong>per</strong> terminare la sessione in sicurezza.</p>
+<p>Il logout chiama <code>signOut()</code> di Firebase Auth preceduto da <code>auditLog(AUDIT_ACTIONS.LOGOUT)</code> per garantire tracciabilità. La sessione viene terminata lato client; per limitazioni strutturali del piano Spark senza backend, il refresh token Firebase mantiene una residua autonomia di circa 1 ora.</p>
+<p><em><code>firebase/services/auth.js</code></em></p>
+<hr>
+<h2>Gestione Clienti (Trainer)</h2>
+<h4>US-006 — Lista clienti</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> visualizzare la lista di tutti i miei clienti <strong>per</strong> avere una panoramica del gruppo di lavoro.</p>
+<p>Mostra tutti i clienti dell&#39;organizzazione in una griglia di card. Ogni card riporta nome, categoria o ruolo, rank, livello XP e badge fascia (per Soccer). Supporta ricerca testuale e ordinamento per nome, rank o data aggiunta. La lista è paginata e filtrata tramite <code>FiltersSidebar</code>.</p>
+<p><em><code>features/trainer/ClientsPage.jsx</code></em></p>
+<hr>
+<h4>US-007 — Filtro clienti per categoria / ruolo / fascia</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> filtrare i clienti per categoria, ruolo o fascia <strong>per</strong> trovare rapidamente i clienti con un profilo specifico.</p>
+<p>In modulo PT filtra per categoria (health / active / athlete). In Soccer Academy filtra per ruolo calcistico (portiere / difensore / centrocampista / attaccante) e per fascia d&#39;età (Pulcini / Esordienti / Senior). Il filtro FASCIA appare solo quando nell&#39;organizzazione sono presenti clienti appartenenti ad almeno due fasce diverse.</p>
+<p><em><code>features/trainer/clients-page/FiltersSidebar.jsx</code></em></p>
+<hr>
+<h4>US-008 — Crea nuovo cliente tramite wizard</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> aggiungere un nuovo cliente tramite un wizard guidato <strong>per</strong> raccogliere anagrafica, profilo e credenziali in un unico flusso.</p>
+<p>Il wizard multi-step raccoglie dati anagrafici, categoria o ruolo, tipo profilo, eventuali misure BIA iniziali e genera le credenziali Firebase Auth. Se l&#39;organizzazione ha raggiunto il limite clienti del piano, viene mostrata una schermata di blocco al posto del wizard.</p>
+<p><em><code>features/trainer/NewClientView.jsx</code></em></p>
+<hr>
+<h4>US-009 — Elimina cliente</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> eliminare un cliente con conferma esplicita <strong>per</strong> rimuovere profili non più attivi.</p>
+<p>Un <code>ConfirmDialog</code> a due step (conferma generica, poi digitazione del nome) impedisce eliminazioni accidentali. L&#39;eliminazione usa un batch Firestore: cancella il documento cliente, decrementa atomicamente <code>clientCount</code> sull&#39;organizzazione e registra <code>AUDIT_ACTIONS.CLIENT_DELETED</code> nell&#39;audit log.</p>
+<p><em><code>hooks/useClients.js</code></em></p>
+<hr>
+<h2>Dashboard Cliente — Vista Trainer</h2>
+<h4>US-010 — Scheda atleta (avatar, nome, badge, XP)</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> visualizzare la scheda atleta del cliente <strong>per</strong> avere un riepilogo immediato del suo stato.</p>
+<p>Il pannello sinistro della dashboard (sticky su desktop, tab AVATAR su mobile) mostra un avatar placeholder colorato con il colore del rank, i badge di categoria/ruolo/fascia, la XPBar orizzontale fullWidth e il livello corrente. Su mobile il pannello si trova nel primo tab (AVATAR), nascosto su desktop.</p>
+<p><em><code>features/client/ClientDashboard.jsx</code></em></p>
+<hr>
+<h4>US-011 — Rank e media percentile</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> vedere il rank e la media percentile del cliente <strong>per</strong> valutare il livello atletico complessivo.</p>
+<p>Il rank è calcolato da <code>getRankFromMedia(media)</code> dove <code>media</code> è la media aritmetica dei percentili di tutti i test campionati. Viene visualizzato come etichetta testuale (IRON / BRONZE / SILVER / GOLD / PLATINUM / DIAMOND) con il colore associato. La BIA non influenza il rank atletico.</p>
+<p><em><code>features/client/ClientDashboard.jsx</code></em></p>
+<hr>
+<h4>US-012 — Navigazione tab dashboard</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> navigare tra le tab della dashboard <strong>per</strong> accedere alle diverse sezioni operative.</p>
+<p>La tab nav è sticky sotto l&#39;header. Le tab disponibili sono: Panoramica, Test, BIA, Note, Misure, Scheda, XP Trend, Sessioni e (solo mobile) AVATAR. Il tab AVATAR è nascosto su desktop via <code>lg:hidden</code>. Lo staff_readonly vede tutte le tab in sola lettura senza controlli di modifica.</p>
+<p><em><code>features/client/ClientDashboard.jsx</code></em></p>
+<hr>
+<h4>US-013 — Campionamento test</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> eseguire un campionamento e registrare i valori misurati <strong>per</strong> aggiornare il profilo atletico del cliente.</p>
+<p><code>CampionamentoView</code> presenta i test della categoria o fascia del cliente. Ogni campo accetta il valore misurato; le formule complesse (es. Y Balance composite con entrambi gli arti) vengono applicate automaticamente. Il campionamento è associato alla data odierna.</p>
+<p><em><code>features/client/CampionamentoView.jsx</code></em></p>
+<hr>
+<h4>US-014 — Percentili in tempo reale durante il campionamento</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> vedere i percentili calcolati in tempo reale durante il campionamento <strong>per</strong> avere feedback immediato sulla prestazione.</p>
+<p>Ad ogni modifica di un campo, <code>calcPercentileEx</code> ricalcola il percentile e aggiorna la visualizzazione live. Se l&#39;età del cliente è fuori dalla fascia normativa disponibile, compare un banner ambra sopra il campo (<code>ageWarning</code>): il percentile viene comunque stimato dalla fascia normativa più vicina, ma il trainer è avvisato dell&#39;incertezza.</p>
+<p><em><code>features/client/CampionamentoView.jsx</code></em></p>
+<hr>
+<h4>US-015 — Salva campionamento con aggiornamento XP e rank</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> salvare il campionamento con aggiornamento XP e rank <strong>per</strong> mantenere lo storico delle performance nel tempo.</p>
+<p><code>saveCampionamentoUseCase</code> calcola l&#39;XP assegnato in base al numero di stat percentili migliorate (tier: FIRST 50 / NONE 10 / PARTIAL 30 / MOST 60 / ALL 100). Aggiorna in un&#39;unica write Firestore: <code>stats</code>, <code>media</code>, <code>rank</code>, <code>campionamenti[]</code>, <code>log[]</code>, <code>xp</code>, <code>level</code>, <code>xpNext</code>.</p>
+<p><em><code>usecases/saveCampionamentoUseCase.js</code></em></p>
+<hr>
+<h4>US-016 — Storico campionamenti</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> visualizzare lo storico dei campionamenti precedenti <strong>per</strong> monitorare il progresso nel tempo.</p>
+<p>Lista cronologica dei campionamenti passati con data, valori per ogni stat e delta rispetto al campionamento precedente evidenziato in verde (miglioramento) o rosso (peggioramento). La sezione è collassabile per non occupare spazio nella tab.</p>
+<p><em><code>features/client/ClientDashboard.jsx</code></em></p>
+<hr>
+<h4>US-017 — Note thread trainer → cliente</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> aggiungere note testuali e rispondere ai commenti del cliente <strong>per</strong> comunicare in modo strutturato.</p>
+<p>Le note sono thread a due livelli: il trainer crea la nota root (<code>parentId: null</code>), il cliente risponde con commenti (<code>parentId: noteId</code>). Il trainer può aggiungere sia note root che commenti su qualsiasi thread. L&#39;autore o un trainer/org_admin può eliminare ogni nota.</p>
+<p><em><code>features/client/client-dashboard/NotesSection.jsx</code></em></p>
+<hr>
+<h4>US-018 — Elimina nota o thread a cascata</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> eliminare una nota o un thread a cascata <strong>per</strong> rimuovere contenuti non pertinenti.</p>
+<p>Eliminare una nota root elimina automaticamente tutti i commenti figli (gestito lato app, non via regole Firestore). Solo l&#39;autore o un trainer/org_admin possono eliminare. L&#39;azione è preceduta da conferma per prevenire cancellazioni accidentali.</p>
+<p><em><code>features/client/client-dashboard/NotesSection.jsx</code></em></p>
+<hr>
+<h4>US-019 — Crea scheda allenamento multi-giorno</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> creare e assegnare una scheda allenamento multi-giorno <strong>per</strong> strutturare il piano di lavoro del cliente.</p>
+<p><code>WorkoutPlanForm</code> permette di definire fino a 7 giorni, ognuno con una lista di esercizi (nome, serie, ripetizioni, recupero in secondi, note). La scheda viene salvata in <code>organizations/{orgId}/workoutPlans/{planId}</code> con <code>status: &#39;active&#39;</code> e <code>clientId</code> associato.</p>
+<p><em><code>features/client/client-dashboard/WorkoutPlanSection.jsx</code></em></p>
+<hr>
+<h4>US-020 — Archivia scheda e crea nuova</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> archiviare una scheda e crearne una nuova <strong>per</strong> mantenere uno storico degli allenamenti.</p>
+<p>Creare una nuova scheda archivia automaticamente quella corrente (<code>status: &#39;archived&#39;</code>). Lo storico delle schede archiviate è visibile in un accordion collassabile sotto la scheda attiva, con titolo, data e possibilità di eliminazione.</p>
+<p><em><code>features/client/client-dashboard/WorkoutPlanSection.jsx</code></em></p>
+<hr>
+<h4>US-021 — Misure antropometriche nel tempo</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> registrare il peso e l&#39;altezza del cliente nel tempo <strong>per</strong> monitorare le misure antropometriche.</p>
+<p><code>MisureSection</code> mostra una timeline storica di peso e altezza con trend inline (freccia su/giù e delta numerico rispetto alla misura precedente). I dati sono salvati in <code>clients/{clientId}.misure[]</code> tramite <code>useMisure</code>. Ogni entry include data e valori.</p>
+<p><em><code>features/client/client-dashboard/MisureSection.jsx</code></em></p>
+<hr>
+<h4>US-022 — Esporta PDF cliente con scelta tema</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> esportare un report PDF del cliente scegliendo il tema (dark o B&amp;W) <strong>per</strong> consegnare una documentazione adatta a stampa o visualizzazione digitale.</p>
+<p><code>PrintPickerModal</code> chiede prima della stampa se usare il tema scuro (per visualizzazione digitale) o bianco/nero (per stampa fisica). <code>ClientReportPrint</code> inietta CSS <code>@media print</code> in <code>document.head</code> e chiama <code>window.print()</code>. Il report include: anagrafica, test con delta rispetto al precedente, BIA se presente, ultimi 5 campionamenti. Nessuna dipendenza esterna: il browser genera il PDF nativamente.</p>
+<p><em><code>features/client/client-dashboard/ClientReportPrint.jsx</code>, <code>components/common/PrintPickerModal.jsx</code></em></p>
+<hr>
+<h4>US-082 — Calendario sessioni cliente (tab in dashboard trainer)</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> visualizzare il calendario sessioni del cliente direttamente nella sua dashboard <strong>per</strong> controllare frequenza e storico senza cambiare pagina.</p>
+<p>La tab &quot;Sessioni&quot; della dashboard trainer incorpora <code>ClientCalendar</code> filtrato per il cliente selezionato. Mostra slot passati (completati / saltati) e futuri (pianificati), permettendo al trainer di verificare la frequenza di partecipazione senza uscire dalla scheda cliente.</p>
+<p><em><code>features/client/client-dashboard/ClientSessionsSummary.jsx</code></em></p>
+<hr>
+<h4>US-083 — Grafico andamento percentili nel tempo</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> visualizzare il grafico di andamento dei percentili filtrabile per singola stat <strong>per</strong> analizzare l&#39;evoluzione di ogni capacità atletica campionamento per campionamento.</p>
+<p><code>StatsChart</code> mostra un LineChart (Recharts) con i campionamenti sull&#39;asse X e il percentile (0–100) sull&#39;asse Y. I bottoni di selezione filtrano per singola stat (velocità, forza, resistenza, ecc.). Il componente è visibile solo quando il cliente ha almeno 2 campionamenti.</p>
+<p><em><code>features/client/StatsChart.jsx</code></em></p>
+<hr>
+<h2>Test Atletici</h2>
+<h4>US-023 — Guida dettagliata dei test</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> vedere la guida dettagliata di ogni test <strong>per</strong> eseguire le misurazioni in modo corretto e standardizzato.</p>
+<p><code>TestGuidePage</code> elenca i test del modulo attivo come card espandibili, ognuna con protocollo di esecuzione, attrezzatura richiesta, unità di misura e note tecniche. In Soccer Academy mostra solo i test del protocollo soccer, escludendo quelli PT.</p>
+<p><em><code>features/trainer/TestGuidePage.jsx</code></em></p>
+<hr>
+<h4>US-024 — Banner età fuori fascia normativa</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> sapere quando l&#39;età del cliente è fuori dal range normativo <strong>per</strong> interpretare correttamente i percentili stimati.</p>
+<p><code>getAgeGroupClamped</code> in <code>utils/tables.js</code> restituisce <code>outOfRange: true</code> quando l&#39;età è fuori dalla fascia per cui esiste una tabella normativa. In <code>CampionamentoView</code> questo genera un banner ambra sopra il campo del test interessato, spiegando che il percentile è una stima basata sulla fascia più vicina disponibile.</p>
+<p><em><code>features/client/CampionamentoView.jsx</code></em></p>
+<hr>
+<h4>US-025 — Filtraggio test per modulo attivo</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> vedere solo i test disponibili per il modulo attivo <strong>per</strong> non confondere test di domini diversi.</p>
+<p>In PT i test sono filtrati per la categoria del cliente (health / active / athlete). In Soccer Academy vengono mostrati solo i test della fascia d&#39;età del cliente (Pulcini / Esordienti / Senior). La fonte di verità è <code>getTestsForCategoria</code> in <code>constants/index.js</code>, alimentata da <code>SOCCER_FIXED_TESTS</code> e dalla categoria PT.</p>
+<p><em><code>features/trainer/TestGuidePage.jsx</code></em></p>
+<hr>
+<h2>BIA — Bioimpedenziometria</h2>
+<h4>US-026 — Inserimento parametri BIA</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> inserire i parametri BIA del cliente <strong>per</strong> monitorare la composizione corporea.</p>
+<p>Il form raccoglie 8 parametri: massa grassa %, massa muscolare kg, acqua %, massa ossea kg, BMI (calcolato automaticamente da peso/altezza), metabolismo basale kcal, età metabolica, grasso viscerale. Il BMI viene ricalcolato automaticamente ogni volta che peso o altezza cambiano.</p>
+<p><em><code>features/bia/BiaView.jsx</code></em></p>
+<hr>
+<h4>US-027 — Indicatori cromatici per range clinici BIA</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> vedere i parametri BIA con indicatori cromatici <strong>per</strong> identificare rapidamente i valori fuori norma.</p>
+<p><code>BiaGaugeBar</code> colora ogni barra in base ai range clinici definiti in <code>constants/bia.js</code>, tenendo conto del sesso del cliente: verde = ottimale, giallo = attenzione, rosso = critico. Per i parametri con direzione <code>inverse</code> (es. massa grassa: meno è meglio) la scala cromatica è invertita.</p>
+<p><em><code>features/bia/bia-view/BiaGaugeBar.jsx</code></em></p>
+<hr>
+<h4>US-028 — Storico BIA con grafico</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> visualizzare lo storico BIA con grafico <strong>per</strong> seguire l&#39;evoluzione della composizione corporea nel tempo.</p>
+<p><code>BiaHistoryChart</code> mostra un LineChart per i parametri chiave (massa grassa, muscolare, acqua) sull&#39;asse del tempo. I dati provengono da <code>client.biaHistory[]</code>. L&#39;utente può selezionare quale parametro visualizzare tramite bottoni di filtro.</p>
+<p><em><code>features/bia/bia-view/BiaHistoryChart.jsx</code></em></p>
+<hr>
+<h4>US-029 — BIA non disponibile in Soccer Academy</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> essere informato che la BIA non è disponibile per il modulo Soccer <strong>per</strong> evitare operazioni su profili non supportati.</p>
+<p><code>BiaLockedPanel</code> viene mostrato al posto della tab BIA quando il modulo dell&#39;organizzazione è <code>soccer_academy</code>. Il pannello spiega che la bioimpedenziometria non è supportata per questo modulo e che i profili soccer sono sempre <code>tests_only</code>.</p>
+<p><em><code>features/bia/BiaLockedPanel.jsx</code></em></p>
+<hr>
+<h4>US-084 — Riepilogo composizione corporea inline (BiaSummary)</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> vedere il riepilogo della composizione corporea con gauge bar e rank BIA affiancati <strong>per</strong> avere un colpo d&#39;occhio sullo stato fisico senza aprire la tab dedicata.</p>
+<p><code>BiaSummary</code> mostra tutti i parametri BIA non calcolati con le relative barre gauge cromatiche, affiancati dal rank BIA (calcolato separatamente rispetto al rank atletico dei test). Appare nella tab Panoramica della dashboard quando il cliente ha almeno una misurazione BIA salvata.</p>
+<p><em><code>features/bia/bia-view/BiaSummary.jsx</code></em></p>
+<hr>
+<h2>Sessioni e Calendario</h2>
+<h4>US-030 — Calendario trainer (mese / settimana / giorno)</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> visualizzare il calendario delle sessioni in vista mese, settimana o giorno <strong>per</strong> avere una visione completa degli impegni.</p>
+<p><code>TrainerCalendar</code> mostra gli slot sessione con clienti e gruppi assegnati. La vista default è settimana. Cliccando su uno slot si apre <code>SlotPopup</code> con le azioni disponibili (chiudi / salta / modifica). I colori differenziano gli stati: pianificato (ciano), completato (verde), saltato (grigio).</p>
+<p><em><code>features/trainer/TrainerCalendar.jsx</code></em></p>
+<hr>
+<h4>US-031 — Crea slot sessione</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> creare uno slot sessione con clienti e/o gruppi assegnati <strong>per</strong> pianificare un allenamento.</p>
+<p><code>AddSlotModal</code> raccoglie data, ora inizio/fine, clienti singoli e/o gruppi partecipanti. Lo slot viene salvato con <code>status: &#39;planned&#39;</code>. I clienti appartenenti ai gruppi assegnati vengono inclusi automaticamente in <code>clientIds</code>.</p>
+<p><em><code>features/trainer/trainer-calendar/AddSlotModal.jsx</code></em></p>
+<hr>
+<h4>US-032 — Crea ricorrenza (sessioni ripetute)</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> creare una ricorrenza su giorni della settimana <strong>per</strong> pianificare allenamenti ricorrenti senza inserirli uno per uno.</p>
+<p><code>RecurrenceModal</code> permette di scegliere i giorni della settimana, il periodo (data inizio/fine) e l&#39;orario. Al salvataggio genera automaticamente tutti gli slot per l&#39;intero periodo. La ricorrenza è un&#39;entità di primo livello con <code>status: &#39;active&#39; | &#39;ended&#39; | &#39;cancelled&#39;</code>.</p>
+<p><em><code>features/trainer/trainer-calendar/RecurrenceModal.jsx</code></em></p>
+<hr>
+<h4>US-033 — Chiudi sessione (segna presenti e assenti)</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> chiudere una sessione segnando presenti e assenti <strong>per</strong> assegnare XP agli atleti presenti e notificare gli assenti.</p>
+<p><code>CloseSessionModal</code> mostra la lista dei clienti dello slot. Il trainer spunta i presenti. Alla conferma: i presenti ricevono XP con moltiplicatore streak, gli assenti ricevono una notifica automatica. Lo slot passa a <code>status: &#39;completed&#39;</code> e i dati vengono salvati in <code>attendees</code> e <code>absentees</code>.</p>
+<p><em><code>features/trainer/trainer-calendar/CloseSessionModal.jsx</code></em></p>
+<hr>
+<h4>US-034 — Salta sessione</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> saltare una sessione senza assegnare XP <strong>per</strong> registrare un appuntamento cancellato.</p>
+<p>Dalla <code>SlotPopup</code>, l&#39;azione &quot;Salta&quot; imposta <code>status: &#39;skipped&#39;</code>. Non genera XP né notifiche. Lo slot rimane visibile nel calendario con styling grigio per mantenere la tracciabilità degli appuntamenti cancellati.</p>
+<p><em><code>features/trainer/trainer-calendar/SlotPopup.jsx</code></em></p>
+<hr>
+<h4>US-035 — Gestione lista ricorrenze</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> gestire le ricorrenze (estendi periodo, modifica orario, annulla, elimina slot futuri) <strong>per</strong> mantenere il calendario aggiornato.</p>
+<p><code>RecurrencesPage</code> mostra le ricorrenze attive per default e un accordion archivio per quelle <code>ended</code> o <code>cancelled</code>. La lista attive è paginata (10 per pagina). Ogni card riporta giorni della settimana, orario, numero clienti assegnati e settimane rimanenti.</p>
+<p><em><code>features/trainer/RecurrencesPage.jsx</code></em></p>
+<hr>
+<h4>US-092 — Dettaglio singola ricorrenza</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> aprire il dettaglio di una ricorrenza specifica <strong>per</strong> verificarne e correggerne i dati senza passare dal calendario.</p>
+<p><code>RecurrenceDetailView</code> mostra l&#39;intestazione con giorni, orario e data di fine, un layout a due colonne con i clienti assegnati (con ricerca testuale) e il contatore totale di settimane calcolate. Permette di annullare la ricorrenza con conferma, eliminando tutti gli slot futuri associati.</p>
+<p><em><code>features/trainer/recurrences-page/RecurrenceDetailView.jsx</code></em></p>
+<hr>
+<h2>Gruppi</h2>
+<h4>US-036 — Crea e gestisci gruppi</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> creare e gestire gruppi di clienti <strong>per</strong> organizzare gli atleti per squadra o livello.</p>
+<p><code>GroupsPage</code> lista i gruppi dell&#39;organizzazione con nome e numero di clienti. Supporta creazione, rinomina ed eliminazione. Un gruppo è una struttura in <code>organizations/{orgId}/groups/{groupId}</code> contenente un array di <code>clientIds</code>.</p>
+<p><em><code>features/trainer/GroupsPage.jsx</code></em></p>
+<hr>
+<h4>US-037 — Aggiungi/rimuovi cliente da gruppo con preview calendario</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> aggiungere o rimuovere un cliente da un gruppo con conferma e preview dell&#39;impatto sul calendario <strong>per</strong> capire quanti slot saranno aggiornati prima di confermare.</p>
+<p><code>GroupToggleDialog</code> mostra in anteprima quanti slot futuri non ricorrenti e quante ricorrenze attive verranno aggiornati. Alla conferma, il sistema aggiorna <code>group.clientIds</code>, sincronizza gli slot futuri non ricorrenti e le ricorrenze attive con i loro slot futuri. Gli slot passati non vengono mai modificati.</p>
+<p><em><code>features/trainer/groups-page/GroupToggleDialog.jsx</code></em></p>
+<hr>
+<h4>US-038 — Classifica del gruppo</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> vedere la classifica del gruppo ordinata per media o per singola stat <strong>per</strong> confrontare le performance degli atleti.</p>
+<p><code>GroupLeaderboard</code> mostra tutti i clienti del gruppo ordinati per media percentile (default) o per una singola stat selezionabile. I primi 3 atleti sono visualizzati con un podio visivo. La lista è paginata. Disponibile nel tab &quot;Classifica&quot; di <code>GroupDetailView</code>.</p>
+<p><em><code>features/trainer/groups-page/GroupLeaderboard.jsx</code></em></p>
+<hr>
+<h4>US-039 — Campioni per disciplina (griglia)</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> vedere i campioni per disciplina del gruppo <strong>per</strong> identificare i migliori atleti per ogni test.</p>
+<p><code>GroupChampions</code> mostra una griglia con un riquadro per ogni stat/test. In ogni riquadro compare il nome del cliente con il percentile più alto per quella disciplina. Disponibile nel tab &quot;Analisi&quot; di <code>GroupDetailView</code>.</p>
+<p><em><code>features/trainer/groups-page/GroupChampions.jsx</code></em></p>
+<hr>
+<h4>US-040 — Analisi aggregata del gruppo</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> vedere l&#39;analisi aggregata del gruppo: riepilogo, trend, heatmap, più migliorati <strong>per</strong> avere insights complessivi sulle performance.</p>
+<p><code>GroupAnalysis</code> include: riepilogo delle statistiche medie del gruppo, LineChart del trend nel tempo per stat selezionabile, heatmap delle presenze per cliente/mese, e lista dei clienti più migliorati (delta percentile massimo tra due campionamenti consecutivi). Disponibile nel tab &quot;Analisi&quot;.</p>
+<p><em><code>features/trainer/groups-page/GroupAnalysis.jsx</code></em></p>
+<hr>
+<h4>US-041 — Confronto visivo fino a 3 atleti (radar + tabella)</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> confrontare visivamente fino a 3 atleti dello stesso gruppo <strong>per</strong> fare analisi comparative dettagliate.</p>
+<p><code>GroupComparison</code> ha un selettore paginato per scegliere fino a 3 atleti del gruppo. Il radar SVG multi-overlay sovrappone i profili in un unico grafico pentagono. La tabella sotto riporta i valori numerici per ogni stat, con evidenziazione del valore più alto per ogni riga. Disponibile nel tab &quot;Confronto&quot;.</p>
+<p><em><code>features/trainer/groups-page/GroupComparison.jsx</code></em></p>
+<hr>
+<h4>US-085 — Sessioni del gruppo con statistiche presenze</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> vedere le sessioni del gruppo (prossime e recenti) con statistiche aggregate <strong>per</strong> monitorare la frequenza senza aprire il calendario.</p>
+<p><code>GroupSessionsPanel</code> mostra tre metriche aggregate: sessioni completate negli ultimi 30 giorni, sessioni pianificate, tasso medio di presenze. Sotto, due liste paginate: slot futuri pianificati e slot recenti completati con rapporto presenti/invitati per ogni slot. Disponibile nel tab &quot;Sessioni&quot; di <code>GroupDetailView</code>.</p>
+<p><em><code>features/trainer/groups-page/GroupSessionsPanel.jsx</code></em></p>
+<hr>
+<h4>US-086 — Note/annunci di gruppo</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> pubblicare note e annunci di gruppo e cancellarli <strong>per</strong> comunicare informazioni a tutto il gruppo in modo strutturato.</p>
+<p><code>GroupNotes</code> è distinta dalle note individuali dei clienti. Ogni nota è un annuncio flat (senza thread nidificati) visibile a tutti i trainer dell&#39;organizzazione. Solo l&#39;autore o un org_admin possono eliminarla. Il trainer può inviare premendo Ctrl+Enter. La lista è paginata (8 per pagina). Disponibile nel tab &quot;Note&quot; di <code>GroupDetailView</code>.</p>
+<p><em><code>features/trainer/groups-page/GroupNotes.jsx</code></em></p>
+<hr>
+<h4>US-087 — Esporta PDF gruppo con scelta tema</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> esportare un report PDF del gruppo scegliendo il tema (dark o B&amp;W) <strong>per</strong> produrre una documentazione stampabile con classifica, analisi e confronto atleti.</p>
+<p>Come per il PDF cliente, <code>PrintPickerModal</code> chiede prima la scelta del tema. <code>GroupReportPrint</code> usa <code>window.print()</code> con CSS <code>@media print</code> iniettato nel DOM. Il report include: classifica finale del gruppo, campioni per disciplina e riepilogo statistiche aggregate. Nessuna dipendenza esterna.</p>
+<p><em><code>features/trainer/groups-page/GroupReportPrint.jsx</code>, <code>components/common/PrintPickerModal.jsx</code></em></p>
+<hr>
+<h2>Wearable / Attività Fisica</h2>
+<h4>US-088 — Trainer abilita wearable e visualizza dati attività cliente</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> abilitare il tracciamento wearable per un cliente e visualizzare passi, calorie e livello di attività degli ultimi 7 giorni <strong>per</strong> monitorare l&#39;attività quotidiana al di fuori delle sessioni.</p>
+<p><code>WearableSection</code> nella dashboard trainer mostra un indicatore colorato del livello di attività (basso/medio/alto basato sui passi medi degli ultimi 7 giorni), tre ring con passi, calorie e minuti attivi del giorno corrente, e un BarChart con i passi giornalieri degli ultimi 7 giorni. Il trainer abilita la funzione per il cliente; il collegamento effettivo avviene lato client tramite OAuth Google Fit.</p>
+<p><em><code>features/client/client-dashboard/WearableSection.jsx</code>, <code>hooks/useWearable.js</code></em></p>
+<hr>
+<h4>US-089 — Client collega il proprio account Google Fit</h4>
+<p><strong>Come</strong> client <strong>voglio</strong> collegare il mio account Google Fit all&#39;app <strong>per</strong> condividere i dati di attività con il trainer.</p>
+<p><code>ClientWearableSection</code> nella dashboard client mostra un pulsante per avviare il flusso OAuth Google Fit via <code>linkWithRedirect</code>. Dopo il redirect, <code>resolveGoogleFitRedirect</code> recupera l&#39;access token, legge i dati di attività tramite Google Fit REST API e li salva in Firestore. Il trainer vede i dati aggiornati nella propria <code>WearableSection</code>.</p>
+<p><em><code>features/client/client-view/ClientWearableSection.jsx</code></em></p>
+<hr>
+<h2>Gamification</h2>
+<h4>US-042 — Livello, XP e progressione</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> vedere il livello, gli XP e gli XP necessari per il prossimo livello del cliente <strong>per</strong> monitorare la progressione gamificata.</p>
+<p>Il livello avanza quando <code>xp &gt;= xpNext</code>. La soglia del livello successivo è calcolata come <code>xpNext × 1.08</code> (curva raggiungibile in ~3,5–4 anni a 3 sessioni/settimana). La XPBar mostra la percentuale di completamento verso il prossimo livello. Il livello iniziale è 1 con <code>xpNext = 500</code>.</p>
+<p><em><code>features/client/ClientDashboard.jsx</code></em></p>
+<hr>
+<h4>US-043 — Rank atletico</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> vedere il rank atletico del cliente <strong>per</strong> avere una valutazione sintetica e motivante del livello.</p>
+<p><code>getRankFromMedia(media)</code> restituisce il rank in base alla media percentile: IRON → BRONZE → SILVER → GOLD → PLATINUM → DIAMOND. Rank e colore vengono aggiornati ad ogni campionamento salvato. La BIA non influenza il rank: è determinato esclusivamente dai test atletici.</p>
+<p><em><code>utils/gamification.js</code></em></p>
+<hr>
+<h4>US-044 — Grafico XP nel tempo</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> vedere il grafico XP per giorno, settimana o mese <strong>per</strong> analizzare la costanza e l&#39;evoluzione della partecipazione.</p>
+<p><code>XPTrendChart</code> legge <code>client.log[]</code> dove ogni entry contiene <code>ts: Date.now()</code> e la quantità di XP guadagnata. I tre bottoni di granularità aggregano i dati sull&#39;asse temporale scelto. Il grafico è disponibile sia nella dashboard trainer che in quella client.</p>
+<p><em><code>features/client/client-dashboard/XPTrendChart.jsx</code></em></p>
+<hr>
+<h4>US-045 — XP bonus per streak di sessioni consecutive</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> che il cliente riceva XP bonus per sessioni consecutive <strong>per</strong> incentivare la partecipazione regolare.</p>
+<p><code>calcSessionXP(baseXP, streak)</code> applica il moltiplicatore <code>1 + min(streak × 0.1, 1.0)</code>. A streak 10 il moltiplicatore raggiunge il massimo di ×2.0. La streak si incrementa ad ogni sessione chiusa con presenza del cliente, e si azzera in caso di assenza.</p>
+<p><em><code>utils/gamification.js</code></em></p>
+<hr>
+<h4>US-046 — XP da BIA e campionamenti in base ai miglioramenti</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> che il cliente riceva XP da BIA e campionamenti in base ai miglioramenti effettivi <strong>per</strong> premiare i progressi in tutte le dimensioni del profilo.</p>
+<p><strong>Campionamento</strong> — tier basato sul numero di stat percentili migliorate: FIRST=50 (primo campionamento), NONE=10, PARTIAL=30 (1 stat), MOST=60 (2–3 stat), ALL=100 (4+ stat). <strong>BIA</strong> — tier basato su 4 parametri chiave migliorati (massa grassa↓, massa muscolare↑, acqua↑, grasso viscerale↓): stessa scala di XP.</p>
+<p><em><code>usecases/saveBiaUseCase.js</code>, <code>usecases/saveCampionamentoUseCase.js</code></em></p>
+<hr>
+<h2>Notifiche</h2>
+<h4>US-047 — Invia notifica al cliente</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> inviare notifiche al cliente <strong>per</strong> comunicare feedback sulle presenze.</p>
+<p>Le notifiche vengono create automaticamente alla chiusura di una sessione per i clienti assenti. Il trainer può anche inviarle manualmente. I dati sono persistiti in <code>organizations/{orgId}/notifications/{notId}</code> con tipo, messaggio, data e flag <code>read</code>.</p>
+<p><em><code>firebase/services/notifications.js</code></em></p>
+<hr>
+<h4>US-048 — Pannello notifiche (client)</h4>
+<p><strong>Come</strong> client <strong>voglio</strong> vedere le notifiche ricevute in un pannello dedicato <strong>per</strong> essere informato delle comunicazioni del trainer.</p>
+<p><code>NotificationsPanel</code> mostra le notifiche ordinate per data, con un badge contatore per le non lette. Ogni notifica riporta tipo, messaggio e data. Cliccando una singola notifica la marca come letta aggiornando <code>read: true</code> e <code>readAt</code>.</p>
+<p><em><code>features/notification/NotificationsPanel.jsx</code></em></p>
+<hr>
+<h4>US-049 — Segna tutte le notifiche come lette</h4>
+<p><strong>Come</strong> client <strong>voglio</strong> marcare tutte le notifiche come lette in un colpo solo <strong>per</strong> gestire rapidamente il pannello.</p>
+<p><code>useNotifications</code> espone <code>markAllRead()</code> che aggiorna in batch tutti i documenti notifica con <code>read: true</code> e <code>readAt: now()</code>. Il badge contatore scompare immediatamente tramite optimistic update, prima che la write Firestore sia completata.</p>
+<p><em><code>hooks/useNotifications.js</code></em></p>
+<hr>
+<h2>Area Self-Service Cliente</h2>
+<h4>US-050 — Dashboard cliente (vista client)</h4>
+<p><strong>Come</strong> client <strong>voglio</strong> vedere la mia dashboard con avatar, rank, XP e statistiche <strong>per</strong> monitorare i miei progressi atletici.</p>
+<p><code>ClientDashboardPage</code> usa lo stesso layout della vista trainer (2 colonne su desktop, tab AVATAR su mobile) ma in sola lettura: il client non può aprire il campionamento né modificare dati. Vede rank, XP, statistiche percentili, storico campionamenti e tutte le tab del proprio profilo.</p>
+<p><em><code>features/client/client-view/ClientDashboardPage.jsx</code></em></p>
+<hr>
+<h4>US-051 — Scheda allenamento attiva (read-only, client)</h4>
+<p><strong>Come</strong> client <strong>voglio</strong> vedere la scheda allenamento attiva assegnata dal trainer <strong>per</strong> seguire il piano di allenamento indicato.</p>
+<p><code>ClientWorkoutSection</code> carica la scheda attiva con <code>getWorkoutPlanForClient</code> (query filtrata per <code>clientId</code> e <code>status: &#39;active&#39;</code>). Mostra i giorni come tab (max 7) con la lista degli esercizi per ogni giorno: nome, serie × ripetizioni, recupero in secondi e note del trainer. Sola lettura.</p>
+<p><em><code>features/client/client-dashboard/ClientWorkoutSection.jsx</code></em></p>
+<hr>
+<h4>US-052 — Calendario sessioni (client)</h4>
+<p><strong>Come</strong> client <strong>voglio</strong> vedere il calendario delle mie sessioni <strong>per</strong> sapere quando ho allenamenti in programma.</p>
+<p><code>ClientCalendar</code> filtra gli slot per <code>clientIds</code> contenente l&#39;ID del cliente autenticato. Mostra slot pianificati, completati (con indicazione presenza o assenza) e saltati. Il client vede solo i propri slot, non quelli degli altri clienti dell&#39;organizzazione.</p>
+<p><em><code>features/client/ClientCalendar.jsx</code></em></p>
+<hr>
+<h4>US-053 — Commenta le note del trainer</h4>
+<p><strong>Come</strong> client <strong>voglio</strong> commentare le note del trainer sul mio profilo <strong>per</strong> partecipare al dialogo.</p>
+<p>Il client può aggiungere solo commenti (<code>parentId != null</code>) su thread esistenti creati dal trainer. Non può creare note root. Firestore rules verificano che <code>parentId</code> non sia null per la scrittura del ruolo client. I suoi commenti appaiono nel thread con il badge ruolo &quot;Client&quot;.</p>
+<p><em><code>features/client/client-dashboard/NotesSection.jsx</code></em></p>
+<hr>
+<h4>US-054 — Notifiche client</h4>
+<p><strong>Come</strong> client <strong>voglio</strong> vedere le mie notifiche e marcarle come lette <strong>per</strong> gestire le comunicazioni ricevute.</p>
+<p>Stessa <code>NotificationsPanel</code> degli altri ruoli, filtrata per il <code>clientId</code> dell&#39;utente autenticato. Il badge nell&#39;header mostra il numero di notifiche non lette.</p>
+<p><em><code>features/notification/NotificationsPanel.jsx</code></em></p>
+<hr>
+<h4>US-055 — Cambio password (area profilo client)</h4>
+<p><strong>Come</strong> client <strong>voglio</strong> modificare la mia password dall&#39;area profilo <strong>per</strong> mantenere la sicurezza dell&#39;account.</p>
+<p>Diverso da <code>ChangePasswordScreen</code> (obbligatorio al primo accesso): qui il client modifica volontariamente la password. La funzione si trova in <code>ClientProfilePage</code> e richiede la password corrente per re-auth prima di consentire l&#39;aggiornamento.</p>
+<p><em><code>features/client/client-view/ClientProfilePage.jsx</code></em></p>
+<hr>
+<h4>US-056 — Trend XP nel tempo (client)</h4>
+<p><strong>Come</strong> client <strong>voglio</strong> vedere il mio trend XP nel tempo <strong>per</strong> seguire la mia evoluzione gamificata.</p>
+<p>Stessa <code>XPTrendChart</code> disponibile nella dashboard trainer, con granularità giorno/settimana/mese. Il client vede esclusivamente i propri dati. Disponibile come tab dedicata nella propria dashboard.</p>
+<p><em><code>features/client/client-dashboard/XPTrendChart.jsx</code></em></p>
+<hr>
+<h2>Profilo Trainer</h2>
+<h4>US-057 — Modifica email e password (trainer)</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> modificare la mia email e la mia password <strong>per</strong> mantenere le credenziali aggiornate e sicure.</p>
+<p><code>ProfilePage</code> gestisce due form separati. Il cambio email usa <code>verifyBeforeUpdateEmail</code>: Firebase invia un link di verifica al nuovo indirizzo prima che il cambio diventi effettivo. Il cambio password usa re-auth con la password corrente. Entrambe le azioni generano audit log con <code>AUDIT_ACTIONS.EMAIL_CHANGED</code> e <code>AUDIT_ACTIONS.PASSWORD_CHANGED</code>.</p>
+<p><em><code>features/trainer/ProfilePage.jsx</code></em></p>
+<hr>
+<h2>Area Org Admin</h2>
+<h4>US-058 — Dashboard organizzazione</h4>
+<p><strong>Come</strong> org_admin <strong>voglio</strong> vedere la dashboard dell&#39;organizzazione con statistiche aggregate <strong>per</strong> avere una visione d&#39;insieme dell&#39;attività.</p>
+<p><code>OrgDashboard</code> mostra contatori di clienti attivi, sessioni del mese e trainer, un riepilogo del piano con utilizzo corrente (basato su <code>memberCount</code> e <code>clientCount</code> atomici) e un feed di attività recente. Punto di ingresso dell&#39;area org_admin.</p>
+<p><em><code>features/org/org-pages/OrgDashboard.jsx</code></em></p>
+<hr>
+<h4>US-059 — Lista e gestione membri del team</h4>
+<p><strong>Come</strong> org_admin <strong>voglio</strong> visualizzare e gestire i membri del team <strong>per</strong> sapere chi ha accesso all&#39;organizzazione.</p>
+<p><code>MembersPage</code> mostra tutti i membri con ruolo, email e data di ingresso. Visualizza un banner giallo e disabilita il bottone AGGIUNGI quando <code>memberCount &gt;= getPlanLimits(plan).trainers</code>, impedendo di superare il limite del piano.</p>
+<p><em><code>features/org/org-pages/MembersPage.jsx</code></em></p>
+<hr>
+<h4>US-060 — Aggiungi membro al team</h4>
+<p><strong>Come</strong> org_admin <strong>voglio</strong> aggiungere nuovi membri assegnando il ruolo <strong>per</strong> espandere il team con le autorizzazioni corrette.</p>
+<p><code>CreateMemberForm</code> crea l&#39;account Firebase Auth tramite un&#39;app secondaria (per non effettuare il logout dall&#39;account corrente), crea il documento <code>/users/{uid}</code> e aggiunge il membro con <code>addMember</code> — un batch che scrive il documento membro e incrementa atomicamente <code>memberCount</code> sull&#39;organizzazione.</p>
+<p><em><code>features/org/org-pages/CreateMemberForm.jsx</code></em></p>
+<hr>
+<h4>US-061 — Rimuovi membro del team</h4>
+<p><strong>Come</strong> org_admin <strong>voglio</strong> rimuovere un membro con conferma <strong>per</strong> revocare l&#39;accesso a chi non fa più parte dell&#39;org.</p>
+<p><code>removeMember</code> elimina il documento <code>/members/{uid}</code>, aggiorna il profilo in <code>/users/{uid}</code> e decrementa <code>memberCount</code> atomicamente in un batch. L&#39;azione è registrata nell&#39;audit log con <code>AUDIT_ACTIONS.MEMBER_REMOVED</code>.</p>
+<p><em><code>features/org/org-pages/MembersPage.jsx</code></em></p>
+<hr>
+<h4>US-062 — Cambia ruolo membro</h4>
+<p><strong>Come</strong> org_admin <strong>voglio</strong> cambiare il ruolo di un membro <strong>per</strong> adeguare i permessi alle responsabilità attuali.</p>
+<p>La select aggiorna sia <code>/members/{uid}</code> che <code>/users/{uid}</code>. Le Firestore rules verificano via <code>isOrgAdminForMember</code> che il nuovo ruolo sia solo <code>org_admin</code>, <code>trainer</code> o <code>staff_readonly</code>, impedendo escalation al ruolo <code>super_admin</code>. L&#39;azione è tracciata con <code>AUDIT_ACTIONS.ROLE_CHANGED</code>.</p>
+<p><em><code>features/org/org-pages/MembersPage.jsx</code></em></p>
+<hr>
+<h2>Area Super Admin</h2>
+<h4>US-063 — Dashboard globale</h4>
+<p><strong>Come</strong> super_admin <strong>voglio</strong> vedere la dashboard globale con statistiche su tutte le organizzazioni <strong>per</strong> monitorare l&#39;utilizzo della piattaforma.</p>
+<p><code>AdminDashboard</code> aggrega contatori totali (organizzazioni attive, trainer, clienti), un breakdown per piano (free / pro / enterprise) e la lista delle organizzazioni create più di recente. L&#39;intera area admin ha accent rosso per differenziarla visivamente dall&#39;area trainer.</p>
+<p><em><code>features/admin/admin-pages/AdminDashboard.jsx</code></em></p>
+<hr>
+<h4>US-064 — Lista tutte le organizzazioni</h4>
+<p><strong>Come</strong> super_admin <strong>voglio</strong> vedere la lista di tutte le organizzazioni con utilizzo del piano <strong>per</strong> fare customer service e monitorare i limiti.</p>
+<p><code>OrgsPage</code> mostra tutte le organizzazioni con nome, piano, data di creazione e contatori trainer/clienti. Cliccando un&#39;organizzazione si accede al suo dettaglio. Supporta ricerca testuale per nome organizzazione.</p>
+<p><em><code>features/admin/admin-pages/OrgsPage.jsx</code></em></p>
+<hr>
+<h4>US-065 — Crea nuova organizzazione</h4>
+<p><strong>Come</strong> super_admin <strong>voglio</strong> creare una nuova organizzazione <strong>per</strong> onboardare nuovi clienti B2B.</p>
+<p><code>CreateOrgForm</code> genera un <code>orgId</code> da slug del nome + suffisso random per garantire unicità. Il campo <code>ownerId</code> è prepopolato con l&#39;uid del super_admin autenticato. Imposta il piano iniziale e crea il documento <code>/organizations/{orgId}</code> con i counter azzerati.</p>
+<p><em><code>features/admin/admin-pages/CreateOrgForm.jsx</code></em></p>
+<hr>
+<h4>US-066 — Dettaglio organizzazione con utilizzo piano</h4>
+<p><strong>Come</strong> super_admin <strong>voglio</strong> vedere il dettaglio di un&#39;organizzazione con barre di utilizzo trainer/clienti <strong>per</strong> valutare quando si avvicina al limite.</p>
+<p><code>OrgDetailView</code> mostra barre progresso per trainer (<code>memberCount / limit</code>) e clienti (<code>clientCount / limit</code>). I colori virano al giallo/rosso avvicinandosi al limite. Mostra anche la lista dei membri correnti con possibilità di rimozione di emergenza.</p>
+<p><em><code>features/admin/admin-pages/OrgDetailView.jsx</code></em></p>
+<hr>
+<h4>US-067 — Rimuovi membro da qualsiasi organizzazione</h4>
+<p><strong>Come</strong> super_admin <strong>voglio</strong> rimuovere un membro da qualsiasi organizzazione <strong>per</strong> gestire situazioni di emergenza o richieste di supporto.</p>
+<p>Stesso flusso di rimozione dell&#39;org_admin, ma accessibile globalmente dal super_admin senza essere membro dell&#39;organizzazione target. Utile per gestire account compromessi o richieste urgenti di disattivazione da parte dei clienti B2B.</p>
+<p><em><code>features/admin/admin-pages/OrgDetailView.jsx</code></em></p>
+<hr>
+<h4>US-090 — Profilo super_admin (email e password)</h4>
+<p><strong>Come</strong> super_admin <strong>voglio</strong> modificare la mia email e la mia password dall&#39;area profilo <strong>per</strong> mantenere le credenziali dell&#39;account amministratore aggiornate e sicure.</p>
+<p><code>AdminProfilePage</code> replica la funzionalità di <code>ProfilePage</code> (trainer) nell&#39;area admin con accent rosso. Gestisce separatamente il cambio email (con <code>verifyBeforeUpdateEmail</code>, link di verifica prima del cambio effettivo) e il cambio password (con re-auth). Entrambe le azioni generano audit log.</p>
+<p><em><code>features/admin/admin-pages/AdminProfilePage.jsx</code></em></p>
+<hr>
+<h2>Staff Read-Only</h2>
+<h4>US-068 — Accesso in sola lettura</h4>
+<p><strong>Come</strong> staff_readonly <strong>voglio</strong> accedere alla piattaforma in sola lettura senza poter modificare nulla <strong>per</strong> consultare i dati operativi senza rischio di alterarli.</p>
+<p><code>ReadonlyContext</code> espone il booleano <code>readonly</code>. <code>ReadonlyGuard</code> avvolge tutti i controlli di modifica (bottoni aggiungi / salva / elimina) e li nasconde quando <code>readonly=true</code>. <code>ReadonlyBanner</code> mostra un banner informativo fisso in cima alla pagina. Il routing è identico al ruolo trainer.</p>
+<p><em><code>components/common/ReadonlyGuard.jsx</code>, <code>context/ReadonlyContext.jsx</code></em></p>
+<hr>
+<h2>Guida Test</h2>
+<h4>US-069 — Guida di esecuzione dei test</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> consultare la guida di esecuzione di ogni test <strong>per</strong> standardizzare le misurazioni e formare il personale.</p>
+<p>Ogni test in <code>constants/tests.js</code> ha un campo <code>guide</code> con il protocollo testuale. <code>TestGuidePage</code> li visualizza in card espandibili con attrezzatura necessaria, procedura passo-passo, unità di misura e note tecniche. In Soccer Academy mostra solo i test del protocollo soccer, escludendo quelli PT.</p>
+<p><em><code>features/trainer/TestGuidePage.jsx</code></em></p>
+<hr>
+<h2>Modulo Soccer Academy</h2>
+<h4>US-070 — Crea allievo con ruolo calcistico</h4>
+<p><strong>Come</strong> coach (soccer) <strong>voglio</strong> creare un allievo con ruolo calcistico <strong>per</strong> classificare gli atleti per posizione in campo.</p>
+<p>Lo step ruolo del wizard soccer usa <code>PLAYER_ROLES</code> da <code>config/modules.config.js</code> (portiere / difensore / centrocampista / attaccante). Il ruolo è esclusivamente un&#39;etichetta visiva: non determina i test somministrati (determinati dalla fascia d&#39;età), ma appare come badge colorato nella lista clienti e nella scheda atleta.</p>
+<p><em><code>components/modals/new-client-wizard/steps/StepRuolo.jsx</code></em></p>
+<hr>
+<h4>US-071 — Fascia d&#39;età automatica da data di nascita</h4>
+<p><strong>Come</strong> coach (soccer) <strong>voglio</strong> che la fascia d&#39;età dell&#39;allievo sia derivata automaticamente dall&#39;età <strong>per</strong> non dover classificare manualmente ogni atleta.</p>
+<p><code>getCategoriaFromEta(eta)</code> in <code>config/modules.config.js</code> calcola: età &lt; 10 → <code>soccer_youth</code> (Pulcini), 10–13 → <code>soccer_junior</code> (Esordienti), 14+ → <code>soccer</code> (Senior). La categoria viene ricalcolata ad ogni aggiornamento dell&#39;età e salvata nel campo <code>categoria</code> del cliente, che guida il filtraggio dei test.</p>
+<p><em><code>config/modules.config.js</code></em></p>
+<hr>
+<h4>US-072 — Test specifici per fascia d&#39;età soccer</h4>
+<p><strong>Come</strong> coach (soccer) <strong>voglio</strong> vedere solo i test specifici per la fascia d&#39;età dell&#39;allievo <strong>per</strong> effettuare campionamenti pertinenti al protocollo soccer.</p>
+<p><code>getTestsForCategoria(categoria)</code> filtra <code>ALL_TESTS</code> per la fascia. Pulcini (7–9): 5 test motori base. Esordienti (10–13): 5 test coordinazione/resistenza. Senior (14+): 5 test di performance avanzata. Il <code>standing_long_jump</code> è l&#39;unico test condiviso tra tutte e tre le fasce.</p>
+<p><em><code>constants/index.js</code></em></p>
+<hr>
+<h4>US-073 — Filtra allievi per ruolo e fascia d&#39;età</h4>
+<p><strong>Come</strong> coach (soccer) <strong>voglio</strong> filtrare gli allievi per ruolo e fascia d&#39;età <strong>per</strong> gestire categorie numerose in modo efficiente.</p>
+<p><code>FiltersSidebar</code> in modalità soccer mostra due gruppi di filtri: per ruolo calcistico e per fascia (Pulcini / Esordienti / Senior). Il filtro FASCIA appare solo quando sono presenti clienti appartenenti ad almeno due fasce diverse nell&#39;organizzazione, evitando filtri inutili per org con una sola fascia.</p>
+<p><em><code>features/trainer/clients-page/FiltersSidebar.jsx</code></em></p>
+<hr>
+<h2>Upgrade Profilo Cliente</h2>
+<h4>US-074 — Upgrade tests_only → complete</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> aggiornare il profilo di un cliente da <code>tests_only</code> a <code>complete</code> <strong>per</strong> aggiungere il modulo BIA mantenendo lo storico test atletico.</p>
+<p><code>upgradeProfileUseCase</code> imposta <code>profileType: &#39;complete&#39;</code>, conserva <code>stats</code>, <code>campionamenti</code>, <code>log</code>, <code>rank</code>, <code>media</code> e azzera <code>biaHistory: []</code> e <code>lastBia: null</code>. Il cliente partirà da zero con la BIA, ma mantiene tutta la progressione atletica accumulata.</p>
+<p><em><code>usecases/upgradeProfileUseCase.js</code></em></p>
+<hr>
+<h4>US-075 — Upgrade bia_only → complete</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> aggiornare il profilo di un cliente da <code>bia_only</code> a <code>complete</code> <strong>per</strong> aggiungere i test atletici mantenendo lo storico BIA.</p>
+<p><code>upgradeProfileUseCase</code> imposta <code>profileType: &#39;complete&#39;</code>, conserva <code>biaHistory</code> e <code>lastBia</code>, azzera <code>stats: {}</code> e <code>campionamenti: []</code>. Il cliente partirà da zero con i test atletici, ma mantiene tutta la storia della composizione corporea.</p>
+<p><em><code>usecases/upgradeProfileUseCase.js</code></em></p>
+<hr>
+<h4>US-091 — Banner suggerimento upgrade profilo parziale</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> vedere un banner di suggerimento quando il profilo del cliente è parziale <strong>per</strong> essere informato dell&#39;opportunità di upgrade senza cercare la funzione nel menu.</p>
+<p><code>UpgradeCategoryBanner</code> appare nella dashboard quando <code>profileType !== &#39;complete&#39;</code>. Per <code>tests_only</code> suggerisce di aggiungere la BIA; per <code>bia_only</code> suggerisce di aggiungere i test. Include un <code>ConfirmDialog</code> che esplicita le conseguenze: quali dati vengono mantenuti e quali azzerati, prima di procedere all&#39;upgrade.</p>
+<p><em><code>features/bia/UpgradeCategoryBanner.jsx</code></em></p>
+<hr>
+<h2>Wizard Nuovo Cliente</h2>
+<h4>US-076 — Step anagrafica</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> inserire i dati anagrafici del cliente nel primo step del wizard <strong>per</strong> raccogliere le informazioni di base prima di procedere.</p>
+<p><code>StepAccount</code> raccoglie nome, data di nascita, sesso, peso, altezza ed email. La data di nascita viene usata per calcolare l&#39;età che, in Soccer Academy, determina automaticamente la fascia d&#39;età. Tutti i campi sono validati prima di permettere il passaggio allo step successivo.</p>
+<p><em><code>components/modals/new-client-wizard/steps/StepAccount.jsx</code></em></p>
+<hr>
+<h4>US-077 — Step categoria (PT) o ruolo (Soccer)</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> selezionare la categoria PT o il ruolo soccer nel secondo step del wizard <strong>per</strong> assegnare il profilo corretto al tipo di cliente.</p>
+<p>In PT questo step è <code>StepCategoria</code> (health / active / athlete). In Soccer Academy è <code>StepRuolo</code> (portiere / difensore / centrocampista / attaccante). La selezione è differenziata in base al <code>moduleType</code> dell&#39;organizzazione. Il wizard Soccer ha 3 step fissi; quello PT ne ha fino a 4 o 5 in base al profilo selezionato.</p>
+<p><em><code>components/modals/new-client-wizard/steps/StepRuolo.jsx</code></em></p>
+<hr>
+<h4>US-078 — Step credenziali (ultimo step wizard)</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> creare le credenziali di accesso del cliente nell&#39;ultimo step <strong>per</strong> permettere al cliente di accedere alla propria area.</p>
+<p>Al submit, <code>useWizard</code> crea l&#39;utente Firebase Auth tramite app secondaria, imposta <code>mustChangePassword: true</code>, salva il documento <code>/users/{uid}</code>, crea il cliente in Firestore e registra <code>AUDIT_ACTIONS.CLIENT_CREATED</code>. Se uno dei passaggi fallisce, viene tentato il rollback per evitare stati inconsistenti.</p>
+<p><em><code>components/modals/new-client-wizard/useWizard.js</code></em></p>
+<hr>
+<h4>US-093 — Step selezione categoria PT (StepCategoria)</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> selezionare la categoria PT del cliente (health / active / athlete) con la descrizione dei test associati <strong>per</strong> assegnare il protocollo di valutazione corretto fin dalla creazione.</p>
+<p><code>StepCategoria</code> presenta le 3 categorie come card cliccabili con nome, colore distintivo e lista dei 5 test che verranno somministrati. La selezione determina i test visualizzati in tutti i campionamenti futuri del cliente. Questo step è presente solo nel wizard PT e assente nel wizard Soccer, dove la categoria è sempre derivata dall&#39;età.</p>
+<p><em><code>components/modals/new-client-wizard/steps/StepCategoria.jsx</code></em></p>
+<hr>
+<h4>US-094 — Step tipo profilo (StepProfileType)</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> scegliere il tipo di valutazione del cliente (solo test / solo BIA / completo) con la spiegazione di ciascun profilo <strong>per</strong> configurare i moduli attivi fin dalla creazione.</p>
+<p><code>StepProfileType</code> usa <code>PROFILE_CATEGORIES</code> da <code>constants/bia.js</code> per descrivere ogni opzione: <code>tests_only</code> (solo test atletici, ha rank), <code>bia_only</code> (solo BIA, nessun rank), <code>complete</code> (entrambi, rank da test). Il tipo di profilo è modificabile in seguito tramite upgrade. Questo step è presente solo nel wizard PT; in Soccer il profilo è sempre <code>tests_only</code>.</p>
+<p><em><code>components/modals/new-client-wizard/steps/StepProfileType.jsx</code></em></p>
+<hr>
+<h4>US-095 — Step BIA iniziale (StepBia)</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> inserire i valori della prima misurazione BIA durante il wizard <strong>per</strong> avere i dati di composizione corporea disponibili subito dopo la creazione del cliente.</p>
+<p><code>StepBia</code> appare nel wizard solo per profili <code>bia_only</code>. Presenta tutti i parametri BIA con il BMI pre-calcolato automaticamente da peso e altezza inseriti nel primo step. I campi non obbligatori possono essere saltati. Alla conferma del wizard, i valori vengono salvati direttamente in <code>biaHistory</code> e <code>lastBia</code> del documento cliente.</p>
+<p><em><code>components/modals/new-client-wizard/steps/StepBia.jsx</code></em></p>
+<hr>
+<h2>Piani SaaS e Limiti</h2>
+<h4>US-079 — Piano attivo e limiti dell&#39;organizzazione</h4>
+<p><strong>Come</strong> org_admin <strong>voglio</strong> vedere il piano attivo e i limiti di trainer e clienti <strong>per</strong> capire i vincoli dell&#39;organizzazione.</p>
+<p><code>OrgSettingsPage</code> mostra il piano corrente (free / pro / enterprise) con una select per cambiarlo e una descrizione dinamica dei limiti: free (1 trainer, 10 clienti), pro (5 trainer, 100 clienti), enterprise (illimitati). La modifica del piano aggiorna il documento org e i limiti vengono applicati immediatamente sia dalla UI che dalle Firestore rules.</p>
+<p><em><code>features/org/org-pages/OrgSettingsPage.jsx</code></em></p>
+<hr>
+<h4>US-080 — Banner di blocco al raggiungimento del limite piano</h4>
+<p><strong>Come</strong> org_admin <strong>voglio</strong> ricevere un banner di blocco quando raggiungo il limite del piano <strong>per</strong> essere informato prima di tentare di aggiungere oltre il consentito.</p>
+<p><code>NewClientView</code> mostra una schermata di blocco invece del wizard quando <code>clientCount &gt;= getPlanLimits(plan).clients</code>. <code>MembersPage</code> mostra un banner giallo e disabilita il bottone AGGIUNGI quando <code>memberCount &gt;= getPlanLimits(plan).trainers</code>. I limiti sono applicati in modo ridondante anche via Firestore rules (solo su operazioni <code>create</code>).</p>
+<p><em><code>features/trainer/NewClientView.jsx</code>, <code>features/org/org-pages/MembersPage.jsx</code></em></p>
+<hr>
+<h2>Multi-Modulo</h2>
+<h4>US-081 — UI adattata al modulo dell&#39;organizzazione (PT o Soccer)</h4>
+<p><strong>Come</strong> trainer <strong>voglio</strong> vedere terminologia, test e comportamento UI adattati al modulo della mia organizzazione <strong>per</strong> lavorare con un&#39;interfaccia coerente con il dominio di riferimento.</p>
+<p><code>TrainerContext</code> espone <code>moduleType</code> e <code>terminology</code>. <code>getModule(moduleType).isSoccer</code> è la fonte di verità per tutte le ramificazioni condizionali nel codice. In Soccer Academy la terminologia sostituisce automaticamente &quot;Cliente&quot; con &quot;Allievo&quot;, &quot;Gruppo&quot; con &quot;Squadra&quot;, &quot;Sessione&quot; con &quot;Allenamento&quot; in tutta l&#39;interfaccia. Il <code>moduleType</code> è immutabile per organizzazione dopo la creazione.</p>
+<p><em><code>config/modules.config.js</code>, <code>context/TrainerContext.jsx</code></em></p>
+<hr>
+<p><em>Documento generato dal codice sorgente — maggio 2026 · aggiornato con gap analysis e descrizioni estese</em></p>
+
+</body>
+</html>
