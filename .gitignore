@@ -33,6 +33,7 @@ yarn-error.log*
 # Editor
 .vscode/
 .idea/
+*.code-workspace
 *.suo
 *.ntvs*
 *.njsproj
