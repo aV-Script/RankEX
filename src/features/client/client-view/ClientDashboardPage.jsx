@@ -94,7 +94,8 @@ export function ClientDashboardPage({ client, clientId, orgId, color, rankObj, b
     ...CONTENT_TABS,
   ]
 
-  const [activeTab, setActiveTab] = useState('home')
+  const [activeTab,  setActiveTab]  = useState('home')
+  const [navTrigger, setNavTrigger] = useState(0)
 
   return (
     <div className="min-h-screen flex flex-col pb-20">
@@ -107,6 +108,7 @@ export function ClientDashboardPage({ client, clientId, orgId, color, rankObj, b
           rankObj={rankObj}
           tabs={CONTENT_TABS}
           onTabChange={setActiveTab}
+          onOpenNav={() => setNavTrigger(c => c + 1)}
         />
       ) : (
         // ── Contenuto sezione selezionata
@@ -196,7 +198,8 @@ export function ClientDashboardPage({ client, clientId, orgId, color, rankObj, b
         unreadCount={unreadCount}
         onOpenNotifs={onOpenNotifs}
         color={color}
-        clientName={client.name}
+        client={client}
+        openTrigger={navTrigger}
       />
     </div>
   )
