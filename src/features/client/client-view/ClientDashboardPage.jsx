@@ -12,6 +12,8 @@ import { ClientWearableSection }   from './ClientWearableSection'
 import { ClientCircularNav }       from './ClientCircularNav'
 import { ClientHub }               from './ClientHub'
 import { AvatarEditor }            from './avatar/AvatarEditor'
+import { TrophiesSection }         from '../client-dashboard/TrophiesSection'
+import { useBadges }               from '../../../hooks/useBadges'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -25,6 +27,14 @@ const ICON_AVATAR_EDIT = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 20h9"/>
     <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+  </svg>
+)
+const ICON_TROFEI = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+    <path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+    <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
   </svg>
 )
 const ICON_TEST = (
@@ -76,6 +86,9 @@ export function ClientDashboardPage({ client, clientId, orgId, color, rankObj, b
   const profileType = client.profileType ?? 'tests_only'
   const profile     = getProfileCategory(profileType)
 
+  const { earnedBadges, allBadges, rawBadges } =
+    useBadges(orgId, clientId, client, { readonly: true })
+
   // Tab 'home' sempre primo — è la schermata avatar/hub
   const CONTENT_TABS = [
     profile.hasTests       && { id: 'test',     label: 'Test',       icon: ICON_TEST },
@@ -85,6 +98,7 @@ export function ClientDashboardPage({ client, clientId, orgId, color, rankObj, b
     orgId                  && { id: 'notes',    label: 'Note',       icon: ICON_NOTES },
     { id: 'activity',         label: 'Attività',  icon: ICON_ACTIVITY },
     client.wearableEnabled && { id: 'wearable', label: 'Wearable',   icon: ICON_WEARABLE },
+    { id: 'trofei',           label: 'Trofei',    icon: ICON_TROFEI },
     { id: 'avatar_edit',      label: 'Modifica',  icon: ICON_AVATAR_EDIT },
   ].filter(Boolean)
 
@@ -174,6 +188,17 @@ export function ClientDashboardPage({ client, clientId, orgId, color, rankObj, b
               orgId={orgId}
               clientId={clientId}
               initialWearable={client.wearable ?? null}
+              color={color}
+            />
+          )}
+
+          {/* ── Trofei ─────────────────────────────────────────────────── */}
+          {activeTab === 'trofei' && (
+            <TrophiesSection
+              rawBadges={rawBadges}
+              earnedBadges={earnedBadges}
+              allBadges={allBadges}
+              readonly
               color={color}
             />
           )}

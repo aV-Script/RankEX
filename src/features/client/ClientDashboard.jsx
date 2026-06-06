@@ -29,6 +29,8 @@ import { calcAge }                           from '../../utils/validation'
 import { resetPassword }                     from '../../firebase/services/auth'
 import { PLAYER_ROLES }                      from '../../config/modules.config'
 import { ClientBadges }                      from './ClientBadges'
+import { TrophiesSection }                   from './client-dashboard/TrophiesSection'
+import { useBadges }                         from '../../hooks/useBadges'
 import { useRegisterContextMenu }            from '../../context/NavMenuContext'
 import { getAuth }                           from 'firebase/auth'
 import app                                   from '../../firebase/config'
@@ -83,6 +85,14 @@ const ICON_AVATAR = (
 const ICON_WEARABLE = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+  </svg>
+)
+const ICON_TROFEI = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+    <path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+    <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
   </svg>
 )
 const ICON_MISURE = (
@@ -155,6 +165,10 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
 
   const { handleSaveBia, handleUpgradeProfile } = useBia()
   const { handleUpdateMisure }                  = useMisure()
+
+  const trainerUid = getAuth(app).currentUser?.uid ?? 'trainer'
+  const { earnedBadges, allBadges, rawBadges, handleAwardManual, handleRevoke } =
+    useBadges(orgId, client.id, client, { readonly })
 
   const profileType = client.profileType ?? 'tests_only'
   const profile     = getProfileCategory(profileType)
@@ -267,6 +281,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
               { id: 'attivita',    label: 'Attività',    icon: ICON_ACTIVITY },
               { id: 'misure',      label: 'Misure',      icon: ICON_MISURE },
               { id: 'wearable',    label: 'Wearable',    icon: ICON_WEARABLE },
+              { id: 'trofei',      label: 'Trofei',      icon: ICON_TROFEI },
             ].filter(Boolean).map(t => (
               <button
                 key={t.id}
@@ -482,6 +497,18 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
 
           {tab === 'wearable' && (
             <WearableSection client={client} orgId={orgId} color={color} />
+          )}
+
+          {tab === 'trofei' && (
+            <TrophiesSection
+              rawBadges={rawBadges}
+              earnedBadges={earnedBadges}
+              allBadges={allBadges}
+              readonly={readonly}
+              color={color}
+              onAward={(badgeId, note) => handleAwardManual(badgeId, trainerUid, note)}
+              onRevoke={handleRevoke}
+            />
           )}
 
         </div>

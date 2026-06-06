@@ -1,9 +1,11 @@
 // Hub screen — avatar al centro, nav items radialmente intorno (desktop)
 // Mobile: avatar grande cliccabile che apre il menu radiale
 
-import { useEffect }   from 'react'
-import { SoccerAvatar } from './avatar/SoccerAvatar'
-import { XPBar }        from '../../../components/ui/XPBar'
+import { useEffect }    from 'react'
+import { SoccerAvatar }  from './avatar/SoccerAvatar'
+import { XPBar }         from '../../../components/ui/XPBar'
+import { BadgeMedal }    from '../../../components/ui/BadgeMedal'
+import { BADGES }        from '../../../config/badges.config'
 
 const RADIUS = 190  // distanza dal centro ai nav item (desktop)
 
@@ -106,6 +108,9 @@ export function ClientHub({ client, color, rankObj, tabs, onTabChange, onOpenNav
         >
           Tocca l'avatar per navigare
         </p>
+
+        {/* Ultimi 3 badge earned */}
+        <HubBadgeRow badges={client.badges ?? {}} color={color} />
       </div>
 
       {/* ── Desktop: avatar + nav radiale ─────────────────────── */}
@@ -184,6 +189,31 @@ export function ClientHub({ client, color, rankObj, tabs, onTabChange, onOpenNav
           )
         })}
       </div>
+    </div>
+  )
+}
+
+// ── Badge row — ultimi 3 badge earned ────────────────────────────────────────
+
+function HubBadgeRow({ badges, color }) {
+  const earned = Object.entries(badges)
+    .sort(([, a], [, b]) => (b.awardedAt ?? 0) - (a.awardedAt ?? 0))
+    .slice(0, 3)
+    .map(([id]) => id)
+    .filter(id => BADGES.find(b => b.id === id))
+
+  if (earned.length === 0) return null
+
+  return (
+    <div className="flex items-center justify-center gap-3 mt-3">
+      {earned.map(id => (
+        <BadgeMedal key={id} badgeId={id} unlocked size={36} />
+      ))}
+      {earned.length > 0 && (
+        <div className="font-display text-[7px] tracking-[1.5px] uppercase" style={{ color: color + '50' }}>
+          {Object.keys(badges).length} trofei
+        </div>
+      )}
     </div>
   )
 }
