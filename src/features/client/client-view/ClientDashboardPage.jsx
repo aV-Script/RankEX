@@ -85,7 +85,7 @@ export function ClientDashboardPage({ client, clientId, orgId, color, rankObj, b
     orgId                  && { id: 'notes',    label: 'Note',       icon: ICON_NOTES },
     { id: 'activity',         label: 'Attività',  icon: ICON_ACTIVITY },
     client.wearableEnabled && { id: 'wearable', label: 'Wearable',   icon: ICON_WEARABLE },
-    { id: 'avatar_edit',      label: 'Avatar',    icon: ICON_AVATAR_EDIT },
+    { id: 'avatar_edit',      label: 'Modifica',  icon: ICON_AVATAR_EDIT },
   ].filter(Boolean)
 
   // TABS include 'home' per la ruota (viene mostrato come prima voce)
