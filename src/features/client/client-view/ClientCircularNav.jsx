@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { logout } from '../../../firebase/services/auth'
+import { logout }        from '../../../firebase/services/auth'
+import { SoccerAvatar }  from './avatar/SoccerAvatar'
 
 const TRIG_SIZE    = 48
 const TRIG_PAD     = 24
@@ -36,7 +37,8 @@ export function ClientCircularNav({
   unreadCount = 0,
   onOpenNotifs,
   color,
-  clientName = '',
+  client = null,
+  openTrigger = 0,
 }) {
   const [open, setOpen]       = useState(false)
   const [closing, setClosing] = useState(false)
@@ -52,6 +54,11 @@ export function ClientCircularNav({
     window.addEventListener('resize', fn)
     return () => window.removeEventListener('resize', fn)
   }, [])
+
+  // Apre il menu quando l'hub avatar viene tappato
+  useEffect(() => {
+    if (openTrigger > 0 && !open && !closing) setOpen(true)
+  }, [openTrigger]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const xs         = vp.w < 390
   const WHEEL_R    = xs ? 115 : mobile ? 145 : 215
@@ -238,7 +245,7 @@ export function ClientCircularNav({
             )
           })}
 
-          {/* Hub — iniziale cliente nel colore del rank */}
+          {/* Hub — avatar reale nel colore del rank */}
           <button
             onClick={() => { if (!closing) triggerClose(null) }}
             aria-label="Chiudi menu"
@@ -248,12 +255,10 @@ export function ClientCircularNav({
               width: HUB_SIZE, height: HUB_SIZE,
               borderRadius: '50%',
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              gap: 2,
+              overflow: 'hidden',
               cursor: closing ? 'default' : 'pointer',
-              background: `radial-gradient(circle at 40% 35%, ${color}18 0%, rgba(4,8,14,0.98) 70%)`,
               border: `1.5px solid ${color}38`,
               boxShadow: `0 0 40px ${color}20, 0 0 80px ${color}0a, 0 8px 32px rgba(0,0,0,0.7)`,
-              color: color,
               '--close-dx': `${trigCX - anchorCX}px`,
               '--close-dy': `${trigCY - anchorCY}px`,
               '--trig-scale': (TRIG_SIZE / HUB_SIZE).toFixed(3),
@@ -261,33 +266,49 @@ export function ClientCircularNav({
                 ? `rx-hub-out ${HUB_DUR}ms cubic-bezier(0.4,0,0.6,1) ${HUB_DELAY}ms both`
                 : 'rx-nav-item-in 280ms cubic-bezier(0.34,1.56,0.64,1) both',
               zIndex: 1,
+              padding: 0,
             }}
           >
-            <span style={{
-              fontFamily: 'Montserrat, sans-serif',
-              fontWeight: 900,
-              fontSize: mobile ? Math.round(HUB_SIZE * 0.38) : Math.round(HUB_SIZE * 0.40),
-              lineHeight: 1,
-              color: color,
-              letterSpacing: '-1px',
-            }}>
-              {clientName?.[0]?.toUpperCase() ?? '?'}
-            </span>
-            <span style={{
-              fontFamily: 'Montserrat, sans-serif',
-              fontWeight: 700,
-              fontSize: mobile ? 7 : 8,
-              letterSpacing: '2.5px',
-              textTransform: 'uppercase',
-              color: color + '60',
-              lineHeight: 1,
-            }}>
-              Atleta
-            </span>
+            {client ? (
+              <NavHubAvatar client={client} color={color} size={HUB_SIZE} />
+            ) : (
+              <span style={{
+                fontFamily: 'Montserrat, sans-serif', fontWeight: 900,
+                fontSize: Math.round(HUB_SIZE * 0.40), lineHeight: 1,
+                color, letterSpacing: '-1px',
+              }}>
+                {client?.name?.[0]?.toUpperCase() ?? '?'}
+              </span>
+            )}
           </button>
 
         </div>
       </div>
     </>
+  )
+}
+
+// Avatar piccolo per il centro del menu — stessa dimensione dell'hub circle
+function NavHubAvatar({ client, color, size }) {
+  const av = client.avatar ?? {}
+  return (
+    <SoccerAvatar
+      color={color}
+      skinTone={av.skinTone}
+      hairColor={av.hairColor}
+      hairStyle={av.hairStyle}
+      expression={av.expression}
+      accessory={av.accessory}
+      clothing={av.clothing}
+      jerseyColor={av.jerseyColor}
+      facialHair={av.facialHair}
+      facialHairColor={av.facialHairColor}
+      clothingGraphic={av.clothingGraphic}
+      hatColor={av.hatColor}
+      accessoriesColor={av.accessoriesColor}
+      number={av.number}
+      width={size}
+      height={size}
+    />
   )
 }
