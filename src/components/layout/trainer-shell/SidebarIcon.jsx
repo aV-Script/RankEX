@@ -12,11 +12,11 @@ export function SidebarIcon({ item, active, onClick }) {
         aria-current={active ? 'page' : undefined}
         className="w-10 h-10 flex items-center justify-center cursor-pointer transition-all"
         style={active ? {
-          background:   'rgba(15,214,90,0.1)',
-          border:       '1px solid rgba(15,214,90,0.35)',
+          background:   'color-mix(in srgb, var(--rx-green) 10%, transparent)',
+          border:       '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)',
           borderRadius: '4px',
-          color:        '#0fd65a',
-          boxShadow:    '0 0 12px rgba(15,214,90,0.15)',
+          color:        'var(--rx-green)',
+          boxShadow:    '0 0 12px color-mix(in srgb, var(--rx-green) 15%, transparent)',
         } : {
           background:   'transparent',
           border:       '1px solid transparent',
@@ -25,8 +25,8 @@ export function SidebarIcon({ item, active, onClick }) {
         }}
         onMouseEnter={e => {
           if (!active) {
-            e.currentTarget.style.borderColor = 'rgba(15,214,90,0.2)'
-            e.currentTarget.style.color       = 'rgba(15,214,90,0.8)'
+            e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--rx-green) 20%, transparent)'
+            e.currentTarget.style.color       = 'color-mix(in srgb, var(--rx-green) 80%, transparent)'
           }
         }}
         onMouseLeave={e => {
@@ -48,13 +48,13 @@ export function SidebarIcon({ item, active, onClick }) {
       "
         style={{
           background:   'rgba(8,12,18,0.97)',
-          border:       '1px solid rgba(15,214,90,0.2)',
+          border:       '1px solid color-mix(in srgb, var(--rx-green) 20%, transparent)',
           borderRadius: '3px',
           boxShadow:    '0 4px 12px rgba(0,0,0,0.5)',
         }}
       >
         <span className="font-display text-[10px] tracking-[2px]"
-          style={{ color: '#0fd65a' }}>
+          style={{ color: 'var(--rx-green)' }}>
           {item.label.toUpperCase()}
         </span>
       </div>

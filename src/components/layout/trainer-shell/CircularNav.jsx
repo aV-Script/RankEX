@@ -160,9 +160,9 @@ export function CircularNav({ page, onNavigate, onLogout }) {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer',
           background: 'rgba(5,9,14,0.93)',
-          border: '1.5px solid rgba(15,214,90,0.38)',
-          boxShadow: '0 0 14px rgba(15,214,90,0.22), 0 4px 18px rgba(0,0,0,0.7)',
-          color: 'rgba(15,214,90,0.78)',
+          border: '1.5px solid color-mix(in srgb, var(--rx-green) 38%, transparent)',
+          boxShadow: '0 0 14px color-mix(in srgb, var(--rx-green) 22%, transparent), 0 4px 18px rgba(0,0,0,0.7)',
+          color: 'color-mix(in srgb, var(--rx-green) 78%, transparent)',
           backdropFilter: 'blur(10px)',
           transition: 'all 250ms ease',
         }}
@@ -197,11 +197,11 @@ export function CircularNav({ page, onNavigate, onLogout }) {
           const isDanger = !!item.isDanger
           const half     = ITEM_SIZE / 2
 
-          const btnBg     = isDanger ? 'rgba(248,113,113,0.10)' : isActive ? 'rgba(15,214,90,0.18)' : 'rgba(6,10,16,0.97)'
-          const btnBorder = isDanger ? 'rgba(248,113,113,0.45)' : isActive ? 'rgba(15,214,90,0.65)' : 'rgba(255,255,255,0.10)'
-          const btnShadow = isActive ? '0 0 28px rgba(15,214,90,0.35), 0 2px 16px rgba(0,0,0,0.6)' : '0 4px 20px rgba(0,0,0,0.5)'
-          const btnColor  = isDanger ? '#f87171' : isActive ? '#0fd65a' : 'rgba(200,212,224,0.52)'
-          const lblColor  = isDanger ? 'rgba(248,113,113,0.70)' : isActive ? '#0fd65a' : 'rgba(200,212,224,0.38)'
+          const btnBg     = isDanger ? 'rgba(248,113,113,0.10)' : isActive ? 'color-mix(in srgb, var(--rx-green) 18%, transparent)' : 'rgba(6,10,16,0.97)'
+          const btnBorder = isDanger ? 'rgba(248,113,113,0.45)' : isActive ? 'color-mix(in srgb, var(--rx-green) 65%, transparent)' : 'rgba(255,255,255,0.10)'
+          const btnShadow = isActive ? '0 0 28px color-mix(in srgb, var(--rx-green) 35%, transparent), 0 2px 16px rgba(0,0,0,0.6)' : '0 4px 20px rgba(0,0,0,0.5)'
+          const btnColor  = isDanger ? '#f87171' : isActive ? 'var(--rx-green)' : 'rgba(200,212,224,0.52)'
+          const lblColor  = isDanger ? 'rgba(248,113,113,0.70)' : isActive ? 'var(--rx-green)' : 'rgba(200,212,224,0.38)'
 
           return (
             <div
@@ -243,10 +243,9 @@ export function CircularNav({ page, onNavigate, onLogout }) {
                 </span>
               </button>
 
-              <span aria-hidden="true" style={{
+              <span aria-hidden="true" className="font-display" style={{
                 marginTop: 8,
                 fontSize: mobile ? 9 : 10,
-                fontFamily: 'Montserrat, sans-serif',
                 fontWeight: 700,
                 letterSpacing: '1.3px',
                 textTransform: 'uppercase',
@@ -270,7 +269,7 @@ export function CircularNav({ page, onNavigate, onLogout }) {
             borderRadius: '50%',
             background: 'rgba(4,8,14,0.98)',
             border: '1px solid rgba(255,255,255,0.06)',
-            boxShadow: '0 0 50px rgba(15,214,90,0.14), 0 8px 32px rgba(0,0,0,0.7)',
+            boxShadow: '0 0 50px color-mix(in srgb, var(--rx-green) 14%, transparent), 0 8px 32px rgba(0,0,0,0.7)',
             '--close-dx': `${trigCX - anchorCX}px`,
             '--close-dy': `${trigCY - anchorCY}px`,
             '--trig-scale': (TRIG_SIZE / HUB_SIZE).toFixed(3),
@@ -292,7 +291,7 @@ export function CircularNav({ page, onNavigate, onLogout }) {
               cursor: (closing || switching) ? 'default' : 'pointer',
               background: 'transparent',
               border: 'none',
-              color: 'rgba(15,214,90,0.82)',
+              color: 'color-mix(in srgb, var(--rx-green) 82%, transparent)',
             }}
           >
             {hubMenu?.id === '__main__' ? (
@@ -309,13 +308,12 @@ export function CircularNav({ page, onNavigate, onLogout }) {
                 >RX</text>
               </svg>
             ) : (
-              <span style={{
-                fontFamily: 'Montserrat, sans-serif',
+              <span className="font-display" style={{
                 fontWeight: 800,
                 fontSize: mobile ? 8 : 9,
                 letterSpacing: '2px',
                 textTransform: 'uppercase',
-                color: 'rgba(15,214,90,0.72)',
+                color: 'color-mix(in srgb, var(--rx-green) 72%, transparent)',
                 pointerEvents: 'none',
                 lineHeight: 1,
               }}>

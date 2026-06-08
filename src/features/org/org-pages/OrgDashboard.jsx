@@ -17,7 +17,7 @@ export function OrgDashboard({ clients, org }) {
         <StatCard
           label={t.clients ?? 'Clienti'}
           value={clients?.length ?? 0}
-          color="#0fd65a"
+          color="var(--rx-green)"
         />
         <StatCard
           label="Modulo"

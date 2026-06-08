@@ -53,7 +53,7 @@ export default function ChangePasswordScreen({ userId, onDone }) {
           <div className="text-white/30 font-body text-[13px] mt-1">Imposta la tua password</div>
         </div>
 
-        <div className="rx-card p-8" style={{ background: '#0d1520' }}>
+        <div className="rx-card p-8" style={{ background: 'var(--rx-surface)' }}>
           <div className="mb-6">
             <div className="font-display text-white text-[16px] mb-1">Benvenuto!</div>
             <div className="font-body text-white/40 text-[13px]">
@@ -106,7 +106,7 @@ export default function ChangePasswordScreen({ userId, onDone }) {
 
             <button onClick={handleSubmit} disabled={loading}
               className="w-full py-3.5 rounded-[3px] font-display text-[13px] font-bold tracking-widest text-white cursor-pointer transition-opacity hover:opacity-90 disabled:opacity-50 mt-2"
-              style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', color: '#0fd65a' }}>
+              style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)' }}>
               {loading ? 'SALVATAGGIO...' : 'ENTRA IN RANK EX →'}
             </button>
           </div>

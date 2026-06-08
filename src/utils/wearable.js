@@ -3,7 +3,7 @@ const STEPS_MEDIUM = 8000
 
 export function getActivityLevel(stepsAvg7d) {
   if (stepsAvg7d == null) return null
-  if (stepsAvg7d >= STEPS_MEDIUM) return { state: 'high',   color: '#1aff6e', label: 'Molto attivo' }
+  if (stepsAvg7d >= STEPS_MEDIUM) return { state: 'high',   color: 'var(--rx-green-bright)', label: 'Molto attivo' }
   if (stepsAvg7d >= STEPS_LOW)    return { state: 'medium', color: '#facc15', label: 'Attivo' }
   return                                 { state: 'low',    color: '#f87171', label: 'Sedentario' }
 }

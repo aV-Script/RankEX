@@ -36,8 +36,8 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
       ref={ref}
       className="fixed z-50 w-72 rounded-[4px] p-4 shadow-2xl"
       style={{
-        background: '#0d1520',
-        border:     '1px solid rgba(15,214,90,0.15)',
+        background: 'var(--rx-surface)',
+        border:     '1px solid var(--rx-border)',
         top:        position.y,
         left:       position.x,
         maxWidth:   'calc(100vw - 32px)',
@@ -85,7 +85,7 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
               style={{
                 background: isPresent ? 'rgba(52,211,153,0.06)' :
                             isAbsent  ? 'rgba(248,113,113,0.06)' :
-                            'rgba(13,21,32,0.6)',
+                            'color-mix(in srgb, var(--rx-surface) 60%, transparent)',
               }}
             >
               <span
@@ -128,7 +128,7 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
           <button
             onClick={onCloseSession}
             className="w-full py-2.5 rounded-[3px] font-display text-[11px] tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
-            style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', color: '#0fd65a' }}
+            style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)' }}
           >
             CHIUDI SESSIONE
           </button>

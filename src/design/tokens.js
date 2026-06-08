@@ -56,7 +56,7 @@ export const COLOR = {
   // Brand verde (dalla R del logo)
   green400:  '#1dff6b',
   green500:  '#0ec452',
-  green600:  '#0fd65a',
+  green600:  'var(--rx-green)',
   greenDark: '#085c28',
 
   // Brand ciano/blu (dal fulmine)
@@ -75,10 +75,10 @@ export const COLOR = {
   borderSubtle:  'rgba(255,255,255,0.04)',
   borderDefault: 'rgba(255,255,255,0.08)',
   borderStrong:  'rgba(255,255,255,0.15)',
-  borderFocus:   '#0fd65a',
+  borderFocus:   'var(--rx-green)',
 
   // Stato
-  success: '#0fd65a',
+  success: 'var(--rx-green)',
   warning: '#f59e0b',
   error:   '#f87171',
   info:    '#00c8ff',
@@ -89,7 +89,7 @@ export const GRADIENT = {
   primary: 'linear-gradient(135deg, #1aff6e 0%, #0fd65a 30%, #00c8ff 70%, #4db8ff 100%)',
   green:   'linear-gradient(135deg, #085c28 0%, #0fd65a 50%, #1dff6b 100%)',
   cyan:    'linear-gradient(135deg, #1a7fd4 0%, #00c8ff 50%, #5dd4ff 100%)',
-  subtle:  'linear-gradient(135deg, rgba(15,214,90,0.08) 0%, rgba(0,200,255,0.08) 100%)',
+  subtle:  'linear-gradient(135deg, color-mix(in srgb, var(--rx-green) 8%, transparent) 0%, rgba(0,200,255,0.08) 100%)',
 }
 
 // ── Ombre ─────────────────────────────────────────────────────────────────────
@@ -97,7 +97,7 @@ export const SHADOW = {
   sm:    '0 2px 8px rgba(0,0,0,0.4)',
   md:    '0 4px 16px rgba(0,0,0,0.5)',
   lg:    '0 8px 32px rgba(0,0,0,0.6)',
-  green: '0 0 20px rgba(15,214,90,0.25), 0 4px 16px rgba(0,0,0,0.5)',
+  green: '0 0 20px color-mix(in srgb, var(--rx-green) 25%, transparent), 0 4px 16px rgba(0,0,0,0.5)',
   cyan:  '0 0 20px rgba(0,200,255,0.25), 0 4px 16px rgba(0,0,0,0.5)',
 }
 

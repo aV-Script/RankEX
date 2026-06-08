@@ -32,7 +32,7 @@ export function GroupToggleDialog({
     finally { setSaving(false) }
   }
 
-  const actionColor = isRemoving ? '#f87171' : '#0fd65a'
+  const actionColor = isRemoving ? '#f87171' : 'var(--rx-green)'
   const actionLabel = isRemoving ? 'RIMUOVI' : 'AGGIUNGI'
 
   return (
@@ -44,8 +44,8 @@ export function GroupToggleDialog({
       <div
         className="w-full max-w-sm p-6 rx-animate-in"
         style={{
-          background:   '#0d1520',
-          border:       '1px solid rgba(15,214,90,0.15)',
+          background:   'var(--rx-surface)',
+          border:       '1px solid var(--rx-border)',
           borderRadius: '4px',
           boxShadow:    '0 20px 60px rgba(0,0,0,0.8)',
         }}
@@ -129,7 +129,7 @@ export function GroupToggleDialog({
                     <div key={r.id} className="flex items-center gap-2 py-1">
                       <span
                         className="font-display text-[10px] font-semibold px-2 py-0.5 rounded-[3px]"
-                        style={{ background: 'rgba(15,214,90,0.12)', color: 'rgba(15,214,90,0.8)' }}
+                        style={{ background: 'color-mix(in srgb, var(--rx-green) 12%, transparent)', color: 'color-mix(in srgb, var(--rx-green) 80%, transparent)' }}
                       >
                         {DAY_LABELS.filter((_, i) => r.days.includes(i)).join(' · ')}
                       </span>
@@ -166,7 +166,7 @@ export function GroupToggleDialog({
             className="flex-1 py-2.5 font-display text-[12px] font-bold cursor-pointer border-0 transition-opacity hover:opacity-85 disabled:opacity-40"
             style={isRemoving
               ? { background: '#f87171', borderRadius: '3px', color: '#080c12' }
-              : { background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', borderRadius: '3px', color: '#0fd65a' }
+              : { background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', borderRadius: '3px', color: 'var(--rx-green)' }
             }
           >
             {saving ? 'ATTENDERE...' : actionLabel}

@@ -61,7 +61,7 @@ export function AddSlotModal({ date, clients, groups, slots, onClose, onSave }) 
         aria-modal="true"
         aria-labelledby="add-slot-title"
         className="rx-card p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
-        style={{ background: '#0d1520' }}
+        style={{ background: 'var(--rx-surface)' }}
         onClick={e => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-5">
@@ -105,7 +105,7 @@ export function AddSlotModal({ date, clients, groups, slots, onClose, onSave }) 
                   key={g.id} onClick={() => selectGroup(g)}
                   className="rounded-[3px] px-3 py-1.5 font-display text-[11px] cursor-pointer border transition-all"
                   style={selectedGroups.includes(g.id)
-                    ? { background: 'rgba(0,200,255,0.1)', borderColor: 'rgba(0,200,255,0.35)', color: '#00c8ff' }
+                    ? { background: 'color-mix(in srgb, var(--rx-cyan) 10%, transparent)', borderColor: 'color-mix(in srgb, var(--rx-cyan) 35%, transparent)', color: 'var(--rx-cyan)' }
                     : { background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' }
                   }
                 >
@@ -146,15 +146,15 @@ export function AddSlotModal({ date, clients, groups, slots, onClose, onSave }) 
                   key={c.id} onClick={() => toggleClient(c.id)}
                   className="flex items-center gap-3 px-3 py-2.5 rounded-[3px] cursor-pointer border transition-all text-left"
                   style={isSelected
-                    ? { background: isOverLimit ? 'rgba(248,113,113,0.1)' : 'rgba(15,214,90,0.08)', borderColor: isOverLimit ? '#f8717155' : 'rgba(15,214,90,0.35)', color: '#fff' }
+                    ? { background: isOverLimit ? 'rgba(248,113,113,0.1)' : 'color-mix(in srgb, var(--rx-green) 8%, transparent)', borderColor: isOverLimit ? '#f8717155' : 'color-mix(in srgb, var(--rx-green) 35%, transparent)', color: '#fff' }
                     : { background: 'transparent', borderColor: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.45)' }
                   }
                 >
                   <div
                     className="w-4 h-4 rounded flex items-center justify-center shrink-0 border"
                     style={{
-                      background:  isSelected ? (isOverLimit ? '#f87171' : '#0fd65a') : 'transparent',
-                      borderColor: isSelected ? (isOverLimit ? '#f87171' : '#0fd65a') : 'rgba(255,255,255,0.2)',
+                      background:  isSelected ? (isOverLimit ? '#f87171' : 'var(--rx-green)') : 'transparent',
+                      borderColor: isSelected ? (isOverLimit ? '#f87171' : 'var(--rx-green)') : 'rgba(255,255,255,0.2)',
                     }}
                   >
                     {isSelected && (
@@ -181,7 +181,7 @@ export function AddSlotModal({ date, clients, groups, slots, onClose, onSave }) 
           onClick={() => canSave && onSave({ date: selectedDate, startTime, endTime, clientIds: selectedClients, groupIds: selectedGroups })}
           disabled={!canSave}
           className="w-full py-3 font-display text-[12px] tracking-widest border-0 transition-opacity"
-          style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', borderRadius: '3px', color: '#0fd65a', fontWeight: 700, opacity: canSave ? 1 : 0.4, cursor: canSave ? 'pointer' : 'not-allowed' }}
+          style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', borderRadius: '3px', color: 'var(--rx-green)', fontWeight: 700, opacity: canSave ? 1 : 0.4, cursor: canSave ? 'pointer' : 'not-allowed' }}
         >
           {selectedClients.length === 0 ? 'SELEZIONA ALMENO UN CLIENTE' : `CREA SESSIONE (${selectedClients.length} clienti)`}
         </button>

@@ -13,11 +13,12 @@ const ROLE_OPTIONS = [
   { value: 'org_admin',      label: 'Admin' },
 ]
 
-export function MembersPage({ orgId, org }) {
+export function MembersPage({ orgId, org, onNavigate }) {
   const [members,    setMembers]    = useState([])
   const [loading,    setLoading]    = useState(true)
   const [showCreate, setShowCreate] = useState(false)
-  const [confirmRemove, setConfirmRemove] = useState(null)
+  const [confirmRemove,     setConfirmRemove]     = useState(null)
+  const [confirmRoleChange, setConfirmRoleChange] = useState(null)
 
   const planLimits    = getPlanLimits(org?.plan)
   const atTrainerLimit = members.length >= planLimits.trainers
@@ -76,7 +77,7 @@ export function MembersPage({ orgId, org }) {
           onClick={() => !atTrainerLimit && setShowCreate(true)}
           disabled={atTrainerLimit}
           className="font-display text-[11px] px-4 py-2 rounded-[3px] border-0 transition-opacity hover:opacity-85 disabled:opacity-40 disabled:cursor-not-allowed"
-          style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', color: '#0fd65a', fontWeight: 700, cursor: atTrainerLimit ? 'not-allowed' : 'pointer' }}
+          style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)', fontWeight: 700, cursor: atTrainerLimit ? 'not-allowed' : 'pointer' }}
         >
           + AGGIUNGI
         </button>
@@ -92,7 +93,7 @@ export function MembersPage({ orgId, org }) {
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
             <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
           </svg>
-          <div>
+          <div className="flex-1">
             <div className="font-display text-[11px] font-bold mb-0.5" style={{ color: '#fbbf24' }}>
               LIMITE PIANO RAGGIUNTO
             </div>
@@ -102,6 +103,19 @@ export function MembersPage({ orgId, org }) {
               Aggiorna il piano per aggiungere altri membri.
             </div>
           </div>
+          {onNavigate && (
+            <button
+              onClick={() => onNavigate('org_settings')}
+              className="font-display shrink-0"
+              style={{
+                fontSize: 9, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase',
+                background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.3)',
+                borderRadius: 3, color: '#fbbf24', padding: '5px 10px', cursor: 'pointer',
+              }}
+            >
+              IMPOSTAZIONI
+            </button>
+          )}
         </div>
       )}
 
@@ -142,7 +156,7 @@ export function MembersPage({ orgId, org }) {
               </div>
               <select
                 value={member.role}
-                onChange={e => handleRoleChange(member, e.target.value)}
+                onChange={e => setConfirmRoleChange({ member, newRole: e.target.value })}
                 className="input-base text-[11px] py-1.5 px-2 mr-2"
                 style={{ width: 'auto', minWidth: 100 }}
               >
@@ -173,11 +187,22 @@ export function MembersPage({ orgId, org }) {
         />
       )}
 
+      {confirmRoleChange && (
+        <ConfirmDialog
+          title="Cambia ruolo"
+          description={`Vuoi assegnare il ruolo "${ROLE_OPTIONS.find(r => r.value === confirmRoleChange.newRole)?.label}" a ${confirmRoleChange.member.name ?? confirmRoleChange.member.email}?`}
+          confirmLabel="CONFERMA"
+          onConfirm={() => { handleRoleChange(confirmRoleChange.member, confirmRoleChange.newRole); setConfirmRoleChange(null) }}
+          onCancel={() => setConfirmRoleChange(null)}
+        />
+      )}
+
       {confirmRemove && (
         <ConfirmDialog
           title={`Rimuovere ${confirmRemove.name ?? confirmRemove.id}?`}
           description="Il membro non potrà più accedere all'organizzazione."
           confirmLabel="RIMUOVI"
+          variant="danger"
           onConfirm={handleRemove}
           onCancel={() => setConfirmRemove(null)}
         />

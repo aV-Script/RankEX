@@ -131,8 +131,7 @@ export function BadgeMedal({ badgeId, unlocked, size = 64, animate = false, show
       </div>
 
       {showLabel && (
-        <div style={{
-          fontFamily:    'Montserrat, sans-serif',
+        <div className="font-display" style={{
           fontWeight:    700,
           fontSize:      8,
           letterSpacing: '1px',

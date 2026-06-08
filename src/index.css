@@ -36,6 +36,10 @@
   --rx-surface:     #0d1520;
   --rx-surface-alt: #111820;
 
+  /* Card e nav background — tintati per tema */
+  --rx-card-bg: rgba(8,17,12,0.82);
+  --rx-nav-bg:  rgba(4,9,6,0.95);
+
   /* Verde logo */
   --rx-green:        #0fd65a;
   --rx-green-bright: #1aff6e;
@@ -121,17 +125,17 @@ body, #root {
 ::-webkit-scrollbar       { width: 3px; height: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background:    rgba(15,214,90,0.2);
+  background:    color-mix(in srgb, var(--rx-green) 20%, transparent);
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(15,214,90,0.4);
+  background: color-mix(in srgb, var(--rx-green) 40%, transparent);
 }
 
 /* ── Input ─────────────────────────────────────────────────── */
 .input-base {
-  background:    rgba(15,214,90,0.04);
-  border:        1px solid rgba(15,214,90,0.15);
+  background:    color-mix(in srgb, var(--rx-green) 4%, transparent);
+  border:        1px solid color-mix(in srgb, var(--rx-green) 15%, transparent);
   border-radius: 3px;
   padding:       10px 14px;
   color:         #ffffff;
@@ -142,8 +146,8 @@ body, #root {
   width:         100%;
 }
 .input-base:focus {
-  border-color: rgba(15,214,90,0.5);
-  box-shadow:   0 0 0 2px rgba(15,214,90,0.08);
+  border-color: color-mix(in srgb, var(--rx-green) 50%, transparent);
+  box-shadow:   0 0 0 2px color-mix(in srgb, var(--rx-green) 8%, transparent);
 }
 .input-base::placeholder { color: rgba(255,255,255,0.2); }
 
@@ -271,34 +275,35 @@ select.input-base option {
 
 /* ── Bordo metallico angolare ──────────────────────────────── */
 .rx-card {
-  background:    rgba(13,21,32,0.9);
-  border:        1px solid rgba(15,214,90,0.12);
-  border-radius: 4px;
-  box-shadow:    0 4px 24px rgba(0,0,0,0.5),
-                 inset 0 1px 0 rgba(138,155,176,0.05);
+  background:      var(--rx-card-bg);
+  border:          1px solid var(--rx-border);
+  border-radius:   4px;
+  box-shadow:      0 4px 24px rgba(0,0,0,0.5),
+                   inset 0 1px 0 rgba(138,155,176,0.05);
+  backdrop-filter: blur(6px);
 }
 
 .rx-card:hover {
-  border-color: rgba(15,214,90,0.25);
+  border-color: color-mix(in srgb, var(--rx-green) 25%, transparent);
   box-shadow:   0 4px 24px rgba(0,0,0,0.5),
-                0 0 20px rgba(15,214,90,0.08);
+                0 0 20px var(--rx-green-glow);
 }
 
 /* ── Bottone primario ──────────────────────────────────────── */
 .rx-btn-primary {
-  background:     rgba(15,214,90,0.07);
-  border:         1px solid rgba(15,214,90,0.35);
+  background:     color-mix(in srgb, var(--rx-green) 7%, transparent);
+  border:         1px solid color-mix(in srgb, var(--rx-green) 35%, transparent);
   border-radius:  3px;
-  color:          #0fd65a;
+  color:          var(--rx-green);
   font-family:    'Montserrat', sans-serif;
   font-weight:    700;
   letter-spacing: 0.1em;
   transition:     background 200ms, border-color 200ms, box-shadow 200ms;
 }
 .rx-btn-primary:hover {
-  background:   rgba(15,214,90,0.13);
-  border-color: rgba(15,214,90,0.55);
-  box-shadow:   0 0 12px rgba(15,214,90,0.15);
+  background:   color-mix(in srgb, var(--rx-green) 13%, transparent);
+  border-color: color-mix(in srgb, var(--rx-green) 55%, transparent);
+  box-shadow:   0 0 12px var(--rx-green-glow);
 }
 
 /* ── Badge rank ────────────────────────────────────────────── */
@@ -336,7 +341,7 @@ input[type=range] { height: 4px; accent-color: var(--rx-green); }
 button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   outline:        2px solid var(--rx-green);
   outline-offset: 2px;
-  box-shadow:     0 0 0 2px rgba(15,214,90,0.3);
+  box-shadow:     0 0 0 2px color-mix(in srgb, var(--rx-green) 30%, transparent);
 }
 
 /* Accessibility: Reduced motion */

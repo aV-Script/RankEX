@@ -1,6 +1,7 @@
 import { useState, useCallback }                        from 'react'
 import { logout, changeTrainerPassword, changeUserEmail } from '../../../firebase/services/auth'
 import { Field }                                         from '../../../components/ui'
+import { ThemePicker }                                   from '../../../components/ui/ThemePicker'
 import { getFirebaseErrorMessage }                       from '../../../utils/firebaseErrors'
 import { validatePassword }                              from '../../../utils/validation'
 
@@ -98,6 +99,14 @@ export function AdminProfilePage({ user }) {
           <span className="font-body text-[14px] text-white truncate">{user?.email ?? '—'}</span>
           <span className="font-body text-[11px] text-white/30 truncate">{user?.uid ?? '—'}</span>
         </div>
+      </div>
+
+      {/* Theme picker */}
+      <div className="rounded-[4px] p-5 mb-5 rx-card">
+        <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-green)' }}>
+          ◈ Tema interfaccia
+        </div>
+        <ThemePicker />
       </div>
 
       {/* Azioni account */}

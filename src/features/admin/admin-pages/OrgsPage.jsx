@@ -10,7 +10,7 @@ const MODULE_LABELS = {
 }
 
 const STATUS_COLORS = {
-  active:   '#0fd65a',
+  active:   'var(--rx-green)',
   inactive: '#6b7280',
   suspended:'#f87171',
 }

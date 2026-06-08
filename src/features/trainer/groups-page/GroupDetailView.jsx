@@ -213,7 +213,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
         </button>
 
         {/* Tab bar — centrati */}
-        <div className="flex-1 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+        <div className="flex-1 relative overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           {isEditing ? (
             <div className="flex items-center justify-center gap-2 h-full px-2">
               <input
@@ -227,7 +227,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
                 className="input-base font-display font-black text-[12px]"
                 style={{ minWidth: 100, maxWidth: 160 }}
               />
-              <ActionBtn onClick={handleRename} color="#0fd65a">SALVA</ActionBtn>
+              <ActionBtn onClick={handleRename} color="var(--rx-green)">SALVA</ActionBtn>
               <ActionBtn onClick={() => { setIsEditing(false); setEditingName(group.name) }} muted>ANN.</ActionBtn>
             </div>
           ) : (
@@ -245,21 +245,32 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
                   onClick={() => setSubView(t.id)}
                   aria-current={subView === t.id ? 'page' : undefined}
                   className="flex items-center gap-1.5 px-3 h-full shrink-0 cursor-pointer border-none bg-transparent relative transition-colors"
-                  style={{ color: subView === t.id ? '#0fd65a' : 'rgba(200,212,224,0.35)' }}
+                  style={{ color: subView === t.id ? 'var(--rx-green)' : 'rgba(200,212,224,0.35)' }}
                 >
                   {subView === t.id && (
                     <div
                       className="absolute bottom-0 left-2 right-2 h-[2px] rounded-t-sm"
-                      style={{ background: 'linear-gradient(90deg,#0fd65a,#00c8ff)', boxShadow: '0 0 6px rgba(15,214,90,0.45)' }}
+                      style={{ background: 'var(--rx-gradient)', boxShadow: '0 0 6px color-mix(in srgb, var(--rx-green) 45%, transparent)' }}
                     />
                   )}
-                  <span style={{ display: 'flex', filter: subView === t.id ? 'drop-shadow(0 0 4px rgba(15,214,90,0.5))' : 'none' }}>
+                  <span style={{ display: 'flex', filter: subView === t.id ? 'drop-shadow(0 0 4px color-mix(in srgb, var(--rx-green) 50%, transparent))' : 'none' }}>
                     {t.icon}
                   </span>
                   <span className="font-display text-[9px] tracking-[1px] uppercase whitespace-nowrap">{t.label}</span>
                 </button>
               ))}
             </div>
+          )}
+          {/* Fade destra — affordance scroll su mobile */}
+          {!isEditing && (
+            <div
+              className="lg:hidden"
+              style={{
+                position: 'absolute', top: 0, right: 0, bottom: 0, width: 40,
+                background: 'linear-gradient(to right, transparent, var(--rx-nav-bg))',
+                pointerEvents: 'none',
+              }}
+            />
           )}
         </div>
 
@@ -329,7 +340,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
             <div className="px-4 sm:px-6 pt-4 pb-12 flex flex-col gap-4">
               <GroupChampions clients={allClientsInGroup} />
               <div className="rounded-[4px] p-5 rx-card">
-                <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-5" style={{ color: '#0fd65a' }}>◈ Classifica</div>
+                <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-5" style={{ color: 'var(--rx-green)' }}>◈ Classifica</div>
                 <GroupLeaderboard clients={allClientsInGroup} />
               </div>
             </div>
@@ -372,7 +383,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
 
               {/* Col 1: Nel gruppo */}
               <div className="rounded-[4px] p-5 rx-card">
-                <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-5" style={{ color: '#0fd65a' }}>
+                <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-5" style={{ color: 'var(--rx-green)' }}>
                   ◈ Nel gruppo <span className="text-white/25 ml-1">({clientsInGroup.length})</span>
                 </div>
                 {inGroupPagination.paginatedItems.length === 0 ? (
@@ -395,11 +406,11 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
 
               {/* Col 2: Riepilogo gruppo */}
               <div className="rounded-[4px] p-5 rx-card">
-                <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-5" style={{ color: '#0fd65a' }}>
+                <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-5" style={{ color: 'var(--rx-green)' }}>
                   ◈ Riepilogo
                 </div>
                 <div className="flex flex-col gap-2 mb-4">
-                  <ManageStat label="Nel gruppo"    value={allClientsInGroup.length}                        color="#0fd65a" />
+                  <ManageStat label="Nel gruppo"    value={allClientsInGroup.length}                        color="var(--rx-green)" />
                   <ManageStat label="Disponibili"   value={clients.length - allClientsInGroup.length}       />
                   <ManageStat label="Totale atleti" value={clients.length}                                  />
                 </div>
@@ -509,16 +520,16 @@ function ClientRow({ client, inGroup, loading, onToggle }) {
     <div
       className="flex items-center justify-between px-4 py-3 rounded-[3px] transition-all"
       style={inGroup
-        ? { background: 'rgba(15,214,90,0.06)', border: '1px solid rgba(15,214,90,0.15)' }
+        ? { background: 'color-mix(in srgb, var(--rx-green) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 15%, transparent)' }
         : { background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }
       }
     >
       <div className="flex items-center gap-3">
         <div
           className="w-8 h-8 rounded-[3px] flex items-center justify-center shrink-0"
-          style={inGroup ? { background: 'rgba(15,214,90,0.15)' } : { background: 'rgba(255,255,255,0.05)' }}
+          style={inGroup ? { background: 'color-mix(in srgb, var(--rx-green) 15%, transparent)' } : { background: 'rgba(255,255,255,0.05)' }}
         >
-          <span className="font-display text-[11px]" style={{ color: inGroup ? '#0fd65a' : 'rgba(255,255,255,0.35)' }}>
+          <span className="font-display text-[11px]" style={{ color: inGroup ? 'var(--rx-green)' : 'rgba(255,255,255,0.35)' }}>
             {client.name?.[0]?.toUpperCase()}
           </span>
         </div>
@@ -538,7 +549,7 @@ function ClientRow({ client, inGroup, loading, onToggle }) {
         className="font-display text-[10px] px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all disabled:opacity-40"
         style={inGroup
           ? { color: '#f87171', borderColor: 'rgba(248,113,113,0.2)', background: 'transparent' }
-          : { color: '#0fd65a', borderColor: 'rgba(15,214,90,0.2)',   background: 'rgba(15,214,90,0.06)' }
+          : { color: 'var(--rx-green)', borderColor: 'color-mix(in srgb, var(--rx-green) 20%, transparent)',   background: 'color-mix(in srgb, var(--rx-green) 6%, transparent)' }
         }
       >
         {loading ? '...' : inGroup ? 'RIMUOVI' : 'AGGIUNGI'}

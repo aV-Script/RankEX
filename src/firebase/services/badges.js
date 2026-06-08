@@ -13,3 +13,9 @@ export async function revokeBadge(orgId, clientId, badgeId) {
   const ref = doc(db, clientsPath(orgId), clientId)
   await updateDoc(ref, { [`badges.${badgeId}`]: deleteField() })
 }
+
+// Salva i badge scelti per il profilo (array di max 5 ID)
+export async function updateBadgeShowcase(orgId, clientId, badgeIds) {
+  const ref = doc(db, clientsPath(orgId), clientId)
+  await updateDoc(ref, { badgeShowcase: badgeIds.slice(0, 5) })
+}

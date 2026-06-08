@@ -24,8 +24,8 @@ export const RANKS = [
   { min: 95, label: 'EX',  color: '#ffd700' },  // oro
   { min: 90, label: 'SS+', color: '#ff4560' },  // rosso vivo
   { min: 85, label: 'SS',  color: '#ff7043' },  // arancio caldo
-  { min: 80, label: 'S+',  color: '#1aff6e' },  // verde brillante RankEX
-  { min: 75, label: 'S',   color: '#0fd65a' },  // verde logo RankEX
+  { min: 80, label: 'S+',  color: 'var(--rx-green-bright)' },  // verde brillante RankEX
+  { min: 75, label: 'S',   color: 'var(--rx-green)' },  // verde logo RankEX
   { min: 70, label: 'A+',  color: '#00c8ff' },  // ciano logo RankEX
   { min: 65, label: 'A',   color: '#4db8ff' },  // ciano chiaro
   { min: 60, label: 'B+',  color: '#38bdf8' },  // azzurro

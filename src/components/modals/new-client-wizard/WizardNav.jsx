@@ -10,7 +10,7 @@ export function WizardNav({ step, isLastStep, loading, onPrev, onNext, onSubmit 
         <button
           onClick={onPrev}
           className="bg-transparent border rounded-[3px] px-5 py-3 text-white/50 font-display text-[12px] cursor-pointer hover:text-white/70 transition-colors"
-          style={{ borderColor: 'rgba(15,214,90,0.2)' }}
+          style={{ borderColor: 'color-mix(in srgb, var(--rx-green) 20%, transparent)' }}
         >
           ‹ INDIETRO
         </button>

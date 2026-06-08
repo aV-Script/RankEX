@@ -26,7 +26,7 @@ function toXY(deg, r) {
  *   onSelect  callback(id) — chiamata dopo la chiusura
  *   color     colore accent (default verde RX)
  */
-export function ContextNav({ items, activeId, onSelect, color = '#0fd65a' }) {
+export function ContextNav({ items, activeId, onSelect, color = 'var(--rx-green)' }) {
   const [open, setOpen]       = useState(false)
   const [closing, setClosing] = useState(false)
   const [mobile, setMobile]   = useState(() => window.innerWidth < 768)
@@ -106,8 +106,7 @@ export function ContextNav({ items, activeId, onSelect, color = '#0fd65a' }) {
           <span style={{ display: 'flex', transform: 'scale(1.25)', pointerEvents: 'none' }}>
             {activeItem.icon}
           </span>
-          <span style={{
-            fontFamily: 'Montserrat, sans-serif',
+          <span className="font-display" style={{
             fontWeight: 700,
             fontSize: 6,
             letterSpacing: '1.5px',
@@ -192,10 +191,9 @@ export function ContextNav({ items, activeId, onSelect, color = '#0fd65a' }) {
                 </span>
               </button>
 
-              <span aria-hidden="true" style={{
+              <span aria-hidden="true" className="font-display" style={{
                 marginTop: 8,
                 fontSize: mobile ? 9 : 10,
-                fontFamily: 'Montserrat, sans-serif',
                 fontWeight: 700,
                 letterSpacing: '1.3px',
                 textTransform: 'uppercase',
@@ -240,8 +238,7 @@ export function ContextNav({ items, activeId, onSelect, color = '#0fd65a' }) {
               <span style={{ display: 'flex', transform: 'scale(1.8)', color, pointerEvents: 'none' }}>
                 {activeItem.icon}
               </span>
-              <span style={{
-                fontFamily: 'Montserrat, sans-serif',
+              <span className="font-display" style={{
                 fontWeight: 700,
                 fontSize: mobile ? 7 : 8,
                 letterSpacing: '2px',

@@ -41,7 +41,7 @@ export function SlotCard({ slot, clients, onClick }) {
           {slot.recurrenceId && (
             <span
               className="font-display text-[9px] px-2 py-0.5 rounded-[3px]"
-              style={{ background: 'rgba(0,200,255,0.08)', color: '#00c8ff' }}
+              style={{ background: 'color-mix(in srgb, var(--rx-cyan) 8%, transparent)', color: 'var(--rx-cyan)' }}
             >
               ↺ RICORRENTE
             </span>

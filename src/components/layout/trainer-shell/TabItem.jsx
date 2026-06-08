@@ -9,11 +9,11 @@ export function TabItem({ item, active, onClick }) {
     >
       <span
         style={{
-          color:      active ? '#0fd65a' : 'rgba(200,212,224,0.3)',
+          color:      active ? 'var(--rx-green)' : 'rgba(200,212,224,0.3)',
           transform:  active ? 'scale(1.12)' : 'scale(1)',
           transition: 'color 150ms, transform 200ms cubic-bezier(0.34,1.56,0.64,1)',
           display:    'flex',
-          filter:     active ? 'drop-shadow(0 0 6px rgba(15,214,90,0.5))' : 'none',
+          filter:     active ? 'drop-shadow(0 0 6px color-mix(in srgb, var(--rx-green) 50%, transparent))' : 'none',
         }}
       >
         {item.icon}
@@ -21,7 +21,7 @@ export function TabItem({ item, active, onClick }) {
       <span
         className="font-display text-[10px] tracking-[1px]"
         style={{
-          color:      active ? '#0fd65a' : 'rgba(200,212,224,0.3)',
+          color:      active ? 'var(--rx-green)' : 'rgba(200,212,224,0.3)',
           transition: 'color 150ms',
         }}
       >

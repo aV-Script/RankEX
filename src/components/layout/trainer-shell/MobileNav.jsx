@@ -38,7 +38,7 @@ export function MobileNav({ page, onNavigate, onLogout }) {
       {/* Header */}
       <header
         className="flex items-center justify-between px-4 py-3 border-b border-white/[.05] sticky top-0 z-30 backdrop-blur-md"
-        style={{ background: 'rgba(7,9,14,0.92)' }}
+        style={{ background: 'var(--rx-nav-bg)' }}
         aria-label="Header mobile"
       >
         <div className="w-8" />
@@ -60,7 +60,7 @@ export function MobileNav({ page, onNavigate, onLogout }) {
       {/* Tab bar — footer fisso */}
       <nav
         className="fixed bottom-0 left-0 right-0 z-30 flex border-t border-white/[.05] backdrop-blur-md"
-        style={{ background: 'rgba(7,9,14,0.92)' }}
+        style={{ background: 'var(--rx-nav-bg)' }}
         aria-label="Navigazione mobile"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
@@ -76,9 +76,9 @@ export function MobileNav({ page, onNavigate, onLogout }) {
               left:       `calc(${activeIndex * pillPct}% + 6px)`,
               width:      `calc(${pillPct}% - 12px)`,
               borderRadius: 8,
-              background: 'rgba(15,214,90,0.08)',
-              border:     '1px solid rgba(15,214,90,0.16)',
-              boxShadow:  '0 0 10px rgba(15,214,90,0.08)',
+              background: 'color-mix(in srgb, var(--rx-green) 8%, transparent)',
+              border:     '1px solid color-mix(in srgb, var(--rx-green) 16%, transparent)',
+              boxShadow:  '0 0 10px color-mix(in srgb, var(--rx-green) 8%, transparent)',
               transition: 'left 240ms cubic-bezier(0.34,1.56,0.64,1)',
               pointerEvents: 'none',
             }}

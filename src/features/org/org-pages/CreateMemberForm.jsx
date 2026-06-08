@@ -59,7 +59,7 @@ export function CreateMemberForm({ orgId, onClose, onCreated }) {
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-sm p-6"
-        style={{ background: '#0d1520', border: '1px solid rgba(15,214,90,0.15)', borderRadius: '4px' }}
+        style={{ background: 'var(--rx-surface)', border: '1px solid var(--rx-border)', borderRadius: '4px' }}
         onClick={e => e.stopPropagation()}
       >
         <h3 className="font-display font-black text-[16px] text-white mb-5">
@@ -118,7 +118,7 @@ export function CreateMemberForm({ orgId, onClose, onCreated }) {
             type="submit"
             disabled={saving}
             className="flex-1 py-2.5 font-display text-[12px] font-bold cursor-pointer border-0 disabled:opacity-40"
-            style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', borderRadius: '3px', color: '#0fd65a' }}
+            style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', borderRadius: '3px', color: 'var(--rx-green)' }}
           >
             {saving ? 'CREAZIONE...' : 'CREA'}
           </button>

@@ -82,7 +82,7 @@ export function GroupNotes({ orgId, groupId }) {
 
   return (
     <div className="rounded-[4px] p-5 rx-card">
-      <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-5" style={{ color: '#0fd65a' }}>◈ Note di gruppo</div>
+      <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-5" style={{ color: 'var(--rx-green)' }}>◈ Note di gruppo</div>
 
       {/* Composer */}
       <div className="mb-5">
@@ -100,7 +100,7 @@ export function GroupNotes({ orgId, groupId }) {
             onClick={handleSubmit}
             disabled={!text.trim() || submitting}
             className="font-display text-[11px] px-4 py-2 rounded-[3px] cursor-pointer border-0 transition-opacity hover:opacity-85 disabled:opacity-40"
-            style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', color: '#0fd65a' }}
+            style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)' }}
           >
             {submitting ? '…' : 'PUBBLICA'}
           </button>
@@ -152,9 +152,9 @@ function NoteCard({ note, currentUserId, userRole, deleting, onDelete }) {
         <div className="flex items-center gap-2">
           <div
             className="w-7 h-7 rounded-[3px] flex items-center justify-center shrink-0"
-            style={{ background: 'rgba(15,214,90,0.10)' }}
+            style={{ background: 'color-mix(in srgb, var(--rx-green) 10%, transparent)' }}
           >
-            <span className="font-display text-[11px]" style={{ color: '#0fd65a' }}>
+            <span className="font-display text-[11px]" style={{ color: 'var(--rx-green)' }}>
               {note.authorName?.[0]?.toUpperCase()}
             </span>
           </div>
@@ -162,7 +162,7 @@ function NoteCard({ note, currentUserId, userRole, deleting, onDelete }) {
             <span className="font-display font-bold text-[13px] text-white/80">{note.authorName}</span>
             <span
               className="ml-2 font-display text-[10px] font-semibold tracking-[1px] px-1.5 py-0.5 rounded-[2px]"
-              style={{ background: 'rgba(15,214,90,0.08)', color: '#0fd65a66' }}
+              style={{ background: 'color-mix(in srgb, var(--rx-green) 8%, transparent)', color: 'color-mix(in srgb, var(--rx-green) 40%, transparent)' }}
             >
               {ROLE_LABELS[note.authorRole] ?? note.authorRole}
             </span>

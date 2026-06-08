@@ -136,7 +136,7 @@ function SortPill({ active, onClick, children }) {
       onClick={onClick}
       className="font-display text-[10px] px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all tracking-[1px]"
       style={active
-        ? { background: 'rgba(15,214,90,0.12)', borderColor: 'rgba(15,214,90,0.35)', color: '#0fd65a' }
+        ? { background: 'color-mix(in srgb, var(--rx-green) 12%, transparent)', borderColor: 'color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)' }
         : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)' }
       }
     >

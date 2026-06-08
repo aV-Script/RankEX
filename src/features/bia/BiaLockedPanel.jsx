@@ -13,7 +13,7 @@ export function BiaLockedPanel({ profileType, _color }) {
       <div
         className="flex flex-col items-center justify-center text-center gap-4 py-10 rounded-[4px]"
         style={{
-          background: 'rgba(13,21,32,0.6)',
+          background: 'color-mix(in srgb, var(--rx-surface) 60%, transparent)',
           border:     '1px solid rgba(255,255,255,0.06)',
         }}
       >

@@ -79,10 +79,10 @@ export function NotificationsPanel({ notifications, color, onClose, onDelete }) 
         className="fixed top-0 right-0 bottom-0 z-50 flex flex-col animate-in slide-in-from-right duration-300"
         style={{
           width:               'min(360px, 92vw)',
-          background:          'rgba(4,7,12,0.98)',
+          background:          'var(--rx-nav-bg)',
           backdropFilter:      'blur(32px)',
           WebkitBackdropFilter:'blur(32px)',
-          borderLeft:          '1px solid rgba(255,255,255,0.08)',
+          borderLeft:          '1px solid var(--rx-border)',
           boxShadow:           '-8px 0 48px rgba(0,0,0,0.7)',
         }}
         onClick={e => e.stopPropagation()}
@@ -90,7 +90,7 @@ export function NotificationsPanel({ notifications, color, onClose, onDelete }) 
 
         {/* Header */}
         <div className="flex items-center gap-3 px-5 py-4 shrink-0"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+          style={{ borderBottom: '1px solid var(--rx-border)' }}>
           <div className="flex items-center justify-center rounded-[6px] shrink-0"
             style={{ width: 34, height: 34, background: color + '15', border: `1px solid ${color}30`, color }}>
             {ICON_BELL}
@@ -111,7 +111,7 @@ export function NotificationsPanel({ notifications, color, onClose, onDelete }) 
             onClick={onClose}
             aria-label="Chiudi notifiche"
             className="flex items-center justify-center cursor-pointer shrink-0"
-            style={{ width: 32, height: 32, borderRadius: 6, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.40)' }}
+            style={{ width: 32, height: 32, borderRadius: 6, background: 'color-mix(in srgb, var(--rx-green) 5%, transparent)', border: '1px solid var(--rx-border)', color: 'color-mix(in srgb, var(--rx-green) 45%, rgba(255,255,255,0.35))' }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <line x1="18" y1="6" x2="6" y2="18"/>
@@ -126,14 +126,14 @@ export function NotificationsPanel({ notifications, color, onClose, onDelete }) 
 
             // ── Empty state ──────────────────────────────────────────────────
             <div className="flex flex-col items-center justify-center gap-3 h-full py-16">
-              <div style={{ color: 'rgba(255,255,255,0.10)' }}>
+              <div style={{ color: 'color-mix(in srgb, var(--rx-green) 25%, transparent)' }}>
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                   <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                 </svg>
               </div>
               <div className="font-display font-black uppercase text-center"
-                style={{ fontSize: 9, letterSpacing: '3px', color: 'rgba(255,255,255,0.20)' }}>
+                style={{ fontSize: 9, letterSpacing: '3px', color: 'color-mix(in srgb, var(--rx-green) 40%, transparent)' }}>
                 Nessuna notifica
               </div>
             </div>
@@ -151,9 +151,9 @@ export function NotificationsPanel({ notifications, color, onClose, onDelete }) 
                     style={{
                       borderRadius: 8,
                       padding:      '11px 12px',
-                      background:   isUnread ? color + '09' : 'rgba(255,255,255,0.025)',
-                      border:       isUnread ? `1px solid ${color}25` : '1px solid rgba(255,255,255,0.05)',
-                      borderLeft:   isUnread ? `3px solid ${color}` : '3px solid rgba(255,255,255,0.06)',
+                      background:   isUnread ? color + '09' : 'color-mix(in srgb, var(--rx-green) 3%, transparent)',
+                      border:       isUnread ? `1px solid ${color}25` : '1px solid var(--rx-border)',
+                      borderLeft:   isUnread ? `3px solid ${color}` : `3px solid var(--rx-border)`,
                     }}
                   >
                     <div className="flex items-start gap-3">
@@ -162,8 +162,8 @@ export function NotificationsPanel({ notifications, color, onClose, onDelete }) 
                       <div className="flex items-center justify-center rounded-[5px] shrink-0 mt-0.5"
                         style={{
                           width: 28, height: 28,
-                          background: isUnread ? color + '18' : 'rgba(255,255,255,0.05)',
-                          color:      isUnread ? color        : 'rgba(255,255,255,0.28)',
+                          background: isUnread ? color + '18' : 'color-mix(in srgb, var(--rx-green) 6%, transparent)',
+                          color:      isUnread ? color        : 'color-mix(in srgb, var(--rx-green) 45%, transparent)',
                         }}>
                         {icon}
                       </div>
@@ -175,7 +175,7 @@ export function NotificationsPanel({ notifications, color, onClose, onDelete }) 
                           {n.message}
                         </div>
                         <div className="font-display uppercase mt-1"
-                          style={{ fontSize: 8, letterSpacing: '1px', color: 'rgba(255,255,255,0.22)' }}>
+                          style={{ fontSize: 8, letterSpacing: '1px', color: 'color-mix(in srgb, var(--rx-green) 38%, transparent)' }}>
                           {formatDate(n.date)}
                         </div>
                       </div>

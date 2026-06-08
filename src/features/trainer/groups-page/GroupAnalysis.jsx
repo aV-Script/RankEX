@@ -7,7 +7,7 @@ import { ALL_TESTS } from '../../../constants/index'
 
 function heatColor(val) {
   if (val == null) return { bg: 'transparent', text: 'rgba(255,255,255,0.15)' }
-  if (val >= 67)   return { bg: 'rgba(15,214,90,0.15)',   text: '#0fd65a' }
+  if (val >= 67)   return { bg: 'color-mix(in srgb, var(--rx-green) 15%, transparent)',   text: 'var(--rx-green)' }
   if (val >= 34)   return { bg: 'rgba(250,204,21,0.12)',  text: '#facc15' }
   return               { bg: 'rgba(248,113,113,0.13)', text: '#f87171' }
 }
@@ -69,7 +69,7 @@ export function GroupAnalysis({ clients }) {
 
       {/* Riga 1 — Riepilogo gruppo (full width) */}
       <div className="rounded-[4px] p-5 rx-card">
-        <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-5" style={{ color: '#0fd65a' }}>◈ Riepilogo gruppo</div>
+        <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-5" style={{ color: 'var(--rx-green)' }}>◈ Riepilogo gruppo</div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
           <StatTile label="ATLETI"      value={clients.length}             />
           {summary.avgLevel    != null && <StatTile label="LV. MEDIO"     value={`Lv.${summary.avgLevel}`}     />}
@@ -84,7 +84,7 @@ export function GroupAnalysis({ clients }) {
 
       {/* Riga 3 — Heatmap full width */}
       <div className="rounded-[4px] p-5 rx-card">
-          <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-5" style={{ color: '#0fd65a' }}>◈ Heatmap gruppo</div>
+          <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-5" style={{ color: 'var(--rx-green)' }}>◈ Heatmap gruppo</div>
           {statCols.length > 0 ? (
             <div
               className="rounded-[3px] p-4 overflow-x-auto"
@@ -163,7 +163,7 @@ export function GroupAnalysis({ clients }) {
 
 const STAT_TILE_VARIANTS = {
   gold:     { color: '#ffd700',               bg: 'rgba(255,215,0,0.06)',      bd: 'rgba(255,215,0,0.18)'      },
-  positive: { color: '#0fd65a',               bg: 'rgba(15,214,90,0.06)',      bd: 'rgba(15,214,90,0.18)'      },
+  positive: { color: 'var(--rx-green)',               bg: 'color-mix(in srgb, var(--rx-green) 6%, transparent)',      bd: 'color-mix(in srgb, var(--rx-green) 18%, transparent)'      },
   negative: { color: '#f87171',               bg: 'rgba(248,113,113,0.06)',    bd: 'rgba(248,113,113,0.18)'    },
   default:  { color: 'rgba(255,255,255,0.75)', bg: 'rgba(255,255,255,0.03)',   bd: 'rgba(255,255,255,0.06)'    },
 }
@@ -225,7 +225,7 @@ function GroupTrendChart({ clients }) {
 
   return (
     <div className="rounded-[4px] p-5 rx-card">
-      <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-4" style={{ color: '#0fd65a' }}>◈ Andamento nel tempo</div>
+      <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-4" style={{ color: 'var(--rx-green)' }}>◈ Andamento nel tempo</div>
 
       <div className="flex gap-1.5 flex-wrap mb-4">
         {statOptions.map(opt => (
@@ -263,22 +263,22 @@ function GroupTrendChart({ clients }) {
                   statOptions.find(o => o.key === selected)?.label ?? selected,
                 ]}
                 contentStyle={{
-                  background:   '#0d1520',
-                  border:       '1px solid rgba(15,214,90,0.15)',
+                  background:   'var(--rx-surface)',
+                  border:       '1px solid var(--rx-border)',
                   borderRadius: 4,
                   fontFamily:   'Inter',
                   fontSize:     12,
                 }}
                 labelStyle={{ color: 'rgba(255,255,255,0.4)', fontWeight: 400 }}
-                itemStyle={{ color: '#0fd65a', fontWeight: 400 }}
+                itemStyle={{ color: 'var(--rx-green)', fontWeight: 400 }}
               />
               <Line
                 type="monotone"
                 dataKey="valore"
-                stroke="#0fd65a"
+                stroke="var(--rx-green)"
                 strokeWidth={2}
-                dot={{ fill: '#0fd65a', r: 3 }}
-                activeDot={{ fill: '#0fd65a', r: 5 }}
+                dot={{ fill: 'var(--rx-green)', r: 3 }}
+                activeDot={{ fill: 'var(--rx-green)', r: 5 }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -294,7 +294,7 @@ function TrendPill({ active, onClick, children }) {
       onClick={onClick}
       className="px-3 py-1 rounded-[3px] font-display text-[11px] border cursor-pointer transition-all"
       style={active
-        ? { background: 'rgba(15,214,90,0.12)', borderColor: 'rgba(15,214,90,0.35)', color: '#0fd65a' }
+        ? { background: 'color-mix(in srgb, var(--rx-green) 12%, transparent)', borderColor: 'color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)' }
         : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.28)' }
       }
     >

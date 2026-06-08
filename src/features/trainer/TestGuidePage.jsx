@@ -110,7 +110,7 @@ export function TestGuidePage() {
               <button
                 onClick={() => setMenuOpen(o => !o)}
                 className="w-full flex items-center justify-between px-4 py-3 rounded-[3px] cursor-pointer border transition-all"
-                style={{ background: 'rgba(13,21,32,0.9)', borderColor: fasciaColor + '33' }}
+                style={{ background: 'var(--rx-card-bg)', borderColor: fasciaColor + '33' }}
               >
                 <div className="text-left">
                   <span className="font-display text-[10px] tracking-[2px] block" style={{ color: fasciaColor }}>
@@ -129,7 +129,7 @@ export function TestGuidePage() {
 
               {menuOpen && (
                 <div className="rounded-[3px] overflow-hidden mt-2"
-                  style={{ background: '#0d1520', border: `1px solid ${fasciaColor}33` }}>
+                  style={{ background: 'var(--rx-surface)', border: `1px solid ${fasciaColor}33` }}>
                   {soccerTests.map(t => (
                     <button
                       key={t.key}
@@ -275,7 +275,7 @@ export function TestGuidePage() {
             <button
               onClick={() => setMenuOpen(o => !o)}
               className="w-full flex items-center justify-between px-4 py-3 rounded-[3px] cursor-pointer border transition-all"
-              style={{ background: 'rgba(13,21,32,0.9)', borderColor: 'rgba(15,214,90,0.15)' }}
+              style={{ background: 'var(--rx-card-bg)', borderColor: 'color-mix(in srgb, var(--rx-green) 15%, transparent)' }}
             >
               <div className="text-left">
                 <span className="font-display text-[10px] tracking-[2px] block" style={{ color: catColor }}>
@@ -295,7 +295,7 @@ export function TestGuidePage() {
 
             {menuOpen && (
               <div className="rounded-[3px] overflow-hidden"
-                style={{ background: '#0d1520', border: '1px solid rgba(15,214,90,0.15)' }}>
+                style={{ background: 'var(--rx-surface)', border: '1px solid color-mix(in srgb, var(--rx-green) 15%, transparent)' }}>
                 {tests.map(t => (
                   <button
                     key={t.key}
@@ -363,7 +363,7 @@ function GuideContent({ test, guide, color }) {
         <ul className="flex flex-col gap-2">
           {guide.equipment.map((item, i) => (
             <li key={i} className="flex gap-2.5 items-start rounded-[3px] px-3 py-2.5"
-              style={{ background: 'rgba(13,21,32,0.9)', border: `1px solid ${color}14` }}>
+              style={{ background: 'var(--rx-card-bg)', border: `1px solid ${color}14` }}>
               <span className="mt-0.5 text-[12px] shrink-0" style={{ color }}>{i + 1}</span>
               <span className="text-[13px] text-white/60">{item}</span>
             </li>
@@ -375,7 +375,7 @@ function GuideContent({ test, guide, color }) {
         <ol className="flex flex-col gap-2">
           {guide.warmup.map((step, i) => (
             <li key={i} className="flex gap-2.5 items-start rounded-[3px] px-3 py-2.5"
-              style={{ background: 'rgba(13,21,32,0.9)', border: `1px solid ${color}14` }}>
+              style={{ background: 'var(--rx-card-bg)', border: `1px solid ${color}14` }}>
               <span className="mt-0.5 text-[12px] shrink-0" style={{ color }}>{i + 1}</span>
               <span className="text-[13px] text-white/60">{step}</span>
             </li>
@@ -387,7 +387,7 @@ function GuideContent({ test, guide, color }) {
         <ol className="flex flex-col gap-2">
           {guide.protocol.map((step, i) => (
             <li key={i} className="flex gap-2.5 items-start rounded-[3px] px-3 py-2.5"
-              style={{ background: 'rgba(13,21,32,0.9)', border: `1px solid ${color}14` }}>
+              style={{ background: 'var(--rx-card-bg)', border: `1px solid ${color}14` }}>
               <span className="mt-0.5 text-[12px] shrink-0" style={{ color }}>{i + 1}</span>
               <span className="text-[13px] text-white/60">{step}</span>
             </li>
@@ -399,7 +399,7 @@ function GuideContent({ test, guide, color }) {
         <ul className="flex flex-col gap-2">
           {guide.notes.map((note, i) => (
             <li key={i} className="flex gap-2.5 items-start rounded-[3px] px-3 py-2.5"
-              style={{ background: 'rgba(13,21,32,0.9)', border: `1px solid ${color}14` }}>
+              style={{ background: 'var(--rx-card-bg)', border: `1px solid ${color}14` }}>
               <span className="mt-0.5 text-[12px] shrink-0" style={{ color }}>{i + 1}</span>
               <span className="text-[13px] text-white/60">{note}</span>
             </li>
@@ -424,7 +424,7 @@ function GuideSection({ title, children }) {
 function Pill({ label, value, color }) {
   return (
     <div className="flex items-center gap-1.5 rounded-[3px] px-3 py-1.5 leading-none"
-      style={{ background: 'rgba(13,21,32,0.8)', border: '1px solid rgba(15,214,90,0.12)' }}>
+      style={{ background: 'var(--rx-card-bg)', border: '1px solid color-mix(in srgb, var(--rx-green) 12%, transparent)' }}>
       <span className="text-[11px] text-white/30">{label}:</span>
       <span className="text-[11px]" style={{ color }}>{value}</span>
     </div>

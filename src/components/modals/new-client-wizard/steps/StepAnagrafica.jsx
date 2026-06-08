@@ -39,7 +39,7 @@ export function StepAnagrafica({ anagrafica, setAnagrafica, errors }) {
                 onClick={() => setAnagrafica(p => ({ ...p, sesso: s }))}
                 className="flex-1 py-2.5 rounded-[3px] font-display text-[12px] cursor-pointer border transition-all"
                 style={anagrafica.sesso === s
-                  ? { background: 'rgba(15,214,90,0.15)', borderColor: '#0fd65a', color: '#fff' }
+                  ? { background: 'color-mix(in srgb, var(--rx-green) 15%, transparent)', borderColor: 'var(--rx-green)', color: '#fff' }
                   : { background: 'transparent', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' }
                 }
               >

@@ -102,7 +102,7 @@ export function GroupsPage({ orgId }) {
       {showNew && (
         <div
           className="mx-4 sm:mx-6 mb-3 rounded-[4px] p-4 flex gap-3"
-          style={{ background: 'rgba(15,214,90,0.06)', border: '1px solid rgba(15,214,90,0.15)' }}
+          style={{ background: 'color-mix(in srgb, var(--rx-green) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 15%, transparent)' }}
         >
           <input
             autoFocus
@@ -118,7 +118,7 @@ export function GroupsPage({ orgId }) {
           <button
             onClick={handleCreate}
             className="font-display text-[11px] px-4 py-2 rounded-[3px] cursor-pointer border-0 transition-opacity hover:opacity-85"
-            style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', color: '#0fd65a' }}
+            style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)' }}
           >
             CREA
           </button>
@@ -145,6 +145,7 @@ export function GroupsPage({ orgId }) {
               ? 'Crea il primo gruppo per organizzare i clienti.'
               : 'Prova a cambiare il termine di ricerca.'
             }
+            action={groups.length === 0 ? { label: 'Crea gruppo', onClick: () => setShowNew(true) } : undefined}
           />
         ) : (
           <div className="rx-animate-in">

@@ -3,6 +3,7 @@ import { useTrainerState, useTrainerDispatch, ACTIONS }  from '../../context/Tra
 import { buildBiaUpdate, buildProfileUpgrade }           from '../../utils/gamification'
 import { saveBiaUseCase }                                from '../../usecases/saveBiaUseCase'
 import { upgradeProfileUseCase }                         from '../../usecases/upgradeProfileUseCase'
+import { useToast }                                      from '../../hooks/useToast'
 
 /**
  * Hook per la gestione delle misurazioni BIA.
@@ -10,6 +11,7 @@ import { upgradeProfileUseCase }                         from '../../usecases/up
 export function useBia() {
   const { orgId } = useTrainerState()
   const dispatch  = useTrainerDispatch()
+  const { success, error } = useToast()
 
   const handleSaveBia = useCallback(async (client, biaData) => {
     const { update, xpEarned, isFirstMeasurement } = buildBiaUpdate(client, biaData)
@@ -18,10 +20,13 @@ export function useBia() {
 
     try {
       await saveBiaUseCase(orgId, client, xpEarned, update, isFirstMeasurement)
-    } catch {
+      success('BIA salvata')
+    } catch (err) {
       dispatch({ type: ACTIONS.SELECT_CLIENT, payload: client })
+      error('Impossibile salvare la BIA')
+      console.error('[useBia] saveBiaUseCase error:', err)
     }
-  }, [orgId, dispatch])
+  }, [orgId, dispatch, success, error])
 
   const handleUpgradeProfile = useCallback(async (client, newProfileType) => {
     const update   = buildProfileUpgrade(client, newProfileType)

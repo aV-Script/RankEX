@@ -51,7 +51,7 @@ export function BiaGaugeBar({ param, value, prevValue, sex, age }) {
         <span
           className="font-display text-[10px] w-10 text-right tabular-nums shrink-0"
           style={{
-            color: isGoodDelta ? '#1aff6e' :
+            color: isGoodDelta ? 'var(--rx-green-bright)' :
                    isBadDelta  ? '#ef4444' :
                    'rgba(255,255,255,0.2)',
           }}

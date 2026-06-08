@@ -19,8 +19,8 @@ export function TestInput({ test, testValues, livePercentile, prevValue, errors,
     <div
       className="rounded-[4px] p-4 transition-colors"
       style={{
-        background: 'rgba(13,21,32,0.9)',
-        border:     `1px solid ${livePercentile !== null ? color + '44' : 'rgba(15,214,90,0.08)'}`,
+        background: 'var(--rx-card-bg)',
+        border:     `1px solid ${livePercentile !== null ? color + '44' : 'color-mix(in srgb, var(--rx-green) 8%, transparent)'}`,
       }}
     >
       {/* Header test */}

@@ -31,7 +31,7 @@ export function SubmitButton({ loading, children }) {
       disabled={loading}
       className={`rounded-[3px] py-3.5 text-white font-display text-[13px] font-bold tracking-wider border-0 mt-1 transition-opacity
         ${loading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:opacity-90'}`}
-      style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', color: '#0fd65a' }}
+      style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)' }}
     >
       {loading ? 'ATTENDI...' : children}
     </button>
