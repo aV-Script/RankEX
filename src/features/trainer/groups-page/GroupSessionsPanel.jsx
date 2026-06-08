@@ -49,7 +49,7 @@ export function GroupSessionsPanel({ slots, loading }) {
 
   if (loading) return (
     <div className="rounded-[4px] p-5 rx-card">
-      <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-4" style={{ color: '#0fd65a' }}>◈ Sessioni</div>
+      <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-green)' }}>◈ Sessioni</div>
       <div className="flex flex-col gap-2">
         {[...Array(3)].map((_, i) => (
           <div key={i} className="skeleton h-10 rounded-[3px]" />
@@ -62,7 +62,7 @@ export function GroupSessionsPanel({ slots, loading }) {
 
   return (
     <div className="rounded-[4px] p-5 rx-card">
-      <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-4" style={{ color: '#0fd65a' }}>◈ Sessioni</div>
+      <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-green)' }}>◈ Sessioni</div>
 
       <div className="grid grid-cols-3 gap-2 mb-5">
         <SessionStat label="COMPLETATE (30GG)" value={stats.completedLast30} />
@@ -123,7 +123,7 @@ function SessionStat({ label, value, highlight }) {
       <span className="font-display text-[10px] tracking-[1px] text-white/30">{label}</span>
       <span
         className="font-display font-black text-[17px] leading-tight"
-        style={{ color: highlight ? '#0fd65a' : 'rgba(255,255,255,0.75)' }}
+        style={{ color: highlight ? 'var(--rx-green)' : 'rgba(255,255,255,0.75)' }}
       >
         {value}
       </span>
@@ -146,14 +146,14 @@ function SlotRow({ slot, upcoming, border }) {
       }}
     >
       <div className="flex items-center gap-3">
-        <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: upcoming ? '#2ecfff' : '#0fd65a' }} />
+        <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: upcoming ? '#2ecfff' : 'var(--rx-green)' }} />
         <div>
           <div className="font-display text-[12px] text-white/70">{dateLabel}</div>
           {timeLabel && <div className="font-body text-[11px] text-white/30 mt-0.5">{timeLabel}</div>}
         </div>
       </div>
       {!upcoming && invited > 0 && (
-        <div className="font-display text-[11px]" style={{ color: attended === invited ? '#0fd65a' : 'rgba(255,255,255,0.3)' }}>
+        <div className="font-display text-[11px]" style={{ color: attended === invited ? 'var(--rx-green)' : 'rgba(255,255,255,0.3)' }}>
           {attended}/{invited}
         </div>
       )}

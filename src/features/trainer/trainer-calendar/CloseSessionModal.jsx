@@ -45,8 +45,8 @@ export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
         aria-labelledby="close-session-title"
         className="rounded-[4px] p-6 w-full max-w-sm"
         style={{
-          background: '#0d1520',
-          border: '1px solid rgba(15,214,90,0.15)',
+          background: 'var(--rx-surface)',
+          border: '1px solid var(--rx-border)',
           boxShadow: '0 20px 60px rgba(0,0,0,0.8)'
         }}
         onClick={e => e.stopPropagation()}
@@ -118,8 +118,8 @@ export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
         <div
           className="rounded-[3px] px-4 py-3 mb-5 flex items-center justify-between"
           style={{
-            background: 'rgba(13,21,32,0.9)',
-            border: '1px solid rgba(15,214,90,0.1)'
+            background: 'var(--rx-card-bg)',
+            border: '1px solid color-mix(in srgb, var(--rx-green) 10%, transparent)'
           }}
         >
           <div className="flex items-center gap-3">
@@ -142,7 +142,7 @@ export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
           <button
             onClick={onClose}
             className="flex-1 py-2.5 rounded-[3px] font-display text-[12px] cursor-pointer border bg-transparent text-white/40 hover:text-white/70 transition-all"
-            style={{ borderColor: 'rgba(15,214,90,0.2)' }}
+            style={{ borderColor: 'color-mix(in srgb, var(--rx-green) 20%, transparent)' }}
           >
             ANNULLA
           </button>
@@ -152,9 +152,9 @@ export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
             disabled={presentCount === 0 && slotClients.length > 0}
             className="flex-1 py-2.5 rounded-[3px] font-display text-[12px] cursor-pointer border-0 transition-opacity hover:opacity-85 disabled:opacity-40"
             style={{
-              background: 'rgba(15,214,90,0.07)',
-              border: '1px solid rgba(15,214,90,0.35)',
-              color: '#0fd65a'
+              background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)',
+              color: 'var(--rx-green)'
             }}
           >
             CHIUDI SESSIONE

@@ -15,11 +15,11 @@ export function PrintPickerModal({ onSelect, onCancel }) {
             onClick={() => onSelect('dark')}
             className="flex items-center gap-4 p-4 rounded-lg text-left cursor-pointer transition-colors"
             style={{ background: '#07090e', border: '1px solid #1e293b' }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = '#0ec452'}
+            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--rx-green)'}
             onMouseLeave={e => e.currentTarget.style.borderColor = '#1e293b'}
           >
             <div className="flex-shrink-0 w-10 h-10 rounded flex items-center justify-center" style={{ background: '#0f1820' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0ec452" strokeWidth="1.8">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--rx-green)" strokeWidth="1.8">
                 <path d="M21 15.9A9 9 0 1 1 8.1 3a7 7 0 0 0 12.9 12.9z"/>
               </svg>
             </div>

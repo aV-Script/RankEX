@@ -24,7 +24,7 @@ const WEEK_DAYS = [
 ]
 
 const STATUS_INFO = {
-  active:    { label: 'ATTIVA',     color: '#0fd65a' },
+  active:    { label: 'ATTIVA',     color: 'var(--rx-green)' },
   cancelled: { label: 'CANCELLATA', color: '#f87171' },
   ended:     { label: 'TERMINATA',  color: '#6b7280' },
 }
@@ -119,9 +119,9 @@ export function RecurrenceDetailView({
   }
 
   const saveBtnStyle = {
-    background: 'rgba(15,214,90,0.07)',
-    border: '1px solid rgba(15,214,90,0.35)',
-    borderRadius: '3px', color: '#0fd65a', fontWeight: 700,
+    background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)',
+    border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)',
+    borderRadius: '3px', color: 'var(--rx-green)', fontWeight: 700,
   }
 
   return (
@@ -136,7 +136,7 @@ export function RecurrenceDetailView({
           <div className="font-display font-black text-[16px] text-white leading-tight">
             {dayLabels(recurrence.days)}
           </div>
-          <div className="font-display text-[11px] mt-0.5" style={{ color: '#0fd65a' }}>
+          <div className="font-display text-[11px] mt-0.5" style={{ color: 'var(--rx-green)' }}>
             {recurrence.startTime} — {recurrence.endTime}
           </div>
         </div>
@@ -159,7 +159,7 @@ export function RecurrenceDetailView({
             )}
           </InfoChip>
           <InfoChip label="CLIENTI">
-            <span style={{ color: '#0fd65a' }}>{recurrenceClients.length}</span>
+            <span style={{ color: 'var(--rx-green)' }}>{recurrenceClients.length}</span>
           </InfoChip>
         </div>
 
@@ -197,7 +197,7 @@ export function RecurrenceDetailView({
                 />
               </div>
             ) : (
-              <div className="font-display font-black text-[24px]" style={{ color: '#0fd65a' }}>
+              <div className="font-display font-black text-[24px]" style={{ color: 'var(--rx-green)' }}>
                 {recurrence.startTime} → {recurrence.endTime}
               </div>
             )}
@@ -223,7 +223,7 @@ export function RecurrenceDetailView({
                       )}
                       className="w-10 h-10 font-display text-[11px] cursor-pointer border transition-all"
                       style={days.includes(value)
-                        ? { background: 'rgba(15,214,90,0.15)', borderColor: '#0fd65a', color: '#fff', borderRadius: '4px' }
+                        ? { background: 'color-mix(in srgb, var(--rx-green) 15%, transparent)', borderColor: 'var(--rx-green)', color: '#fff', borderRadius: '4px' }
                         : { background: 'transparent', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.35)', borderRadius: '4px' }
                       }
                     >
@@ -245,7 +245,7 @@ export function RecurrenceDetailView({
                   <span
                     key={label}
                     className="font-display text-[11px] px-3 py-1.5 rounded-[3px]"
-                    style={{ background: 'rgba(15,214,90,0.12)', color: '#0fd65a' }}
+                    style={{ background: 'color-mix(in srgb, var(--rx-green) 12%, transparent)', color: 'var(--rx-green)' }}
                   >
                     {label}
                   </span>
@@ -315,14 +315,14 @@ export function RecurrenceDetailView({
               <div
                 key={c.id}
                 className="flex items-center justify-between px-3 py-2.5 rounded-[3px]"
-                style={{ background: 'rgba(15,214,90,0.06)', border: '1px solid rgba(15,214,90,0.15)' }}
+                style={{ background: 'color-mix(in srgb, var(--rx-green) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 15%, transparent)' }}
               >
                 <div className="flex items-center gap-2.5">
                   <div
                     className="w-7 h-7 flex items-center justify-center rounded-[3px] shrink-0"
-                    style={{ background: 'rgba(15,214,90,0.15)' }}
+                    style={{ background: 'color-mix(in srgb, var(--rx-green) 15%, transparent)' }}
                   >
-                    <span className="font-display text-[10px]" style={{ color: '#0fd65a' }}>
+                    <span className="font-display text-[10px]" style={{ color: 'var(--rx-green)' }}>
                       {c.name[0].toUpperCase()}
                     </span>
                   </div>
@@ -363,11 +363,11 @@ export function RecurrenceDetailView({
                       onClick={() => onAddClient(recurrence.id, c.id)}
                       className="flex items-center justify-between px-3 py-2 cursor-pointer border text-left transition-all rounded-[3px]"
                       style={{ background: 'transparent', borderColor: 'rgba(255,255,255,0.06)' }}
-                      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(15,214,90,0.25)' }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--rx-green) 25%, transparent)' }}
                       onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)' }}
                     >
                       <span className="font-display font-bold text-[12px] text-white/60">{c.name}</span>
-                      <span className="font-display text-[10px]" style={{ color: '#0fd65a' }}>+ AGGIUNGI</span>
+                      <span className="font-display text-[10px]" style={{ color: 'var(--rx-green)' }}>+ AGGIUNGI</span>
                     </button>
                   ))}
                 </div>
@@ -433,7 +433,7 @@ function ActionRow({ onCancel, onSave, saving, saveLabel = 'SALVA', saveDisabled
         onClick={onSave}
         disabled={saving || saveDisabled}
         className="flex-1 py-2 font-display text-[11px] cursor-pointer border-0 disabled:opacity-40 transition-opacity hover:opacity-85"
-        style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', borderRadius: '3px', color: '#0fd65a', fontWeight: 700 }}
+        style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', borderRadius: '3px', color: 'var(--rx-green)', fontWeight: 700 }}
       >
         {saving ? 'ATTENDERE...' : saveLabel}
       </button>

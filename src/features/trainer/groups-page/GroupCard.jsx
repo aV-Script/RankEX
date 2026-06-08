@@ -6,14 +6,14 @@ export function GroupCard({ group, clients, onClick }) {
     <button
       onClick={onClick}
       className="text-left w-full rounded-[4px] p-4 cursor-pointer transition-all duration-200 group border"
-      style={{ background: 'rgba(13,21,32,0.9)', borderColor: 'rgba(15,214,90,0.12)' }}
+      style={{ background: 'var(--rx-card-bg)', borderColor: 'color-mix(in srgb, var(--rx-green) 12%, transparent)' }}
       onMouseEnter={e => {
-        e.currentTarget.style.background  = 'rgba(15,214,90,0.05)'
-        e.currentTarget.style.borderColor = 'rgba(15,214,90,0.25)'
+        e.currentTarget.style.background  = 'color-mix(in srgb, var(--rx-green) 5%, transparent)'
+        e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--rx-green) 25%, transparent)'
       }}
       onMouseLeave={e => {
-        e.currentTarget.style.background  = 'rgba(13,21,32,0.9)'
-        e.currentTarget.style.borderColor = 'rgba(15,214,90,0.12)'
+        e.currentTarget.style.background  = 'var(--rx-card-bg)'
+        e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--rx-green) 12%, transparent)'
       }}
     >
       <div className="flex items-center justify-between gap-3">
@@ -32,7 +32,7 @@ export function GroupCard({ group, clients, onClick }) {
                 <div
                   key={c.id}
                   className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-display font-black"
-                  style={{ background: 'rgba(15,214,90,0.12)', border: '1px solid rgba(15,214,90,0.2)', color: '#0fd65a' }}
+                  style={{ background: 'color-mix(in srgb, var(--rx-green) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 20%, transparent)', color: 'var(--rx-green)' }}
                   title={c.name}
                 >
                   {c.name?.charAt(0).toUpperCase()}

@@ -15,15 +15,15 @@ const MonthCell = memo(function MonthCell({ cell, clients, today, onSlotClick, o
     <div
       className="rounded-[4px] min-h-[90px] flex flex-col cursor-pointer border transition-all"
       style={{
-        background:  isToday ? 'rgba(0,200,255,0.05)' : 'rgba(13,21,32,0.7)',
-        borderColor: isToday ? 'rgba(0,200,255,0.3)'  : 'rgba(15,214,90,0.06)',
+        background:  isToday ? 'color-mix(in srgb, var(--rx-cyan) 5%, transparent)' : 'var(--rx-card-bg)',
+        borderColor: isToday ? 'color-mix(in srgb, var(--rx-cyan) 30%, transparent)'  : 'color-mix(in srgb, var(--rx-green) 6%, transparent)',
       }}
       onClick={() => onEmptyClick(cell.dateStr, '09:00')}
     >
       <div className="px-2 pt-2 pb-1">
         <span
           className={`font-display text-[13px] w-7 h-7 flex items-center justify-center rounded-full ${isToday ? 'text-white' : 'text-white/60'}`}
-          style={isToday ? { background: '#00c8ff' } : {}}
+          style={isToday ? { background: 'var(--rx-cyan)' } : {}}
         >
           {cell.day}
         </span>

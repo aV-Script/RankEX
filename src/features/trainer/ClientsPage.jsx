@@ -41,7 +41,7 @@ const ICON_NEW_CLIENT = (
 
 const CLIENTS_CTX = [{ id: '__new__', label: 'Nuovo', icon: ICON_NEW_CLIENT }]
 
-export function ClientsPage({ orgId, clients = [], clientsLoading: loading = false, clientsError: error = null, onAddClient }) {
+export function ClientsPage({ orgId, clients = [], clientsLoading: loading = false, clientsError: error = null, onAddClient, onNavigate }) {
   const { moduleType } = useTrainerState()
   const isSoccer       = getModule(moduleType).isSoccer
   const { groups }     = useGroups(orgId)
@@ -68,6 +68,8 @@ export function ClientsPage({ orgId, clients = [], clientsLoading: loading = fal
         orgId={orgId}
         onAdd={handleAdd}
         onBack={() => setView('list')}
+        clients={clients}
+        onNavigate={onNavigate}
       />
     )
   }
@@ -155,6 +157,7 @@ export function ClientsPage({ orgId, clients = [], clientsLoading: loading = fal
               ? 'Aggiungi il primo cliente per iniziare.'
               : 'Prova a cambiare i filtri di ricerca.'
             }
+            action={clients.length === 0 ? { label: 'Aggiungi cliente', onClick: onAddClient } : undefined}
           />
         ) : (
           <div className="rx-animate-in">
@@ -175,7 +178,7 @@ export function ClientsPage({ orgId, clients = [], clientsLoading: loading = fal
 function FilterRow({ label, children }) {
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <span className="font-display text-[9px] tracking-[2px] uppercase shrink-0 w-[52px] text-right" style={{ color: 'rgba(200,212,224,0.22)' }}>
+      <span className="font-display text-[9px] tracking-[2px] uppercase shrink-0 whitespace-nowrap" style={{ color: 'rgba(200,212,224,0.22)' }}>
         {label}
       </span>
       <div className="flex flex-wrap gap-1.5">{children}</div>
@@ -189,7 +192,7 @@ function FilterChip({ active, onClick, children }) {
       onClick={onClick}
       className="rounded-[3px] px-2.5 py-1 font-display text-[10px] tracking-wide cursor-pointer border transition-all whitespace-nowrap"
       style={active
-        ? { background: 'rgba(15,214,90,0.12)', borderColor: 'rgba(15,214,90,0.35)', color: '#0fd65a' }
+        ? { background: 'color-mix(in srgb, var(--rx-green) 12%, transparent)', borderColor: 'color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)' }
         : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)' }
       }
     >

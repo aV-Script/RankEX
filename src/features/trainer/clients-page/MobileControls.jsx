@@ -57,7 +57,7 @@ function GradientBtn({ onClick, children }) {
     <button
       onClick={onClick}
       className="px-3 py-2 text-[10px] rounded-[3px] font-display tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85 shrink-0"
-      style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', color: '#0fd65a' }}
+      style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)' }}
     >
       {children}
     </button>

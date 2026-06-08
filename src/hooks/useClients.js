@@ -5,6 +5,7 @@ import { buildCampionamentoUpdate, buildXPUpdate } from '../utils/gamification'
 import { createClientUseCase }      from '../usecases/createClientUseCase'
 import { saveCampionamentoUseCase } from '../usecases/saveCampionamentoUseCase'
 import { saveXPUseCase }            from '../usecases/saveXPUseCase'
+import { addNotification }          from '../firebase/services/notifications'
 import { useToast }                 from './useToast'
 import { getFirebaseErrorMessage }  from '../utils/firebaseErrors'
 import { auditLog, AUDIT_ACTIONS }  from '../utils/auditLog'
@@ -66,6 +67,22 @@ export function useClients(orgId, userId) {
     try {
       await saveCampionamentoUseCase(orgId, client, update)
       toast.success('Campionamento salvato')
+
+      const isFirst      = !client.campionamenti?.length
+      const rankChanged  = !isFirst && update.rank !== client.rank
+      const today        = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })
+      const xpGain       = update.log?.[0]?.xp ?? 0
+      const message      = isFirst
+        ? 'Primo campionamento registrato!'
+        : rankChanged
+          ? `Campionamento registrato — rank aggiornato: ${client.rank} → ${update.rank}`
+          : `Campionamento registrato (+${xpGain} XP)`
+      addNotification(orgId, {
+        clientId: client.id,
+        message,
+        date:     today,
+        type:     rankChanged ? 'rank' : 'xp',
+      }).catch(() => {})
     } catch {
       updateLocal(client.id, snapshot)
       dispatch({ type: ACTIONS.SELECT_CLIENT, payload: snapshot })

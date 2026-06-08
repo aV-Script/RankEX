@@ -73,8 +73,8 @@ export function BiaHistoryChart({ biaHistory, color }) {
             <Tooltip
               formatter={(v) => [`${v} ${param?.unit ?? ''}`, param?.label]}
               contentStyle={{
-                background:   '#0d1520',
-                border:       '1px solid rgba(15,214,90,0.15)',
+                background:   'var(--rx-surface)',
+                border:       '1px solid var(--rx-border)',
                 borderRadius: 4,
                 fontFamily:   'Inter',
                 fontSize:     12,

@@ -18,7 +18,7 @@ const ICON_ARCHIVE = (
 const ARCHIVE_CTX  = [{ id: '__archive__', label: 'Archivio', icon: ICON_ARCHIVE }]
 const EMPTY_ITEMS  = []
 
-export function RecurrencesPage({ orgId, initialRecurrenceId }) {
+export function RecurrencesPage({ orgId, initialRecurrenceId, onNavigate }) {
   const {
     recurrences, loading, error,
     handleUpdateTime, handleUpdateDays, handleExtendPeriod,
@@ -69,9 +69,9 @@ export function RecurrencesPage({ orgId, initialRecurrenceId }) {
               onClick={() => setShowArchive(v => !v)}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[3px] font-display text-[10px] tracking-[1.5px] uppercase cursor-pointer border transition-all"
               style={showArchive ? {
-                background:  'rgba(15,214,90,0.1)',
-                borderColor: 'rgba(15,214,90,0.28)',
-                color:       '#0fd65a',
+                background:  'color-mix(in srgb, var(--rx-green) 10%, transparent)',
+                borderColor: 'color-mix(in srgb, var(--rx-green) 28%, transparent)',
+                color:       'var(--rx-green)',
               } : {
                 background:  'transparent',
                 borderColor: 'rgba(255,255,255,0.08)',
@@ -103,6 +103,7 @@ export function RecurrencesPage({ orgId, initialRecurrenceId }) {
             icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/><line x1="16" y1="1" x2="16" y2="5"/><line x1="8" y1="1" x2="8" y2="5"/><line x1="3" y1="10" x2="21" y2="10"/></svg>}
             title="Nessuna ricorrenza attiva"
             description='Creane una dal Calendario con il pulsante "NUOVA RICORRENZA".'
+            action={onNavigate ? { label: 'Vai al Calendario', onClick: () => onNavigate('calendar') } : undefined}
           />
         ) : (
           <div className="rx-animate-in">

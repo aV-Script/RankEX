@@ -57,9 +57,9 @@ export function buildSessionUpdate(client, baseXP, label = 'Sessione') {
   const log = [logEntry, ...(client.log ?? [])].slice(0, LOG_MAX_ENTRIES)
 
   const { xp, xpNext, level } = calcLevelProgression(
-    (client.xp ?? 0) + xpGain,
-    client.xpNext,
-    client.level
+    (client.xp    ?? 0)   + xpGain,
+    client.xpNext ?? 500,
+    client.level  ?? 1
   )
 
   return {
@@ -103,7 +103,7 @@ function calcLevelProgression(xp, xpNext, level) {
  * @returns {{ update: object }} — campi da persistere su Firestore
  */
 export function buildXPUpdate(client, xpToAdd, note) {
-  const { xp, xpNext, level } = calcLevelProgression(client.xp + xpToAdd, client.xpNext, client.level)
+  const { xp, xpNext, level } = calcLevelProgression((client.xp ?? 0) + xpToAdd, client.xpNext ?? 500, client.level ?? 1)
   const today = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
   const entry = { date: today, action: note || `+${xpToAdd} XP aggiunto dal trainer`, xp: xpToAdd, ts: Date.now() }
   const log   = [entry, ...(client.log ?? [])].slice(0, LOG_MAX_ENTRIES)
@@ -162,9 +162,9 @@ export function buildCampionamentoUpdate(client, newStats, testValues) {
   const log = [logEntry, ...(client.log ?? [])].slice(0, LOG_MAX_ENTRIES)
 
   const { xp, xpNext, level } = calcLevelProgression(
-    (client.xp ?? 0) + xpGain,
-    client.xpNext,
-    client.level
+    (client.xp    ?? 0)   + xpGain,
+    client.xpNext ?? 500,
+    client.level  ?? 1
   )
 
   return {
@@ -203,9 +203,9 @@ export function buildBiaUpdate(client, newBia) {
   const log = [logEntry, ...(client.log ?? [])].slice(0, LOG_MAX_ENTRIES)
 
   const { xp, xpNext, level } = calcLevelProgression(
-    (client.xp ?? 0) + xpToAdd,
-    client.xpNext,
-    client.level,
+    (client.xp    ?? 0)   + xpToAdd,
+    client.xpNext ?? 500,
+    client.level  ?? 1,
   )
 
   return {

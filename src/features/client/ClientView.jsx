@@ -3,6 +3,7 @@ import { useClient }                      from './useClient'
 import { Skeleton }                       from '../../components/common/Skeleton'
 import { useClientRank }                  from '../../hooks/useClientRank'
 import { useNotifications }               from '../../hooks/useNotifications'
+import { useColorSource }                 from '../../hooks/useColorSource'
 import { ClientShell }                    from './client-view/ClientShell'
 import { ClientDashboardPage }            from './client-view/ClientDashboardPage'
 import { NotificationsPanel }             from '../notification/NotificationsPanel'
@@ -23,6 +24,11 @@ export default function ClientView({ clientId, orgId }) {
 
   const rankObj = profileType === 'bia_only' ? biaRankObj : testRankObj
   const color   = profileType === 'bia_only' ? biaRankObj.color : testColor
+
+  const [colorSource] = useColorSource()
+  const displayColor  = colorSource === 'rank'
+    ? color
+    : getComputedStyle(document.documentElement).getPropertyValue('--rx-green').trim() || color
 
   const { notifications, unreadCount, markAllRead, remove } = useNotifications(orgId, clientId)
 
@@ -58,7 +64,7 @@ export default function ClientView({ clientId, orgId }) {
       {showNotifs && (
         <NotificationsPanel
           notifications={notifications}
-          color={color}
+          color={displayColor}
           onClose={() => setShowNotifs(false)}
           onDelete={remove}
         />

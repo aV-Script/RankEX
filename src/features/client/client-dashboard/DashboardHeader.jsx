@@ -58,7 +58,7 @@ export function DashboardHeader({ client, rankObj, _color, biaRankObj, _onBack, 
             title={`Invia reset password a ${client.email}`}
             className="bg-transparent border rounded-[3px] px-3 py-1.5 font-display text-[11px] cursor-pointer transition-all disabled:opacity-50 disabled:cursor-default"
             style={resetState === 'sent'
-              ? { borderColor: 'rgba(15,214,90,0.4)', color: '#0fd65a' }
+              ? { borderColor: 'color-mix(in srgb, var(--rx-green) 40%, transparent)', color: 'var(--rx-green)' }
               : resetState === 'error'
               ? { borderColor: 'rgba(248,113,113,0.4)', color: '#f87171' }
               : { borderColor: 'rgba(255,255,255,0.12)', color: 'rgba(200,212,224,0.4)' }

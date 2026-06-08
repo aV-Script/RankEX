@@ -4,7 +4,6 @@ import { useReadonly }                       from '../../context/ReadonlyContext
 import { useTrainerState }                   from '../../context/TrainerContext'
 import { StatsSection }                      from '../../components/ui'
 import { XPBar }                             from '../../components/ui/XPBar'
-import { RankRing }                          from '../../components/ui/RankRing'
 import { ActivityLog }                       from '../../components/ui'
 import { StatsChart }                        from './StatsChart'
 import { DeleteDialog }                      from './client-dashboard/DeleteDialog'
@@ -28,7 +27,7 @@ import { calcBiaScore, getBiaRankFromScore } from '../../utils/bia'
 import { calcAge }                           from '../../utils/validation'
 import { resetPassword }                     from '../../firebase/services/auth'
 import { PLAYER_ROLES }                      from '../../config/modules.config'
-import { ClientBadges }                      from './ClientBadges'
+import { SoccerAvatar }                       from './client-view/avatar/SoccerAvatar'
 import { TrophiesSection }                   from './client-dashboard/TrophiesSection'
 import { useBadges }                         from '../../hooks/useBadges'
 import { useRegisterContextMenu }            from '../../context/NavMenuContext'
@@ -167,7 +166,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
   const { handleUpdateMisure }                  = useMisure()
 
   const trainerUid = getAuth(app).currentUser?.uid ?? 'trainer'
-  const { earnedBadges, allBadges, rawBadges, handleAwardManual, handleRevoke } =
+  const { earnedBadges, allBadges, rawBadges, badgeProgress, handleAwardManual, handleRevoke, handleUpdateShowcase } =
     useBadges(orgId, client.id, client, { readonly })
 
   const profileType = client.profileType ?? 'tests_only'
@@ -176,9 +175,6 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
   const biaScore   = calcBiaScore(client.lastBia, client.sesso, calcAge(client.dataNascita))
   const biaRank    = getBiaRankFromScore(biaScore)
   const biaRankObj = biaScore > 0 ? biaRank : { label: 'F', color: '#4a5568' }
-  const biaColor   = biaRankObj.color
-
-  const color   = profileType === 'bia_only' ? biaColor : testColor
   const rankObj = profileType === 'bia_only' ? biaRankObj : testRankObj
 
   const isSoccer    = ['soccer', 'soccer_youth', 'soccer_junior'].includes(client.categoria)
@@ -257,7 +253,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
       {/* ── Header + tab bar — riga unica ─────────────────────────────────────── */}
       <header
         className="border-b border-white/[.05] sticky top-0 z-30 backdrop-blur-md shrink-0 flex items-stretch"
-        style={{ background: 'rgba(7,9,14,0.92)', height: 44 }}
+        style={{ background: 'var(--rx-nav-bg)', height: 44 }}
       >
         {/* ← Back */}
         <button
@@ -269,7 +265,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
         </button>
 
         {/* Tab bar */}
-        <div className="flex-1 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+        <div className="flex-1 relative overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           <div className="flex items-center justify-center h-full min-w-full w-fit">
             {[
               { id: 'atleta',      label: 'Atleta',      icon: ICON_AVATAR },
@@ -288,21 +284,30 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
                 onClick={() => { setView('dashboard'); setActiveTab(t.id) }}
                 aria-current={tab === t.id ? 'page' : undefined}
                 className="flex items-center gap-1.5 px-3 h-full shrink-0 cursor-pointer border-none bg-transparent relative transition-colors"
-                style={{ color: tab === t.id ? '#0fd65a' : 'rgba(200,212,224,0.35)' }}
+                style={{ color: tab === t.id ? 'var(--rx-green)' : 'rgba(200,212,224,0.35)' }}
               >
                 {tab === t.id && (
                   <div
                     className="absolute bottom-0 left-2 right-2 h-[2px] rounded-t-sm"
-                    style={{ background: 'linear-gradient(90deg,#0fd65a,#00c8ff)', boxShadow: '0 0 6px rgba(15,214,90,0.45)' }}
+                    style={{ background: 'var(--rx-gradient)', boxShadow: '0 0 6px var(--rx-green-glow)' }}
                   />
                 )}
-                <span style={{ display: 'flex', filter: tab === t.id ? 'drop-shadow(0 0 4px rgba(15,214,90,0.5))' : 'none' }}>
+                <span style={{ display: 'flex', filter: tab === t.id ? 'drop-shadow(0 0 4px var(--rx-green-glow))' : 'none' }}>
                   {t.icon}
                 </span>
                 <span className="font-display text-[9px] tracking-[1px] uppercase whitespace-nowrap">{t.label}</span>
               </button>
             ))}
           </div>
+          {/* Fade destra — affordance scroll su mobile */}
+          <div
+            className="lg:hidden"
+            style={{
+              position: 'absolute', top: 0, right: 0, bottom: 0, width: 40,
+              background: 'linear-gradient(to right, transparent, var(--rx-nav-bg))',
+              pointerEvents: 'none',
+            }}
+          />
         </div>
 
         {/* Divisore */}
@@ -324,7 +329,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
               <div className="fixed inset-0 z-40" onClick={() => setShowActions(false)} />
               <div
                 className="absolute right-0 top-full mt-1 z-50 min-w-[168px] py-1 rounded-[4px]"
-                style={{ background: 'rgba(13,20,30,0.98)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}
+                style={{ background: 'var(--rx-surface)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}
               >
                 <button onClick={() => { setShowActions(false); setShowPrintPicker(true) }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-white/60 hover:text-white hover:bg-white/[.04] transition-colors cursor-pointer bg-transparent border-none text-left font-display text-[10px] tracking-[1.5px] uppercase">
@@ -352,7 +357,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
       {view === 'campionamento' && (
         <CampionamentoView
           client={client}
-          color={color}
+          color="var(--rx-green)"
           onSave={handleSaveCampionamento}
           onBack={() => setView('dashboard')}
         />
@@ -360,7 +365,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
       {view === 'bia' && (
         <BiaView
           client={client}
-          color={color}
+          color="var(--rx-green)"
           onSave={(biaData) => handleSaveBia(client, biaData)}
           onBack={() => setView('dashboard')}
         />
@@ -370,7 +375,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
         {/* Banner upgrade — solo per bia_only (manca i test); il caso tests_only è gestito nel tab BIA */}
         {profileType === 'bia_only' && (
           <div className="px-4 pt-3">
-            <UpgradeCategoryBanner client={client} color={color} onUpgrade={handleUpgradeProfile} />
+            <UpgradeCategoryBanner client={client} color="var(--rx-green)" onUpgrade={handleUpgradeProfile} />
           </div>
         )}
 
@@ -378,9 +383,9 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
         {campCount === 0 && !readonly && profile.hasTests && (
           <div
             className="mx-4 mt-3 px-4 py-3 rounded-[4px] font-body text-[12px] text-white/50 leading-relaxed"
-            style={{ background: 'rgba(14,196,82,0.04)', border: '1px solid rgba(14,196,82,0.14)' }}
+            style={{ background: 'color-mix(in srgb, var(--rx-green) 4%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 14%, transparent)' }}
           >
-            <span className="font-display text-[9px] tracking-[2px] uppercase mr-2 align-middle" style={{ color: '#0ec452' }}>
+            <span className="font-display text-[9px] tracking-[2px] uppercase mr-2 align-middle" style={{ color: 'var(--rx-green)' }}>
               Inizia
             </span>
             Esegui il primo campionamento per calcolare il rank dell'atleta. Le sessioni chiuse aggiungono XP e fanno salire di livello.
@@ -391,51 +396,117 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
         <div className="flex-1 pb-24">
         <div key={tab} className="rx-animate-in">
 
-          {tab === 'atleta' && (
-            <section className="px-4 pt-4 max-w-lg mx-auto flex flex-col gap-3">
-              <div className="rounded-[4px] p-6 rx-card flex flex-col items-center text-center gap-4">
-                <div className="w-full flex items-center justify-between">
-                  <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase" style={{ color: '#0fd65a' }}>◈ Atleta</div>
+          {tab === 'atleta' && (() => {
+            const av        = client.avatar ?? {}
+            const mediaVal  = client.media != null ? Math.round(client.media) : null
+            const roleLabel = ruoloObj?.label ?? categoriaObj?.label ?? null
+
+            return (
+              <section className="p-4">
+
+                {/* Card atleta — tutto dentro */}
+                <div className="rx-card rounded-[4px] overflow-hidden">
+                  <div className="h-[2px]" style={{ background: 'var(--rx-gradient)' }} />
+
+                  {/* Avatar + Info */}
+                  <div className="flex items-center gap-4 px-4 pt-4 pb-3">
+
+                    {/* Avatar — quadrato, DiceBear gestisce il cerchio internamente */}
+                    <div className="relative flex-shrink-0" style={{ width: 80, height: 80 }}>
+                      <SoccerAvatar
+                        color="var(--rx-green)" width={80} height={80}
+                        skinTone={av.skinTone} hairColor={av.hairColor} hairStyle={av.hairStyle}
+                        expression={av.expression} accessory={av.accessory} clothing={av.clothing}
+                        jerseyColor={av.jerseyColor} facialHair={av.facialHair}
+                        facialHairColor={av.facialHairColor} clothingGraphic={av.clothingGraphic}
+                        hatColor={av.hatColor} accessoriesColor={av.accessoriesColor}
+                      />
+                      {/* Ring colorato sopra */}
+                      <div className="absolute inset-0 rounded-full pointer-events-none"
+                        style={{ border: '2px solid color-mix(in srgb, var(--rx-green) 33%, transparent)', boxSizing: 'border-box' }} />
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0 flex flex-col gap-1">
+                      {roleLabel && (
+                        <span className="font-display text-[9px] font-bold tracking-[2px] uppercase"
+                          style={{ color: 'var(--rx-green)' }}>{roleLabel}</span>
+                      )}
+                      <div className="font-display font-black text-white text-[17px] uppercase truncate leading-tight">
+                        {client.name}
+                      </div>
+                      <div className="flex items-end gap-4 mt-1">
+                        <div>
+                          <div className="font-display font-black leading-none"
+                            style={{ fontSize: 38, color: campCount > 0 ? 'var(--rx-green)' : 'rgba(255,255,255,0.15)' }}>
+                            {campCount > 0 ? (rankObj?.label ?? 'F') : '—'}
+                          </div>
+                          <div className="font-display text-[8px] font-bold tracking-[2px] uppercase"
+                            style={{ color: 'rgba(255,255,255,0.25)' }}>RANK</div>
+                        </div>
+                        <div>
+                          <div className="font-display font-black text-[22px] text-white leading-none">{client.level ?? 1}</div>
+                          <div className="font-display text-[8px] font-bold tracking-[2px] uppercase"
+                            style={{ color: 'rgba(255,255,255,0.25)' }}>LV.</div>
+                        </div>
+                        {campCount > 0 && mediaVal != null && (
+                          <div className="ml-auto">
+                            <div className="font-display font-black text-[22px] leading-none" style={{ color: 'var(--rx-green)' }}>{mediaVal}°</div>
+                            <div className="font-display text-[8px] font-bold tracking-[2px] uppercase"
+                              style={{ color: 'rgba(255,255,255,0.25)' }}>MEDIA</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* XP bar */}
+                  <div className="px-4 pb-4">
+                    <XPBar xp={client.xp} xpNext={client.xpNext} color="var(--rx-green)" size="sm" fullWidth />
+                  </div>
+
+                  {/* Stats strip — dentro la stessa card */}
+                  <div className="flex" style={{ borderTop: '1px solid var(--border-default)' }}>
+                    {[
+                      { label: 'Campionamenti', value: campCount },
+                      { label: 'Sessioni / sett.', value: client.sessionsPerWeek ?? '—' },
+                      profileType !== 'tests_only' && { label: 'BIA', value: biaRankObj?.label ?? '—' },
+                    ].filter(Boolean).map((s, i) => (
+                      <div key={i} className="flex-1 flex flex-col items-center py-4"
+                        style={{ borderLeft: i > 0 ? '1px solid var(--border-default)' : 'none' }}>
+                        <span className="font-display font-black text-[18px] text-white leading-none">{s.value}</span>
+                        <span className="font-display text-[8px] font-semibold tracking-[1.5px] uppercase mt-1.5"
+                          style={{ color: 'rgba(255,255,255,0.25)' }}>{s.label}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <AvatarPlaceholder
-                  color={color} rankObj={rankObj}
-                  xp={client.xp} xpNext={client.xpNext} level={client.level}
-                  biaRankObj={profileType === 'complete' ? biaRankObj : null}
-                />
-                <div className="font-display font-black text-[26px] text-white leading-tight tracking-wide uppercase">
-                  {client.name}
-                </div>
-                <ClientBadges
-                  categoriaObj={categoriaObj} ruoloObj={ruoloObj} color={color}
-                  categoria={client.categoria} hasTests={profile.hasTests} hasBia={profile.hasBia}
-                  rankObj={testRankObj} biaRankObj={biaRankObj}
-                />
-                <div className="self-stretch">
-                  <XPBar xp={client.xp} xpNext={client.xpNext} color={color} fullWidth />
-                </div>
-              </div>
-            </section>
-          )}
+
+              </section>
+            )
+          })()}
 
           {tab === 'test' && profile.hasTests && (
             <section className="px-4 pt-6">
               <div className="rounded-[4px] p-5 rx-card">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase" style={{ color: '#0fd65a' }}>◈ Status</div>
+                  <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase" style={{ color: 'var(--rx-green)' }}>◈ Status</div>
                   {!readonly && (
                     <button
                       onClick={() => setView('campionamento')}
                       className="font-display text-[10px] tracking-[1px] px-3 py-1.5 rounded-[3px] border cursor-pointer transition-all"
-                      style={{ color, borderColor: color + '55', background: color + '11' }}
+                      style={{ color: 'var(--rx-green)', borderColor: 'color-mix(in srgb, var(--rx-green) 33%, transparent)', background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)' }}
                     >
                       + CAMPIONAMENTO
                     </button>
                   )}
                 </div>
-                <StatsSection stats={client.stats} prevStats={prevStats} color={color} categoria={client.categoria} />
-                <div className="mt-6">
-                  <StatsChart campionamenti={client.campionamenti} color={color} categoria={client.categoria} />
-                </div>
+                <StatsSection stats={client.stats} prevStats={prevStats} color="var(--rx-green)" categoria={client.categoria} pentagonSize={160} rankObj={rankObj} />
+                {(client.campionamenti?.length ?? 0) > 0 && (
+                  <div className="mt-6">
+                    <StatsChart campionamenti={client.campionamenti} color="var(--rx-green)" categoria={client.categoria} />
+                  </div>
+                )}
               </div>
             </section>
           )}
@@ -445,58 +516,58 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
               <section className="px-4 pt-6">
                 <div className="rounded-[4px] p-5 rx-card flex flex-col gap-4">
                   <div className="flex items-center justify-between">
-                    <div className="font-display text-[10px] tracking-[3px] uppercase" style={{ color: '#0fd65a' }}>◈ BIA</div>
+                    <div className="font-display text-[10px] tracking-[3px] uppercase" style={{ color: 'var(--rx-green)' }}>◈ BIA</div>
                     {!readonly && (
                       <button
                         onClick={() => setView('bia')}
                         className="font-display text-[10px] tracking-[1px] px-3 py-1.5 rounded-[3px] border cursor-pointer transition-all"
-                        style={{ color: biaColor, borderColor: biaColor + '55', background: biaColor + '11' }}
+                        style={{ color: 'var(--rx-green)', borderColor: 'color-mix(in srgb, var(--rx-green) 33%, transparent)', background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)' }}
                       >
                         + RILEVAMENTO
                       </button>
                     )}
                   </div>
-                  <BiaSummary bia={client.lastBia} prevBia={client.biaHistory?.[1] ?? null} sex={client.sesso} age={calcAge(client.dataNascita)} color={biaColor} rank={biaRank.label} />
-                  <BiaHistoryChart biaHistory={client.biaHistory} color={biaColor} />
+                  <BiaSummary bia={client.lastBia} prevBia={client.biaHistory?.[1] ?? null} sex={client.sesso} age={calcAge(client.dataNascita)} color="var(--rx-green)" rank={biaRank.label} />
+                  <BiaHistoryChart biaHistory={client.biaHistory} color="var(--rx-green)" />
                 </div>
               </section>
             ) : (
               <div className="px-4 pt-6">
-                <UpgradeCategoryBanner client={client} color={color} onUpgrade={handleUpgradeProfile} />
+                <UpgradeCategoryBanner client={client} color="var(--rx-green)" onUpgrade={handleUpgradeProfile} />
               </div>
             )
           )}
 
           {tab === 'allenamento' && (
-            <WorkoutPlanSection orgId={orgId} clientId={client.id} color={color} readonly={readonly} />
+            <WorkoutPlanSection orgId={orgId} clientId={client.id} color="var(--rx-green)" readonly={readonly} />
           )}
 
           {tab === 'calendario' && (
             <section className="px-4 pt-6">
               <div className="rounded-[4px] p-5 rx-card">
-                <div className="font-display text-[10px] tracking-[3px] uppercase mb-4" style={{ color: '#0fd65a' }}>◈ Calendario allenamenti</div>
+                <div className="font-display text-[10px] tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-green)' }}>◈ Calendario allenamenti</div>
                 <ClientCalendar clientId={client.id} orgId={orgId} />
               </div>
             </section>
           )}
 
           {tab === 'note' && (
-            <NotesSection orgId={orgId} clientId={client.id} color={color} author={trainerAuthor} readonly={readonly} />
+            <NotesSection orgId={orgId} clientId={client.id} color="var(--rx-green)" author={trainerAuthor} readonly={readonly} />
           )}
 
           {tab === 'attivita' && (
             <section className="px-4 pt-6 flex flex-col gap-4">
-              <XPTrendChart log={client.log ?? []} color={color} />
-              <ActivityLog log={client.log} color={color} limit={10} />
+              <XPTrendChart log={client.log ?? []} color="var(--rx-green)" />
+              <ActivityLog log={client.log} color="var(--rx-green)" limit={10} />
             </section>
           )}
 
           {tab === 'misure' && (
-            <MisureSection client={client} color={color} isSoccer={isSoccer} readonly={readonly} onUpdate={handleUpdateMisure} />
+            <MisureSection client={client} color="var(--rx-green)" isSoccer={isSoccer} readonly={readonly} onUpdate={handleUpdateMisure} />
           )}
 
           {tab === 'wearable' && (
-            <WearableSection client={client} orgId={orgId} color={color} />
+            <WearableSection client={client} orgId={orgId} color="var(--rx-green)" />
           )}
 
           {tab === 'trofei' && (
@@ -504,10 +575,13 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
               rawBadges={rawBadges}
               earnedBadges={earnedBadges}
               allBadges={allBadges}
+              showcase={client.badgeShowcase ?? []}
               readonly={readonly}
-              color={color}
+              badgeProgress={badgeProgress}
+              color="var(--rx-green)"
               onAward={(badgeId, note) => handleAwardManual(badgeId, trainerUid, note)}
               onRevoke={handleRevoke}
+              onUpdateShowcase={handleUpdateShowcase}
             />
           )}
 
@@ -526,82 +600,8 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
         />
       )}
       {showReport && (
-        <ClientReportPrint client={client} color={color} rankObj={rankObj} mode={printMode} onClose={() => setShowReport(false)} />
+        <ClientReportPrint client={client} color="var(--rx-green)" rankObj={rankObj} mode={printMode} onClose={() => setShowReport(false)} />
       )}
-    </div>
-  )
-}
-
-// ── AvatarPlaceholder ─────────────────────────────────────────────────────────
-
-/**
- * Placeholder dell'avatar atleta — verrà sostituito dall'avatar reale.
- * Mostra una silhouette stilizzata con il RankRing come badge.
- *
- * Props:
- *   compact    — versione mini per mobile (solo ring senza card)
- *   biaRankObj — se presente, mostra un chip BIA rank
- */
-function AvatarPlaceholder({ color, rankObj, xp, xpNext, level, _biaRankObj, compact = false, small = false }) {
-  if (compact) {
-    return <RankRing rankObj={rankObj} xp={xp} xpNext={xpNext} size={72} animated={false} />
-  }
-
-  const W = small ? 110 : 174
-  const H = small ? 138 : 218
-
-  return (
-    <div style={{ width: W }}>
-      {/* Card portrait */}
-      <div
-        className="relative overflow-hidden rounded-[4px]"
-        style={{
-          height: H,
-          background: 'linear-gradient(170deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%)',
-          border: `1px solid ${color}28`,
-        }}
-      >
-        {/* Pattern esagonale */}
-        <div className="absolute inset-0 bg-hex" style={{ opacity: 0.14 }} />
-
-        {/* Alone colore in alto */}
-        <div className="absolute top-0 left-0 right-0 h-28"
-          style={{ background: `radial-gradient(ellipse at 50% -20%, ${color}22 0%, transparent 65%)` }} />
-
-        {/* Silhouette atleta */}
-        <div className="absolute inset-0 flex items-center justify-center" style={{ paddingBottom: 28 }}>
-          <svg viewBox="0 0 80 112" width={small ? 58 : 90} height={small ? 80 : 126}>
-            <circle cx="40" cy="26" r="19" fill={color} opacity="0.18" />
-            <circle cx="40" cy="26" r="19" fill="none" stroke={color} strokeWidth="1.4" opacity="0.45" />
-            <path d="M6,112 Q6,62 40,62 Q74,62 74,112Z" fill={color} opacity="0.14" />
-            <path d="M6,112 Q6,62 40,62 Q74,62 74,112Z" fill="none" stroke={color} strokeWidth="1.4" opacity="0.38" />
-            <path d="M24,62 Q28,76 40,78 Q52,76 56,62" fill="none" stroke={color} strokeWidth="1" opacity="0.2" />
-          </svg>
-        </div>
-
-        {/* Gradiente basso */}
-        <div className="absolute bottom-0 left-0 right-0 h-20"
-          style={{ background: `linear-gradient(to top, ${color}22, transparent)` }} />
-
-        {/* Badge livello — angolo top-left */}
-        <div
-          className="absolute top-2 left-2 font-display font-black text-[10px] px-1.5 py-0.5 rounded-[3px]"
-          style={{ background: 'rgba(0,0,0,0.65)', color, border: `1px solid ${color}50` }}
-        >
-          LV.{level}
-        </div>
-
-        {/* Watermark */}
-        {!small && (
-          <div
-            className="absolute bottom-2.5 right-2.5 font-display text-[7px] tracking-[3px] uppercase"
-            style={{ color: color + '45' }}
-          >
-            Avatar
-          </div>
-        )}
-      </div>
-
     </div>
   )
 }

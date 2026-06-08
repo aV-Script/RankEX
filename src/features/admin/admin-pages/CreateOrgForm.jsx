@@ -89,7 +89,7 @@ export function CreateOrgForm({ onClose, onCreated, ownerUid }) {
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-sm p-6"
-        style={{ background: '#0d1520', border: '1px solid rgba(248,113,113,0.2)', borderRadius: '4px' }}
+        style={{ background: 'var(--rx-surface)', border: '1px solid rgba(248,113,113,0.2)', borderRadius: '4px' }}
         onClick={e => e.stopPropagation()}
       >
         <h3 className="font-display font-black text-[16px] text-white mb-5">

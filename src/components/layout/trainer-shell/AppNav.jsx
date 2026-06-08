@@ -35,7 +35,7 @@ export function AppNav({ page, onNavigate, onLogout }) {
       {/* ── Desktop — top nav bar ─────────────────────────────────────────── */}
       <header
         className="hidden lg:flex items-center border-b border-white/[.05] sticky top-0 z-30 backdrop-blur-md shrink-0 relative"
-        style={{ background: 'rgba(7,9,14,0.92)', height: 48 }}
+        style={{ background: 'var(--rx-nav-bg)', height: 48 }}
         aria-label="Navigazione principale"
       >
         {/* Logo — absolute left */}
@@ -53,7 +53,7 @@ export function AppNav({ page, onNavigate, onLogout }) {
                 onClick={() => onNavigate(item.id)}
                 aria-current={active ? 'page' : undefined}
                 className="relative flex items-center gap-1.5 px-3 h-full cursor-pointer border-none bg-transparent font-display text-[11px] tracking-[1.5px] uppercase transition-colors"
-                style={{ color: active ? '#0fd65a' : 'rgba(200,212,224,0.38)' }}
+                style={{ color: active ? 'var(--rx-green)' : 'rgba(200,212,224,0.38)' }}
                 onMouseEnter={e => {
                   if (!active) e.currentTarget.style.color = 'rgba(200,212,224,0.75)'
                 }}
@@ -65,10 +65,10 @@ export function AppNav({ page, onNavigate, onLogout }) {
                   <div
                     aria-hidden="true"
                     className="absolute bottom-0 left-2 right-2 h-[2px] rounded-t-sm"
-                    style={{ background: 'linear-gradient(90deg,#0fd65a,#00c8ff)', boxShadow: '0 0 6px rgba(15,214,90,0.45)' }}
+                    style={{ background: 'var(--rx-gradient)', boxShadow: '0 0 6px color-mix(in srgb, var(--rx-green) 45%, transparent)' }}
                   />
                 )}
-                <span style={{ display: 'flex', filter: active ? 'drop-shadow(0 0 4px rgba(15,214,90,0.5))' : 'none' }}>
+                <span style={{ display: 'flex', filter: active ? 'drop-shadow(0 0 4px color-mix(in srgb, var(--rx-green) 50%, transparent))' : 'none' }}>
                   {item.icon}
                 </span>
                 {item.label}
@@ -96,7 +96,7 @@ export function AppNav({ page, onNavigate, onLogout }) {
         {/* Header top */}
         <header
           className="flex items-center justify-between px-4 py-3 border-b border-white/[.05] sticky top-0 z-30 backdrop-blur-md"
-          style={{ background: 'rgba(7,9,14,0.92)' }}
+          style={{ background: 'var(--rx-nav-bg)' }}
           aria-label="Header mobile"
         >
           <div className="w-8" />
@@ -116,7 +116,7 @@ export function AppNav({ page, onNavigate, onLogout }) {
         {/* Bottom tab bar */}
         <nav
           className="fixed bottom-0 left-0 right-0 z-30 flex border-t border-white/[.05] backdrop-blur-md"
-          style={{ background: 'rgba(7,9,14,0.92)' }}
+          style={{ background: 'var(--rx-nav-bg)' }}
           aria-label="Navigazione mobile"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
@@ -130,18 +130,18 @@ export function AppNav({ page, onNavigate, onLogout }) {
                 aria-label={item.label}
                 aria-current={active ? 'page' : undefined}
                 className="flex-1 flex flex-col items-center gap-1 py-2.5 cursor-pointer relative border-none bg-transparent"
-                style={{ color: active ? '#0fd65a' : 'rgba(200,212,224,0.3)', transition: 'color 150ms' }}
+                style={{ color: active ? 'var(--rx-green)' : 'rgba(200,212,224,0.3)', transition: 'color 150ms' }}
               >
                 {active && (
                   <div
                     aria-hidden="true"
                     className="absolute top-0 left-2 right-2 h-[2px] rounded-b-sm"
-                    style={{ background: 'linear-gradient(90deg,#0fd65a,#00c8ff)', boxShadow: '0 0 6px rgba(15,214,90,0.45)' }}
+                    style={{ background: 'var(--rx-gradient)', boxShadow: '0 0 6px color-mix(in srgb, var(--rx-green) 45%, transparent)' }}
                   />
                 )}
                 <span style={{
                   display: 'flex',
-                  filter:  active ? 'drop-shadow(0 0 6px rgba(15,214,90,0.5))' : 'none',
+                  filter:  active ? 'drop-shadow(0 0 6px color-mix(in srgb, var(--rx-green) 50%, transparent))' : 'none',
                 }}>
                   {item.icon}
                 </span>

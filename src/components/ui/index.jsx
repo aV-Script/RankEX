@@ -10,7 +10,7 @@ export function Card({ className = '', children, glow = 'green' }) {
     <div
       className={`p-5 rx-card ${className}`}
       style={glow === 'cyan'
-        ? { borderColor: 'rgba(0,200,255,0.12)' }
+        ? { borderColor: 'color-mix(in srgb, var(--rx-cyan) 12%, transparent)' }
         : {}
       }
     >
@@ -24,7 +24,7 @@ export function SectionLabel({ children, className = '' }) {
   return (
     <div
       className={`font-display text-[11px] font-semibold tracking-[3px] uppercase mb-3.5 ${className}`}
-      style={{ color: '#0fd65a' }}
+      style={{ color: 'var(--rx-green)' }}
     >
       {children}
     </div>
@@ -57,9 +57,9 @@ export function Modal({ title, onClose, disableOverlayClose, size = 'default', c
         aria-labelledby="modal-title"
         className={`rx-card p-6 lg:p-8 ${MODAL_WIDTHS[size]} max-w-[96vw] my-auto`}
         style={{
-          background:  '#0d1520',
-          borderColor: 'rgba(15,214,90,0.2)',
-          boxShadow:   '0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(15,214,90,0.1)',
+          background:  'var(--rx-surface)',
+          borderColor: 'color-mix(in srgb, var(--rx-green) 20%, transparent)',
+          boxShadow:   '0 20px 60px rgba(0,0,0,0.8), 0 0 40px var(--rx-green-glow)',
         }}
         onClick={e => e.stopPropagation()}
       >
@@ -99,9 +99,9 @@ export function Textarea({ className = '', ...props }) {
 // ─── Button ───────────────────────────────────────────────────────────────────
 const VARIANT_STYLES = {
   primary: {
-    background: 'rgba(15,214,90,0.07)',
-    border:     '1px solid rgba(15,214,90,0.35)',
-    color:      '#0fd65a',
+    background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)',
+    border:     '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)',
+    color:      'var(--rx-green)',
     fontWeight: 700,
   },
   danger: {
@@ -111,8 +111,8 @@ const VARIANT_STYLES = {
   },
   ghost: {
     background: 'transparent',
-    border:     '1px solid rgba(15,214,90,0.3)',
-    color:      '#0fd65a',
+    border:     '1px solid color-mix(in srgb, var(--rx-green) 30%, transparent)',
+    color:      'var(--rx-green)',
   },
 }
 
@@ -148,7 +148,7 @@ export function Divider({ color }) {
         style={{
           background: color
             ? `linear-gradient(90deg, transparent, ${color}55, transparent)`
-            : 'linear-gradient(90deg, transparent, rgba(15,214,90,0.2), transparent)',
+            : 'linear-gradient(90deg, transparent, color-mix(in srgb, var(--rx-green) 20%, transparent), transparent)',
         }}
       />
     </div>
@@ -174,7 +174,7 @@ export function Field({ label, error, htmlFor, children }) {
 }
 
 // ─── EmptyState ───────────────────────────────────────────────────────────────
-export function EmptyState({ icon, title, description, color }) {
+export function EmptyState({ icon, title, description, color, action }) {
   const accent = color ?? 'rgba(255,255,255,0.15)'
   return (
     <div className="flex flex-col items-center justify-center py-10 text-center gap-3">
@@ -187,6 +187,27 @@ export function EmptyState({ icon, title, description, color }) {
       <div className="font-display font-bold text-[13px] text-white/50">{title}</div>
       {description && (
         <div className="font-body text-[12px] text-white/25 max-w-[200px] leading-relaxed">{description}</div>
+      )}
+      {action && (
+        <button
+          onClick={action.onClick}
+          className="font-display"
+          style={{
+            marginTop: 4,
+            padding: '7px 16px',
+            fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase',
+            cursor: 'pointer',
+            background: accent + '14',
+            border: `1px solid ${accent}40`,
+            borderRadius: 3,
+            color: accent,
+            transition: 'opacity 150ms',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.opacity = '0.75' }}
+          onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
+        >
+          {action.label}
+        </button>
       )}
     </div>
   )
@@ -210,7 +231,7 @@ export function ActivityLog({ log = [], color, limit = 5 }) {
       {log.slice(0, limit).map((entry, i) => (
         <div key={i} className="flex gap-2.5 items-start mb-2.5">
           <div className="flex flex-col items-center pt-1.5 gap-1">
-            <div className="w-[5px] h-[5px] rounded-full shrink-0" style={{ background: color + '88' }} />
+            <div className="w-[5px] h-[5px] rounded-full shrink-0" style={{ background: color ? `${color}88` : 'color-mix(in srgb, var(--rx-green) 55%, transparent)' }} />
             {i < Math.min(log.length, limit) - 1 && (
               <div className="w-px flex-1 min-h-[12px]" style={{ background: 'rgba(255,255,255,0.06)' }} />
             )}
@@ -220,7 +241,7 @@ export function ActivityLog({ log = [], color, limit = 5 }) {
             <div className="flex gap-2 mt-0.5">
               <span className="font-body text-[11px] text-white/20">{entry.date}</span>
               {entry.xp > 0 && (
-                <span className="font-display text-[10px] text-emerald-400">+{entry.xp} XP</span>
+                <span className="font-display text-[10px]" style={{ color: color ?? 'var(--rx-green)' }}>+{entry.xp} XP</span>
               )}
             </div>
           </div>
@@ -231,7 +252,7 @@ export function ActivityLog({ log = [], color, limit = 5 }) {
 }
 
 // ─── StatsSection ─────────────────────────────────────────────────────────────
-export function StatsSection({ stats = {}, prevStats = null, categoria = 'health', color, pentagonSize = 130 }) {
+export function StatsSection({ stats = {}, prevStats = null, categoria = 'health', color, pentagonSize = 130, rankObj }) {
   const config     = getStatsConfig(categoria)
   const statKeys   = config.map(t => t.stat)
   const statLabels = config.map(t => t.label)
@@ -252,7 +273,7 @@ export function StatsSection({ stats = {}, prevStats = null, categoria = 'health
               </span>
               <div
                 className="flex-1 h-[5px] rounded-full overflow-hidden"
-                style={{ background: 'rgba(255,255,255,0.06)' }}
+                style={{ background: 'color-mix(in srgb, var(--rx-cyan) 10%, transparent)' }}
               >
                 <div
                   className="h-full rounded-full transition-[width] duration-700"
@@ -278,8 +299,8 @@ export function StatsSection({ stats = {}, prevStats = null, categoria = 'health
         })}
       </div>
 
-      {/* Pentagon */}
-      <div className="flex items-center justify-center">
+      {/* Pentagon + rank */}
+      <div className="flex flex-col items-center justify-center gap-2">
         <Pentagon
           stats={stats}
           statKeys={statKeys}
@@ -287,6 +308,12 @@ export function StatsSection({ stats = {}, prevStats = null, categoria = 'health
           color={color}
           size={pentagonSize}
         />
+        {rankObj && (
+          <div className="font-display font-black px-2.5 py-0.5 rounded-[3px]"
+            style={{ fontSize: 10, background: color + '1e', color, border: `1px solid ${color}40` }}>
+            {rankObj.label}
+          </div>
+        )}
       </div>
     </div>
   )

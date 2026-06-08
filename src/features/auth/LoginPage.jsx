@@ -11,7 +11,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex">
       <BrandingPanel />
       <div className="hidden lg:block w-px"
-        style={{ background: 'linear-gradient(180deg, transparent, rgba(15,214,90,0.12) 30%, rgba(15,214,90,0.12) 70%, transparent)' }}
+        style={{ background: 'linear-gradient(180deg, transparent, color-mix(in srgb, var(--rx-green) 12%, transparent) 30%, color-mix(in srgb, var(--rx-green) 12%, transparent) 70%, transparent)' }}
       />
       <div
         className="flex-1 lg:max-w-[480px] flex flex-col items-center justify-center px-8 py-12"

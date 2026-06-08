@@ -20,7 +20,7 @@ export function XPBar({ xp, xpNext, color, size = 'lg', fullWidth = false }) {
           {xp.toLocaleString()} / {xpNext.toLocaleString()}
         </span>
       </div>
-      <div className={`${height} rounded-full overflow-hidden`} style={{ background: 'rgba(255,255,255,0.06)' }}>
+      <div className={`${height} rounded-full overflow-hidden`} style={{ background: `color-mix(in srgb, ${color} 10%, transparent)` }}>
         <div
           className="h-full rounded-full transition-[width] duration-1000"
           style={{ width: `${pct}%`, background: color }}

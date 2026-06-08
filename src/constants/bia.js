@@ -6,7 +6,7 @@
 // ── Colori qualità BIA — derivati dalla scala RANKS ───────────
 // I valori corrispondono ai colori esatti dei rank per quegli score.
 export const BIA_Q = {
-  excellent: '#1aff6e',  // S+  (score 85)
+  excellent: 'var(--rx-green-bright)',  // S+  (score 85)
   good:      '#00c8ff',  // A+  (score 70)
   normal:    '#38bdf8',  // B+  (score 62)
   high:      '#fb923c',  // D+  (score 42)

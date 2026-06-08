@@ -3,7 +3,7 @@ import { ALL_TESTS }               from '../../../constants/index'
 import { usePagination }           from '../../../hooks/usePagination'
 import { Pagination }              from '../../../components/common/Pagination'
 
-const COMPARISON_COLORS  = ['#0fd65a', '#2ecfff', '#ffd700']
+const COMPARISON_COLORS  = ['var(--rx-green)', '#2ecfff', '#ffd700']
 const MAX_SELECTED       = 2
 const SELECTOR_PAGE_SIZE = 6
 
@@ -59,7 +59,7 @@ export function GroupComparison({ clients }) {
 
       {/* Col 1: Selettore atleti */}
       <div className="rounded-[4px] p-5 rx-card min-w-0">
-        <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-1" style={{ color: '#0fd65a' }}>
+        <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-1" style={{ color: 'var(--rx-green)' }}>
           ◈ Confronto atleti
         </div>
         <div className="font-display text-[10px] text-white/25 tracking-[1px] mb-4">
@@ -114,7 +114,7 @@ export function GroupComparison({ clients }) {
 
       {/* Col 2: Radar (centro) */}
       <div className="rounded-[4px] p-5 rx-card flex flex-col items-center gap-4 min-w-0">
-        <div className="w-full font-display text-[11px] font-semibold tracking-[2px] uppercase" style={{ color: '#0fd65a' }}>◈ Radar</div>
+        <div className="w-full font-display text-[11px] font-semibold tracking-[2px] uppercase" style={{ color: 'var(--rx-green)' }}>◈ Radar</div>
         {selectedClients.length > 0 && statCols.length > 0 ? (
           <div style={{ width: '100%', aspectRatio: '1 / 1' }}>
             <PentagonMulti
@@ -137,7 +137,7 @@ export function GroupComparison({ clients }) {
 
       {/* Col 3: Tabella valori */}
       <div className="rounded-[4px] p-5 rx-card min-w-0">
-        <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-4" style={{ color: '#0fd65a' }}>◈ Valori</div>
+        <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-4" style={{ color: 'var(--rx-green)' }}>◈ Valori</div>
         {selectedClients.length > 0 && statCols.length > 0 ? (
           <>
             <div className="flex gap-3 flex-wrap mb-4">
@@ -268,7 +268,7 @@ function ComparisonAthleteRow({ client, selIdx, disabled, onToggle }) {
         className="font-display text-[10px] px-2.5 py-1.5 rounded-[3px] cursor-pointer border transition-all disabled:opacity-30 disabled:cursor-not-allowed shrink-0 ml-2"
         style={isSelected
           ? { color: '#f87171', borderColor: 'rgba(248,113,113,0.2)', background: 'transparent' }
-          : { color: '#0fd65a', borderColor: 'rgba(15,214,90,0.2)',   background: 'rgba(15,214,90,0.06)' }
+          : { color: 'var(--rx-green)', borderColor: 'color-mix(in srgb, var(--rx-green) 20%, transparent)', background: 'color-mix(in srgb, var(--rx-green) 6%, transparent)' }
         }
       >
         {isSelected ? '−' : '+'}

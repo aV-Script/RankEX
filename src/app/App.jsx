@@ -5,6 +5,8 @@ import { LoadingScreen }         from '../components/common/LoadingScreen'
 import { ErrorBoundary }         from '../components/common/ErrorBoundary'
 import { useSessionTimeout }     from '../hooks/useSessionTimeout'
 import { DomainGuard }           from '../components/common/DomainGuard'
+import { ThemeProvider }         from '../context/ThemeContext'
+import { ThemeDevPanel }         from '../components/dev/ThemeDevPanel'
 
 const LOADING_TIMEOUT_MS = 10_000
 
@@ -29,7 +31,7 @@ export default function App() {
       <button
         onClick={() => window.location.reload()}
         className="px-4 py-2 text-sm text-white/70 border rounded-[3px] hover:opacity-80 transition-opacity"
-        style={{ borderColor: 'rgba(15,214,90,0.2)' }}
+        style={{ borderColor: 'color-mix(in srgb, var(--rx-green) 20%, transparent)' }}
       >
         Ricarica
       </button>
@@ -37,10 +39,13 @@ export default function App() {
   )
   if (isLoading) return <LoadingScreen />
   return (
-    <ErrorBoundary>
-      <DomainGuard role={profile?.role}>
-        <AppRouter user={user} profile={profile} org={org} terminology={terminology} refreshProfile={refreshProfile} />
-      </DomainGuard>
-    </ErrorBoundary>
+    <ThemeProvider>
+      <ErrorBoundary>
+        <DomainGuard role={profile?.role}>
+          <AppRouter user={user} profile={profile} org={org} terminology={terminology} refreshProfile={refreshProfile} />
+        </DomainGuard>
+      </ErrorBoundary>
+      <ThemeDevPanel />
+    </ThemeProvider>
   )
 }

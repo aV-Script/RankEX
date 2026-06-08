@@ -260,7 +260,7 @@ export function OrgDetailView({ org, onBack }) {
 
 function UsageBar({ label, current, limit, pct, atLimit }) {
   const isUnlimited = limit === Infinity
-  const color = atLimit ? '#f87171' : pct > 80 ? '#fbbf24' : '#0fd65a'
+  const color = atLimit ? '#f87171' : pct > 80 ? '#fbbf24' : 'var(--rx-green)'
   return (
     <div>
       <div className="flex items-center justify-between mb-1.5">

@@ -59,6 +59,9 @@ test-results/
 *.png
 e2e/.auth/
 
+# Screenshot / debug scripts temporanei
+screenshots2/
+
 # Environment test (contiene credenziali)
 .env.test
 

@@ -146,7 +146,7 @@ service cloud.firestore {
           (isOrgMember(orgId) && memberRole(orgId) in ['org_admin', 'trainer'] && withinClientLimit(orgId));
         allow update: if canWrite(orgId) ||
           (isOwnClient(orgId, clientId) &&
-           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wearable', 'avatar']));
+           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wearable', 'avatar', 'badgeShowcase']));
         allow delete: if canWrite(orgId);
 
         // ── Notes (thread + commenti del cliente) ──────────
@@ -209,7 +209,10 @@ service cloud.firestore {
         allow read: if canRead(orgId) ||
           (isClientOfOrg(orgId) &&
            userProfile().clientId == resource.data.clientId);
-        allow write: if canWrite(orgId);
+        allow create: if canWrite(orgId);
+        allow update, delete: if canWrite(orgId) ||
+          (isClientOfOrg(orgId) &&
+           resource.data.clientId == userProfile().clientId);
       }
 
       // ── Workout Plans ──────────────────────────────────────

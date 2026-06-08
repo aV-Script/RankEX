@@ -104,7 +104,7 @@ export function WeekView({ currentDate, slots, clients, today, onSlotClick, onEm
               <div
                 key={dateStr}
                 className="flex-1 relative border-l border-white/[.04]"
-                style={{ background: isToday ? 'rgba(0,200,255,0.02)' : 'transparent' }}
+                style={{ background: isToday ? 'color-mix(in srgb, var(--rx-cyan) 2%, transparent)' : 'transparent' }}
                 onClick={(e) => {
                   // Click su area vuota — calcola l'ora dal click
                   if (e.target === e.currentTarget) {

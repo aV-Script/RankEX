@@ -25,7 +25,7 @@ export function ErrorFallback({ error, onReset }) {
         <button
           onClick={() => window.location.reload()}
           className="px-4 py-2.5 rounded-[3px] font-display text-[11px] tracking-widest text-white cursor-pointer hover:opacity-90 transition-opacity"
-          style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', color: '#0fd65a' }}
+          style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)' }}
         >
           RICARICA
         </button>

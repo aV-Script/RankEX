@@ -21,7 +21,7 @@ export function GroupChampions({ clients }) {
 
   return (
     <div className="rounded-[4px] p-5 rx-card">
-      <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-5" style={{ color: '#0fd65a' }}>
+      <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-5" style={{ color: 'var(--rx-green)' }}>
         ◈ Campioni per disciplina
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">

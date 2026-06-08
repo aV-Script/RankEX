@@ -62,7 +62,7 @@ export function XPTrendChart({ log = [], color }) {
   return (
     <div className="rounded-[4px] p-5 rx-card">
       <div className="flex items-center justify-between mb-4">
-        <div className="font-display text-[10px] tracking-[3px] uppercase" style={{ color: '#0fd65a' }}>
+        <div className="font-display text-[10px] tracking-[3px] uppercase" style={{ color }}>
           ◈ Andamento XP
         </div>
         <div className="flex gap-1">
@@ -107,8 +107,8 @@ export function XPTrendChart({ log = [], color }) {
               <Tooltip
                 formatter={(v) => [v, 'XP']}
                 contentStyle={{
-                  background:   '#0d1520',
-                  border:       '1px solid rgba(15,214,90,0.15)',
+                  background:   'var(--rx-surface)',
+                  border:       '1px solid var(--rx-border)',
                   borderRadius: 4,
                   fontFamily:   'Inter',
                   fontSize:     12,

@@ -7,7 +7,7 @@ const MODULE_LABELS = {
 }
 
 const STATUS_COLORS = {
-  active:    '#0fd65a',
+  active:    'var(--rx-green)',
   inactive:  '#6b7280',
   suspended: '#f87171',
 }
@@ -71,7 +71,7 @@ export function AdminDashboard({ onSelectOrg }) {
 
       {/* Stat principali */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-        <StatCard label="Organizzazioni" value={orgs.length}        color="#0fd65a" />
+        <StatCard label="Organizzazioni" value={orgs.length}        color="var(--rx-green)" />
         <StatCard label="Attive"          value={stats.active}       color="#34d399" />
         <StatCard label="Personal Tr."    value={stats.pt}           color="#60a5fa" />
         <StatCard label="Soccer Academy"  value={stats.soccer}       color="#f59e0b" />

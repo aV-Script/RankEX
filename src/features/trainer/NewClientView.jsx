@@ -21,7 +21,7 @@ import { StepAccount }            from '../../components/modals/new-client-wizar
 import { StepProfileType }        from '../../components/modals/new-client-wizard/steps/StepProfileType'
 import { TOTAL_STEPS_MAP }        from '../../components/modals/new-client-wizard/wizard.config'
 
-export function NewClientView({ orgId, onAdd, onBack, clients = [] }) {
+export function NewClientView({ orgId, onAdd, onBack, clients = [], onNavigate }) {
   const { moduleType, orgPlan }                     = useTrainerState()
   const isSoccer                                    = getModule(moduleType).isSoccer
   const planLimits                                  = getPlanLimits(orgPlan)
@@ -58,6 +58,7 @@ export function NewClientView({ orgId, onAdd, onBack, clients = [] }) {
           current={clients.length}
           limit={planLimits.clients}
           plan={orgPlan}
+          onNavigate={onNavigate}
         />
       ) : null}
 
@@ -100,7 +101,7 @@ export function NewClientView({ orgId, onAdd, onBack, clients = [] }) {
   )
 }
 
-function PlanLimitScreen({ current, limit, plan }) {
+function PlanLimitScreen({ current, limit, plan, onNavigate }) {
   return (
     <div className="max-w-md mx-auto px-6 py-16 flex flex-col items-center gap-4 text-center">
       <div
@@ -118,9 +119,23 @@ function PlanLimitScreen({ current, limit, plan }) {
         un massimo di <span className="text-white/70 font-bold">{limit} clienti</span>.
         Hai già {current} {current === 1 ? 'cliente' : 'clienti'}.
       </p>
-      <p className="font-body text-[12px] text-white/25">
-        Contatta il tuo amministratore per aggiornare il piano.
-      </p>
+      {onNavigate ? (
+        <button
+          onClick={() => onNavigate('org_settings')}
+          className="font-display"
+          style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase',
+            background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.3)',
+            borderRadius: 3, color: '#fbbf24', padding: '8px 18px', cursor: 'pointer', marginTop: 4,
+          }}
+        >
+          GESTISCI PIANO
+        </button>
+      ) : (
+        <p className="font-body text-[12px] text-white/25">
+          Contatta il tuo amministratore per aggiornare il piano.
+        </p>
+      )}
     </div>
   )
 }

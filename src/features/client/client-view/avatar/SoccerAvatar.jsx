@@ -251,6 +251,8 @@ export const AVATAR_OPTIONS = {
   clothingGraphic: Object.keys(CLOTHING_GRAPHIC_MAP),
 }
 
+import { useTheme } from '../../../../context/ThemeContext'
+
 // ── Componente ────────────────────────────────────────────────────────────────
 
 export function SoccerAvatar({
@@ -273,12 +275,15 @@ export function SoccerAvatar({
   style,
   className,
 }) {
+  const { theme } = useTheme()
+  const surfaceHex = (theme.vars['--rx-surface'] ?? '#0d1520').replace('#', '')
+
   const w = parseInt(width)  || 160
   const h = parseInt(height) || w
 
   const dataUri = useMemo(() => {
-    const bgHex  = (color ?? '#0fd65a').replace('#', '')
-    const kitHex = jerseyColor      ? jerseyColor.replace('#', '')       : bgHex
+    const bgHex  = surfaceHex
+    const kitHex = jerseyColor      ? jerseyColor.replace('#', '')       : (color ?? '#0fd65a').replace('#', '')
     const hatHex = hatColor         ? hatColor.replace('#', '')          : bgHex
     const accHex = accessoriesColor ? accessoriesColor.replace('#', '')  : '262e33'
     const hair   = HAIR_STYLE_MAP[hairStyle]       ?? HAIR_STYLE_MAP.short
@@ -292,7 +297,7 @@ export function SoccerAvatar({
       seed:             `${skinTone}-${hairColor}-${hairStyle}-${expression}-${accessory}-${clothing}-${jerseyColor}-${facialHair}-${facialHairColor}-${clothingGraphic}-${hatColor}-${accessoriesColor}`,
       size:             w,
       style:            ['circle'],
-      backgroundColor:  [bgHex],
+      backgroundColor:  ['transparent'],
       skinColor:        [SKIN_HEX[skinTone]              ?? SKIN_HEX.light],
       top:              [hair],
       hairColor:        [HAIR_HEX[hairColor]             ?? HAIR_HEX.black],
@@ -310,7 +315,7 @@ export function SoccerAvatar({
 
     return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
   }, [skinTone, hairColor, hairStyle, expression, accessory, clothing, jerseyColor,
-      facialHair, facialHairColor, clothingGraphic, hatColor, accessoriesColor, color, w])
+      facialHair, facialHairColor, clothingGraphic, hatColor, accessoriesColor, color, w, surfaceHex])
 
   return (
     <div
@@ -318,7 +323,7 @@ export function SoccerAvatar({
       style={{ position: 'relative', width: w, height: h, flexShrink: 0, ...style }}
     >
       <img src={dataUri} width={w} height={h} alt="avatar" draggable={false}
-        style={{ display: 'block', userSelect: 'none' }} />
+        style={{ display: 'block', userSelect: 'none', position: 'relative' }} />
 
       {number && (
         <div style={{

@@ -2,6 +2,7 @@ import { useState, useCallback }                        from 'react'
 import { useAuth }                                       from '../auth/useAuth'
 import { logout, changeTrainerPassword, changeUserEmail } from '../../firebase/services/auth'
 import { Field }                                         from '../../components/ui'
+import { ThemePicker }                                   from '../../components/ui/ThemePicker'
 import { getFirebaseErrorMessage }                       from '../../utils/firebaseErrors'
 import { validatePassword }                              from '../../utils/validation'
 
@@ -88,7 +89,7 @@ export function ProfilePage() {
         style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-[4px] flex items-center justify-center shrink-0"
-            style={{ background: 'rgba(15,214,90,0.06)', border: '1px solid rgba(15,214,90,0.15)' }}>
+            style={{ background: 'color-mix(in srgb, var(--rx-green) 6%, transparent)', border: '1px solid var(--rx-border)' }}>
             <span className="rx-glow-text font-display font-black text-[22px]">
               {user?.email?.[0]?.toUpperCase() ?? 'T'}
             </span>
@@ -98,6 +99,14 @@ export function ProfilePage() {
             <div className="font-body text-[13px] text-white/40 mt-0.5">{user?.email ?? '—'}</div>
           </div>
         </div>
+      </div>
+
+      {/* Theme picker */}
+      <div className="rounded-[4px] p-5 mb-4 rx-card">
+        <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-green)' }}>
+          ◈ Tema interfaccia
+        </div>
+        <ThemePicker />
       </div>
 
       {/* Lista azioni */}
@@ -123,7 +132,7 @@ export function ProfilePage() {
             </div>
           </div>
           {emailSuccess
-            ? <span className="font-display text-[10px] tracking-wider" style={{ color: '#0fd65a' }}>VERIFICA INVIATA</span>
+            ? <span className="font-display text-[10px] tracking-wider" style={{ color: 'var(--rx-green)' }}>VERIFICA INVIATA</span>
             : <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                 stroke="rgba(255,255,255,0.2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
                 style={{ transform: openEmail ? 'rotate(180deg)' : 'none', transition: 'transform 200ms' }}>
@@ -176,7 +185,7 @@ export function ProfilePage() {
                   onClick={handleEmailSubmit}
                   disabled={emailLoading}
                   className="flex-1 py-2.5 font-display text-[12px] font-bold cursor-pointer transition-opacity hover:opacity-85 disabled:opacity-50 border-none"
-                  style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', borderRadius: '3px', color: '#0fd65a' }}
+                  style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', borderRadius: '3px', color: 'var(--rx-green)' }}
                 >
                   {emailLoading ? 'INVIO...' : 'INVIA VERIFICA'}
                 </button>
@@ -203,7 +212,7 @@ export function ProfilePage() {
             <span className="font-display font-bold text-[13px] text-white/70">Cambia password</span>
           </div>
           {success
-            ? <span className="font-display text-[10px] tracking-wider" style={{ color: '#0fd65a' }}>AGGIORNATA</span>
+            ? <span className="font-display text-[10px] tracking-wider" style={{ color: 'var(--rx-green)' }}>AGGIORNATA</span>
             : <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                 stroke="rgba(255,255,255,0.2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
                 style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 200ms' }}>
@@ -268,7 +277,7 @@ export function ProfilePage() {
                 ].map(([label, ok]) => (
                   <div key={label}
                     className="flex items-center gap-2 font-body text-[12px]"
-                    style={{ color: ok ? '#0fd65a' : 'rgba(255,255,255,0.2)' }}>
+                    style={{ color: ok ? 'var(--rx-green)' : 'rgba(255,255,255,0.2)' }}>
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                       {ok
                         ? <path d="M1.5 5L4 7.5L8.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -292,7 +301,7 @@ export function ProfilePage() {
                   onClick={handleSubmit}
                   disabled={loading}
                   className="flex-1 py-2.5 font-display text-[12px] font-bold cursor-pointer transition-opacity hover:opacity-85 disabled:opacity-50 border-none"
-                  style={{ background: 'rgba(15,214,90,0.07)', border: '1px solid rgba(15,214,90,0.35)', borderRadius: '3px', color: '#0fd65a' }}
+                  style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', borderRadius: '3px', color: 'var(--rx-green)' }}
                 >
                   {loading ? 'SALVATAGGIO...' : 'AGGIORNA'}
                 </button>
