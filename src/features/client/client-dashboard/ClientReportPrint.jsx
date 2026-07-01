@@ -5,6 +5,7 @@ import { getProfileCategory }     from '../../../constants/bia'
 import { SOCCER_AGE_GROUPS, PLAYER_ROLES } from '../../../config/modules.config'
 import { calcAge }                from '../../../utils/validation'
 import { Pentagon }               from '../../../components/ui/Pentagon'
+import { useTheme }               from '../../../context/ThemeContext'
 
 const isSoccerCat = (cat) => ['soccer', 'soccer_youth', 'soccer_junior'].includes(cat)
 
@@ -50,8 +51,27 @@ const PALETTE = {
 }
 
 export function ClientReportPrint({ client, _color, rankObj, mode = 'dark', onClose }) {
-  const p = { ...(PALETTE[mode] ?? PALETTE.dark), mode }
-  const { BG, SURFACE, RAISED, BORDER, PRI, SEC, TER, GREEN, TRACK } = p
+  const { theme } = useTheme()
+
+  const p = mode === 'dark'
+    ? {
+        BG:      theme.bg.base,
+        SURFACE: theme.vars['--rx-surface'] ?? '#0c1219',
+        RAISED:  theme.vars['--rx-raised']  ?? '#0f1820',
+        BORDER:  theme.vars['--rx-border']  ?? '#1e293b',
+        PRI:     '#f1f5f9',
+        SEC:     '#94a3b8',
+        TER:     '#475569',
+        GREEN:   theme.vars['--rx-green']   ?? '#0ec452',
+        CYAN:    theme.vars['--rx-cyan']    ?? '#2ecfff',
+        DANGER:  '#ef4444',
+        TRACK:   theme.vars['--rx-raised']  ?? '#1e293b',
+        MARKER:  'rgba(255,255,255,0.45)',
+        mode,
+      }
+    : { ...PALETTE.bw, CYAN: '#2ecfff', mode }
+
+  const { BG, SURFACE, RAISED, BORDER, PRI, SEC, TER, GREEN, CYAN, TRACK } = p
   const rankColor = mode === 'bw' ? '#2d3748' : (rankObj?.color ?? GREEN)
   const profile        = getProfileCategory(client.profileType ?? 'tests_only')
   const isSoccer       = isSoccerCat(client.categoria)
@@ -117,9 +137,16 @@ export function ClientReportPrint({ client, _color, rankObj, mode = 'dark', onCl
 
       {/* Barra controlli — nascosta in stampa */}
       <div id="rankex-print-controls" style={{ background: SURFACE, borderBottom: `1px solid ${BORDER}`, padding: '10px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
-        <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 10, letterSpacing: 3, color: SEC, fontWeight: 700 }}>
-          ANTEPRIMA PDF — SCHEDA ATLETA
-        </span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 10, letterSpacing: 3, color: SEC, fontWeight: 700 }}>
+            ANTEPRIMA PDF — SCHEDA ATLETA
+          </span>
+          {mode === 'dark' && (
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: '#f59e0b' }}>
+              ⚠ Nel dialogo di stampa attiva <strong>Grafici di sfondo</strong> per preservare lo sfondo scuro
+            </span>
+          )}
+        </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button
             onClick={() => window.print()}
@@ -129,7 +156,7 @@ export function ClientReportPrint({ client, _color, rankObj, mode = 'dark', onCl
           </button>
           <button
             onClick={onClose}
-            style={{ background: '#1e293b', color: SEC, border: 'none', borderRadius: 3, padding: '7px 14px', fontSize: 15, cursor: 'pointer' }}
+            style={{ background: RAISED, color: SEC, border: 'none', borderRadius: 3, padding: '7px 14px', fontSize: 15, cursor: 'pointer' }}
           >
             ✕
           </button>
@@ -160,9 +187,8 @@ export function ClientReportPrint({ client, _color, rankObj, mode = 'dark', onCl
         <div style={{ padding: '18px 32px 32px' }}>
 
           {/* ── HERO BLOCK ─────────────────────────────────────────────── */}
-          <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '16px 20px', marginBottom: 14 }}>
+          <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '16px 20px', marginBottom: 14, pageBreakInside: 'avoid' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18 }}>
-              <AvatarSvg color={rankColor} />
               <div style={{ flex: 1 }}>
                 <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 900, fontSize: 24, color: PRI, lineHeight: 1, marginBottom: 10 }}>
                   {client.name}
@@ -184,14 +210,14 @@ export function ClientReportPrint({ client, _color, rankObj, mode = 'dark', onCl
                 <div style={{
                   width: `${Math.min(100, ((client.xp ?? 0) / (client.xpNext ?? 500)) * 100)}%`,
                   height: '100%', borderRadius: 999,
-                  background: mode === 'bw' ? GREEN : `linear-gradient(90deg, ${GREEN}, #2ecfff)`,
+                  background: mode === 'bw' ? GREEN : `linear-gradient(90deg, ${GREEN}, ${CYAN})`,
                 }} />
               </div>
             </div>
           </div>
 
           {/* ── RIGA CENTRALE ──────────────────────────────────────────── */}
-          <div style={{ display: 'grid', gridTemplateColumns: '58fr 42fr', gap: 12, marginBottom: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '58fr 42fr', gap: 12, marginBottom: 14, pageBreakInside: 'avoid' }}>
 
             {/* Sinistra: Pentagon centrato + stat list — card flex per riempire l'altezza della grid */}
             {profile.hasTests && statsConfig.length > 0 && (
@@ -203,7 +229,7 @@ export function ClientReportPrint({ client, _color, rankObj, mode = 'dark', onCl
                       stats={stats}
                       statKeys={statKeys}
                       statLabels={statLabels}
-                      color={rankColor}
+                      color={GREEN}
                       size={200}
                       gridColor={mode === 'bw' ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.08)'}
                       labelColor={mode === 'bw' ? TER : 'rgba(255,255,255,0.5)'}
@@ -226,10 +252,7 @@ export function ClientReportPrint({ client, _color, rankObj, mode = 'dark', onCl
                             <DeltaBadge delta={delta} />
                           </div>
                           <div style={{ position: 'relative', height: 7, borderRadius: 999, background: TRACK, overflow: 'hidden' }}>
-                            <div style={{ width: `${val}%`, height: '100%', borderRadius: 999, background: mode === 'bw' ? rankColor : `linear-gradient(90deg, ${rankColor}70, ${rankColor})` }} />
-                            {prev !== null && (
-                              <div style={{ position: 'absolute', top: 0, left: `${prev}%`, width: 2, height: '100%', background: p.MARKER, transform: 'translateX(-50%)' }} />
-                            )}
+                            <div style={{ width: `${val}%`, height: '100%', borderRadius: 999, background: GREEN }} />
                           </div>
                         </div>
                       )
@@ -267,7 +290,7 @@ export function ClientReportPrint({ client, _color, rankObj, mode = 'dark', onCl
 
           {/* ── STORICO CAMPIONAMENTI — tabella statica, nessuna tab interattiva ── */}
           {campionamenti.length > 0 && profile.hasTests && (
-            <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '16px 20px', marginBottom: 14 }}>
+            <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '16px 20px', marginBottom: 14, pageBreakInside: 'avoid' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <SectionTitle noMargin>Storico Campionamenti</SectionTitle>
                 {trendDelta !== null && (
@@ -316,7 +339,7 @@ export function ClientReportPrint({ client, _color, rankObj, mode = 'dark', onCl
 
           {/* ── BIA ────────────────────────────────────────────────────── */}
           {profile.hasBia && client.lastBia && (
-            <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '16px 20px', marginBottom: 14 }}>
+            <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '16px 20px', marginBottom: 14, pageBreakInside: 'avoid' }}>
               <SectionTitle>Composizione Corporea (BIA)</SectionTitle>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
                 <BiaBox label="Massa grassa"     value={`${client.lastBia.fatMassPercent ?? '—'}%`} />

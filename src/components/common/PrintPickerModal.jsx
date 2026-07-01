@@ -25,7 +25,7 @@ export function PrintPickerModal({ onSelect, onCancel }) {
             </div>
             <div>
               <div className="font-display font-bold text-[11px] tracking-[1.5px] text-white uppercase mb-0.5">Colore — Dark</div>
-              <div className="text-[10px] text-white/40">Sfondo scuro, colori rank completi</div>
+              <div className="text-[10px] text-white/40">Sfondo scuro, colori del tema attivo</div>
             </div>
           </button>
 

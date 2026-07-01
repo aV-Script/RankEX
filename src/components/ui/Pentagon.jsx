@@ -60,7 +60,7 @@ export const Pentagon = memo(function Pentagon({
       ))}
 
       {/* Stat area */}
-      <path d={toPath(statPoints)} fill={color + '33'} stroke={color} strokeWidth="2" strokeLinejoin="round" />
+      <path d={toPath(statPoints)} fill={color} fillOpacity={0.2} stroke={color} strokeWidth="2" strokeLinejoin="round" />
 
       {/* Dots */}
       {statPoints.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r="3.5" fill={color} />)}
