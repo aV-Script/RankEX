@@ -267,7 +267,7 @@ export const TESTS = [
     label:      'ESPLOSIVITÀ',
     unit:       'cm',
     direction:  'direct',
-    ageGroup:   (age) => age < 7 ? null : age <= 7 ? '7' : age <= 8 ? '8' : age <= 9 ? '9' : age <= 10 ? '10' : age <= 11 ? '11' : age <= 12 ? '12' : age <= 13 ? '13' : age <= 14 ? '14' : age <= 15 ? '15' : age <= 16 ? '16' : age <= 17 ? '17' : age <= 29 ? '18-29' : age <= 39 ? '30-39' : age <= 49 ? '40-49' : age <= 59 ? '50-59' : age <= 69 ? '60-69' : '70-79',
+    ageGroup:   (age) => age < 7 ? null : age <= 7 ? '7' : age <= 8 ? '8' : age <= 9 ? '9' : age <= 10 ? '10' : age <= 11 ? '11' : age <= 12 ? '12' : age <= 13 ? '13' : age <= 14 ? '14' : age <= 15 ? '15' : age <= 16 ? '16' : age <= 17 ? '17' : age <= 35 ? '18-35' : '36-50',
     test:       'Standing Long Jump',
     categories: ['active', 'soccer', 'soccer_youth', 'soccer_junior'],
     desc:       'Distanza salto in lungo da fermo.',
