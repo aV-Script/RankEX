@@ -4,6 +4,7 @@ import { AppRouter }             from './AppRouter'
 import { LoadingScreen }         from '../components/common/LoadingScreen'
 import { ErrorBoundary }         from '../components/common/ErrorBoundary'
 import { useSessionTimeout }     from '../hooks/useSessionTimeout'
+import { useVersionCheck }       from '../hooks/useVersionCheck'
 import { DomainGuard }           from '../components/common/DomainGuard'
 import { ThemeProvider }         from '../context/ThemeContext'
 import { ThemeDevPanel }         from '../components/dev/ThemeDevPanel'
@@ -15,6 +16,7 @@ export default function App() {
   const [timedOut, setTimedOut]                             = useState(false)
 
   useSessionTimeout(profile?.role)
+  const hasUpdate = useVersionCheck()
 
   // true finché l'SDK auth non risponde, o finché l'utente loggato aspetta il profilo+org
   const isLoading = user === undefined || (user !== null && (profile === undefined || org === undefined))
@@ -46,6 +48,24 @@ export default function App() {
         </DomainGuard>
       </ErrorBoundary>
       <ThemeDevPanel />
+      {hasUpdate && (
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg border"
+          style={{
+            background:   'var(--bg-overlay)',
+            borderColor:  'color-mix(in srgb, var(--rx-green) 35%, transparent)',
+            boxShadow:    'var(--shadow-green)',
+          }}
+        >
+          <span className="text-sm font-display text-white/80">Nuova versione disponibile</span>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-3 py-1 rounded-lg text-xs font-display font-bold tracking-wider transition-opacity hover:opacity-80"
+            style={{ background: 'var(--rx-green)', color: '#000' }}
+          >
+            RICARICA
+          </button>
+        </div>
+      )}
     </ThemeProvider>
   )
 }
