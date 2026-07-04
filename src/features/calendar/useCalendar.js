@@ -122,7 +122,7 @@ export function useCalendar(orgId) {
   }, [orgId, handleAddSlot, fetchSlots, toastError])
 
   // ── Close slot ─────────────────────────────────────────────────────────
-  const handleCloseSlot = useCallback(async (slotId, attendeeIds, clientsData) => {
+  const handleCloseSlot = useCallback(async (slotId, attendeeIds) => {
     const slot = slots.find(s => s.id === slotId)
     if (!slot) return
 
@@ -137,7 +137,7 @@ export function useCalendar(orgId) {
     } : s))
 
     try {
-      await closeSessionUseCase(orgId, slot, attendeeIds, clientsData)
+      await closeSessionUseCase(orgId, slot, attendeeIds)
       toastSuccess('Sessione chiusa · +XP assegnata')
     } catch {
       setSlots(prev => prev.map(s => s.id === slotId ? snapshot : s))

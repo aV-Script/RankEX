@@ -96,10 +96,10 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
   }, [])
 
   const handleConfirmClose = useCallback(async (attendeeIds) => {
-    await handleCloseSlot(closeModal.id, attendeeIds, clients)
+    await handleCloseSlot(closeModal.id, attendeeIds)
     setCloseModal(null)
     onRefreshClients?.()
-  }, [closeModal, handleCloseSlot, clients, onRefreshClients])
+  }, [closeModal, handleCloseSlot, onRefreshClients])
 
   const handleSkip = useCallback(async (slotId) => {
     setPopup(null)
