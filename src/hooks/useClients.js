@@ -64,7 +64,7 @@ export function useClients(orgId, userId) {
     dispatch({ type: ACTIONS.SELECT_CLIENT, payload: { ...client, ...update } })
 
     try {
-      await saveCampionamentoUseCase(orgId, client, update)
+      await saveCampionamentoUseCase(orgId, client, update, testValues)
       toast.success('Campionamento salvato')
     } catch {
       updateLocal(client.id, snapshot)
