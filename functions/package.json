@@ -1,0 +1,21 @@
+{
+  "name": "rankex-functions",
+  "version": "1.0.0",
+  "description": "Firebase Cloud Functions — RankEX backend",
+  "type": "module",
+  "engines": { "node": "20" },
+  "main": "src/index.js",
+  "scripts": {
+    "serve":      "firebase emulators:start --only functions",
+    "deploy":     "firebase deploy --only functions --project fitquest-60a09",
+    "deploy:dev": "firebase deploy --only functions --project rankex-dev",
+    "logs":       "firebase functions:log --project fitquest-60a09"
+  },
+  "dependencies": {
+    "firebase-admin":     "^12.0.0",
+    "firebase-functions": "^4.9.0"
+  },
+  "devDependencies": {
+    "firebase-functions-test": "^3.3.0"
+  }
+}
