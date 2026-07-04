@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useTrainerDispatch, ACTIONS }      from '../context/TrainerContext'
-import { getClients, deleteClient }  from '../firebase/services/clients'
+import { getClients }                from '../firebase/services/clients'
 import { buildCampionamentoUpdate, buildXPUpdate } from '../utils/gamification'
 import { createClientUseCase }      from '../usecases/createClientUseCase'
+import { deleteClientUseCase }      from '../usecases/deleteClientUseCase'
 import { saveCampionamentoUseCase } from '../usecases/saveCampionamentoUseCase'
 import { saveXPUseCase }            from '../usecases/saveXPUseCase'
 import { useToast }                 from './useToast'
@@ -97,7 +98,7 @@ export function useClients(orgId, userId) {
     dispatch({ type: ACTIONS.DESELECT_CLIENT })
 
     try {
-      await deleteClient(orgId, clientId)
+      await deleteClientUseCase(orgId, clientId)
       auditLog(AUDIT_ACTIONS.CLIENT_DELETED, { clientId, clientName: snapshot?.name, orgId })
       toast.success('Cliente eliminato')
     } catch {

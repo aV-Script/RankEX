@@ -4,9 +4,9 @@ import { slotsPath }                                from '../../firebase/paths'
 import {
   getSlotsByGroup,
   getGroupRecurrences,
-  addClientToRecurrence,
-  removeClientFromRecurrence,
 } from '../../firebase/services/calendar'
+import { addClientToRecurrenceUseCase }    from '../../usecases/addClientToRecurrenceUseCase'
+import { removeClientFromRecurrenceUseCase } from '../../usecases/removeClientFromRecurrenceUseCase'
 
 /**
  * Raccoglie tutti i dati necessari per mostrare
@@ -55,7 +55,7 @@ export async function addClientToGroupSlots(orgId, groupId, clientId) {
   await Promise.all(
     recurrences
       .filter(r => !r.clientIds.includes(clientId))
-      .map(r => addClientToRecurrence(orgId, r.id, clientId))
+      .map(r => addClientToRecurrenceUseCase(orgId, r.id, clientId))
   )
 }
 
@@ -86,6 +86,6 @@ export async function removeClientFromGroupSlots(orgId, groupId, clientId) {
   await Promise.all(
     recurrences
       .filter(r => r.clientIds.includes(clientId))
-      .map(r => removeClientFromRecurrence(orgId, r.id, clientId))
+      .map(r => removeClientFromRecurrenceUseCase(orgId, r.id, clientId))
   )
 }

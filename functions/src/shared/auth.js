@@ -39,3 +39,29 @@ export async function requireOrgAccess(request, orgId) {
   }
   return profile
 }
+
+export async function requireOrgAdmin(request, orgId) {
+  const profile = await requireAuth(request)
+  if (profile.role === 'super_admin') return profile
+  if (profile.role !== 'org_admin') {
+    throw new HttpsError('permission-denied', 'Solo org_admin può eseguire questa operazione')
+  }
+  if (profile.orgId !== orgId) {
+    throw new HttpsError('permission-denied', 'Accesso negato a questa organizzazione')
+  }
+  return profile
+}
+
+export async function requireOrgMemberOrClient(request, orgId) {
+  const profile = await requireAuth(request)
+  if (profile.role === 'super_admin') return profile
+  if (['org_admin', 'trainer', 'staff_readonly'].includes(profile.role)) {
+    if (profile.orgId !== orgId) throw new HttpsError('permission-denied', 'Accesso negato')
+    return profile
+  }
+  if (profile.role === 'client') {
+    if (profile.orgId !== orgId) throw new HttpsError('permission-denied', 'Accesso negato')
+    return profile
+  }
+  throw new HttpsError('permission-denied', 'Permessi insufficienti')
+}

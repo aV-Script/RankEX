@@ -1,6 +1,6 @@
 import {
   collection, getDocs, getDoc, updateDoc,
-  doc, query, writeBatch, increment,
+  doc, query,
 } from 'firebase/firestore'
 import { db }          from './db'
 import { clientsPath } from '../paths'
@@ -16,25 +16,5 @@ export const getClientById = async (orgId, clientId) => {
   return snap.exists() ? { id: snap.id, ...snap.data() } : null
 }
 
-// Batch: crea cliente + incrementa clientCount sull'org.
-export const addClient = async (orgId, data) => {
-  const clientRef = doc(collection(db, clientsPath(orgId)))
-  const orgRef    = doc(db, 'organizations', orgId)
-  const batch     = writeBatch(db)
-  batch.set(clientRef, data)
-  batch.update(orgRef, { clientCount: increment(1) })
-  await batch.commit()
-  return clientRef
-}
-
+// updateClient rimane — usato per aggiornamenti diretti (BIA, peso/altezza, ecc.)
 export const updateClient = (orgId, id, data) => updateDoc(doc(db, clientsPath(orgId), id), data)
-
-// Batch: elimina cliente + decrementa clientCount sull'org.
-export const deleteClient = async (orgId, id) => {
-  const clientRef = doc(db, clientsPath(orgId), id)
-  const orgRef    = doc(db, 'organizations', orgId)
-  const batch     = writeBatch(db)
-  batch.delete(clientRef)
-  batch.update(orgRef, { clientCount: increment(-1) })
-  await batch.commit()
-}

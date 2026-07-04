@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getGroups, addGroup, updateGroup, deleteGroup } from '../firebase/services/groups'
+import { getGroups }             from '../firebase/services/groups'
+import { addGroupUseCase }       from '../usecases/addGroupUseCase'
+import { updateGroupUseCase }    from '../usecases/updateGroupUseCase'
+import { deleteGroupUseCase }    from '../usecases/deleteGroupUseCase'
 
 export function useGroups(orgId) {
   const [groups,  setGroups]  = useState([])
@@ -24,8 +27,8 @@ export function useGroups(orgId) {
     setGroups(prev => [...prev, newGroup])
 
     try {
-      const ref      = await addGroup(orgId, { name, clientIds: [] })
-      const realGroup = { ...newGroup, id: ref.id }
+      const realId   = await addGroupUseCase(orgId, name)
+      const realGroup = { ...newGroup, id: realId }
       setGroups(prev => prev.map(g => g.id === tempId ? realGroup : g))
       return realGroup
     } catch {
@@ -40,7 +43,7 @@ export function useGroups(orgId) {
     setGroups(prev => prev.map(g => g.id === id ? { ...g, name } : g))
 
     try {
-      await updateGroup(orgId, id, { name })
+      await updateGroupUseCase(orgId, id, { name })
     } catch {
       if (oldName !== undefined) {
         setGroups(prev => prev.map(g => g.id === id ? { ...g, name: oldName } : g))
@@ -64,7 +67,7 @@ export function useGroups(orgId) {
     ))
 
     try {
-      await updateGroup(orgId, groupId, { clientIds: newIds })
+      await updateGroupUseCase(orgId, groupId, { clientIds: newIds })
       if (already && onRemove) onRemove(groupId, clientId)
       if (!already && onAdd)   onAdd(groupId, clientId)
     } catch {
@@ -81,7 +84,7 @@ export function useGroups(orgId) {
     setGroups(prev => prev.filter(g => g.id !== id))
 
     try {
-      await deleteGroup(orgId, id)
+      await deleteGroupUseCase(orgId, id)
     } catch {
       if (snapshot) setGroups(prev => [...prev, snapshot])
     }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getMembers, removeMember, updateMember } from '../../../firebase/services/org'
-import { updateUserProfile }                from '../../../firebase/services/users'
+import { getMembers }                       from '../../../firebase/services/org'
+import { removeMemberUseCase }              from '../../../usecases/removeMemberUseCase'
+import { updateMemberRoleUseCase }          from '../../../usecases/updateMemberRoleUseCase'
 import { ConfirmDialog }                    from '../../../components/common/ConfirmDialog'
 import { CreateMemberForm }                 from './CreateMemberForm'
 import { getPlanLimits }                    from '../../../config/plans.config'
@@ -35,7 +36,7 @@ export function MembersPage({ orgId, org, onNavigate }) {
 
   const handleRemove = useCallback(async () => {
     try {
-      await removeMember(orgId, confirmRemove.id)
+      await removeMemberUseCase(orgId, confirmRemove.id)
       auditLog(AUDIT_ACTIONS.MEMBER_REMOVED, {
         memberId:   confirmRemove.id,
         memberName: confirmRemove.name ?? confirmRemove.email ?? confirmRemove.id,
@@ -53,10 +54,7 @@ export function MembersPage({ orgId, org, onNavigate }) {
     const snapshot = member.role
     setMembers(prev => prev.map(m => m.id === member.id ? { ...m, role: newRole } : m))
     try {
-      await Promise.all([
-        updateMember(orgId, member.id, { role: newRole }),
-        updateUserProfile(member.id, { role: newRole }),
-      ])
+      await updateMemberRoleUseCase(orgId, member.id, newRole)
       auditLog(AUDIT_ACTIONS.ROLE_CHANGED, {
         memberId:   member.id,
         memberName: member.name ?? member.email ?? member.id,

@@ -1,16 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
-import {
-  getTrainerRecurrences,
-  addRecurrence,
-  updateRecurrence,
-  cancelRecurrence,
-  updateFutureSlots,
-  deleteFutureSlots,
-  addClientToRecurrence,
-  removeClientFromRecurrence,
-  generateRecurrenceDates,
-  addRecurrenceSlots,
-} from '../../firebase/services/calendar'
+import { getTrainerRecurrences }              from '../../firebase/services/calendar'
+import { addRecurrenceUseCase }               from '../../usecases/addRecurrenceUseCase'
+import { updateRecurrenceTimeUseCase }        from '../../usecases/updateRecurrenceTimeUseCase'
+import { updateRecurrenceDaysUseCase }        from '../../usecases/updateRecurrenceDaysUseCase'
+import { extendRecurrenceUseCase }            from '../../usecases/extendRecurrenceUseCase'
+import { addClientToRecurrenceUseCase }       from '../../usecases/addClientToRecurrenceUseCase'
+import { removeClientFromRecurrenceUseCase }  from '../../usecases/removeClientFromRecurrenceUseCase'
+import { cancelRecurrenceUseCase }            from '../../usecases/cancelRecurrenceUseCase'
 
 /**
  * Hook per la gestione completa delle ricorrenze.
@@ -38,17 +34,12 @@ export function useRecurrences(orgId) {
     clientIds, groupIds, days,
     startDate, endDate, startTime, endTime,
   }) => {
-    const recRef       = await addRecurrence(orgId, {
-      clientIds, groupIds, days,
+    const result = await addRecurrenceUseCase({
+      orgId, clientIds, groupIds, days,
       startDate, endDate, startTime, endTime,
     })
-    const recurrenceId = recRef.id
-    const dates        = generateRecurrenceDates(startDate, endDate, days)
-
-    await addRecurrenceSlots(orgId, dates, { startTime, endTime, clientIds, groupIds }, recurrenceId)
-
     const newRec = {
-      id: recurrenceId, clientIds, groupIds,
+      id: result.id, clientIds, groupIds,
       days, startDate, endDate, startTime, endTime,
       status: 'active',
     }
@@ -65,10 +56,7 @@ export function useRecurrences(orgId) {
     ))
 
     try {
-      await Promise.all([
-        updateRecurrence(orgId, recurrenceId, { startTime, endTime }),
-        updateFutureSlots(orgId, recurrenceId, { startTime, endTime }),
-      ])
+      await updateRecurrenceTimeUseCase(orgId, recurrenceId, startTime, endTime)
     } catch {
       setRecurrences(prev => prev.map(r =>
         r.id === recurrenceId ? snapshot : r
@@ -83,7 +71,7 @@ export function useRecurrences(orgId) {
       r.id === recurrenceId ? { ...r, days } : r
     ))
     try {
-      await updateRecurrence(orgId, recurrenceId, { days })
+      await updateRecurrenceDaysUseCase(orgId, recurrenceId, days)
     } catch {
       setRecurrences(prev => prev.map(r =>
         r.id === recurrenceId ? snapshot : r
@@ -102,22 +90,7 @@ export function useRecurrences(orgId) {
     ))
 
     try {
-      const newDates = generateRecurrenceDates(
-        (() => {
-          const d = new Date(rec.endDate + 'T12:00')
-          d.setDate(d.getDate() + 1)
-          return d.toISOString().slice(0, 10)
-        })(),
-        newEndDate,
-        rec.days,
-      )
-
-      await updateRecurrence(orgId, recurrenceId, { endDate: newEndDate })
-      await addRecurrenceSlots(
-        orgId, newDates,
-        { startTime: rec.startTime, endTime: rec.endTime, clientIds: rec.clientIds, groupIds: rec.groupIds },
-        recurrenceId,
-      )
+      await extendRecurrenceUseCase(orgId, recurrenceId, newEndDate)
     } catch {
       setRecurrences(prev => prev.map(r =>
         r.id === recurrenceId ? snapshot : r
@@ -136,7 +109,7 @@ export function useRecurrences(orgId) {
     ))
 
     try {
-      await addClientToRecurrence(orgId, recurrenceId, clientId)
+      await addClientToRecurrenceUseCase(orgId, recurrenceId, clientId)
     } catch {
       setRecurrences(prev => prev.map(r =>
         r.id === recurrenceId ? snapshot : r
@@ -155,7 +128,7 @@ export function useRecurrences(orgId) {
     ))
 
     try {
-      await removeClientFromRecurrence(orgId, recurrenceId, clientId)
+      await removeClientFromRecurrenceUseCase(orgId, recurrenceId, clientId)
     } catch {
       setRecurrences(prev => prev.map(r =>
         r.id === recurrenceId ? snapshot : r
@@ -172,10 +145,7 @@ export function useRecurrences(orgId) {
     ))
 
     try {
-      await Promise.all([
-        cancelRecurrence(orgId, recurrenceId),
-        deleteFutureSlots(orgId, recurrenceId),
-      ])
+      await cancelRecurrenceUseCase(orgId, recurrenceId)
     } catch {
       setRecurrences(prev => prev.map(r =>
         r.id === recurrenceId ? snapshot : r
