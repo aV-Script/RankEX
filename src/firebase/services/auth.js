@@ -7,8 +7,8 @@ import {
   reauthenticateWithCredential, EmailAuthProvider,
   deleteUser,
 } from 'firebase/auth'
-import { initializeApp }           from 'firebase/app'
-import app                         from '../config'
+import { initializeApp } from 'firebase/app'
+import app              from '../config'
 import { auditLog, AUDIT_ACTIONS } from '../../utils/auditLog'
 import { isAdminDomain }           from '../../utils/env'
 
@@ -18,8 +18,8 @@ export const auth = getAuth(app)
 // Tutti gli altri → local persistence (rimane loggato)
 setPersistence(auth, isAdminDomain() ? browserSessionPersistence : browserLocalPersistence)
 
-// App secondaria per creare account cliente senza fare logout del trainer
-// Usa le stesse env vars del config principale
+// App secondaria per creare account membro senza fare logout del trainer corrente.
+// Usata da CreateMemberForm. La creazione cliente è migrata a Cloud Function (creaCliente).
 const SECONDARY_CONFIG = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -56,8 +56,6 @@ export async function changeUserEmail(currentPw, newEmail) {
 
 export async function createClientAccount(email, password) {
   const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password)
-  // Non facciamo signOut subito: teniamo l'utente secondario attivo
-  // per poterlo eliminare in caso di rollback (vedi rollbackClientAccount).
   return cred.user.uid
 }
 
@@ -72,3 +70,4 @@ export async function rollbackClientAccount() {
   }
   try { await signOut(secondaryAuth) } catch {}
 }
+

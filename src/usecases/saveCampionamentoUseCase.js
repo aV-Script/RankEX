@@ -1,30 +1,12 @@
-import { writeBatch, doc, collection }              from 'firebase/firestore'
-import { db }                                        from '../firebase/services/db'
-import { clientsPath, notificationsPath }            from '../firebase/paths'
+import { httpsCallable } from 'firebase/functions'
+import { functions }     from '../firebase/config'
 
-/**
- * Persiste il campionamento su Firestore e invia la notifica al cliente
- * in un unico batch atomico.
- *
- * @param {string} orgId
- * @param {object} client — cliente completo (deve avere id, clientAuthUid, rank)
- * @param {object} update — oggetto già calcolato da buildCampionamentoUpdate
- */
+const _salvaCampionamento = httpsCallable(functions, 'salvaCampionamento')
+
 export async function saveCampionamentoUseCase(orgId, client, update) {
-  const batch = writeBatch(db)
-
-  batch.update(doc(db, clientsPath(orgId), client.id), update)
-
-  if (client.clientAuthUid) {
-    batch.set(doc(collection(db, notificationsPath(orgId))), {
-      clientId:  client.id,
-      message:   `Il tuo trainer ha aggiornato i tuoi parametri — nuovo rank: ${update.rank}`,
-      date:      new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }),
-      type:      'campionamento',
-      read:      false,
-      createdAt: new Date().toISOString(),
-    })
-  }
-
-  await batch.commit()
+  // Estraiamo i dati grezzi dall'update ottimistico per passarli al BE.
+  // Il BE rilegge il client da Firestore e ricalcola in modo atomico.
+  const newStats   = update.stats ?? {}
+  const testValues = update.campionamenti?.[0]?.tests ?? {}
+  await _salvaCampionamento({ orgId, clientId: client.id, newStats, testValues })
 }

@@ -8,6 +8,7 @@ import {
   getRankFromMedia,
   calcStatMedia,
 } from './constants.js'
+import { calcBiaXP } from './bia.js'
 
 function calcLevelProgression(xp, xpNext, level) {
   let cur = xp, next = xpNext, lvl = level
@@ -94,4 +95,94 @@ export function buildXPUpdate(client, xpToAdd, note) {
   const entry = { date: today, action: note || `+${xpToAdd} XP`, xp: xpToAdd, ts: Date.now() }
   const log   = [entry, ...(client.log ?? [])].slice(0, LOG_MAX_ENTRIES)
   return { update: { xp, xpNext, level, log } }
+}
+
+export function buildBiaUpdate(client, newBia) {
+  const today   = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
+  const prevBia = client.lastBia ?? null
+  const xpToAdd = calcBiaXP(newBia, prevBia)
+
+  const biaRecord  = { ...newBia, date: today }
+  const biaHistory = [biaRecord, ...(client.biaHistory ?? [])].slice(0, 50)
+
+  const logEntry = {
+    date:   today,
+    action: `BIA — ${prevBia ? 'Aggiornamento composizione corporea' : 'Prima misurazione'}`,
+    xp:     xpToAdd,
+    ts:     Date.now(),
+  }
+  const log = [logEntry, ...(client.log ?? [])].slice(0, LOG_MAX_ENTRIES)
+
+  const { xp, xpNext, level } = calcLevelProgression(
+    (client.xp ?? 0) + xpToAdd,
+    client.xpNext ?? 500,
+    client.level  ?? 1,
+  )
+
+  return {
+    update:             { lastBia: biaRecord, biaHistory, log, xp, xpNext, level },
+    xpEarned:           xpToAdd,
+    isFirstMeasurement: prevBia === null,
+  }
+}
+
+export function buildProfileUpgrade(client, newProfileType) {
+  const update = { profileType: newProfileType }
+  const today  = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
+
+  if (newProfileType === 'complete') {
+    if (client.profileType === 'tests_only') {
+      update.biaHistory = []
+      update.lastBia    = null
+    } else if (client.profileType === 'bia_only') {
+      update.stats         = {}
+      update.campionamenti = []
+      update.rank          = 'F'
+      update.rankColor     = '#6b7280'
+      update.media         = 0
+      update.categoria     = 'health'
+    }
+  }
+
+  const logEntry = {
+    date:   today,
+    action: `Profilo aggiornato → ${newProfileType === 'complete' ? 'Test + BIA' : newProfileType}`,
+    xp:     0,
+    ts:     Date.now(),
+  }
+  update.log = [logEntry, ...(client.log ?? [])].slice(0, LOG_MAX_ENTRIES)
+  return update
+}
+
+export function buildNewClient(trainerId, formData, defaults) {
+  const today = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
+  const { testValues = {}, stats = {}, ...anagrafica } = formData
+  const profileType = anagrafica.profileType ?? 'tests_only'
+  const hasTests    = profileType !== 'bia_only'
+
+  const media   = hasTests ? calcStatMedia(stats) : 0
+  const rankObj = getRankFromMedia(media)
+
+  const FIRST_CAMP_XP = 50
+  const { xp, xpNext, level } = hasTests
+    ? calcLevelProgression((defaults.xp ?? 0) + FIRST_CAMP_XP, defaults.xpNext, defaults.level)
+    : { xp: defaults.xp ?? 0, xpNext: defaults.xpNext, level: defaults.level }
+
+  return {
+    ...defaults,
+    ...anagrafica,
+    trainerId,
+    xp, xpNext, level,
+    stats:         hasTests ? stats : {},
+    rank:          hasTests ? rankObj.label : 'F',
+    rankColor:     hasTests ? rankObj.color : '#4a5568',
+    media:         hasTests ? media : 0,
+    campionamenti: hasTests ? [{ date: today, stats, tests: testValues, media }] : [],
+    log: [{
+      date:   today,
+      action: 'Primo campionamento effettuato',
+      xp:     hasTests ? FIRST_CAMP_XP : 0,
+      ts:     Date.now(),
+    }],
+  }
 }
