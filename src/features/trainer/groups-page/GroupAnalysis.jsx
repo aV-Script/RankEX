@@ -3,58 +3,18 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid,
 } from 'recharts'
-import { ALL_TESTS } from '../../../constants/index'
-
-function heatColor(val) {
-  if (val == null) return { bg: 'transparent', text: 'rgba(255,255,255,0.15)' }
-  if (val >= 67)   return { bg: 'color-mix(in srgb, var(--rx-green) 15%, transparent)',   text: 'var(--rx-green)' }
-  if (val >= 34)   return { bg: 'rgba(250,204,21,0.12)',  text: '#facc15' }
-  return               { bg: 'rgba(248,113,113,0.13)', text: '#f87171' }
-}
+import {
+  heatColor, buildHeatmap, buildGroupSummary,
+  buildTrendStatOptions, buildTrendChartData,
+} from '../../../utils/groupAnalysis'
 
 export function GroupAnalysis({ clients }) {
 
   // ── Heatmap ─────────────────────────────────────────────────────────────────
-  const { statCols, heatRows, averageRow } = useMemo(() => {
-    const statKeys = new Set()
-    clients.forEach(c => Object.keys(c.stats ?? {}).forEach(k => statKeys.add(k)))
-    const statCols = Array.from(statKeys).map(key => ({
-      key,
-      label: ALL_TESTS.find(t => t.stat === key)?.label ?? key,
-    }))
-    const sorted   = [...clients].sort((a, b) => a.name.localeCompare(b.name))
-    const heatRows = sorted.map(c => ({ client: c, vals: statCols.map(col => c.stats?.[col.key] ?? null) }))
-    const averageRow = statCols.map(col => {
-      const vals = clients.map(c => c.stats?.[col.key]).filter(v => v != null)
-      return vals.length ? Math.round(vals.reduce((s, v) => s + v, 0) / vals.length) : null
-    })
-    return { statCols, heatRows, averageRow }
-  }, [clients])
+  const { statCols, heatRows, averageRow } = useMemo(() => buildHeatmap(clients), [clients])
 
   // ── Riepilogo ────────────────────────────────────────────────────────────────
-  const summary = useMemo(() => {
-    const withLevel = clients.filter(c => c.level != null)
-    const avgLevel  = withLevel.length
-      ? Math.round(withLevel.reduce((s, c) => s + c.level, 0) / withLevel.length)
-      : null
-
-    const rankCount = {}
-    clients.forEach(c => { if (c.rank) rankCount[c.rank] = (rankCount[c.rank] ?? 0) + 1 })
-    const topRankLabel = Object.entries(rankCount).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
-
-    const statAverages = {}
-    const statCounts   = {}
-    clients.forEach(c => Object.entries(c.stats ?? {}).forEach(([k, v]) => {
-      statAverages[k] = (statAverages[k] ?? 0) + v
-      statCounts[k]   = (statCounts[k]   ?? 0) + 1
-    }))
-    const statMeans = Object.entries(statAverages).map(([k, sum]) => ({
-      key: k, label: ALL_TESTS.find(t => t.stat === k)?.label ?? k, mean: sum / statCounts[k],
-    }))
-    const best  = statMeans.reduce((top, s) => s.mean > (top?.mean ?? -Infinity) ? s : top, null)
-    const worst = statMeans.reduce((bot, s) => s.mean < (bot?.mean ??  Infinity) ? s : bot, null)
-    return { avgLevel, topRankLabel, best, worst }
-  }, [clients])
+  const summary = useMemo(() => buildGroupSummary(clients), [clients])
 
   if (clients.length === 0) {
     return (
@@ -184,42 +144,9 @@ function StatTile({ label, value, sub, gold, positive, negative }) {
 function GroupTrendChart({ clients }) {
   const [selected, setSelected] = useState('media')
 
-  const statOptions = useMemo(() => {
-    const keys = new Set()
-    clients.forEach(c =>
-      c.campionamenti?.forEach(camp =>
-        Object.keys(camp.stats ?? {}).forEach(k => keys.add(k))
-      )
-    )
-    return [
-      { key: 'media', label: 'Media' },
-      ...Array.from(keys).map(key => ({
-        key,
-        label: ALL_TESTS.find(t => t.stat === key)?.label ?? key,
-      })),
-    ]
-  }, [clients])
+  const statOptions = useMemo(() => buildTrendStatOptions(clients), [clients])
 
-  const chartData = useMemo(() => {
-    const dateMap = new Map()
-    clients.forEach(c => {
-      c.campionamenti?.forEach(camp => {
-        if (!camp.date) return
-        const val = selected === 'media' ? camp.media : camp.stats?.[selected]
-        if (val == null) return
-        const entry = dateMap.get(camp.date) ?? []
-        entry.push(val)
-        dateMap.set(camp.date, entry)
-      })
-    })
-    return Array.from(dateMap.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([date, vals]) => ({
-        date:   date.slice(5).replace('-', '/'),
-        valore: Math.round(vals.reduce((s, v) => s + v, 0) / vals.length),
-        n:      vals.length,
-      }))
-  }, [clients, selected])
+  const chartData = useMemo(() => buildTrendChartData(clients, selected), [clients, selected])
 
   const hasData = chartData.length >= 2
 

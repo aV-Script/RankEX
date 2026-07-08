@@ -1,6 +1,7 @@
 import { useState, useEffect }                from 'react'
 import { SectionLabel, EmptyState }          from '../../../components/ui'
 import { getWorkoutPlanForClient }           from '../../../firebase/services/workoutPlans'
+import { normalizePlanDays }                 from '../../../utils/workoutPlans'
 
 /**
  * Sezione scheda allenamento nella dashboard cliente.
@@ -34,10 +35,7 @@ export function ClientWorkoutSection({ orgId, clientId, color }) {
     </section>
   )
 
-  // Normalizza: supporta sia il vecchio formato exercises[] che il nuovo days[]
-  const days = plan.days?.length
-    ? plan.days
-    : [{ label: 'Giorno 1', exercises: plan.exercises ?? [] }]
+  const days = normalizePlanDays(plan)
 
   const safeDay  = Math.min(activeDay, days.length - 1)
   const day      = days[safeDay]

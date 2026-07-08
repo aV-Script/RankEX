@@ -27,15 +27,17 @@ async function loginAndSave(browser, email, password, authPath) {
 
   try {
     await page.goto(`${BASE}/login`)
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('load')
 
-    await page.getByLabel(/email/i).fill(email)
-    await page.getByLabel(/password/i).fill(password)
+    // .first() necessario: getByLabel(/password/i) intercetta anche il bottone
+    // "Mostra password", che matcha la stessa regex tramite aria-label.
+    await page.getByLabel(/email/i).first().fill(email)
+    await page.getByLabel(/password/i).first().fill(password)
     await page.getByRole('button', { name: /accedi/i }).click()
 
     // Aspetta che il login sia completato (URL cambia da /login)
     await page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 20_000 })
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('load')
 
     await ctx.storageState({ path: authPath })
     console.log(`  ✅  ${email}`)

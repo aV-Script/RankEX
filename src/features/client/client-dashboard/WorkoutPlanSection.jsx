@@ -8,6 +8,7 @@ import {
   deleteWorkoutPlan,
 } from '../../../firebase/services/workoutPlans'
 import { useToast }                from '../../../hooks/useToast'
+import { normalizePlanDays }       from '../../../utils/workoutPlans'
 
 /**
  * Sezione schede allenamento nella dashboard trainer.
@@ -205,10 +206,7 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
 // ── Sottocomponenti ───────────────────────────────────────────────────────────
 
 function PlanDisplay({ plan, color, activeDay, onDayChange, readonly, onArchive }) {
-  // Normalizza: supporta sia il vecchio formato exercises[] che il nuovo days[]
-  const days = plan.days?.length
-    ? plan.days
-    : [{ label: 'Giorno 1', exercises: plan.exercises ?? [] }]
+  const days = normalizePlanDays(plan)
 
   const safeDay  = Math.min(activeDay, days.length - 1)
   const day      = days[safeDay]

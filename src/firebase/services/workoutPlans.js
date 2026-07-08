@@ -4,6 +4,7 @@ import {
 } from 'firebase/firestore'
 import { db }               from './db'
 import { workoutPlansPath } from '../paths'
+import { pickActivePlan, sortPlansByCreatedAtDesc } from '../../utils/workoutPlans'
 
 export const getWorkoutPlans = async (orgId) => {
   try {
@@ -21,9 +22,7 @@ export const getClientPlans = async (orgId, clientId) => {
   try {
     const q    = query(collection(db, workoutPlansPath(orgId)), where('clientId', '==', clientId))
     const snap = await getDocs(q)
-    return snap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    return sortPlansByCreatedAtDesc(snap.docs.map(d => ({ id: d.id, ...d.data() })))
   } catch {
     return []
   }
@@ -32,7 +31,7 @@ export const getClientPlans = async (orgId, clientId) => {
 // Scheda attiva di un cliente (usato dal lato client)
 export const getWorkoutPlanForClient = async (orgId, clientId) => {
   const plans = await getClientPlans(orgId, clientId)
-  return plans.find(p => p.status === 'active') ?? null
+  return pickActivePlan(plans)
 }
 
 export const addWorkoutPlan = (orgId, data) =>

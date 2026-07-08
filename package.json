@@ -12,6 +12,7 @@
     "lint:fix": "eslint src --fix",
     "test": "vitest",
     "test:run": "vitest run --passWithNoTests",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-rankex-rules-test \"vitest run --config vitest.rules.config.js\"",
     "test:e2e": "playwright test --project=app",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:setup": "node -e \"import('./e2e/global.setup.js').then(m => m.default())\"",
@@ -45,6 +46,7 @@
     "recharts": "^2.12.0"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^3.0.4",
     "@playwright/test": "^1.60.0",
     "@tailwindcss/vite": "^4.2.4",
     "@vitejs/plugin-react": "^4.3.1",

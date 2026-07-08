@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { getAuth }                          from 'firebase/auth'
 import app                                  from '../firebase/config'
 import { getNotes, addNote, deleteNoteItem } from '../firebase/services/notes'
+import { buildNoteThreads, notesToDeleteForCascade } from '../utils/notes'
 import { useToast }                         from './useToast'
 
 /**
@@ -29,12 +30,7 @@ export function useNotes(orgId, clientId, author) {
   }, [orgId, clientId, toastError])
 
   // Raggruppamento: thread root (parentId null) + loro commenti
-  const threads = notes
-    .filter(n => !n.parentId)
-    .map(root => ({
-      ...root,
-      comments: notes.filter(n => n.parentId === root.id),
-    }))
+  const threads = buildNoteThreads(notes)
 
   const handleAddThread = useCallback(async (text) => {
     if (!text.trim()) return
@@ -73,7 +69,7 @@ export function useNotes(orgId, clientId, author) {
   }, [orgId, clientId, author, authorId, toastError])
 
   const handleDelete = useCallback(async (noteId) => {
-    const toDelete = notes.filter(n => n.id === noteId || n.parentId === noteId)
+    const toDelete = notesToDeleteForCascade(notes, noteId)
     try {
       await Promise.all(toDelete.map(n => deleteNoteItem(orgId, clientId, n.id)))
       setNotes(prev => prev.filter(n => n.id !== noteId && n.parentId !== noteId))

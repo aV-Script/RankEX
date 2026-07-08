@@ -1,19 +1,17 @@
 import { useState, useMemo, memo } from 'react'
-import { ALL_TESTS }               from '../../../constants/index'
 import { usePagination }           from '../../../hooks/usePagination'
 import { Pagination }              from '../../../components/common/Pagination'
+import {
+  pickDefaultComparisonClients, buildComparisonStatCols, isMaxValue,
+  computeRadarAngles, computeRadarOuterPoints, buildRadarPolygon,
+} from '../../../utils/groupAnalysis'
 
 const COMPARISON_COLORS  = ['var(--rx-green)', '#2ecfff', '#ffd700']
 const MAX_SELECTED       = 2
 const SELECTOR_PAGE_SIZE = 6
 
 export function GroupComparison({ clients }) {
-  const defaultSelected = useMemo(() => {
-    const sorted = [...clients]
-      .filter(c => c.media != null)
-      .sort((a, b) => b.media - a.media)
-    return sorted.slice(0, 2).map(c => c.id)
-  }, [clients])
+  const defaultSelected = useMemo(() => pickDefaultComparisonClients(clients, MAX_SELECTED), [clients])
 
   const [selected, setSelected] = useState(defaultSelected)
 
@@ -27,14 +25,7 @@ export function GroupComparison({ clients }) {
     [clients, selected]
   )
 
-  const statCols = useMemo(() => {
-    const keys = new Set()
-    selectedClients.forEach(c => Object.keys(c.stats ?? {}).forEach(k => keys.add(k)))
-    return Array.from(keys).map(key => ({
-      key,
-      label: ALL_TESTS.find(t => t.stat === key)?.label ?? key,
-    }))
-  }, [selectedClients])
+  const statCols = useMemo(() => buildComparisonStatCols(selectedClients), [selectedClients])
 
   const selectorPagination = usePagination(unselectedClients, SELECTOR_PAGE_SIZE)
 
@@ -175,10 +166,9 @@ const PentagonMulti = memo(function PentagonMulti({ clients, statKeys, statLabel
   const cx   = size / 2
   const cy   = size / 2
   const R    = size * 0.38
-  const n    = statKeys.length
 
-  const angles      = statKeys.map((_, i) => (Math.PI * 2 * i) / n - Math.PI / 2)
-  const outerPoints = angles.map(a => ({ x: cx + R * Math.cos(a), y: cy + R * Math.sin(a) }))
+  const angles      = computeRadarAngles(statKeys.length)
+  const outerPoints = computeRadarOuterPoints(cx, cy, R, angles)
   const toPath = pts =>
     pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ') + ' Z'
 
@@ -201,10 +191,7 @@ const PentagonMulti = memo(function PentagonMulti({ clients, statKeys, statLabel
       {[...clients].reverse().map((client, revIdx) => {
         const i     = clients.length - 1 - revIdx
         const color = colors[i]
-        const pts   = statKeys.map((key, ki) => {
-          const val = Math.min(100, Math.max(0, client.stats?.[key] ?? 0))
-          return { x: cx + (val / 100) * R * Math.cos(angles[ki]), y: cy + (val / 100) * R * Math.sin(angles[ki]) }
-        })
+        const pts = buildRadarPolygon(cx, cy, R, angles, statKeys, client.stats)
         return (
           <g key={client.id}>
             <path d={toPath(pts)} fill={color + '22'} stroke={color} strokeWidth="2" strokeLinejoin="round" />
@@ -304,7 +291,7 @@ function ComparisonTable({ clients, statCols }) {
             </td>
             {clients.map((c, i) => {
               const val   = c.stats?.[col.key]
-              const isMax = val != null && clients.every(o => o.id === c.id || (o.stats?.[col.key] ?? -1) <= val)
+              const isMax = isMaxValue(clients, col.key, c.id)
               return (
                 <td key={c.id} className="py-1.5 px-1 text-right border-t border-white/[.04]">
                   <span
