@@ -1,6 +1,6 @@
 import {
-  collection, getDocs, addDoc, updateDoc, deleteDoc,
-  doc, query, orderBy, where,
+  collection, getDocs,
+  query, orderBy, where,
 } from 'firebase/firestore'
 import { db }               from './db'
 import { workoutPlansPath } from '../paths'
@@ -33,20 +33,3 @@ export const getWorkoutPlanForClient = async (orgId, clientId) => {
   const plans = await getClientPlans(orgId, clientId)
   return pickActivePlan(plans)
 }
-
-export const addWorkoutPlan = (orgId, data) =>
-  addDoc(collection(db, workoutPlansPath(orgId)), {
-    ...data,
-    status:    'active',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  })
-
-export const updateWorkoutPlan = (orgId, planId, data) =>
-  updateDoc(doc(db, workoutPlansPath(orgId), planId), {
-    ...data,
-    updatedAt: new Date().toISOString(),
-  })
-
-export const deleteWorkoutPlan = (orgId, planId) =>
-  deleteDoc(doc(db, workoutPlansPath(orgId), planId))

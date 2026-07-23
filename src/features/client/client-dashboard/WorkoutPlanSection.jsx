@@ -1,14 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
-import { SectionLabel }            from '../../../components/ui'
-import { WorkoutPlanForm }         from '../../trainer/workout-plans/WorkoutPlanForm'
-import {
-  getClientPlans,
-  addWorkoutPlan,
-  updateWorkoutPlan,
-  deleteWorkoutPlan,
-} from '../../../firebase/services/workoutPlans'
-import { useToast }                from '../../../hooks/useToast'
-import { normalizePlanDays }       from '../../../utils/workoutPlans'
+import { SectionLabel }                  from '../../../components/ui'
+import { WorkoutPlanForm }               from '../../trainer/workout-plans/WorkoutPlanForm'
+import { getClientPlans }                from '../../../firebase/services/workoutPlans'
+import { addWorkoutPlanUseCase }         from '../../../usecases/addWorkoutPlanUseCase'
+import { updateWorkoutPlanUseCase }      from '../../../usecases/updateWorkoutPlanUseCase'
+import { deleteWorkoutPlanUseCase }      from '../../../usecases/deleteWorkoutPlanUseCase'
+import { useToast }                      from '../../../hooks/useToast'
+import { normalizePlanDays }             from '../../../utils/workoutPlans'
 
 /**
  * Sezione schede allenamento nella dashboard trainer.
@@ -40,27 +38,25 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
     try {
       if (editing) {
         const updated = { title, description, days }
-        await updateWorkoutPlan(orgId, editing.id, updated)
+        await updateWorkoutPlanUseCase(orgId, editing.id, updated)
         setPlans(prev => prev.map(p =>
           p.id === editing.id
             ? { ...p, ...updated, updatedAt: new Date().toISOString() }
             : p
         ))
       } else {
-        if (activePlan) {
-          await updateWorkoutPlan(orgId, activePlan.id, { status: 'archived' })
-          setPlans(prev => prev.map(p =>
-            p.id === activePlan.id ? { ...p, status: 'archived' } : p
-          ))
-        }
-        const ref     = await addWorkoutPlan(orgId, { title, description, clientId, days })
+        // Il BE archivia automaticamente la scheda attiva corrente
+        const newId   = await addWorkoutPlanUseCase(orgId, clientId, title, description, days)
         const newPlan = {
-          id: ref.id, title, description, clientId, days,
+          id: newId, title, description, clientId, days,
           status:    'active',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         }
-        setPlans(prev => [newPlan, ...prev.filter(p => p.id !== activePlan?.id), ...(activePlan ? [{ ...activePlan, status: 'archived' }] : [])])
+        setPlans(prev => [
+          newPlan,
+          ...prev.map(p => p.id === activePlan?.id ? { ...p, status: 'archived' } : p),
+        ])
       }
       setView('read')
       setEditing(null)
@@ -72,7 +68,7 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
 
   const handleArchive = useCallback(async (plan) => {
     try {
-      await updateWorkoutPlan(orgId, plan.id, { status: 'archived' })
+      await updateWorkoutPlanUseCase(orgId, plan.id, { status: 'archived' })
       setPlans(prev => prev.map(p => p.id === plan.id ? { ...p, status: 'archived' } : p))
     } catch {
       toastError('Impossibile archiviare la scheda')
@@ -81,7 +77,7 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
 
   const handleDelete = useCallback(async (plan) => {
     try {
-      await deleteWorkoutPlan(orgId, plan.id)
+      await deleteWorkoutPlanUseCase(orgId, plan.id)
       setPlans(prev => prev.filter(p => p.id !== plan.id))
     } catch {
       toastError('Impossibile eliminare la scheda')

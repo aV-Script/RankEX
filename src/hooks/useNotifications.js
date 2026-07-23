@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   getNotifications,
-  markAllNotificationsRead,
   deleteNotification,
 } from '../firebase/services/notifications'
+import { markAllNotificationsReadUseCase } from '../usecases/markAllNotificationsReadUseCase'
 
 const NOTIF_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 giorni
 
@@ -38,7 +38,7 @@ export function useNotifications(orgId, clientId) {
   const markAllRead = useCallback(async () => {
     const readAt = new Date().toISOString()
     try {
-      await markAllNotificationsRead(orgId, clientId, readAt)
+      await markAllNotificationsReadUseCase(orgId, clientId)
       setNotifications(prev => prev.map(n => n.read ? n : { ...n, read: true, readAt }))
       setUnreadCount(0)
     } catch {

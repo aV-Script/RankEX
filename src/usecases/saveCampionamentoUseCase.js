@@ -1,30 +1,9 @@
-import { writeBatch, doc, collection }              from 'firebase/firestore'
-import { db }                                        from '../firebase/services/db'
-import { clientsPath, notificationsPath }            from '../firebase/paths'
+import { httpsCallable } from 'firebase/functions'
+import { functions }     from '../firebase/config'
 
-/**
- * Persiste il campionamento su Firestore e invia la notifica al cliente
- * in un unico batch atomico.
- *
- * @param {string} orgId
- * @param {object} client — cliente completo (deve avere id, clientAuthUid, rank)
- * @param {object} update — oggetto già calcolato da buildCampionamentoUpdate
- */
-export async function saveCampionamentoUseCase(orgId, client, update) {
-  const batch = writeBatch(db)
+const _salvaCampionamento = httpsCallable(functions, 'salvaCampionamento')
 
-  batch.update(doc(db, clientsPath(orgId), client.id), update)
-
-  if (client.clientAuthUid) {
-    batch.set(doc(collection(db, notificationsPath(orgId))), {
-      clientId:  client.id,
-      message:   `Il tuo trainer ha aggiornato i tuoi parametri — nuovo rank: ${update.rank}`,
-      date:      new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }),
-      type:      'campionamento',
-      read:      false,
-      createdAt: new Date().toISOString(),
-    })
-  }
-
-  await batch.commit()
+export async function saveCampionamentoUseCase(orgId, client, _update, testValues) {
+  // Il BE calcola i percentili server-side dai valori grezzi (testValues).
+  await _salvaCampionamento({ orgId, clientId: client.id, testValues: testValues ?? {} })
 }

@@ -1,5 +1,9 @@
 import { useState, useEffect, useMemo } from 'react'
+import { httpsCallable }                from 'firebase/functions'
 import { getOrganizations }             from '../../../firebase/services/org'
+import { functions }                    from '../../../firebase/config'
+
+const _recalcola = httpsCallable(functions, 'recalcolaCampionamenti')
 
 const MODULE_LABELS = {
   personal_training: 'Personal Training',
@@ -21,6 +25,33 @@ const PLAN_COLORS = {
 export function AdminDashboard({ onSelectOrg }) {
   const [orgs,    setOrgs]    = useState([])
   const [loading, setLoading] = useState(true)
+
+  // ── Strumenti: ricalcolo campionamenti ────────────────────────────────────
+  const [recalcState, setRecalcState] = useState('idle') // idle | dry | review | running | done | error
+  const [recalcResult, setRecalcResult] = useState(null) // { patched, skipped, report }
+
+  const handleDryRun = async () => {
+    setRecalcState('dry')
+    setRecalcResult(null)
+    try {
+      const { data } = await _recalcola({ dryRun: true })
+      setRecalcResult(data)
+      setRecalcState('review')
+    } catch {
+      setRecalcState('error')
+    }
+  }
+
+  const handleConfirmRecalc = async () => {
+    setRecalcState('running')
+    try {
+      const { data } = await _recalcola({ dryRun: false })
+      setRecalcResult(data)
+      setRecalcState('done')
+    } catch {
+      setRecalcState('error')
+    }
+  }
 
   useEffect(() => {
     getOrganizations()
@@ -129,6 +160,98 @@ export function AdminDashboard({ onSelectOrg }) {
           </div>
         </div>
       )}
+
+      {/* ── Strumenti ───────────────────────────────────────────────────────── */}
+      <div className="mt-10">
+        <div className="font-display text-[10px] tracking-[2px] text-white/25 mb-3">STRUMENTI</div>
+        <div
+          className="rounded-[4px] p-5 border"
+          style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.06)' }}
+        >
+          <div className="font-display text-[12px] text-white mb-1">Ricalcola Campionamenti</div>
+          <div className="font-body text-[11px] text-white/40 mb-4">
+            Ricalcola percentili e rank su tutti i campionamenti esistenti dopo una correzione delle tabelle normative.
+          </div>
+
+          {recalcState === 'idle' && (
+            <button
+              onClick={handleDryRun}
+              className="font-display text-[10px] tracking-[1.5px] px-4 py-2 rounded-[3px] border transition-all"
+              style={{ borderColor: '#f87171', color: '#f87171', background: 'transparent' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.08)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+            >
+              ANTEPRIMA DRY-RUN
+            </button>
+          )}
+
+          {(recalcState === 'dry' || recalcState === 'running') && (
+            <div className="font-body text-[11px] text-white/40 flex items-center gap-2">
+              <span className="animate-spin inline-block w-3 h-3 border border-white/30 border-t-white/80 rounded-full" />
+              {recalcState === 'dry' ? 'Analisi in corso…' : 'Ricalcolo in corso…'}
+            </div>
+          )}
+
+          {recalcState === 'review' && recalcResult && (
+            <div>
+              <div className="font-body text-[11px] text-white/60 mb-3">
+                <span className="text-white font-bold">{recalcResult.patched}</span> client da aggiornare ·{' '}
+                <span className="text-white/40">{recalcResult.skipped} invariati</span>
+              </div>
+              {recalcResult.report.length > 0 && (
+                <div
+                  className="rounded-[3px] p-3 mb-4 font-mono text-[10px] text-white/50 max-h-40 overflow-y-auto"
+                  style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.06)' }}
+                >
+                  {recalcResult.report.map((line, i) => <div key={i}>{line}</div>)}
+                </div>
+              )}
+              <div className="flex gap-3">
+                <button
+                  onClick={handleConfirmRecalc}
+                  className="font-display text-[10px] tracking-[1.5px] px-4 py-2 rounded-[3px] border transition-all"
+                  style={{ borderColor: '#f87171', color: '#fff', background: '#f87171' }}
+                >
+                  CONFERMA RICALCOLO
+                </button>
+                <button
+                  onClick={() => { setRecalcState('idle'); setRecalcResult(null) }}
+                  className="font-display text-[10px] tracking-[1.5px] px-4 py-2 rounded-[3px] border transition-all text-white/40"
+                  style={{ borderColor: 'rgba(255,255,255,0.1)', background: 'transparent' }}
+                >
+                  ANNULLA
+                </button>
+              </div>
+            </div>
+          )}
+
+          {recalcState === 'done' && recalcResult && (
+            <div className="flex items-center gap-3">
+              <span className="text-[#4ade80] text-[11px] font-body">
+                ✓ {recalcResult.patched} client aggiornati
+              </span>
+              <button
+                onClick={() => { setRecalcState('idle'); setRecalcResult(null) }}
+                className="font-display text-[9px] tracking-[1px] text-white/30 hover:text-white/60 transition-colors"
+              >
+                CHIUDI
+              </button>
+            </div>
+          )}
+
+          {recalcState === 'error' && (
+            <div className="flex items-center gap-3">
+              <span className="text-[#f87171] text-[11px] font-body">Errore durante il ricalcolo</span>
+              <button
+                onClick={() => setRecalcState('idle')}
+                className="font-display text-[9px] tracking-[1px] text-white/30 hover:text-white/60 transition-colors"
+              >
+                RIPROVA
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

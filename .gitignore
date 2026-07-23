@@ -48,6 +48,9 @@ Thumbs.db
 service-account.json
 service-account*.json
 
+# Functions — dipendenze locali
+functions/node_modules/
+
 # File di analisi locali
 *.xlsx
 *.xls

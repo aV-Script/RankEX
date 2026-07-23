@@ -1,7 +1,5 @@
 import { useState }              from 'react'
-import { createClientAccount, finalizeClientAccount, rollbackClientAccount } from '../../../firebase/services/auth'
-import { createUserProfile }     from '../../../firebase/services/users'
-import { addMember }             from '../../../firebase/services/org'
+import { createMemberUseCase }   from '../../../usecases/createMemberUseCase'
 
 const ROLE_OPTIONS = [
   { value: 'trainer',        label: 'Trainer' },
@@ -10,7 +8,7 @@ const ROLE_OPTIONS = [
 ]
 
 /**
- * Flusso: crea account Firebase Auth → crea profilo users/{uid} → addMember
+ * Flusso: crea membro via Cloud Function (creaMembroTeam) — Auth + Firestore in atomico.
  */
 export function CreateMemberForm({ orgId, onClose, onCreated }) {
   const [form,   setForm]   = useState({ name: '', email: '', password: '', role: 'trainer' })
@@ -23,27 +21,10 @@ export function CreateMemberForm({ orgId, onClose, onCreated }) {
     setSaving(true)
     setError(null)
 
-    let authCreated = false
     try {
-      const uid = await createClientAccount(form.email, form.password)
-      authCreated = true
-      await createUserProfile(uid, {
-        role:  form.role,
-        orgId,
-        name:  form.name,
-        email: form.email,
-        mustChangePassword: true,
-      })
-      await addMember(orgId, uid, {
-        name:  form.name,
-        email: form.email,
-        role:  form.role,
-      })
-      await finalizeClientAccount()
-      onCreated({ id: uid, name: form.name, email: form.email, role: form.role })
+      const member = await createMemberUseCase(orgId, form.role, form.name, form.email, form.password)
+      onCreated({ id: member.uid, name: member.name, email: member.email, role: member.role })
     } catch (err) {
-      if (authCreated) await rollbackClientAccount()
-      else await finalizeClientAccount()
       setError(err.message)
     } finally {
       setSaving(false)

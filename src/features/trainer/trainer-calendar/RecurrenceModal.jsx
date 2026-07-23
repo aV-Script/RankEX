@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { generateRecurrenceDates } from '../../../firebase/services/calendar'
+import { generateRecurrenceDates } from '../../../utils/calendarUtils'
 
 const WEEK_DAYS = [
   { value: 1, label: 'Lun' }, { value: 2, label: 'Mar' }, { value: 3, label: 'Mer' },
