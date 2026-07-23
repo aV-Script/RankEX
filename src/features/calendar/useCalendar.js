@@ -75,8 +75,10 @@ export function useCalendar(orgId) {
 
     try {
       const slot = await addSlotUseCase(orgId, date, startTime, endTime, clientIds, groupIds)
-      // Sostituisci il temp con il reale
-      setSlots(prev => prev.map(s => s.id === tempId ? slot : s))
+      // Sostituisci il temp con il reale — se il BE ha fatto merge in uno slot
+      // già esistente (stessa data+ora), rimuovi anche la sua vecchia entry
+      // per evitare un doppione in UI
+      setSlots(prev => [...prev.filter(s => s.id !== tempId && s.id !== slot.id), slot])
       return slot
     } catch {
       // Rimuovi lo slot temporaneo in caso di errore
