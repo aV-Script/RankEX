@@ -11,7 +11,7 @@ import { ClientCalendar }             from '../ClientCalendar'
 import { calcAge }                    from '../../../utils/validation'
 import { ClientHub }                  from './ClientHub'
 import { ClientBottomNav }            from './ClientBottomNav'
-import { AvatarEditor }               from './avatar/AvatarEditor'
+import { AvatarPicker }               from './avatar/AvatarPicker'
 import { TrophiesSection }            from '../client-dashboard/TrophiesSection'
 import { XPTrendChart }               from '../client-dashboard/XPTrendChart'
 import { useBadges }                  from '../../../hooks/useBadges'
@@ -190,6 +190,7 @@ export function ClientDashboardPage({
         onTabChange={handleTabChange}
         color={displayColor}
         client={client}
+        orgId={orgId}
         unreadCount={unreadCount}
         onOpenNotifs={onOpenNotifs}
       />
@@ -198,6 +199,7 @@ export function ClientDashboardPage({
       {isHome && (
         <ClientHub
           client={client}
+          orgId={orgId}
           color={displayColor}
           rankObj={rankObj}
           onTabChange={handleTabChange}
@@ -303,7 +305,7 @@ export function ClientDashboardPage({
               <div key={profiloTab} className="rx-animate-in flex-1">
 
                 {profiloTab === 'avatar' && (
-                  <AvatarEditor client={client} clientId={clientId} orgId={orgId} color={displayColor} />
+                  <AvatarPicker client={client} clientId={clientId} orgId={orgId} color={displayColor} />
                 )}
 
                 {profiloTab === 'note' && orgId && (

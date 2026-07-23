@@ -2,7 +2,7 @@
 // e nav orizzontale in alto (desktop, quando non sull'hub)
 
 import { useState }       from 'react'
-import { SoccerAvatar }   from './avatar/SoccerAvatar'
+import { AvatarDisplay }  from './avatar/AvatarDisplay'
 import { logout }         from '../../../firebase/services/auth'
 import { BellIcon, LogoutIcon } from './client.config'
 import { ConfirmDialog }  from '../../../components/common/ConfirmDialog'
@@ -31,13 +31,13 @@ export function ClientBottomNav({
   onTabChange,
   color,
   client,
+  orgId,
   unreadCount = 0,
   onOpenNotifs,
 }) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const isHome     = activeTab === 'home'
-  const av         = client?.avatar ?? {}
   const isActive   = (id) => activeTab === id || activeTab.startsWith(id + '/')
 
   // ── NavBtn compatto (mobile bassa + desktop alta) ──────────────────────────
@@ -154,13 +154,8 @@ export function ClientBottomNav({
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
-            <SoccerAvatar
-              color={color} width={34} height={34}
-              skinTone={av.skinTone} hairColor={av.hairColor} hairStyle={av.hairStyle}
-              expression={av.expression} accessory={av.accessory} clothing={av.clothing}
-              jerseyColor={av.jerseyColor} facialHair={av.facialHair}
-              facialHairColor={av.facialHairColor} clothingGraphic={av.clothingGraphic}
-              hatColor={av.hatColor} accessoriesColor={av.accessoriesColor}
+            <AvatarDisplay
+              avatarId={client?.avatarId} orgId={orgId} width={34} height={34}
             />
           </button>
 

@@ -27,7 +27,7 @@ import { calcBiaScore, getBiaRankFromScore } from '../../utils/bia'
 import { calcAge }                           from '../../utils/validation'
 import { resetPassword }                     from '../../firebase/services/auth'
 import { PLAYER_ROLES }                      from '../../config/modules.config'
-import { SoccerAvatar }                       from './client-view/avatar/SoccerAvatar'
+import { AvatarDisplay }                      from './client-view/avatar/AvatarDisplay'
 import { TrophiesSection }                   from './client-dashboard/TrophiesSection'
 import { useBadges }                         from '../../hooks/useBadges'
 import { useRegisterContextMenu }            from '../../context/NavMenuContext'
@@ -397,7 +397,6 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
         <div key={tab} className="rx-animate-in">
 
           {tab === 'atleta' && (() => {
-            const av        = client.avatar ?? {}
             const mediaVal  = client.media != null ? Math.round(client.media) : null
             const roleLabel = ruoloObj?.label ?? categoriaObj?.label ?? null
 
@@ -411,15 +410,11 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
                   {/* Avatar + Info */}
                   <div className="flex items-center gap-4 px-4 pt-4 pb-3">
 
-                    {/* Avatar — quadrato, DiceBear gestisce il cerchio internamente */}
+                    {/* Avatar */}
                     <div className="relative flex-shrink-0" style={{ width: 80, height: 80 }}>
-                      <SoccerAvatar
-                        color="var(--rx-green)" width={80} height={80}
-                        skinTone={av.skinTone} hairColor={av.hairColor} hairStyle={av.hairStyle}
-                        expression={av.expression} accessory={av.accessory} clothing={av.clothing}
-                        jerseyColor={av.jerseyColor} facialHair={av.facialHair}
-                        facialHairColor={av.facialHairColor} clothingGraphic={av.clothingGraphic}
-                        hatColor={av.hatColor} accessoriesColor={av.accessoriesColor}
+                      <AvatarDisplay
+                        avatarId={client.avatarId} orgId={orgId} width={80} height={80}
+                        style={{ borderRadius: '50%' }}
                       />
                       {/* Ring colorato sopra */}
                       <div className="absolute inset-0 rounded-full pointer-events-none"

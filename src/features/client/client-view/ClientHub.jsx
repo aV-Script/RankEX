@@ -1,7 +1,7 @@
 // Hub screen: pentagono di navigazione con avatar al centro
 
 import { useState, useEffect } from 'react'
-import { SoccerAvatar }        from './avatar/SoccerAvatar'
+import { AvatarDisplay }       from './avatar/AvatarDisplay'
 import { BadgeMedal }          from '../../../components/ui/BadgeMedal'
 import { BADGES }              from '../../../config/badges.config'
 
@@ -77,7 +77,7 @@ function getShowcaseBadges(badges, showcase) {
 
 // ── ClientHub ─────────────────────────────────────────────────────────────────
 
-export function ClientHub({ client, color, rankObj, onTabChange }) {
+export function ClientHub({ client, orgId, color, rankObj, onTabChange }) {
   const [vpW,        setVpW]        = useState(() => window.innerWidth)
   const [hoveredIdx, setHoveredIdx] = useState(null)
 
@@ -99,7 +99,6 @@ export function ClientHub({ client, color, rankObj, onTabChange }) {
   const CY = H / 2
 
   const verts = pentagonVerts(R)
-  const av    = client.avatar ?? {}
 
   // XP progress — 5 segmenti con gap attorno a ogni icona vertice
   const xp        = client.xp    ?? 0
@@ -297,22 +296,11 @@ export function ClientHub({ client, color, rankObj, onTabChange }) {
           top:  CY - avatarSize / 2,
           pointerEvents: 'none',
         }}>
-          <SoccerAvatar
-            color={color}
+          <AvatarDisplay
+            avatarId={client.avatarId}
+            orgId={orgId}
             width={avatarSize} height={avatarSize}
-            skinTone={av.skinTone}
-            hairColor={av.hairColor}
-            hairStyle={av.hairStyle}
-            expression={av.expression}
-            accessory={av.accessory}
-            clothing={av.clothing}
-            jerseyColor={av.jerseyColor}
-            facialHair={av.facialHair}
-            facialHairColor={av.facialHairColor}
-            clothingGraphic={av.clothingGraphic}
-            hatColor={av.hatColor}
-            accessoriesColor={av.accessoriesColor}
-            number={av.number}
+            style={{ borderRadius: '50%' }}
           />
         </div>
       </div>{/* inner scaled */}
