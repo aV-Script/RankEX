@@ -64,7 +64,7 @@ export function BiaView({ client, color, onSave, onBack }) {
     <div className="min-h-screen text-white">
 
       {/* Contenuto */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 pb-24 lg:pb-8">
         <p className="font-body text-[13px] text-white/40 mb-6">
           {client.name} · {client.sesso} · {calcAge(client.dataNascita)} anni
           {bmiComputed && (
@@ -210,6 +210,20 @@ export function BiaView({ client, color, onSave, onBack }) {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Mobile — barra azioni fissa in basso (colonna destra è hidden lg:flex) */}
+      <div
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex gap-2 px-4 py-3"
+        style={{
+          background:     'var(--rx-nav-bg)',
+          backdropFilter: 'blur(20px)',
+          borderTop:      '1px solid var(--rx-border)',
+          paddingBottom:  'calc(12px + env(safe-area-inset-bottom))',
+        }}
+      >
+        <Button size="sm" variant="ghost" onClick={onBack} className="flex-1">INDIETRO</Button>
+        <Button size="sm" onClick={handleRequestSave} className="flex-1">SALVA BIA</Button>
       </div>
 
       {showConfirm && (
