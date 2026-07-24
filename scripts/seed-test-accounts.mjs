@@ -228,6 +228,8 @@ async function main() {
         await fsWrite(`users/${session.localId}`, {
           role:               acc.role,
           orgId:              acc.orgId,
+          name:               `${acc.key} (Test)`,
+          email:              acc.email,
           moduleType:         acc.orgId === ORG_SOCCER ? 'soccer_academy' : 'personal_training',
           terminologyVariant: acc.orgId === ORG_SOCCER ? 'soccer_academy' : 'personal_training',
           mustChangePassword: false,

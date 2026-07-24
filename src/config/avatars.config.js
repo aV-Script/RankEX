@@ -4,6 +4,11 @@
 export const AVATAR_CATALOG = [
   { id: 'vdp5_01', orgId: 'vdp5-tgtdu', name: 'Portiere',  imageUrl: '/avatars/vdp5_01.png' },
   { id: 'vdp5_02', orgId: 'vdp5-tgtdu', name: 'Numero 5',  imageUrl: '/avatars/vdp5_02.png' },
+
+  // TEMPORANEO — solo per test manuale su rankex-dev con l'account seedato
+  // client@test.rankex (org test-org-pt). RIMUOVERE prima del merge verso prod.
+  { id: 'test_01', orgId: 'test-org-pt', name: 'Portiere',  imageUrl: '/avatars/vdp5_01.png' },
+  { id: 'test_02', orgId: 'test-org-pt', name: 'Numero 5',  imageUrl: '/avatars/vdp5_02.png' },
 ]
 
 export function getAvatarsForOrg(orgId) {
