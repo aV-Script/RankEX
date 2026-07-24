@@ -20,6 +20,7 @@ export function MembersPage({ orgId, org, onNavigate }) {
   const [showCreate, setShowCreate] = useState(false)
   const [confirmRemove,     setConfirmRemove]     = useState(null)
   const [confirmRoleChange, setConfirmRoleChange] = useState(null)
+  const [removing,          setRemoving]          = useState(false)
 
   const planLimits    = getPlanLimits(org?.plan)
   const atTrainerLimit = members.length >= planLimits.trainers
@@ -35,6 +36,8 @@ export function MembersPage({ orgId, org, onNavigate }) {
   useEffect(() => { fetchMembers() }, [fetchMembers])
 
   const handleRemove = useCallback(async () => {
+    if (removing) return
+    setRemoving(true)
     try {
       await removeMemberUseCase(orgId, confirmRemove.id)
       auditLog(AUDIT_ACTIONS.MEMBER_REMOVED, {
@@ -46,9 +49,10 @@ export function MembersPage({ orgId, org, onNavigate }) {
     } catch {
       // errore loggato in console
     } finally {
+      setRemoving(false)
       setConfirmRemove(null)
     }
-  }, [orgId, confirmRemove])
+  }, [orgId, confirmRemove, removing])
 
   const handleRoleChange = useCallback(async (member, newRole) => {
     const snapshot = member.role
@@ -201,6 +205,7 @@ export function MembersPage({ orgId, org, onNavigate }) {
           description="Il membro non potrà più accedere all'organizzazione."
           confirmLabel="RIMUOVI"
           variant="danger"
+          loading={removing}
           onConfirm={handleRemove}
           onCancel={() => setConfirmRemove(null)}
         />
