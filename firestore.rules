@@ -108,12 +108,13 @@ service cloud.firestore {
       allow read:   if isSuperAdmin() || isOrgMember(orgId) || isClientOfOrg(orgId);
       allow create, delete: if isSuperAdmin() ||
         (isOrgMember(orgId) && memberRole(orgId) == 'org_admin');
-      // 1. org_admin aggiorna campi org — NON può toccare i counter direttamente
+      // 1. org_admin aggiorna campi org — NON può toccare i counter, il modulo o il piano
+      //    (moduleType/plan: solo super_admin — cambio strutturale/di fatturazione)
       // 2. org_admin aggiorna memberCount ±1 (addMember/removeMember)
       // 3. org_admin o trainer aggiornano clientCount ±1 (addClient/deleteClient)
       allow update: if isSuperAdmin() ||
         (isOrgMember(orgId) && memberRole(orgId) == 'org_admin' &&
-         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['memberCount', 'clientCount'])) ||
+         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['memberCount', 'clientCount', 'moduleType', 'plan'])) ||
         (isOrgMember(orgId) && memberRole(orgId) == 'org_admin' &&
          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberCount']) &&
          request.resource.data.memberCount >= 0 &&
@@ -151,20 +152,14 @@ service cloud.firestore {
 
         // ── Notes (thread + commenti del cliente) ──────────
         // Trainer: legge, crea thread root e commenti, elimina qualsiasi nota.
-        // Client: legge le proprie note, crea solo commenti (parentId != null),
-        //         elimina solo i propri commenti.
+        // Client: solo lettura delle proprie note — non può scrivere né eliminare.
 
         match /notes/{noteId} {
           allow read: if canRead(orgId) || isOwnClient(orgId, clientId);
 
-          allow create: if canWrite(orgId) ||
-            (isOwnClient(orgId, clientId) &&
-             request.resource.data.parentId != null &&
-             request.resource.data.authorId == request.auth.uid);
+          allow create: if canWrite(orgId);
 
-          allow delete: if canWrite(orgId) ||
-            (isOwnClient(orgId, clientId) &&
-             resource.data.authorId == request.auth.uid);
+          allow delete: if canWrite(orgId);
 
           allow update: if false;
         }

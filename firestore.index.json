@@ -20,6 +20,14 @@
       "collectionGroup": "slots",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "groupIds", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "date",     "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "slots",
+      "queryScope": "COLLECTION",
+      "fields": [
         { "fieldPath": "recurrenceId", "order": "ASCENDING" },
         { "fieldPath": "date",         "order": "ASCENDING" }
       ]
