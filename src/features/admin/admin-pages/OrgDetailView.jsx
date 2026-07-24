@@ -1,18 +1,22 @@
 import { useState, useEffect, useCallback }  from 'react'
-import { getMembers, removeMember, updateMember } from '../../../firebase/services/org'
+import { getMembers, removeMember, updateMember, updateOrganization } from '../../../firebase/services/org'
 import { updateUserProfile }    from '../../../firebase/services/users'
 import { getClients }           from '../../../firebase/services/clients'
 import { CreateMemberForm }     from '../../org/org-pages/CreateMemberForm'
 import { ConfirmDialog }        from '../../../components/common/ConfirmDialog'
 import { usePagination }        from '../../../hooks/usePagination'
 import { Pagination }           from '../../../components/common/Pagination'
-import { getPlanLimits }        from '../../../config/plans.config'
+import { getPlanLimits, PLAN_OPTIONS } from '../../../config/plans.config'
 
 const MODULE_LABELS = {
   personal_training: 'Personal Training',
   soccer_academy:    'Soccer Academy',
 }
 
+const MODULE_OPTIONS = [
+  { value: 'personal_training', label: 'Personal Training' },
+  { value: 'soccer_academy',    label: 'Soccer Academy' },
+]
 
 const ROLE_OPTIONS = [
   { value: 'trainer',        label: 'Trainer' },
@@ -26,6 +30,8 @@ export function OrgDetailView({ org, onBack }) {
   const [loading,       setLoading]       = useState(true)
   const [showAddMember, setShowAddMember] = useState(false)
   const [confirmRemove, setConfirmRemove] = useState(null)
+  const [plan,          setPlan]          = useState(org.plan ?? 'free')
+  const [moduleType,    setModuleType]    = useState(org.moduleType ?? 'personal_training')
 
   useEffect(() => {
     Promise.all([
@@ -52,6 +58,26 @@ export function OrgDetailView({ org, onBack }) {
       setConfirmRemove(null)
     }
   }, [org.id, confirmRemove])
+
+  const handlePlanChange = useCallback(async (newPlan) => {
+    const snapshot = plan
+    setPlan(newPlan)
+    try {
+      await updateOrganization(org.id, { plan: newPlan })
+    } catch {
+      setPlan(snapshot)
+    }
+  }, [org.id, plan])
+
+  const handleModuleChange = useCallback(async (newModule) => {
+    const snapshot = moduleType
+    setModuleType(newModule)
+    try {
+      await updateOrganization(org.id, { moduleType: newModule })
+    } catch {
+      setModuleType(snapshot)
+    }
+  }, [org.id, moduleType])
 
   const handleRoleChange = useCallback(async (member, newRole) => {
     const snapshot = member.role
@@ -86,7 +112,7 @@ export function OrgDetailView({ org, onBack }) {
           className="font-display text-[9px] px-2 py-0.5 rounded-[3px]"
           style={{ background: 'rgba(248,113,113,0.12)', color: '#f87171' }}
         >
-          {MODULE_LABELS[org.moduleType] ?? org.moduleType}
+          {MODULE_LABELS[moduleType] ?? moduleType}
         </span>
       </div>
 
@@ -99,9 +125,34 @@ export function OrgDetailView({ org, onBack }) {
             className="p-4 rounded-[4px] flex flex-col gap-2"
             style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}
           >
+            <div className="flex items-center justify-between">
+              <span className="font-body text-[12px] text-white/40">Piano</span>
+              <select
+                value={plan}
+                onChange={e => handlePlanChange(e.target.value)}
+                className="input-base text-[11px] py-1.5 px-2"
+                style={{ width: 'auto', minWidth: 110 }}
+              >
+                {PLAN_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="font-body text-[12px] text-white/40">Modulo</span>
+              <select
+                value={moduleType}
+                onChange={e => handleModuleChange(e.target.value)}
+                className="input-base text-[11px] py-1.5 px-2"
+                style={{ width: 'auto', minWidth: 150 }}
+              >
+                {MODULE_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
             {[
               ['ID',          org.id],
-              ['Piano',       org.plan ?? '—'],
               ['Status',      org.status ?? 'active'],
               ['Terminologia',org.terminologyVariant ?? '—'],
               ['Owner',       org.ownerId ?? '—'],
@@ -117,7 +168,7 @@ export function OrgDetailView({ org, onBack }) {
 
         {/* Utilizzo piano */}
         {!loading && (() => {
-          const limits = getPlanLimits(org.plan)
+          const limits = getPlanLimits(plan)
           const trainerPct = limits.trainers === Infinity ? 0 : Math.round((members.length / limits.trainers) * 100)
           const clientPct  = limits.clients  === Infinity ? 0 : Math.round((clients.length  / limits.clients)  * 100)
           const atT = limits.trainers !== Infinity && members.length >= limits.trainers

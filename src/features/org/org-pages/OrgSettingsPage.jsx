@@ -1,31 +1,32 @@
 import { useState, useCallback } from 'react'
 import { updateOrganization }    from '../../../firebase/services/org'
 import { useToast }              from '../../../hooks/useToast'
-import { PLAN_OPTIONS, getPlanLimits } from '../../../config/plans.config'
+import { getPlanLimits }         from '../../../config/plans.config'
 
-const MODULE_OPTIONS = [
-  { value: 'personal_training', label: 'Personal Training' },
-  { value: 'soccer_academy',    label: 'Soccer Academy' },
-]
+const MODULE_LABELS = {
+  personal_training: 'Personal Training',
+  soccer_academy:     'Soccer Academy',
+}
 
 export function OrgSettingsPage({ org, orgId }) {
-  const [name,       setName]       = useState(org?.name ?? '')
-  const [moduleType, setModuleType] = useState(org?.moduleType ?? 'personal_training')
-  const [plan,       setPlan]       = useState(org?.plan ?? '')
-  const [saving,     setSaving]     = useState(false)
+  const [name,   setName]   = useState(org?.name ?? '')
+  const [saving, setSaving] = useState(false)
   const toast = useToast()
+
+  const plan   = org?.plan ?? 'free'
+  const limits = getPlanLimits(plan)
 
   const handleSave = useCallback(async () => {
     setSaving(true)
     try {
-      await updateOrganization(orgId, { name, moduleType, plan })
+      await updateOrganization(orgId, { name })
       toast.success('Impostazioni salvate')
     } catch {
       toast.error('Impossibile salvare le impostazioni')
     } finally {
       setSaving(false)
     }
-  }, [orgId, name, moduleType, plan, toast])
+  }, [orgId, name, toast])
 
   return (
     <div className="px-6 py-8 text-white max-w-lg">
@@ -47,41 +48,28 @@ export function OrgSettingsPage({ org, orgId }) {
           <label className="font-display text-[10px] tracking-[2px] text-white/30 block mb-1.5">
             MODULO
           </label>
-          <select
-            className="input-base w-full"
-            value={moduleType}
-            onChange={e => setModuleType(e.target.value)}
-          >
-            {MODULE_OPTIONS.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
+          <div className="input-base w-full opacity-60 cursor-not-allowed">
+            {MODULE_LABELS[org?.moduleType] ?? org?.moduleType}
+          </div>
+          <p className="font-body text-[11px] text-white/25 mt-1.5">
+            Solo il super admin può modificare il modulo dell'organizzazione.
+          </p>
         </div>
 
         <div>
           <label className="font-display text-[10px] tracking-[2px] text-white/30 block mb-1.5">
             PIANO
           </label>
-          <select
-            className="input-base w-full"
-            value={plan || 'free'}
-            onChange={e => setPlan(e.target.value)}
-          >
-            {PLAN_OPTIONS.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-          {(() => {
-            const limits = getPlanLimits(plan || 'free')
-            return (
-              <div className="font-body text-[11px] text-white/25 mt-1.5">
-                {limits.trainers === Infinity
-                  ? 'Trainer e clienti illimitati'
-                  : `Max ${limits.trainers} trainer · Max ${limits.clients} clienti`
-                }
-              </div>
-            )
-          })()}
+          <div className="input-base w-full opacity-60 cursor-not-allowed">
+            {plan.toUpperCase()}
+          </div>
+          <div className="font-body text-[11px] text-white/25 mt-1.5">
+            {limits.trainers === Infinity
+              ? 'Trainer e clienti illimitati'
+              : `Max ${limits.trainers} trainer · Max ${limits.clients} clienti`
+            }
+            {' — '}solo il super admin può cambiare il piano.
+          </div>
         </div>
 
         <button
