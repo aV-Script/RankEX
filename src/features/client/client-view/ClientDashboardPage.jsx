@@ -310,7 +310,7 @@ export function ClientDashboardPage({
 
                 {profiloTab === 'note' && orgId && (
                   <NotesSection orgId={orgId} clientId={clientId} color={displayColor}
-                    author={{ role: 'client', name: client.name }} />
+                    author={{ role: 'client', name: client.name }} readonly />
                 )}
 
                 {profiloTab === 'attivita' && (

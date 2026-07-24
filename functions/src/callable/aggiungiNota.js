@@ -18,9 +18,9 @@ export const aggiungiNota = onCall({ region: REGION }, async (request) => {
     throw new HttpsError('permission-denied', 'Utenti in sola lettura non possono aggiungere note')
   }
 
-  // I client possono solo commentare (parentId deve essere non-null)
-  if (profile.role === 'client' && !parentId) {
-    throw new HttpsError('permission-denied', 'I client possono solo aggiungere commenti a thread esistenti')
+  // Solo il trainer/org_admin inserisce note — i client leggono soltanto
+  if (profile.role === 'client') {
+    throw new HttpsError('permission-denied', 'I client non possono aggiungere note')
   }
 
   const db        = getFirestore()

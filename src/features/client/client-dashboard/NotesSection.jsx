@@ -27,6 +27,18 @@ export function NotesSection({ orgId, clientId, color, author, readonly = false 
   const [expandedIds,  setExpandedIds]  = useState(new Set())
   const [replyTexts,   setReplyTexts]   = useState({})
   const [replyLoading, setReplyLoading] = useState({})
+  const [deletingIds,  setDeletingIds]  = useState(new Set())
+
+  const handleDeleteThread = async (threadId) => {
+    if (deletingIds.has(threadId)) return
+    setDeletingIds(prev => new Set([...prev, threadId]))
+    await handleDelete(threadId)
+    setDeletingIds(prev => {
+      const next = new Set(prev)
+      next.delete(threadId)
+      return next
+    })
+  }
 
   const toggleExpand = (id) =>
     setExpandedIds(prev => {
@@ -79,11 +91,11 @@ export function NotesSection({ orgId, clientId, color, author, readonly = false 
                 replyText={replyTexts[thread.id] ?? ''}
                 replyLoading={!!replyLoading[thread.id]}
                 readonly={readonly}
-                currentAuthorId={author?.id}
+                deleting={deletingIds.has(thread.id)}
                 onToggle={() => toggleExpand(thread.id)}
                 onReplyChange={(text) => setReplyTexts(prev => ({ ...prev, [thread.id]: text }))}
                 onReplySubmit={() => handleSubmitComment(thread.id)}
-                onDelete={handleDelete}
+                onDelete={handleDeleteThread}
               />
             ))}
           </div>
@@ -118,11 +130,10 @@ export function NotesSection({ orgId, clientId, color, author, readonly = false 
 }
 
 function ThreadCard({
-  thread, color, expanded, replyText, replyLoading, readonly,
-  currentAuthorId, onToggle, onReplyChange, onReplySubmit, onDelete,
+  thread, color, expanded, replyText, replyLoading, readonly, deleting,
+  onToggle, onReplyChange, onReplySubmit, onDelete,
 }) {
   const commentCount = thread.comments.length
-  const canDelete    = thread.authorId === currentAuthorId
 
   return (
     <div
@@ -140,10 +151,11 @@ function ThreadCard({
             {formatDate(thread.createdAt)}
           </span>
         </div>
-        {canDelete && !readonly && (
+        {!readonly && (
           <button
             onClick={() => onDelete(thread.id)}
-            className="text-white/20 hover:text-red-400 transition-colors text-[11px] font-body shrink-0"
+            disabled={deleting}
+            className="text-white/20 hover:text-red-400 transition-colors text-[11px] font-body shrink-0 disabled:opacity-40 disabled:pointer-events-none"
           >
             ✕
           </button>
