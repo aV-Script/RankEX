@@ -89,10 +89,10 @@ export function XPTrendChart({ log = [], color }) {
             : 'Nessun dato per il periodo selezionato.'}
         </p>
       ) : (
-        <div className="h-40">
+        <div className="h-48">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+            <BarChart data={chartData} barCategoryGap="30%" margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
+              <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
               <XAxis
                 dataKey="label"
                 tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'Inter' }}
@@ -100,12 +100,14 @@ export function XPTrendChart({ log = [], color }) {
                 tickLine={false}
               />
               <YAxis
+                allowDecimals={false}
                 tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'Inter' }}
                 axisLine={false}
                 tickLine={false}
               />
               <Tooltip
-                formatter={(v) => [v, 'XP']}
+                cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                formatter={(v) => [`+${v}`, 'XP']}
                 contentStyle={{
                   background:   'var(--rx-surface)',
                   border:       '1px solid var(--rx-border)',
@@ -116,7 +118,7 @@ export function XPTrendChart({ log = [], color }) {
                 labelStyle={{ color: 'rgba(255,255,255,0.4)', fontWeight: 400 }}
                 itemStyle={{ color, fontWeight: 400 }}
               />
-              <Bar dataKey="xp" fill={color} fillOpacity={0.8} radius={[2, 2, 0, 0]} />
+              <Bar dataKey="xp" fill={color} radius={[4, 4, 0, 0]} maxBarSize={22} />
             </BarChart>
           </ResponsiveContainer>
         </div>
