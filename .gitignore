@@ -59,7 +59,6 @@ functions/node_modules/
 # Test — output generati
 playwright-report/
 test-results/
-*.png
 e2e/.auth/
 
 # Screenshot / debug scripts temporanei

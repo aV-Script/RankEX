@@ -558,7 +558,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
           )}
 
           {tab === 'misure' && (
-            <MisureSection client={client} color="var(--rx-green)" isSoccer={isSoccer} readonly={readonly} onUpdate={handleUpdateMisure} />
+            <MisureSection client={client} color="var(--rx-green)" readonly={readonly} onUpdate={handleUpdateMisure} />
           )}
 
           {tab === 'wearable' && (

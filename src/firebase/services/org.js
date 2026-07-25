@@ -41,6 +41,11 @@ export const getMembers = async (orgId) => {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
 }
 
+export const getMember = async (orgId, uid) => {
+  const snap = await getDoc(doc(db, `organizations/${orgId}/members`, uid))
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null
+}
+
 // ── Membri — solo super_admin (operazioni dirette senza counter) ──────────────
 
 export const removeMember = (orgId, uid) =>

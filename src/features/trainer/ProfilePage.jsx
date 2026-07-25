@@ -1,13 +1,20 @@
-import { useState, useCallback }                        from 'react'
+import { useState, useEffect, useCallback }              from 'react'
 import { useAuth }                                       from '../auth/useAuth'
 import { logout, changeTrainerPassword, changeUserEmail } from '../../firebase/services/auth'
+import { getMember }                                     from '../../firebase/services/org'
 import { Field }                                         from '../../components/ui'
 import { ThemePicker }                                   from '../../components/ui/ThemePicker'
 import { getFirebaseErrorMessage }                       from '../../utils/firebaseErrors'
 import { validatePassword }                              from '../../utils/validation'
 
 export function ProfilePage() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
+
+  const [memberName, setMemberName] = useState(null)
+  useEffect(() => {
+    if (!user?.uid || !profile?.orgId) return
+    getMember(profile.orgId, user.uid).then(m => setMemberName(m?.name ?? null)).catch(() => {})
+  }, [user?.uid, profile?.orgId])
 
   // — Password change
   const [open,    setOpen]    = useState(false)
@@ -95,7 +102,7 @@ export function ProfilePage() {
             </span>
           </div>
           <div>
-            <div className="font-display font-black text-[18px] text-white">Trainer</div>
+            <div className="font-display font-black text-[18px] text-white">{memberName ?? 'Trainer'}</div>
             <div className="font-body text-[13px] text-white/40 mt-0.5">{user?.email ?? '—'}</div>
           </div>
         </div>

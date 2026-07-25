@@ -208,6 +208,9 @@ import { getPlanLimits, isAtTrainerLimit, isAtClientLimit } from 'config/plans.c
   sessionsPerWeek,
   biaHistory:      [],
   lastBia:         null,
+  misureHistory:   [],   // { date, peso?, altezza? } — storico tab Misure
+  badges:          {},   // { [badgeId]: { awardedAt, awardedBy, note? } } — vedi config/badges.config.js
+  badgeShowcase:   [],   // fino a 5 badgeId in evidenza sul profilo
 }
 ```
 
@@ -334,6 +337,7 @@ src/
 │   │                           SOCCER_FIXED_TESTS, SOCCER_AGE_GROUPS
 │   ├── plans.config.js      ← PLAN_LIMITS, getPlanLimits,
 │   │                           isAtTrainerLimit, isAtClientLimit
+│   ├── badges.config.js     ← BADGES, BADGE_TIERS, MANUAL_BADGES — fonte di verità trofei
 │   └── theme.js             ← palette colori RankEX
 │
 ├── constants/
@@ -416,6 +420,7 @@ src/
 │   │       ├── ClientWorkoutSection.jsx  ← scheda allenamento read-only (client)
 │   │       ├── MisureSection.jsx         ← tab Misure: storico peso+altezza con trend inline
 │   │       ├── XPTrendChart.jsx          ← grafico XP accumulato Giorno/Settimana/Mese
+│   │       ├── TrophiesSection.jsx       ← tab Trofei: badge auto+manuali, showcase (trainer+client)
 │   │       └── ClientReportPrint.jsx     ← export PDF via window.print() (trainer)
 │   │
 │   ├── notification/
@@ -487,8 +492,9 @@ src/
 │       ├── groups.js        ← tutte le fn accettano orgId come primo arg
 │       ├── notifications.js ← tutte le fn accettano orgId come primo arg
 │       ├── notes.js         ← getNotes, addNote, deleteNoteItem (orgId, clientId)
-│       ├── org.js           ← addMember/removeMember usano batch + increment
+│       ├── org.js           ← addMember/removeMember usano batch + increment; getMember (singolo)
 │       ├── workoutPlans.js  ← getWorkoutPlans, getWorkoutPlanForClient, addWorkoutPlan, update, delete (orgId)
+│       ├── badges.js        ← awardBadge, revokeBadge, updateBadgeShowcase (orgId, clientId)
 │       └── users.js
 │
 ├── hooks/
@@ -498,6 +504,7 @@ src/
 │   ├── useGroups.js            ← useGroups(orgId)
 │   ├── useNotifications.js     ← useNotifications(orgId, clientId)
 │   ├── useNotes.js             ← useNotes(orgId, clientId, author) → threads
+│   ├── useBadges.js            ← useBadges(orgId, clientId, client, { readonly }) — auto-award + manuale
 │   ├── usePagination.js
 │   ├── useSessionTimeout.js    ← logout automatico per inattività
 │   ├── useToast.js
@@ -1411,8 +1418,20 @@ Super admin    → Gestione e upload moduli (globali + per org)
 
 ### Gamification avanzata
 ```
-Badge / Achievement    → traguardi automatici: prima sessione, 10 presenze
-                         consecutive, primo rank-up, nuovo personal best su test
+Badge / Achievement    → IMPLEMENTATO — lug 2026
+                         Trofei automatici (prima sessione, striscia x5/x10/x25,
+                         primo rank-up, top performer, rank massimo) + badge manuali
+                         assegnabili dal trainer (es. "Campione") con nota libera.
+                         Tier: Bronzo/Argento/Oro/Platino — config in config/badges.config.js
+                         Showcase: il cliente fissa fino a 5 badge in evidenza sul profilo.
+                         Hook: hooks/useBadges.js — checkAutoBadges gira ad ogni
+                         cambio dati cliente (non readonly) e assegna i mancanti.
+                         Service: firebase/services/badges.js — awardBadge/revokeBadge/
+                         updateBadgeShowcase. Dati su clients/{clientId}.badges{} +
+                         .badgeShowcase[].
+                         UI: client-dashboard/TrophiesSection.jsx (tab TROFEI,
+                         trainer + client). Rules: assegnazione automatica lato
+                         client (system), manuale solo trainer/org_admin.
 Streak presenze        → moltiplicatore XP per settimane consecutive senza assenze
 Groups Analytics Hub   → IMPLEMENTATO — apr 2026
                          GroupDetailView con 6 tab: Gestione (3 col + ricerca + paginazione),

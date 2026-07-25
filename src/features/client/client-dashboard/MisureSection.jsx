@@ -79,7 +79,7 @@ function MisureLineChart({ data = [], dataKey, label, unit, color }) {
   )
 }
 
-export function MisureSection({ client, color, isSoccer, readonly, onUpdate }) {
+export function MisureSection({ client, color, readonly, onUpdate }) {
   const [peso,   setPeso]   = useState(client.peso    ?? '')
   const [altezza, setAltezza] = useState(client.altezza ?? '')
   const [saving, setSaving] = useState(false)
@@ -90,8 +90,8 @@ export function MisureSection({ client, color, isSoccer, readonly, onUpdate }) {
     const p = parseFloat(peso)
     const a = parseFloat(altezza)
     const patch = {}
-    if (!isNaN(p) && p > 0)              patch.peso    = p
-    if (!isNaN(a) && a > 0 && isSoccer) patch.altezza = a
+    if (!isNaN(p) && p > 0) patch.peso    = p
+    if (!isNaN(a) && a > 0) patch.altezza = a
     if (Object.keys(patch).length === 0) return
 
     setSaving(true)
@@ -118,15 +118,13 @@ export function MisureSection({ client, color, isSoccer, readonly, onUpdate }) {
               <span className="text-[12px] text-white/30 ml-1">kg</span>
             </div>
           </div>
-          {isSoccer && (
-            <div>
-              <div className="font-display text-[9px] text-white/25 tracking-[2px] mb-0.5">ALTEZZA</div>
-              <div className="font-display font-bold text-[22px]" style={{ color }}>
-                {client.altezza ?? '—'}
-                <span className="text-[12px] text-white/30 ml-1">cm</span>
-              </div>
+          <div>
+            <div className="font-display text-[9px] text-white/25 tracking-[2px] mb-0.5">ALTEZZA</div>
+            <div className="font-display font-bold text-[22px]" style={{ color }}>
+              {client.altezza ?? '—'}
+              <span className="text-[12px] text-white/30 ml-1">cm</span>
             </div>
-          )}
+          </div>
         </div>
 
         {/* Form aggiornamento — solo trainer, non readonly */}
@@ -143,19 +141,17 @@ export function MisureSection({ client, color, isSoccer, readonly, onUpdate }) {
                 min="0"
               />
             </div>
-            {isSoccer && (
-              <div className="flex flex-col gap-1">
-                <label className="font-display text-[9px] text-white/30 tracking-[1.5px]">ALTEZZA (cm)</label>
-                <input
-                  type="number"
-                  value={altezza}
-                  onChange={e => setAltezza(e.target.value)}
-                  className="input-base w-24"
-                  step="0.5"
-                  min="0"
-                />
-              </div>
-            )}
+            <div className="flex flex-col gap-1">
+              <label className="font-display text-[9px] text-white/30 tracking-[1.5px]">ALTEZZA (cm)</label>
+              <input
+                type="number"
+                value={altezza}
+                onChange={e => setAltezza(e.target.value)}
+                className="input-base w-24"
+                step="0.5"
+                min="0"
+              />
+            </div>
             <button
               onClick={handleSave}
               disabled={saving}
@@ -174,15 +170,13 @@ export function MisureSection({ client, color, isSoccer, readonly, onUpdate }) {
           unit="kg"
           color={color}
         />
-        {isSoccer && (
-          <MisureLineChart
-            data={misureHistory}
-            dataKey="altezza"
-            label="Andamento altezza"
-            unit="cm"
-            color={color}
-          />
-        )}
+        <MisureLineChart
+          data={misureHistory}
+          dataKey="altezza"
+          label="Andamento altezza"
+          unit="cm"
+          color={color}
+        />
       </div>
     </section>
   )

@@ -129,7 +129,7 @@ export function AppNav({ page, onNavigate, onLogout }) {
                 onClick={() => onNavigate(item.id)}
                 aria-label={item.label}
                 aria-current={active ? 'page' : undefined}
-                className="flex-1 flex flex-col items-center gap-1 py-2.5 cursor-pointer relative border-none bg-transparent"
+                className="flex-1 min-w-0 flex flex-col items-center gap-1 py-2.5 px-0.5 cursor-pointer relative border-none bg-transparent"
                 style={{ color: active ? 'var(--rx-green)' : 'rgba(200,212,224,0.3)', transition: 'color 150ms' }}
               >
                 {active && (
@@ -145,7 +145,7 @@ export function AppNav({ page, onNavigate, onLogout }) {
                 }}>
                   {item.icon}
                 </span>
-                <span className="font-display text-[10px] tracking-[1px]">
+                <span className="font-display text-[9px] tracking-[0.5px] truncate max-w-full">
                   {item.label.toUpperCase()}
                 </span>
               </button>

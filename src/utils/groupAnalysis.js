@@ -89,7 +89,7 @@ export function buildTrendChartData(clients, selected) {
   return Array.from(dateMap.entries())
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, vals]) => ({
-      date:   date.slice(5).replace('-', '/'),
+      date,
       valore: Math.round(vals.reduce((s, v) => s + v, 0) / vals.length),
       n:      vals.length,
     }))
