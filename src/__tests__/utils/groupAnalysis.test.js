@@ -12,8 +12,8 @@ const clients = [
     media: 72,
     stats: { velocita: 80, resistenza: 60 },
     campionamenti: [
-      { date: '2026-01-01', media: 70, stats: { velocita: 75, resistenza: 55 } },
-      { date: '2026-02-01', media: 74, stats: { velocita: 80, resistenza: 60 } },
+      { date: '01 gen', media: 70, stats: { velocita: 75, resistenza: 55 } },
+      { date: '01 mar', media: 74, stats: { velocita: 80, resistenza: 60 } },
     ],
   },
   {
@@ -21,8 +21,8 @@ const clients = [
     media: 90,
     stats: { velocita: 40, resistenza: 20 },
     campionamenti: [
-      { date: '2026-01-01', media: 50, stats: { velocita: 35, resistenza: 15 } },
-      { date: '2026-02-01', media: 55, stats: { velocita: 40, resistenza: 20 } },
+      { date: '01 gen', media: 50, stats: { velocita: 35, resistenza: 15 } },
+      { date: '01 mar', media: 55, stats: { velocita: 40, resistenza: 20 } },
     ],
   },
   {
@@ -109,10 +109,10 @@ describe('buildTrendStatOptions', () => {
 describe('buildTrendChartData', () => {
   it('aggrega per data e calcola la media tra i clienti', () => {
     const data = buildTrendChartData(clients, 'media')
-    // 2026-01-01: (70+50)/2 = 60 · 2026-02-01: (74+55)/2 = 64.5 -> 65 (round)
+    // 01 gen: (70+50)/2 = 60 · 01 mar: (74+55)/2 = 64.5 -> 65 (round)
     expect(data).toEqual([
-      { date: '01/01', valore: 60, n: 2 },
-      { date: '02/01', valore: 65, n: 2 },
+      { date: '01 gen', valore: 60, n: 2 },
+      { date: '01 mar', valore: 65, n: 2 },
     ])
   })
   it('è ordinato cronologicamente', () => {
@@ -122,7 +122,7 @@ describe('buildTrendChartData', () => {
   })
   it('con una stat specifica legge da camp.stats invece che da camp.media', () => {
     const data = buildTrendChartData(clients, 'velocita')
-    // 2026-01-01: (75+35)/2 = 55
+    // 01 gen: (75+35)/2 = 55
     expect(data[0].valore).toBe(55)
   })
   it('ignora campionamenti senza la stat richiesta', () => {
