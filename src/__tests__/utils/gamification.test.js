@@ -176,6 +176,18 @@ describe('buildCampionamentoUpdate', () => {
     expect(update.campionamenti).toHaveLength(11)
     expect(update.campionamenti[0].stats.v).toBe(80)
   })
+
+  it('log entry usa il label del test (non lo stat grezzo) per i test semplici', () => {
+    // testValues è chiavato per `stat` (forza), non per `key` (dinamometro_hand_grip)
+    const { update } = buildCampionamentoUpdate(clienteBase, statsBase, { forza: 42 })
+    expect(update.log[0].action).toContain('FORZA 42kg')
+  })
+
+  it('log entry usa il label della variabile per i test compositi (es. Y Balance)', () => {
+    const { update } = buildCampionamentoUpdate(clienteBase, statsBase, { ANT_dx: 65 })
+    expect(update.log[0].action).toContain('Anteriore DX 65cm')
+    expect(update.log[0].action).not.toContain('ANT_dx')
+  })
 })
 
 // ── buildBiaUpdate (US-046) ───────────────────────────────────────────────────

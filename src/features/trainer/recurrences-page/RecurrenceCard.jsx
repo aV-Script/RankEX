@@ -1,5 +1,11 @@
 const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
 
+function dateFmt(str) {
+  if (!str) return '—'
+  const [y, m, d] = str.split('-')
+  return `${d}/${m}/${y}`
+}
+
 const STATUS_COLORS = {
   active:    'var(--rx-green)',
   ended:     '#6b7280',
@@ -67,7 +73,7 @@ export function RecurrenceCard({ recurrence, clients, onClick }) {
         {/* Periodo + scaduta */}
         <div className="flex items-center gap-2">
           <span className="font-body text-[11px] text-white/25">
-            {recurrence.startDate} → {recurrence.endDate}
+            {dateFmt(recurrence.startDate)} → {dateFmt(recurrence.endDate)}
           </span>
           {isExpired && status === 'active' && (
             <span

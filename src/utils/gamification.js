@@ -111,6 +111,23 @@ export function buildXPUpdate(client, xpToAdd, note) {
 }
 
 /**
+ * Risolve label+unit per una chiave di testValues. La chiave è lo `stat` del
+ * test per i test semplici, oppure la `key` di una singola variabile per i
+ * test compositi (es. y_balance: ANT_dx, PM_dx...) — mai il `key` del test
+ * stesso, quindi va cercata su entrambi i campi.
+ */
+function labelForTestValueKey(k) {
+  const test = ALL_TESTS.find(t => t.stat === k)
+  if (test) return { label: test.label, unit: test.unit ?? '' }
+
+  const testWithVar = ALL_TESTS.find(t => t.variables?.some(v => v.key === k))
+  const variable     = testWithVar?.variables.find(v => v.key === k)
+  if (variable) return { label: variable.label, unit: variable.unit ?? '' }
+
+  return { label: k.charAt(0).toUpperCase() + k.slice(1), unit: '' }
+}
+
+/**
  * Calcola il patch da applicare al cliente dopo un campionamento.
  * Aggiorna stats, rank, media, campionamenti, log, xp e level.
  * @param {object} client     — dati attuali del cliente
@@ -145,9 +162,7 @@ export function buildCampionamentoUpdate(client, newStats, testValues) {
 
   const valStr = Object.entries(testValues)
     .map(([k, v]) => {
-      const test  = ALL_TESTS.find(t => t.key === k)
-      const unit  = test?.unit ?? ''
-      const label = test?.label ?? k.charAt(0).toUpperCase() + k.slice(1)
+      const { label, unit } = labelForTestValueKey(k)
       return `${label} ${v}${unit}`
     })
     .join(' · ')
