@@ -124,7 +124,7 @@ export function RecurrencesPage({ orgId, initialRecurrenceId, onNavigate }) {
         {/* Archivio */}
         {showArchive && archived.length > 0 && (
           <div className="mt-8 rx-animate-in">
-            <p className="font-display text-[10px] tracking-[2px] text-white/25 mb-3">
+            <p className="font-display text-[10px] tracking-[2px] text-white/60 mb-3">
               ARCHIVIO ({archived.length})
             </p>
             <div className="flex flex-col gap-3">

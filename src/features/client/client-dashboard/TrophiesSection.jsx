@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react'
 import { BadgeMedal }            from '../../../components/ui/BadgeMedal'
+import { IconClose }             from '../../../components/ui/icons'
+import { ConfirmDialog }         from '../../../components/common/ConfirmDialog'
 import { BADGES, BADGE_TIERS, MANUAL_BADGES } from '../../../config/badges.config'
 
 const MAX_SHOWCASE = 5
@@ -17,11 +19,7 @@ const ICON_PLUS = (
     <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
   </svg>
 )
-const ICON_X = (
-  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-  </svg>
-)
+const ICON_X = <IconClose size={10} />
 
 // ── Data assegnazione ────────────────────────────────────────────────────────
 
@@ -46,9 +44,11 @@ export function TrophiesSection({
   onUpdateShowcase,
   color = 'var(--rx-green)',
 }) {
-  const [showPicker, setShowPicker] = useState(false)
-  const [note,       setNote]       = useState('')
-  const [picking,    setPicking]    = useState(null)
+  const [showPicker,     setShowPicker]     = useState(false)
+  const [note,           setNote]           = useState('')
+  const [picking,        setPicking]        = useState(null)
+  const [confirmRevoke,  setConfirmRevoke]  = useState(null)
+  const [revoking,       setRevoking]       = useState(false)
 
   const earned    = Object.keys(rawBadges)
   const earnedSet = new Set(earned)
@@ -57,13 +57,18 @@ export function TrophiesSection({
   const currentShowcase = localShowcase.length ? localShowcase : showcase
 
   const toggleShowcase = useCallback(async (badgeId) => {
+    const snapshot = currentShowcase
     const next = currentShowcase.includes(badgeId)
       ? currentShowcase.filter(id => id !== badgeId)
       : currentShowcase.length < MAX_SHOWCASE
         ? [...currentShowcase, badgeId]
         : currentShowcase
     setLocalShowcase(next)
-    await onUpdateShowcase?.(next)
+    try {
+      await onUpdateShowcase?.(next)
+    } catch {
+      setLocalShowcase(snapshot)
+    }
   }, [currentShowcase, onUpdateShowcase])
 
   const handlePick = useCallback(async (badge) => {
@@ -80,12 +85,28 @@ export function TrophiesSection({
 
   const handleRevoke = useCallback(async (badgeId) => {
     if (currentShowcase.includes(badgeId)) {
+      const snapshot = currentShowcase
       const next = currentShowcase.filter(id => id !== badgeId)
       setLocalShowcase(next)
-      await onUpdateShowcase?.(next)
+      try {
+        await onUpdateShowcase?.(next)
+      } catch {
+        setLocalShowcase(snapshot)
+      }
     }
     await onRevoke?.(badgeId)
   }, [currentShowcase, onUpdateShowcase, onRevoke])
+
+  const handleConfirmRevoke = useCallback(async () => {
+    if (!confirmRevoke || revoking) return
+    setRevoking(true)
+    try {
+      await handleRevoke(confirmRevoke.id)
+      setConfirmRevoke(null)
+    } finally {
+      setRevoking(false)
+    }
+  }, [confirmRevoke, revoking, handleRevoke])
 
   const earnedList = allBadges.filter(b => earnedSet.has(b.id))
   const lockedList = allBadges.filter(b => !earnedSet.has(b.id))
@@ -243,7 +264,7 @@ export function TrophiesSection({
                     )}
                     {!readonly && b.type === 'manual' && (
                       <button
-                        onClick={() => handleRevoke(b.id)}
+                        onClick={() => setConfirmRevoke(b)}
                         title="Revoca badge"
                         className="flex items-center justify-center cursor-pointer rounded-full"
                         style={{ width: 22, height: 22, background: 'rgba(248,113,113,0.12)', border: '1.5px solid rgba(248,113,113,0.30)', color: '#f87171' }}
@@ -393,6 +414,18 @@ export function TrophiesSection({
             </div>
           </div>
         </div>
+      )}
+
+      {confirmRevoke && (
+        <ConfirmDialog
+          title={`Revocare "${confirmRevoke.label}"?`}
+          description="Il badge verrà rimosso dal profilo dell'atleta e, se in evidenza, anche dalla vetrina."
+          confirmLabel="REVOCA"
+          variant="danger"
+          loading={revoking}
+          onConfirm={handleConfirmRevoke}
+          onCancel={() => setConfirmRevoke(null)}
+        />
       )}
     </section>
   )

@@ -6,7 +6,7 @@ export function WizardProgress({ step, totalSteps, title, progressPct }) {
     <div>
       <div className="flex justify-between items-center mb-1">
         <span className="font-display text-[11px] text-white/40">{title}</span>
-        <span className="font-display text-[11px] text-white/25">
+        <span className="font-display text-[11px] text-white/60">
           Step {step + 1} di {totalSteps}
         </span>
       </div>

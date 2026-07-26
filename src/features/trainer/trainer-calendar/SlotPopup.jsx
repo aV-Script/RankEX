@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { SLOT_STATUS } from '../../../constants/slotStatus'
+import { IconClose }   from '../../../components/ui/icons'
 
 /**
  * Popup dettaglio slot — appare al click su un evento.
@@ -64,11 +65,10 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
           </span>
           <button
             onClick={onClose}
+            aria-label="Chiudi"
             className="bg-transparent border-none text-white/30 cursor-pointer hover:text-white/60 transition-colors p-0 flex items-center justify-center w-6 h-6"
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
+            <IconClose size={12} />
           </button>
         </div>
       </div>

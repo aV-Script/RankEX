@@ -1,5 +1,7 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { generateRecurrenceDates } from '../../../utils/calendarUtils'
+import { useFocusTrap } from '../../../hooks/useFocusTrap'
+import { IconClose }    from '../../../components/ui/icons'
 
 const WEEK_DAYS = [
   { value: 1, label: 'Lun' }, { value: 2, label: 'Mar' }, { value: 3, label: 'Mer' },
@@ -21,6 +23,7 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
   const [endTime,         setEndTime]         = useState('10:00')
   const [selectedClients, setSelectedClients] = useState([])
   const [selectedGroups,  setSelectedGroups]  = useState([])
+  const [saving,          setSaving]          = useState(false)
 
   const toggleDay    = (d)  => setSelectedDays(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d])
   const toggleClient = (id) => setSelectedClients(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
@@ -41,19 +44,42 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
     return generateRecurrenceDates(startDate, endDate, selectedDays).length
   }, [selectedDays, startDate, endDate])
 
-  const canSave = selectedDays.length > 0 && selectedClients.length > 0 && startDate && endDate
+  const canSave = selectedDays.length > 0 && selectedClients.length > 0 && startDate && endDate && !saving
+
+  const handleSave = async () => {
+    if (!canSave) return
+    setSaving(true)
+    try {
+      await onSave({ clientIds: selectedClients, groupIds: selectedGroups, days: selectedDays, startDate, endDate, startTime, endTime })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const dialogRef = useRef(null)
+  useFocusTrap(dialogRef, true)
+
+  useEffect(() => {
+    const handler = e => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onClose])
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(8,12,18,0.9)' }} onClick={onClose}>
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="recurrence-modal-title"
         className="rx-card p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
         style={{ background: 'var(--rx-surface)' }}
         onClick={e => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-5">
-          <h3 className="font-display font-black text-white text-[16px] m-0">Nuova ricorrenza</h3>
-          <button onClick={onClose} className="bg-transparent border-none text-white/40 cursor-pointer flex items-center justify-center w-7 h-7">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <h3 id="recurrence-modal-title" className="font-display font-black text-white text-[16px] m-0">Nuova ricorrenza</h3>
+          <button onClick={onClose} aria-label="Chiudi" className="bg-transparent border-none text-white/40 cursor-pointer flex items-center justify-center w-7 h-7">
+            <IconClose size={12} />
           </button>
         </div>
 
@@ -180,12 +206,12 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
         </div>
 
         <button
-          onClick={() => canSave && onSave({ clientIds: selectedClients, groupIds: selectedGroups, days: selectedDays, startDate, endDate, startTime, endTime })}
+          onClick={handleSave}
           disabled={!canSave}
           className="w-full py-3 font-display text-[12px] tracking-widest border-0 transition-opacity"
           style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', borderRadius: '3px', color: 'var(--rx-green)', fontWeight: 700, opacity: canSave ? 1 : 0.4, cursor: canSave ? 'pointer' : 'not-allowed' }}
         >
-          CREA RICORRENZA
+          {saving ? 'ATTENDERE...' : 'CREA RICORRENZA'}
         </button>
       </div>
     </div>

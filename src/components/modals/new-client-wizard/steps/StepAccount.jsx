@@ -32,8 +32,13 @@ export function StepAccount({ account, setAccount, errors, anagrafica, categoria
         </div>
       </div>
 
-      <Field label="Email" error={errors.email}>
+      {errors.form && (
+        <p role="alert" className="font-body text-[12px] m-0" style={{ color: '#f87171' }}>{errors.form}</p>
+      )}
+
+      <Field label="Email" htmlFor="wizard-email" error={errors.email}>
         <Input
+          id="wizard-email"
           type="email"
           value={account.email}
           onChange={e => setAccount(p => ({ ...p, email: e.target.value }))}
@@ -42,8 +47,9 @@ export function StepAccount({ account, setAccount, errors, anagrafica, categoria
         />
       </Field>
 
-      <Field label="Password temporanea" error={errors.password}>
+      <Field label="Password temporanea" htmlFor="wizard-password" error={errors.password}>
         <Input
+          id="wizard-password"
           type="password"
           value={account.password}
           onChange={e => setAccount(p => ({ ...p, password: e.target.value }))}
@@ -51,7 +57,7 @@ export function StepAccount({ account, setAccount, errors, anagrafica, categoria
         />
       </Field>
 
-      <p className="font-body text-[11px] text-white/25 m-0">
+      <p className="font-body text-[11px] text-white/60 m-0">
         Il cliente potrà cambiarla al primo accesso.
       </p>
     </div>

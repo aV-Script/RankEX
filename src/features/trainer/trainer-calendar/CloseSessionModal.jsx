@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { calcSessionXP, calcStreakPreview } from '../../../utils/gamification'
+import { useFocusTrap } from '../../../hooks/useFocusTrap'
 
 export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
   const slotClients = slot.clientIds
@@ -7,6 +8,8 @@ export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
     .filter(Boolean)
 
   const [attendees, setAttendees] = useState(slot.clientIds) // default tutti presenti
+  const dialogRef = useRef(null)
+  useFocusTrap(dialogRef, true)
 
   useEffect(() => {
     const handler = e => { if (e.key === 'Escape') onClose() }
@@ -40,6 +43,7 @@ export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="close-session-title"

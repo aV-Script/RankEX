@@ -83,7 +83,7 @@ export function XPTrendChart({ log = [], color }) {
       </div>
 
       {!hasTimestamped || chartData.length === 0 ? (
-        <p className="text-white/20 font-body text-[13px] text-center py-6">
+        <p className="text-white/60 font-body text-[13px] text-center py-6">
           {!hasTimestamped
             ? 'Il grafico si riempirà con le prossime attività.'
             : 'Nessun dato per il periodo selezionato.'}

@@ -1,4 +1,6 @@
-import { useState }              from 'react'
+import { useState, useRef }      from 'react'
+import { Field, Input, Button }  from '../../../components/ui'
+import { useFocusTrap }          from '../../../hooks/useFocusTrap'
 import { createMemberUseCase }   from '../../../usecases/createMemberUseCase'
 
 const ROLE_OPTIONS = [
@@ -14,6 +16,8 @@ export function CreateMemberForm({ orgId, onClose, onCreated }) {
   const [form,   setForm]   = useState({ name: '', email: '', password: '', role: 'trainer' })
   const [saving, setSaving] = useState(false)
   const [error,  setError]  = useState(null)
+  const formRef = useRef(null)
+  useFocusTrap(formRef, true)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -38,71 +42,74 @@ export function CreateMemberForm({ orgId, onClose, onCreated }) {
       onClick={onClose}
     >
       <form
+        ref={formRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-member-title"
         onSubmit={handleSubmit}
         className="w-full max-w-sm p-6"
         style={{ background: 'var(--rx-surface)', border: '1px solid var(--rx-border)', borderRadius: '4px' }}
         onClick={e => e.stopPropagation()}
       >
-        <h3 className="font-display font-black text-[16px] text-white mb-5">
+        <h3 id="create-member-title" className="font-display font-black text-[16px] text-white mb-5">
           Aggiungi membro
         </h3>
 
         <div className="flex flex-col gap-3 mb-5">
-          <input
-            className="input-base"
-            placeholder="Nome"
-            value={form.name}
-            onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-            required
-          />
-          <input
-            className="input-base"
-            placeholder="Email"
-            type="email"
-            value={form.email}
-            onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-            required
-          />
-          <input
-            className="input-base"
-            placeholder="Password temporanea"
-            type="password"
-            value={form.password}
-            onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
-            required
-          />
-          <select
-            className="input-base"
-            value={form.role}
-            onChange={e => setForm(p => ({ ...p, role: e.target.value }))}
-          >
-            {ROLE_OPTIONS.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
+          <Field label="Nome" htmlFor="member-name">
+            <Input
+              id="member-name"
+              placeholder="Nome"
+              value={form.name}
+              onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+              required
+            />
+          </Field>
+          <Field label="Email" htmlFor="member-email">
+            <Input
+              id="member-email"
+              placeholder="Email"
+              type="email"
+              value={form.email}
+              onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+              required
+            />
+          </Field>
+          <Field label="Password temporanea" htmlFor="member-password">
+            <Input
+              id="member-password"
+              placeholder="Password temporanea"
+              type="password"
+              value={form.password}
+              onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
+              required
+            />
+          </Field>
+          <Field label="Ruolo" htmlFor="member-role">
+            <select
+              id="member-role"
+              className="input-base"
+              value={form.role}
+              onChange={e => setForm(p => ({ ...p, role: e.target.value }))}
+            >
+              {ROLE_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </Field>
         </div>
 
         {error && (
-          <p className="font-body text-[12px] mb-4" style={{ color: '#f87171' }}>{error}</p>
+          <p role="alert" className="font-body text-[12px] mb-4" style={{ color: '#f87171' }}>{error}</p>
         )}
 
         <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 py-2.5 font-display text-[12px] cursor-pointer bg-transparent text-white/40"
-            style={{ borderRadius: '3px', border: '1px solid rgba(255,255,255,0.1)' }}
-          >
+          <Button type="button" variant="neutral" className="flex-1" onClick={onClose}>
             ANNULLA
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="flex-1 py-2.5 font-display text-[12px] font-bold cursor-pointer border-0 disabled:opacity-40"
-            style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', borderRadius: '3px', color: 'var(--rx-green)' }}
-          >
-            {saving ? 'CREAZIONE...' : 'CREA'}
-          </button>
+          </Button>
+          <Button type="submit" variant="primary" className="flex-1" loading={saving}>
+            CREA
+          </Button>
         </div>
       </form>
     </div>

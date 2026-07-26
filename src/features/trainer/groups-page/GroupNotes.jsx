@@ -5,6 +5,11 @@ import { useTrainerState }                   from '../../../context/TrainerConte
 import { usePagination }                     from '../../../hooks/usePagination'
 import { Pagination }                        from '../../../components/common/Pagination'
 import { useToast }                          from '../../../hooks/useToast'
+import { Button, EmptyState }                from '../../../components/ui'
+import { ConfirmDialog }                     from '../../../components/common/ConfirmDialog'
+import { IconDocument }                      from '../../../components/ui/icons'
+
+const ICON_NOTES = <IconDocument size={20} />
 
 const NOTES_PAGE_SIZE = 8
 
@@ -22,6 +27,7 @@ export function GroupNotes({ orgId, groupId }) {
   const [text,        setText]        = useState('')
   const [submitting,  setSubmitting]  = useState(false)
   const [deletingId,  setDeletingId]  = useState(null)
+  const [confirmDelete, setConfirmDelete] = useState(null)
 
   const notesPagination  = usePagination(notes, NOTES_PAGE_SIZE)
   const currentUserId    = getAuth().currentUser?.uid
@@ -80,6 +86,12 @@ export function GroupNotes({ orgId, groupId }) {
     }
   }
 
+  const handleConfirmDelete = async () => {
+    if (!confirmDelete) return
+    await handleDelete(confirmDelete.id, confirmDelete.authorId)
+    setConfirmDelete(null)
+  }
+
   return (
     <div className="rounded-[4px] p-5 rx-card">
       <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-5" style={{ color: 'var(--rx-green)' }}>◈ Note di gruppo</div>
@@ -96,14 +108,9 @@ export function GroupNotes({ orgId, groupId }) {
           style={{ lineHeight: 1.6 }}
         />
         <div className="flex justify-end mt-2">
-          <button
-            onClick={handleSubmit}
-            disabled={!text.trim() || submitting}
-            className="font-display text-[11px] px-4 py-2 rounded-[3px] cursor-pointer border-0 transition-opacity hover:opacity-85 disabled:opacity-40"
-            style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)' }}
-          >
+          <Button onClick={handleSubmit} disabled={!text.trim() || submitting}>
             {submitting ? '…' : 'PUBBLICA'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -113,9 +120,11 @@ export function GroupNotes({ orgId, groupId }) {
           {[...Array(3)].map((_, i) => <div key={i} className="skeleton h-16 rounded-[3px]" />)}
         </div>
       ) : notes.length === 0 ? (
-        <p className="font-body text-[13px] text-white/20">
-          Nessuna nota pubblicata per questo gruppo.
-        </p>
+        <EmptyState
+          icon={ICON_NOTES}
+          title="Nessuna nota"
+          description="Pubblica la prima nota o annuncio per questo gruppo."
+        />
       ) : (
         <>
           <div className="flex flex-col gap-3">
@@ -126,12 +135,24 @@ export function GroupNotes({ orgId, groupId }) {
                 currentUserId={currentUserId}
                 userRole={userRole}
                 deleting={deletingId === note.id}
-                onDelete={() => handleDelete(note.id, note.authorId)}
+                onDelete={() => setConfirmDelete(note)}
               />
             ))}
           </div>
           <Pagination {...notesPagination} />
         </>
+      )}
+
+      {confirmDelete && (
+        <ConfirmDialog
+          title="Eliminare la nota?"
+          description="La nota verrà rimossa definitivamente dal gruppo."
+          confirmLabel="ELIMINA"
+          variant="danger"
+          loading={deletingId === confirmDelete.id}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setConfirmDelete(null)}
+        />
       )}
     </div>
   )
@@ -169,7 +190,7 @@ function NoteCard({ note, currentUserId, userRole, deleting, onDelete }) {
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <span className="font-body text-[11px] text-white/20">{dateLabel}</span>
+          <span className="font-body text-[11px] text-white/60">{dateLabel}</span>
           {canDelete && (
             <button
               onClick={onDelete}

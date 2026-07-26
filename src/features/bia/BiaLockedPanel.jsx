@@ -45,7 +45,7 @@ export function BiaLockedPanel({ profileType, _color }) {
         </div>
 
         <div
-          className="font-display text-[10px] tracking-[2px] text-white/25 px-4 py-1.5 rounded-[2px]"
+          className="font-display text-[10px] tracking-[2px] text-white/60 px-4 py-1.5 rounded-[2px]"
           style={{ border: '1px solid rgba(255,255,255,0.07)' }}
         >
           CONTATTA IL TUO TRAINER

@@ -1,5 +1,6 @@
-import { useState }            from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { createOrganization }  from '../../../firebase/services/org'
+import { useFocusTrap }        from '../../../hooks/useFocusTrap'
 
 const MODULE_OPTIONS = [
   { value: 'personal_training', label: 'Personal Training' },
@@ -49,6 +50,14 @@ export function CreateOrgForm({ onClose, onCreated, ownerUid }) {
   })
   const [saving, setSaving] = useState(false)
   const [error,  setError]  = useState(null)
+  const formRef = useRef(null)
+  useFocusTrap(formRef, true)
+
+  useEffect(() => {
+    const handler = e => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onClose])
 
   const handleModuleChange = (moduleType) => {
     const variants = TERMINOLOGY_BY_MODULE[moduleType]
@@ -87,21 +96,26 @@ export function CreateOrgForm({ onClose, onCreated, ownerUid }) {
       onClick={onClose}
     >
       <form
+        ref={formRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-org-title"
         onSubmit={handleSubmit}
         className="w-full max-w-sm p-6"
         style={{ background: 'var(--rx-surface)', border: '1px solid rgba(248,113,113,0.2)', borderRadius: '4px' }}
         onClick={e => e.stopPropagation()}
       >
-        <h3 className="font-display font-black text-[16px] text-white mb-5">
+        <h3 id="create-org-title" className="font-display font-black text-[16px] text-white mb-5">
           Nuova organizzazione
         </h3>
 
         <div className="flex flex-col gap-3 mb-5">
           <div>
-            <label className="font-display text-[10px] tracking-[1.5px] text-white/40 mb-1.5 block">
+            <label htmlFor="org-name" className="font-display text-[10px] tracking-[1.5px] text-white/40 mb-1.5 block">
               NOME
             </label>
             <input
+              id="org-name"
               className="input-base w-full"
               placeholder="Nome organizzazione"
               value={form.name}
@@ -112,10 +126,11 @@ export function CreateOrgForm({ onClose, onCreated, ownerUid }) {
           </div>
 
           <div>
-            <label className="font-display text-[10px] tracking-[1.5px] text-white/40 mb-1.5 block">
+            <label htmlFor="org-module" className="font-display text-[10px] tracking-[1.5px] text-white/40 mb-1.5 block">
               MODULO
             </label>
             <select
+              id="org-module"
               className="input-base w-full"
               value={form.moduleType}
               onChange={e => handleModuleChange(e.target.value)}
@@ -127,10 +142,11 @@ export function CreateOrgForm({ onClose, onCreated, ownerUid }) {
           </div>
 
           <div>
-            <label className="font-display text-[10px] tracking-[1.5px] text-white/40 mb-1.5 block">
+            <label htmlFor="org-terminology" className="font-display text-[10px] tracking-[1.5px] text-white/40 mb-1.5 block">
               TERMINOLOGIA
             </label>
             <select
+              id="org-terminology"
               className="input-base w-full"
               value={form.terminologyVariant}
               onChange={e => setForm(p => ({ ...p, terminologyVariant: e.target.value }))}
@@ -143,10 +159,11 @@ export function CreateOrgForm({ onClose, onCreated, ownerUid }) {
           </div>
 
           <div>
-            <label className="font-display text-[10px] tracking-[1.5px] text-white/40 mb-1.5 block">
+            <label htmlFor="org-plan" className="font-display text-[10px] tracking-[1.5px] text-white/40 mb-1.5 block">
               PIANO
             </label>
             <select
+              id="org-plan"
               className="input-base w-full"
               value={form.plan}
               onChange={e => setForm(p => ({ ...p, plan: e.target.value }))}

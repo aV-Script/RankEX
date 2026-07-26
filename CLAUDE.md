@@ -585,6 +585,22 @@ Tutte le funzioni service e tutti gli hook operativi accettano
 `orgId = profile?.orgId ?? user.uid`
 (backward compat: trainer solo usano il proprio uid come orgId).
 
+**Prop vs useTrainerState() — quale usare:**
+```
+Componenti in PAGES (trainer.config.jsx) e i loro figli diretti
+  → orgId arriva come prop da TrainerLayout (già passato a <CurrentPage orgId={orgId} .../>)
+  → propagarlo esplicitamente come prop lungo la catena diretta pagina → sotto-vista
+    (es. GroupsPage → GroupDetailView), NON richiamare useTrainerState() in questi casi
+
+Hook/componenti annidati in profondità, non collegati alla catena di prop
+della pagina (es. useBia, useWearable, useMisure — usati da sezioni della
+dashboard cliente lontane dal punto in cui orgId entra come prop)
+  → usare useTrainerState() per evitare prop-drilling su più livelli
+```
+Evitare di mescolare i due pattern per lo stesso dato all'interno della stessa
+catena di componenti — se un componente riceve già `orgId` da un genitore
+diretto, non richiamare `useTrainerState()` per lo stesso valore.
+
 ---
 
 ## Comportamento UI per modulo

@@ -1,4 +1,5 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
+import { useFocusTrap } from '../../hooks/useFocusTrap'
 
 /**
  * Modal generico di conferma.
@@ -7,6 +8,9 @@ import { useEffect } from 'react'
  */
 export function ConfirmDialog({ title, description, confirmLabel = 'CONFERMA', cancelLabel = 'ANNULLA', loading = false, variant = 'default', onConfirm, onCancel }) {
   const isDanger = variant === 'danger'
+  const dialogRef = useRef(null)
+  useFocusTrap(dialogRef, true)
+
   useEffect(() => {
     const handler = e => { if (e.key === 'Escape') onCancel() }
     window.addEventListener('keydown', handler)
@@ -20,6 +24,7 @@ export function ConfirmDialog({ title, description, confirmLabel = 'CONFERMA', c
       onClick={onCancel}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"

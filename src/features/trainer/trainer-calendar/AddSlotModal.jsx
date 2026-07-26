@@ -1,4 +1,6 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
+import { useFocusTrap } from '../../../hooks/useFocusTrap'
+import { IconClose }    from '../../../components/ui/icons'
 
 /**
  * Modal per la creazione di una nuova sessione.
@@ -48,6 +50,9 @@ export function AddSlotModal({ date, clients, groups, slots, onClose, onSave }) 
 
   const canSave = selectedClients.length > 0 && overLimitClients.length === 0
 
+  const dialogRef = useRef(null)
+  useFocusTrap(dialogRef, true)
+
   useEffect(() => {
     const handler = e => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', handler)
@@ -57,6 +62,7 @@ export function AddSlotModal({ date, clients, groups, slots, onClose, onSave }) 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(8,12,18,0.9)' }} onClick={onClose}>
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-slot-title"
@@ -67,14 +73,15 @@ export function AddSlotModal({ date, clients, groups, slots, onClose, onSave }) 
         <div className="flex justify-between items-center mb-5">
           <h3 id="add-slot-title" className="font-display font-black text-white text-[16px] m-0">Nuova sessione</h3>
           <button onClick={onClose} aria-label="Chiudi" className="bg-transparent border-none text-white/40 cursor-pointer flex items-center justify-center w-7 h-7">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <IconClose size={12} />
           </button>
         </div>
 
         {/* Data */}
         <div className="mb-4">
-          <label className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] block mb-1.5">DATA</label>
+          <label htmlFor="add-slot-date" className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] block mb-1.5">DATA</label>
           <input
+            id="add-slot-date"
             type="date" value={selectedDate} min={today}
             onChange={e => setSelectedDate(e.target.value)}
             className="input-base w-full" style={{ colorScheme: 'dark' }}
@@ -84,13 +91,13 @@ export function AddSlotModal({ date, clients, groups, slots, onClose, onSave }) 
         {/* Orari */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
-            <label className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] block mb-1.5">INIZIO</label>
-            <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)}
+            <label htmlFor="add-slot-start" className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] block mb-1.5">INIZIO</label>
+            <input id="add-slot-start" type="time" value={startTime} onChange={e => setStartTime(e.target.value)}
               className="input-base w-full" style={{ colorScheme: 'dark' }} />
           </div>
           <div>
-            <label className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] block mb-1.5">FINE</label>
-            <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)}
+            <label htmlFor="add-slot-end" className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] block mb-1.5">FINE</label>
+            <input id="add-slot-end" type="time" value={endTime} onChange={e => setEndTime(e.target.value)}
               className="input-base w-full" style={{ colorScheme: 'dark' }} />
           </div>
         </div>

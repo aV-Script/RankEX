@@ -7,6 +7,7 @@ import { extendRecurrenceUseCase }            from '../../usecases/extendRecurre
 import { addClientToRecurrenceUseCase }       from '../../usecases/addClientToRecurrenceUseCase'
 import { removeClientFromRecurrenceUseCase }  from '../../usecases/removeClientFromRecurrenceUseCase'
 import { cancelRecurrenceUseCase }            from '../../usecases/cancelRecurrenceUseCase'
+import { useToast }                           from '../../hooks/useToast'
 
 /**
  * Hook per la gestione completa delle ricorrenze.
@@ -15,6 +16,7 @@ export function useRecurrences(orgId) {
   const [recurrences, setRecurrences] = useState([])
   const [loading,     setLoading]     = useState(false)
   const [error,       setError]       = useState(null)
+  const { error: toastError } = useToast()
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
   const refresh = useCallback(() => {
@@ -61,8 +63,9 @@ export function useRecurrences(orgId) {
       setRecurrences(prev => prev.map(r =>
         r.id === recurrenceId ? snapshot : r
       ))
+      toastError('Impossibile aggiornare l\'orario della ricorrenza')
     }
-  }, [orgId, recurrences])
+  }, [orgId, recurrences, toastError])
 
   // ── Modifica giorni ────────────────────────────────────────────────────────
   const handleUpdateDays = useCallback(async (recurrenceId, days) => {
@@ -76,8 +79,9 @@ export function useRecurrences(orgId) {
       setRecurrences(prev => prev.map(r =>
         r.id === recurrenceId ? snapshot : r
       ))
+      toastError('Impossibile aggiornare i giorni della ricorrenza')
     }
-  }, [orgId, recurrences])
+  }, [orgId, recurrences, toastError])
 
   // ── Estendi periodo ────────────────────────────────────────────────────────
   const handleExtendPeriod = useCallback(async (recurrenceId, newEndDate) => {
@@ -95,8 +99,9 @@ export function useRecurrences(orgId) {
       setRecurrences(prev => prev.map(r =>
         r.id === recurrenceId ? snapshot : r
       ))
+      toastError('Impossibile estendere il periodo')
     }
-  }, [orgId, recurrences])
+  }, [orgId, recurrences, toastError])
 
   // ── Aggiungi cliente ───────────────────────────────────────────────────────
   const handleAddClient = useCallback(async (recurrenceId, clientId) => {
@@ -114,8 +119,9 @@ export function useRecurrences(orgId) {
       setRecurrences(prev => prev.map(r =>
         r.id === recurrenceId ? snapshot : r
       ))
+      toastError('Impossibile aggiungere il cliente')
     }
-  }, [orgId, recurrences])
+  }, [orgId, recurrences, toastError])
 
   // ── Rimuovi cliente ────────────────────────────────────────────────────────
   const handleRemoveClient = useCallback(async (recurrenceId, clientId) => {
@@ -133,10 +139,13 @@ export function useRecurrences(orgId) {
       setRecurrences(prev => prev.map(r =>
         r.id === recurrenceId ? snapshot : r
       ))
+      toastError('Impossibile rimuovere il cliente')
     }
-  }, [orgId, recurrences])
+  }, [orgId, recurrences, toastError])
 
   // ── Cancella ricorrenza ────────────────────────────────────────────────────
+  // Non mostra un proprio toast: rilancia l'errore così il chiamante
+  // (RecurrenceDetailView) può decidere se navigare via solo in caso di successo.
   const handleCancel = useCallback(async (recurrenceId) => {
     const snapshot = recurrences.find(r => r.id === recurrenceId)
 
@@ -146,10 +155,11 @@ export function useRecurrences(orgId) {
 
     try {
       await cancelRecurrenceUseCase(orgId, recurrenceId)
-    } catch {
+    } catch (err) {
       setRecurrences(prev => prev.map(r =>
         r.id === recurrenceId ? snapshot : r
       ))
+      throw err
     }
   }, [orgId, recurrences])
 

@@ -138,7 +138,9 @@ export function useWizard({ onAdd, onClose, isSoccer = false }) {
       })
       onClose()
     } catch (err) {
-      setErrors({ email: getFirebaseErrorMessage(err, 'Impossibile creare il cliente') })
+      const message = getFirebaseErrorMessage(err, 'Impossibile creare il cliente')
+      const isEmailError = err?.code === 'auth/email-already-in-use' || err?.code === 'auth/invalid-email'
+      setErrors(isEmailError ? { email: message } : { form: message })
       setLoading(false)
       setShowConfirm(false)
     }

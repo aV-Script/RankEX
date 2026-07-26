@@ -5,6 +5,13 @@ import {
   pickDefaultComparisonClients, buildComparisonStatCols, isMaxValue,
   computeRadarAngles, computeRadarOuterPoints, buildRadarPolygon,
 } from '../../../utils/groupAnalysis'
+import { EmptyState } from '../../../components/ui'
+
+const ICON_COMPARISON = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+  </svg>
+)
 
 const COMPARISON_COLORS  = ['var(--rx-green)', '#2ecfff', '#ffd700']
 const MAX_SELECTED       = 2
@@ -39,9 +46,11 @@ export function GroupComparison({ clients }) {
 
   if (clients.length === 0) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <span className="font-body text-white/20 text-[14px]">Nessun atleta nel gruppo.</span>
-      </div>
+      <EmptyState
+        icon={ICON_COMPARISON}
+        title="Nessun atleta nel gruppo"
+        description="Aggiungi atleti al gruppo per confrontare le loro statistiche."
+      />
     )
   }
 
@@ -53,14 +62,14 @@ export function GroupComparison({ clients }) {
         <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-1" style={{ color: 'var(--rx-green)' }}>
           ◈ Confronto atleti
         </div>
-        <div className="font-display text-[10px] text-white/25 tracking-[1px] mb-4">
+        <div className="font-display text-[10px] text-white/60 tracking-[1px] mb-4">
           {selected.length}/{MAX_SELECTED} selezionati
         </div>
 
         {/* Selezionati — sempre visibili */}
         {selectedClients.length > 0 && (
           <div className={selected.length < MAX_SELECTED ? 'mb-4' : ''}>
-            <div className="font-display text-[9px] tracking-[1.5px] text-white/20 mb-2 uppercase">
+            <div className="font-display text-[9px] tracking-[1.5px] text-white/60 mb-2 uppercase">
               Selezionati
             </div>
             <div className="flex flex-col gap-2">
@@ -81,7 +90,7 @@ export function GroupComparison({ clients }) {
         {selected.length < MAX_SELECTED && (
           <div>
             {selectedClients.length > 0 && unselectedClients.length > 0 && (
-              <div className="font-display text-[9px] tracking-[1.5px] text-white/20 mb-2 uppercase">
+              <div className="font-display text-[9px] tracking-[1.5px] text-white/60 mb-2 uppercase">
                 Aggiungi
               </div>
             )}
@@ -117,7 +126,7 @@ export function GroupComparison({ clients }) {
           </div>
         ) : (
           <div className="flex items-center justify-center py-12">
-            <span className="font-body text-white/20 text-[13px] text-center">
+            <span className="font-body text-white/60 text-[13px] text-center">
               {selectedClients.length === 0
                 ? 'Seleziona almeno un atleta.'
                 : 'Nessun campionamento per gli atleti selezionati.'}
@@ -147,7 +156,7 @@ export function GroupComparison({ clients }) {
             </div>
           </>
         ) : (
-          <p className="font-body text-[13px] text-white/20">
+          <p className="font-body text-[13px] text-white/60">
             {selectedClients.length === 0
               ? 'Seleziona atleti per vedere i valori.'
               : 'Nessun dato disponibile.'}
@@ -272,7 +281,7 @@ function ComparisonTable({ clients, statCols }) {
       <thead>
         <tr>
           <th className="text-left pb-3" style={{ width: '44%' }}>
-            <span className="font-display text-[10px] font-semibold tracking-[1px] text-white/25">STAT</span>
+            <span className="font-display text-[10px] font-semibold tracking-[1px] text-white/60">STAT</span>
           </th>
           {clients.map((c, i) => (
             <th key={c.id} className="pb-3 px-1 text-right">

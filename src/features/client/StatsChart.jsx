@@ -17,7 +17,7 @@ export function StatsChart({ campionamenti, color, categoria = 'health' }) {
     return (
       <Card>
         <SectionLabel>◈ Andamento</SectionLabel>
-        <p className="text-white/20 font-body text-[13px] text-center py-4">
+        <p className="text-white/60 font-body text-[13px] text-center py-4">
           Servono almeno 2 campionamenti per visualizzare l'andamento.
         </p>
       </Card>

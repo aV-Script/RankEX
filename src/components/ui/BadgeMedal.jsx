@@ -101,6 +101,8 @@ export function BadgeMedal({ badgeId, unlocked, size = 64, animate = false, show
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
       <div
+        role="img"
+        aria-label={unlocked ? `${badge.label}, tier ${tier.label}` : `${badge.label}, non sbloccato`}
         title={unlocked ? badge.label : `${badge.label} — non sbloccato`}
         style={{
           width:          size,

@@ -1,5 +1,6 @@
-import { useEffect, useState }   from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { getGroupTogglePreview } from '../../../features/calendar/calendarGroupUtils'
+import { useFocusTrap }          from '../../../hooks/useFocusTrap'
 
 const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
 
@@ -18,6 +19,8 @@ export function GroupToggleDialog({
   const [preview, setPreview] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving,  setSaving]  = useState(false)
+  const dialogRef = useRef(null)
+  useFocusTrap(dialogRef, true)
 
   useEffect(() => {
     getGroupTogglePreview(orgId, group.id)
@@ -25,6 +28,12 @@ export function GroupToggleDialog({
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [orgId, group.id])
+
+  useEffect(() => {
+    const handler = e => { if (e.key === 'Escape') onCancel() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onCancel])
 
   const handleConfirm = async () => {
     setSaving(true)
@@ -42,6 +51,10 @@ export function GroupToggleDialog({
       onClick={onCancel}
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="group-toggle-title"
         className="w-full max-w-sm p-6 rx-animate-in"
         style={{
           background:   'var(--rx-surface)',
@@ -52,7 +65,7 @@ export function GroupToggleDialog({
         onClick={e => e.stopPropagation()}
       >
         {/* Titolo */}
-        <h3 className="font-display font-black text-[16px] text-white mb-1">
+        <h3 id="group-toggle-title" className="font-display font-black text-[16px] text-white mb-1">
           {isRemoving ? 'Rimuovi dal gruppo' : 'Aggiungi al gruppo'}
         </h3>
         <p className="font-body text-[12px] text-white/40 mb-5">
@@ -106,7 +119,7 @@ export function GroupToggleDialog({
                   >
                     {preview.futureSlots}
                   </span>
-                  <span className="font-body text-[11px] text-white/25">da aggiornare</span>
+                  <span className="font-body text-[11px] text-white/60">da aggiornare</span>
                 </div>
               </div>
 
@@ -119,7 +132,7 @@ export function GroupToggleDialog({
                   >
                     {preview.recurrences.length}
                   </span>
-                  <span className="font-body text-[11px] text-white/25">da aggiornare</span>
+                  <span className="font-body text-[11px] text-white/60">da aggiornare</span>
                 </div>
               </div>
 
@@ -142,7 +155,7 @@ export function GroupToggleDialog({
               )}
 
               {preview.futureSlots === 0 && preview.recurrences.length === 0 && (
-                <p className="font-body text-[12px] text-white/25 text-center py-1">
+                <p className="font-body text-[12px] text-white/60 text-center py-1">
                   Nessuna sessione futura da aggiornare
                 </p>
               )}

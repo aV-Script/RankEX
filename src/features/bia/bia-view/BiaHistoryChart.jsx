@@ -17,7 +17,7 @@ export function BiaHistoryChart({ biaHistory, color }) {
         className="rounded-[4px] p-5 rx-card"
       >
         <SectionLabel>◈ Andamento BIA</SectionLabel>
-        <p className="text-white/20 font-body text-[13px] text-center py-4">
+        <p className="text-white/60 font-body text-[13px] text-center py-4">
           Servono almeno 2 misurazioni per visualizzare l'andamento.
         </p>
       </div>

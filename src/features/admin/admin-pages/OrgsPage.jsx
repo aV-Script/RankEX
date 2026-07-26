@@ -3,6 +3,14 @@ import { getOrganizations }    from '../../../firebase/services/org'
 import { CreateOrgForm }       from './CreateOrgForm'
 import { usePagination }       from '../../../hooks/usePagination'
 import { Pagination }          from '../../../components/common/Pagination'
+import { EmptyState }          from '../../../components/ui'
+
+const ICON_ORG = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/>
+    <line x1="9" y1="9" x2="9" y2="9.01"/><line x1="9" y1="12" x2="9" y2="12.01"/><line x1="9" y1="15" x2="9" y2="15.01"/>
+  </svg>
+)
 
 const MODULE_LABELS = {
   personal_training: 'Personal Training',
@@ -78,7 +86,15 @@ export function OrgsPage({ onSelectOrg, currentUserUid }) {
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <p className="font-body text-[13px] text-white/20">Nessuna organizzazione trovata.</p>
+        <EmptyState
+          icon={ICON_ORG}
+          title={orgs.length === 0 ? 'Nessuna organizzazione' : 'Nessun risultato'}
+          description={orgs.length === 0
+            ? 'Crea la prima organizzazione per iniziare.'
+            : 'Prova a cambiare il termine di ricerca.'
+          }
+          action={orgs.length === 0 ? { label: 'Crea organizzazione', onClick: () => setShowForm(true) } : undefined}
+        />
       ) : (
         <>
           <div className="flex flex-col gap-2">

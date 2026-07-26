@@ -57,7 +57,7 @@
 
   /* Testo */
   --rx-text:       #ffffff;
-  --rx-text-muted: rgba(200,212,224,0.4);
+  --rx-text-muted: rgba(200,212,224,0.62); /* ~4.9:1 su --rx-surface — conforme WCAG AA body text */
   --rx-border:     rgba(15,214,90,0.12);
 
   /* Gradienti */

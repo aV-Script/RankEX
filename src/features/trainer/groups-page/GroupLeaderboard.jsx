@@ -2,6 +2,13 @@ import { useState, useMemo } from 'react'
 import { ALL_TESTS, getRankFromMedia } from '../../../constants/index'
 import { usePagination }               from '../../../hooks/usePagination'
 import { Pagination }                  from '../../../components/common/Pagination'
+import { EmptyState }                  from '../../../components/ui'
+
+const ICON_LEADERBOARD = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="18 20 18 10"/><polyline points="12 20 12 4"/><polyline points="6 20 6 14"/>
+  </svg>
+)
 
 const LEADERBOARD_PAGE_SIZE = 10
 
@@ -48,11 +55,11 @@ export function GroupLeaderboard({ clients }) {
 
   if (clients.length === 0) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <span className="font-body text-white/20 text-[14px]">
-          Nessun atleta nel gruppo.
-        </span>
-      </div>
+      <EmptyState
+        icon={ICON_LEADERBOARD}
+        title="Nessun atleta nel gruppo"
+        description="Aggiungi atleti al gruppo per vedere la classifica."
+      />
     )
   }
 
@@ -93,7 +100,7 @@ export function GroupLeaderboard({ clients }) {
         {/* Separatore "nessun dato" */}
         {sorted.length > 0 && sortedNoData.length > 0 && (
           <div className="mt-4 mb-2">
-            <div className="font-display text-[10px] font-semibold text-white/25 tracking-[2px] uppercase">
+            <div className="font-display text-[10px] font-semibold text-white/60 tracking-[2px] uppercase">
               Nessun dato ({sortedNoData.length})
             </div>
           </div>
@@ -118,11 +125,11 @@ export function GroupLeaderboard({ clients }) {
 
       {/* Empty state — nessun dato in nessun cliente */}
       {sorted.length === 0 && (
-        <div className="flex items-center justify-center py-10">
-          <span className="font-body text-white/20 text-[13px] text-center">
-            Nessun campionamento ancora registrato per questo gruppo.
-          </span>
-        </div>
+        <EmptyState
+          icon={ICON_LEADERBOARD}
+          title="Nessun campionamento"
+          description="Nessun campionamento ancora registrato per questo gruppo."
+        />
       )}
     </div>
   )
@@ -212,7 +219,7 @@ function LeaderboardRow({ position, client, score, sortStat }) {
             >
               {Math.round(score)}
             </div>
-            <div className="font-display text-[10px] font-semibold text-white/25 mt-0.5 tracking-[1px]">
+            <div className="font-display text-[10px] font-semibold text-white/60 mt-0.5 tracking-[1px]">
               {sortStat === 'media' ? 'MEDIA' : 'PERC.'}
             </div>
           </>

@@ -46,6 +46,7 @@ export function TestGuidePage() {
                   <button
                     key={g.value}
                     onClick={() => { setSoccerFascia(g.value); setSoccerSelectedTest(ALL_TESTS.find(t => t.categories.includes(g.value))?.key ?? null) }}
+                    aria-pressed={active}
                     className="relative flex-1 flex items-center justify-center py-3 font-display text-[9px] tracking-widest cursor-pointer border-none bg-transparent transition-colors"
                     style={{ color: active ? fc : 'rgba(255,255,255,0.3)' }}
                   >
@@ -68,6 +69,7 @@ export function TestGuidePage() {
                   <button
                     key={t.key}
                     onClick={() => setSoccerSelectedTest(t.key)}
+                    aria-pressed={active}
                     className="text-left px-3 py-2.5 rounded-[3px] font-body text-[13px] cursor-pointer border-none bg-transparent transition-colors"
                     style={{ color: active ? '#fff' : 'rgba(255,255,255,0.4)' }}
                     onMouseEnter={e => { if (!active) e.currentTarget.style.color = 'rgba(255,255,255,0.7)' }}
@@ -96,6 +98,7 @@ export function TestGuidePage() {
                     <button
                       key={g.value}
                       onClick={() => { setSoccerFascia(g.value); setSoccerSelectedTest(ALL_TESTS.find(t => t.categories.includes(g.value))?.key ?? null); setMenuOpen(false) }}
+                      aria-pressed={soccerFascia === g.value}
                       className="flex-1 py-1.5 rounded-[3px] font-display text-[10px] tracking-wide cursor-pointer border transition-all"
                       style={soccerFascia === g.value
                         ? { background: fc + '22', borderColor: fc + '66', color: fc }
@@ -109,6 +112,7 @@ export function TestGuidePage() {
               </div>
               <button
                 onClick={() => setMenuOpen(o => !o)}
+                aria-expanded={menuOpen}
                 className="w-full flex items-center justify-between px-4 py-3 rounded-[3px] cursor-pointer border transition-all"
                 style={{ background: 'var(--rx-card-bg)', borderColor: fasciaColor + '33' }}
               >
@@ -134,6 +138,7 @@ export function TestGuidePage() {
                     <button
                       key={t.key}
                       onClick={() => { setSoccerSelectedTest(t.key); setMenuOpen(false) }}
+                      aria-pressed={currentTest?.key === t.key}
                       className="w-full text-left px-4 py-3 flex items-center justify-between cursor-pointer transition-all border-none"
                       style={{
                         background:   currentTest?.key === t.key ? fasciaColor + '18' : 'transparent',
@@ -208,6 +213,7 @@ export function TestGuidePage() {
                 <button
                   key={cat.id}
                   onClick={() => handleSelectCat(cat.id)}
+                  aria-pressed={active}
                   className="relative flex-1 flex items-center justify-center py-3 font-display text-[9px] tracking-widest cursor-pointer border-none bg-transparent transition-colors"
                   style={{ color: active ? cat.color : 'rgba(255,255,255,0.3)' }}
                 >
@@ -232,6 +238,7 @@ export function TestGuidePage() {
                 <button
                   key={t.key}
                   onClick={() => setSelectedTest(t.key)}
+                  aria-pressed={active}
                   className="text-left px-3 py-2.5 rounded-[3px] font-body text-[13px] cursor-pointer border-none bg-transparent transition-colors"
                   style={{ color: active ? '#fff' : 'rgba(255,255,255,0.4)' }}
                   onMouseEnter={e => { if (!active) e.currentTarget.style.color = 'rgba(255,255,255,0.7)' }}
@@ -260,6 +267,7 @@ export function TestGuidePage() {
                 <button
                   key={cat.id}
                   onClick={() => handleSelectCat(cat.id)}
+                  aria-pressed={selectedCat === cat.id}
                   className="shrink-0 px-3 py-2 rounded-[3px] font-display text-[10px] tracking-widest cursor-pointer border transition-all"
                   style={selectedCat === cat.id
                     ? { background: cat.color + '22', borderColor: cat.color + '55', color: cat.color }
@@ -274,6 +282,7 @@ export function TestGuidePage() {
             {/* Dropdown test */}
             <button
               onClick={() => setMenuOpen(o => !o)}
+              aria-expanded={menuOpen}
               className="w-full flex items-center justify-between px-4 py-3 rounded-[3px] cursor-pointer border transition-all"
               style={{ background: 'var(--rx-card-bg)', borderColor: 'color-mix(in srgb, var(--rx-green) 15%, transparent)' }}
             >
@@ -300,6 +309,7 @@ export function TestGuidePage() {
                   <button
                     key={t.key}
                     onClick={() => handleSelectTest(t.key)}
+                    aria-pressed={selectedTest === t.key}
                     className="w-full text-left px-4 py-3 flex items-center justify-between cursor-pointer transition-all border-none"
                     style={{
                       background: selectedTest === t.key ? catColor + '18' : 'transparent',

@@ -22,7 +22,9 @@ export class ErrorBoundary extends Component {
 
   render() {
     if (this.state.hasError) {
-      return <ErrorFallback error={this.state.error} onReset={this.handleReset} />
+      return this.props.fallback
+        ? this.props.fallback({ error: this.state.error, onReset: this.handleReset })
+        : <ErrorFallback error={this.state.error} onReset={this.handleReset} />
     }
     return this.props.children
   }

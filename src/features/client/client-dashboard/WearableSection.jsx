@@ -186,7 +186,7 @@ export function WearableSection({ client, orgId, color }) {
                   {p.label}
                 </button>
               ))}
-              <span className="font-body text-[10px] text-white/20 ml-auto">media / giorno</span>
+              <span className="font-body text-[10px] text-white/60 ml-auto">media / giorno</span>
             </div>
 
             {/* Ring metrics */}
@@ -217,7 +217,7 @@ export function WearableSection({ client, orgId, color }) {
             {/* Grafico passi */}
             {chartData.length > 0 && (
               <div>
-                <div className="font-display text-[10px] tracking-[2px] uppercase text-white/25 mb-1">
+                <div className="font-display text-[10px] tracking-[2px] uppercase text-white/60 mb-1">
                   Passi — {is7d ? 'ultimi 7 giorni' : 'media settimanale'}
                 </div>
                 <StepsChart chartData={chartData} color={color} barSize={is7d ? 20 : 36} />
@@ -234,7 +234,7 @@ export function WearableSection({ client, orgId, color }) {
 
         {client.wearable && (
           <div className="flex items-center justify-between pt-1 border-t border-white/[.05]">
-            <span className="font-body text-[11px] text-white/25">
+            <span className="font-body text-[11px] text-white/60">
               {syncTime ? `Sync: ${syncTime}` : 'Mai sincronizzato'}
             </span>
             {!readonly && (

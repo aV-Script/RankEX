@@ -95,7 +95,7 @@ export function BiaView({ client, color, onSave, onBack }) {
                   <span className="font-display text-[12px] text-white/70 tracking-wider">
                     {param.label}
                   </span>
-                  <span className="font-body text-[11px] text-white/25">({param.unit})</span>
+                  <span className="font-body text-[11px] text-white/60">({param.unit})</span>
                   {KEY_PARAMS.has(param.key) && (
                     <span
                       className="font-display text-[9px] px-1.5 py-0.5 rounded-[2px]"
@@ -117,7 +117,7 @@ export function BiaView({ client, color, onSave, onBack }) {
                     style={{ maxWidth: 140 }}
                   />
                   {prevBia?.[param.key] != null && (
-                    <span className="font-body text-[12px] text-white/25">
+                    <span className="font-body text-[12px] text-white/60">
                       Prec: <strong style={{ color: 'rgba(255,255,255,0.5)' }}>
                         {prevBia[param.key]} {param.unit}
                       </strong>
@@ -179,7 +179,7 @@ export function BiaView({ client, color, onSave, onBack }) {
                   />
                 ))}
                 {BIA_PARAMS.filter(p => !p.computed && values[p.key] !== '').length === 0 && (
-                  <p className="font-body text-[12px] text-white/20 text-center py-4">
+                  <p className="font-body text-[12px] text-white/60 text-center py-4">
                     Inserisci i valori per vedere l'anteprima
                   </p>
                 )}

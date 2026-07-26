@@ -17,7 +17,7 @@ function MisureLineChart({ data = [], dataKey, label, unit, color }) {
         <div className="font-display text-[10px] tracking-[3px] uppercase mb-2" style={{ color: 'var(--rx-green)' }}>
           ◈ {label}
         </div>
-        <p className="text-white/20 font-body text-[13px] text-center py-3">
+        <p className="text-white/60 font-body text-[13px] text-center py-3">
           Servono almeno 2 misurazioni per visualizzare l'andamento.
         </p>
       </div>
@@ -112,14 +112,14 @@ export function MisureSection({ client, color, readonly, onUpdate }) {
         {/* Valori correnti */}
         <div className="flex gap-6 mb-4">
           <div>
-            <div className="font-display text-[9px] text-white/25 tracking-[2px] mb-0.5">PESO</div>
+            <div className="font-display text-[9px] text-white/60 tracking-[2px] mb-0.5">PESO</div>
             <div className="font-display font-bold text-[22px]" style={{ color }}>
               {client.peso ?? '—'}
               <span className="text-[12px] text-white/30 ml-1">kg</span>
             </div>
           </div>
           <div>
-            <div className="font-display text-[9px] text-white/25 tracking-[2px] mb-0.5">ALTEZZA</div>
+            <div className="font-display text-[9px] text-white/60 tracking-[2px] mb-0.5">ALTEZZA</div>
             <div className="font-display font-bold text-[22px]" style={{ color }}>
               {client.altezza ?? '—'}
               <span className="text-[12px] text-white/30 ml-1">cm</span>

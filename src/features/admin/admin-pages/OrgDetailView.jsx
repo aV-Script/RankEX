@@ -6,7 +6,13 @@ import { CreateMemberForm }     from '../../org/org-pages/CreateMemberForm'
 import { ConfirmDialog }        from '../../../components/common/ConfirmDialog'
 import { usePagination }        from '../../../hooks/usePagination'
 import { Pagination }           from '../../../components/common/Pagination'
+import { useToast }             from '../../../hooks/useToast'
+import { EmptyState }           from '../../../components/ui'
 import { getPlanLimits, PLAN_OPTIONS } from '../../../config/plans.config'
+
+const ICON_MEMBERS = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+)
 
 const MODULE_LABELS = {
   personal_training: 'Personal Training',
@@ -25,11 +31,13 @@ const ROLE_OPTIONS = [
 ]
 
 export function OrgDetailView({ org, onBack }) {
+  const toast = useToast()
   const [members,       setMembers]       = useState([])
   const [clients,       setClients]       = useState([])
   const [loading,       setLoading]       = useState(true)
   const [showAddMember, setShowAddMember] = useState(false)
   const [confirmRemove, setConfirmRemove] = useState(null)
+  const [removing,      setRemoving]      = useState(false)
   const [plan,          setPlan]          = useState(org.plan ?? 'free')
   const [moduleType,    setModuleType]    = useState(org.moduleType ?? 'personal_training')
 
@@ -49,35 +57,43 @@ export function OrgDetailView({ org, onBack }) {
   }
 
   const handleRemove = useCallback(async () => {
+    if (removing) return
+    setRemoving(true)
     try {
       await removeMember(org.id, confirmRemove.id)
       setMembers(prev => prev.filter(m => m.id !== confirmRemove.id))
-    } catch {
-      // silent — errore loggato in console
-    } finally {
+      toast.success('Membro rimosso')
       setConfirmRemove(null)
+    } catch {
+      toast.error('Impossibile rimuovere il membro')
+    } finally {
+      setRemoving(false)
     }
-  }, [org.id, confirmRemove])
+  }, [org.id, confirmRemove, removing, toast])
 
   const handlePlanChange = useCallback(async (newPlan) => {
     const snapshot = plan
     setPlan(newPlan)
     try {
       await updateOrganization(org.id, { plan: newPlan })
+      toast.success('Piano aggiornato')
     } catch {
       setPlan(snapshot)
+      toast.error('Impossibile aggiornare il piano')
     }
-  }, [org.id, plan])
+  }, [org.id, plan, toast])
 
   const handleModuleChange = useCallback(async (newModule) => {
     const snapshot = moduleType
     setModuleType(newModule)
     try {
       await updateOrganization(org.id, { moduleType: newModule })
+      toast.success('Modulo aggiornato')
     } catch {
       setModuleType(snapshot)
+      toast.error('Impossibile aggiornare il modulo')
     }
-  }, [org.id, moduleType])
+  }, [org.id, moduleType, toast])
 
   const handleRoleChange = useCallback(async (member, newRole) => {
     const snapshot = member.role
@@ -87,10 +103,12 @@ export function OrgDetailView({ org, onBack }) {
         updateMember(org.id, member.id, { role: newRole }),
         updateUserProfile(member.id, { role: newRole }),
       ])
+      toast.success('Ruolo aggiornato')
     } catch {
       setMembers(prev => prev.map(m => m.id === member.id ? { ...m, role: snapshot } : m))
+      toast.error('Impossibile aggiornare il ruolo')
     }
-  }, [org.id])
+  }, [org.id, toast])
 
   const { paginatedItems: paginatedMembers, ...memberPagination } = usePagination(members, 8)
 
@@ -226,7 +244,12 @@ export function OrgDetailView({ org, onBack }) {
               ))}
             </div>
           ) : members.length === 0 ? (
-            <p className="font-body text-[13px] text-white/20">Nessun membro.</p>
+            <EmptyState
+              icon={ICON_MEMBERS}
+              title="Nessun membro"
+              description="Aggiungi il primo membro del team per questa organizzazione."
+              action={{ label: 'Aggiungi membro', onClick: () => setShowAddMember(true) }}
+            />
           ) : (
             <>
               <div className="flex flex-col gap-1.5">
@@ -239,13 +262,14 @@ export function OrgDetailView({ org, onBack }) {
                     <div className="flex-1 min-w-0">
                       <div className="font-body text-[13px] text-white/70">{m.name ?? m.email ?? m.id}</div>
                       {m.email && (
-                        <div className="font-display text-[10px] text-white/25 mt-0.5">{m.email}</div>
+                        <div className="font-display text-[10px] text-white/60 mt-0.5">{m.email}</div>
                       )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <select
                         value={m.role}
                         onChange={e => handleRoleChange(m, e.target.value)}
+                        aria-label={`Ruolo di ${m.name ?? m.email ?? m.id}`}
                         className="input-base text-[11px] py-1.5 px-2"
                         style={{ width: 'auto', minWidth: 100 }}
                       >
@@ -298,9 +322,11 @@ export function OrgDetailView({ org, onBack }) {
 
       {confirmRemove && (
         <ConfirmDialog
+          variant="danger"
           title={`Rimuovere ${confirmRemove.name ?? confirmRemove.id}?`}
           description="Il membro non potrà più accedere all'organizzazione."
           confirmLabel="RIMUOVI"
+          loading={removing}
           onConfirm={handleRemove}
           onCancel={() => setConfirmRemove(null)}
         />
@@ -318,7 +344,7 @@ function UsageBar({ label, current, limit, pct, atLimit }) {
         <span className="font-display text-[11px] text-white/50">{label}</span>
         <span className="font-display text-[11px]" style={{ color }}>
           {current}{isUnlimited ? '' : ` / ${limit}`}
-          {isUnlimited && <span className="text-white/25 ml-1">· illimitati</span>}
+          {isUnlimited && <span className="text-white/60 ml-1">· illimitati</span>}
         </span>
       </div>
       {!isUnlimited && (

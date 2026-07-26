@@ -72,7 +72,7 @@ export function RecurrenceCard({ recurrence, clients, onClick }) {
 
         {/* Periodo + scaduta */}
         <div className="flex items-center gap-2">
-          <span className="font-body text-[11px] text-white/25">
+          <span className="font-body text-[11px] text-white/60">
             {dateFmt(recurrence.startDate)} → {dateFmt(recurrence.endDate)}
           </span>
           {isExpired && status === 'active' && (

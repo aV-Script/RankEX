@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { SectionLabel }                  from '../../../components/ui'
+import { ConfirmDialog }                 from '../../../components/common/ConfirmDialog'
 import { WorkoutPlanForm }               from '../../trainer/workout-plans/WorkoutPlanForm'
 import { getClientPlans }                from '../../../firebase/services/workoutPlans'
 import { addWorkoutPlanUseCase }         from '../../../usecases/addWorkoutPlanUseCase'
@@ -20,6 +21,8 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
   const [editing,    setEditing]    = useState(null)     // piano in modifica
   const [activeDay,  setActiveDay]  = useState(0)
   const [showArchive, setShowArchive] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState(null)   // piano in attesa di conferma eliminazione
+  const [deleting,   setDeleting]   = useState(false)
 
   useEffect(() => {
     if (!orgId || !clientId) return
@@ -76,11 +79,15 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
   }, [orgId, toastError])
 
   const handleDelete = useCallback(async (plan) => {
+    setDeleting(true)
     try {
       await deleteWorkoutPlanUseCase(orgId, plan.id)
       setPlans(prev => prev.filter(p => p.id !== plan.id))
+      setPendingDelete(null)
     } catch {
       toastError('Impossibile eliminare la scheda')
+    } finally {
+      setDeleting(false)
     }
   }, [orgId, toastError])
 
@@ -144,7 +151,7 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
           )}
         </div>
         {!readonly && activePlan && (
-          <p className="font-body text-[11px] text-white/20 text-right mb-3 m-0">
+          <p className="font-body text-[11px] text-white/60 text-right mb-3 m-0">
             Creare una nuova scheda archivierà automaticamente quella corrente
           </p>
         )}
@@ -187,7 +194,7 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
                     color={color}
                     readonly={readonly}
                     onEdit={() => handleEdit(plan)}
-                    onDelete={() => handleDelete(plan)}
+                    onDelete={() => setPendingDelete(plan)}
                   />
                 ))}
               </div>
@@ -195,6 +202,18 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
           </div>
         )}
       </div>
+
+      {pendingDelete && (
+        <ConfirmDialog
+          variant="danger"
+          title="Eliminare la scheda?"
+          description={`"${pendingDelete.title}" verrà eliminata definitivamente. L'operazione non può essere annullata.`}
+          confirmLabel="ELIMINA"
+          loading={deleting}
+          onConfirm={() => handleDelete(pendingDelete)}
+          onCancel={() => setPendingDelete(null)}
+        />
+      )}
     </section>
   )
 }
@@ -240,7 +259,7 @@ function PlanDisplay({ plan, color, activeDay, onDayChange, readonly, onArchive 
       {/* Lista esercizi */}
       <div className="flex flex-col gap-2 mt-2">
         {exercises.length === 0 && (
-          <p className="font-body text-[12px] text-white/25 py-2 text-center">Nessun esercizio.</p>
+          <p className="font-body text-[12px] text-white/60 py-2 text-center">Nessun esercizio.</p>
         )}
         {exercises.map((ex, index) => (
           <div
@@ -271,7 +290,7 @@ function PlanDisplay({ plan, color, activeDay, onDayChange, readonly, onArchive 
         <div className="flex justify-end mt-4">
           <button
             onClick={onArchive}
-            className="font-display text-[10px] tracking-[1px] text-white/20 hover:text-white/40 transition-colors bg-transparent border-none cursor-pointer"
+            className="font-display text-[10px] tracking-[1px] text-white/60 hover:text-white/80 transition-colors bg-transparent border-none cursor-pointer"
           >
             ARCHIVIA
           </button>
@@ -308,10 +327,10 @@ function ArchivedPlanRow({ plan, _color, readonly, _onEdit, onDelete }) {
           <span className="mr-2 text-white/25">{open ? '▾' : '▸'}</span>
           {plan.title}
         </button>
-        <span className="font-body text-[11px] text-white/20 shrink-0">
+        <span className="font-body text-[11px] text-white/60 shrink-0">
           {days.length > 1 ? `${days.length} giorni · ` : ''}{totalExercises} es.
         </span>
-        {date && <span className="font-body text-[11px] text-white/15 shrink-0">{date}</span>}
+        {date && <span className="font-body text-[11px] text-white/60 shrink-0">{date}</span>}
         {!readonly && (
           <button
             onClick={onDelete}
@@ -350,7 +369,7 @@ function ArchivedPlanRow({ plan, _color, readonly, _onEdit, onDelete }) {
               <div key={i} className="flex items-center gap-2">
                 <span className="font-display text-[10px] text-white/20 w-4 shrink-0">{i + 1}.</span>
                 <span className="font-display font-bold text-[12px] text-white/55">{ex.name}</span>
-                {ex.sets && <span className="font-display text-[11px] text-white/25">{ex.sets}×{ex.reps || '—'}</span>}
+                {ex.sets && <span className="font-display text-[11px] text-white/60">{ex.sets}×{ex.reps || '—'}</span>}
               </div>
             ))}
           </div>
@@ -363,7 +382,7 @@ function ArchivedPlanRow({ plan, _color, readonly, _onEdit, onDelete }) {
 function Chip({ label, value }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="font-display text-[10px] font-semibold tracking-[1px] text-white/25">{label}</span>
+      <span className="font-display text-[10px] font-semibold tracking-[1px] text-white/60">{label}</span>
       <span className="font-display font-bold text-[12px] text-white/65">{value}</span>
     </div>
   )

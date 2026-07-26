@@ -1,5 +1,8 @@
 import { useState }                   from 'react'
 import { SectionLabel, EmptyState }  from '../../../components/ui'
+import { Skeleton }                  from '../../../components/common/Skeleton'
+import { ConfirmDialog }             from '../../../components/common/ConfirmDialog'
+import { IconDocument }              from '../../../components/ui/icons'
 import { useNotes }                  from '../../../hooks/useNotes'
 
 const ROLE_LABELS = {
@@ -28,6 +31,7 @@ export function NotesSection({ orgId, clientId, color, author, readonly = false 
   const [replyTexts,   setReplyTexts]   = useState({})
   const [replyLoading, setReplyLoading] = useState({})
   const [deletingIds,  setDeletingIds]  = useState(new Set())
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null)
 
   const handleDeleteThread = async (threadId) => {
     if (deletingIds.has(threadId)) return
@@ -38,6 +42,12 @@ export function NotesSection({ orgId, clientId, color, author, readonly = false 
       next.delete(threadId)
       return next
     })
+  }
+
+  const handleConfirmDeleteThread = async () => {
+    if (!confirmDeleteId) return
+    await handleDeleteThread(confirmDeleteId)
+    setConfirmDeleteId(null)
   }
 
   const toggleExpand = (id) =>
@@ -72,11 +82,13 @@ export function NotesSection({ orgId, clientId, color, author, readonly = false 
         <SectionLabel className="mb-4">◈ Note</SectionLabel>
 
         {loading ? (
-          <p className="font-body text-[13px] text-white/25">Caricamento…</p>
+          <div className="flex flex-col gap-1">
+            <Skeleton variant="list" count={3} />
+          </div>
         ) : threads.length === 0 ? (
           <EmptyState
             color={color}
-            icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>}
+            icon={<IconDocument size={20} />}
             title="Nessuna nota"
             description="Aggiungi la prima nota per tenere traccia dei progressi o delle osservazioni."
           />
@@ -95,10 +107,22 @@ export function NotesSection({ orgId, clientId, color, author, readonly = false 
                 onToggle={() => toggleExpand(thread.id)}
                 onReplyChange={(text) => setReplyTexts(prev => ({ ...prev, [thread.id]: text }))}
                 onReplySubmit={() => handleSubmitComment(thread.id)}
-                onDelete={handleDeleteThread}
+                onDelete={() => setConfirmDeleteId(thread.id)}
               />
             ))}
           </div>
+        )}
+
+        {confirmDeleteId && (
+          <ConfirmDialog
+            title="Eliminare la nota?"
+            description="La nota e i suoi eventuali commenti verranno eliminati definitivamente."
+            confirmLabel="ELIMINA"
+            variant="danger"
+            loading={deletingIds.has(confirmDeleteId)}
+            onConfirm={handleConfirmDeleteThread}
+            onCancel={() => setConfirmDeleteId(null)}
+          />
         )}
 
         {/* Input nuova nota — nascosto in readonly */}
@@ -147,7 +171,7 @@ function ThreadCard({
             {thread.authorName}
           </span>
           <RoleBadge role={thread.authorRole} color={color} />
-          <span className="font-body text-[10px] text-white/25">
+          <span className="font-body text-[10px] text-white/60">
             {formatDate(thread.createdAt)}
           </span>
         </div>
@@ -155,6 +179,7 @@ function ThreadCard({
           <button
             onClick={() => onDelete(thread.id)}
             disabled={deleting}
+            aria-label="Elimina nota"
             className="text-white/20 hover:text-red-400 transition-colors text-[11px] font-body shrink-0 disabled:opacity-40 disabled:pointer-events-none"
           >
             ✕
@@ -187,7 +212,7 @@ function ThreadCard({
                   {comment.authorName}
                 </span>
                 <RoleBadge role={comment.authorRole} color={color} small />
-                <span className="font-body text-[10px] text-white/20">
+                <span className="font-body text-[10px] text-white/60">
                   {formatDate(comment.createdAt)}
                 </span>
               </div>

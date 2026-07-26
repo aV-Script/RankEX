@@ -41,6 +41,13 @@ export function DayView({ currentDate, slots, clients, today, onSlotClick, onEmp
           >
             {new Date(currentDate + 'T12:00').getDate()}
           </div>
+          <button
+            onClick={() => onEmptyClick(currentDate, '09:00')}
+            aria-label={`Aggiungi sessione il ${currentDate}`}
+            className="mt-1 w-5 h-5 flex items-center justify-center rounded-full mx-auto cursor-pointer border-none bg-transparent text-white/25 hover:text-white/60 transition-colors"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
         </div>
       </div>
 
@@ -53,7 +60,7 @@ export function DayView({ currentDate, slots, clients, today, onSlotClick, onEmp
             {HOURS.map(h => (
               <div
                 key={h}
-                className="absolute right-2 font-display text-[11px] text-white/20"
+                className="absolute right-2 font-display text-[11px] text-white/60"
                 style={{ top: h * HOUR_H - 7 }}
               >
                 {h === 0 ? '' : `${String(h).padStart(2,'0')}:00`}
@@ -65,6 +72,9 @@ export function DayView({ currentDate, slots, clients, today, onSlotClick, onEmp
           <div
             className="flex-1 relative border-l border-white/[.04]"
             onClick={(e) => {
+              // Accesso da tastiera tramite il bottone "+" nell'header (vedi
+              // sopra) invece di role="button" sull'intera colonna — evita di
+              // annidare i bottoni-slot al suo interno (RX-34).
               if (e.target === e.currentTarget) {
                 const rect    = e.currentTarget.getBoundingClientRect()
                 const y       = e.clientY - rect.top + scrollRef.current.scrollTop

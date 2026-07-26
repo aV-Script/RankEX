@@ -9,7 +9,7 @@ export function ErrorFallback({ error, onReset }) {
           Qualcosa è andato storto.
         </p>
         {error?.message && (
-          <p className="font-body text-white/20 text-[12px] mt-2 m-0 max-w-xs mx-auto">
+          <p className="font-body text-white/60 text-[12px] mt-2 m-0 max-w-xs mx-auto">
             {error.message}
           </p>
         )}

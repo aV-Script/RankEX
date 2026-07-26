@@ -104,7 +104,7 @@ export function ClientWorkoutSection({ orgId, clientId, color }) {
 function Chip({ label, value }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="font-display text-[10px] font-semibold tracking-[1px] text-white/25">{label}</span>
+      <span className="font-display text-[10px] font-semibold tracking-[1px] text-white/60">{label}</span>
       <span className="font-display font-bold text-[12px] text-white/65">{value}</span>
     </div>
   )

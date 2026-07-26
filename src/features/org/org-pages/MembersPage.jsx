@@ -7,6 +7,7 @@ import { CreateMemberForm }                 from './CreateMemberForm'
 import { getPlanLimits }                    from '../../../config/plans.config'
 import { EmptyState }                       from '../../../components/ui'
 import { auditLog, AUDIT_ACTIONS }          from '../../../utils/auditLog'
+import { useToast }                         from '../../../hooks/useToast'
 
 const ROLE_OPTIONS = [
   { value: 'trainer',        label: 'Trainer' },
@@ -15,6 +16,7 @@ const ROLE_OPTIONS = [
 ]
 
 export function MembersPage({ orgId, org, onNavigate }) {
+  const { success: toastSuccess, error: toastError } = useToast()
   const [members,    setMembers]    = useState([])
   const [loading,    setLoading]    = useState(true)
   const [showCreate, setShowCreate] = useState(false)
@@ -46,13 +48,14 @@ export function MembersPage({ orgId, org, onNavigate }) {
         orgId,
       })
       setMembers(prev => prev.filter(m => m.id !== confirmRemove.id))
+      toastSuccess('Membro rimosso')
     } catch {
-      // errore loggato in console
+      toastError('Impossibile rimuovere il membro')
     } finally {
       setRemoving(false)
       setConfirmRemove(null)
     }
-  }, [orgId, confirmRemove, removing])
+  }, [orgId, confirmRemove, removing, toastSuccess, toastError])
 
   const handleRoleChange = useCallback(async (member, newRole) => {
     const snapshot = member.role
@@ -66,10 +69,12 @@ export function MembersPage({ orgId, org, onNavigate }) {
         newRole,
         orgId,
       })
+      toastSuccess('Ruolo aggiornato')
     } catch {
       setMembers(prev => prev.map(m => m.id === member.id ? { ...m, role: snapshot } : m))
+      toastError('Impossibile aggiornare il ruolo')
     }
-  }, [orgId])
+  }, [orgId, toastSuccess, toastError])
 
   return (
     <div className="px-6 py-8 text-white">
@@ -123,7 +128,7 @@ export function MembersPage({ orgId, org, onNavigate }) {
 
       {/* Info utilizzo */}
       {!atTrainerLimit && planLimits.trainers !== Infinity && (
-        <div className="font-body text-[11px] text-white/25 mb-5">
+        <div className="font-body text-[11px] text-white/60 mb-5">
           {members.length} / {planLimits.trainers} trainer · piano {(org?.plan ?? 'free').toUpperCase()}
         </div>
       )}
@@ -139,6 +144,7 @@ export function MembersPage({ orgId, org, onNavigate }) {
           icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
           title="Nessun membro"
           description="Aggiungi il primo membro del team per iniziare."
+          action={!atTrainerLimit ? { label: 'Aggiungi membro', onClick: () => setShowCreate(true) } : undefined}
         />
       ) : (
         <div className="flex flex-col gap-2 rx-animate-in">
@@ -153,12 +159,13 @@ export function MembersPage({ orgId, org, onNavigate }) {
                   {member.name ?? member.email ?? member.id}
                 </div>
                 {member.email && (
-                  <div className="font-display text-[11px] text-white/25 mt-0.5">{member.email}</div>
+                  <div className="font-display text-[11px] text-white/60 mt-0.5">{member.email}</div>
                 )}
               </div>
               <select
                 value={member.role}
                 onChange={e => setConfirmRoleChange({ member, newRole: e.target.value })}
+                aria-label={`Ruolo di ${member.name ?? member.email ?? member.id}`}
                 className="input-base text-[11px] py-1.5 px-2 mr-2"
                 style={{ width: 'auto', minWidth: 100 }}
               >

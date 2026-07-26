@@ -7,6 +7,13 @@ import {
   heatColor, buildHeatmap, buildGroupSummary,
   buildTrendStatOptions, buildTrendChartData,
 } from '../../../utils/groupAnalysis'
+import { EmptyState } from '../../../components/ui'
+
+const ICON_ANALYSIS = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+  </svg>
+)
 
 export function GroupAnalysis({ clients }) {
 
@@ -18,9 +25,11 @@ export function GroupAnalysis({ clients }) {
 
   if (clients.length === 0) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <span className="font-body text-white/20 text-[14px]">Nessun atleta nel gruppo.</span>
-      </div>
+      <EmptyState
+        icon={ICON_ANALYSIS}
+        title="Nessun atleta nel gruppo"
+        description="Aggiungi atleti al gruppo per vedere heatmap e trend."
+      />
     )
   }
 
@@ -54,11 +63,11 @@ export function GroupAnalysis({ clients }) {
                 <thead>
                   <tr>
                     <th className="text-left pb-3 pr-3" style={{ minWidth: 130 }}>
-                      <span className="font-display text-[10px] font-semibold tracking-[1px] text-white/25">ATLETA</span>
+                      <span className="font-display text-[10px] font-semibold tracking-[1px] text-white/60">ATLETA</span>
                     </th>
                     {statCols.map(col => (
                       <th key={col.key} className="pb-3 px-1 text-center" style={{ minWidth: 64 }}>
-                        <span className="font-display text-[10px] font-semibold tracking-[1px] text-white/25 uppercase">{col.label}</span>
+                        <span className="font-display text-[10px] font-semibold tracking-[1px] text-white/60 uppercase">{col.label}</span>
                       </th>
                     ))}
                   </tr>
@@ -111,7 +120,7 @@ export function GroupAnalysis({ clients }) {
               </table>
             </div>
           ) : (
-            <p className="font-body text-[13px] text-white/20">Nessun campionamento registrato.</p>
+            <p className="font-body text-[13px] text-white/60">Nessun campionamento registrato.</p>
           )}
       </div>
 
@@ -163,7 +172,7 @@ function GroupTrendChart({ clients }) {
       </div>
 
       {!hasData ? (
-        <p className="font-body text-[13px] text-white/20 text-center py-4">
+        <p className="font-body text-[13px] text-white/60 text-center py-4">
           Servono almeno 2 campionamenti con questa metrica per visualizzare il trend.
         </p>
       ) : (

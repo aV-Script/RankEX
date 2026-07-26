@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
 import { THEMES, THEMES_MAP, DEFAULT_THEME } from '../config/themes.config'
 
 const ThemeContext = createContext(null)
@@ -71,8 +71,13 @@ export function ThemeProvider({ children }) {
     applyTheme(theme)
   }, [theme])
 
+  const value = useMemo(
+    () => ({ theme, themeId, themes: THEMES, setTheme, previewTheme, cancelPreview }),
+    [theme, themeId, setTheme, previewTheme, cancelPreview]
+  )
+
   return (
-    <ThemeContext.Provider value={{ theme, themeId, themes: THEMES, setTheme, previewTheme, cancelPreview }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   )

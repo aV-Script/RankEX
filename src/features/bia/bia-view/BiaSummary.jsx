@@ -39,7 +39,7 @@ export function BiaSummary({ bia, prevBia, sex, age, color, rank }) {
       </div>
 
       {bia.date && (
-        <div className="mt-4 font-body text-[11px] text-white/20 text-right">
+        <div className="mt-4 font-body text-[11px] text-white/60 text-right">
           Ultima misurazione: {bia.date}
         </div>
       )}

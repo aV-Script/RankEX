@@ -5,6 +5,7 @@ import { getCategoriaById }                            from '../../../constants'
 import { calcBiaScore, getBiaRankFromScore }           from '../../../utils/bia'
 import { calcAge }                                     from '../../../utils/validation'
 import { useClientRank }                               from '../../../hooks/useClientRank'
+import { Badge }                                       from '../../../components/ui'
 
 export const ClientCard = memo(function ClientCard({ client, onSelect }) {
   const { moduleType }  = useTrainerState()
@@ -69,45 +70,13 @@ export const ClientCard = memo(function ClientCard({ client, onSelect }) {
           </span>
 
           {/* Badge: categoria (PT) o ruolo (Soccer) */}
-          {categoria && (
-            <span
-              className="rounded-full px-2.5 py-0.5 text-[10px] font-display font-bold tracking-wide"
-              style={{
-                background: 'color-mix(in srgb, var(--rx-green) 10%, transparent)',
-                color:      'var(--rx-green)',
-                border:     '1px solid color-mix(in srgb, var(--rx-green) 28%, transparent)',
-              }}
-            >
-              {categoria.label}
-            </span>
+          {categoria && <Badge>{categoria.label}</Badge>}
+          {roleObj && <Badge>{roleObj.label}</Badge>}
+          {fasciaObj && (
+            <Badge color={client.categoria === 'soccer_junior' ? '#a78bfa' : '#facc15'}>
+              {fasciaObj.label}
+            </Badge>
           )}
-          {roleObj && (
-            <span
-              className="rounded-full px-2.5 py-0.5 text-[10px] font-display font-bold tracking-wide"
-              style={{
-                background: 'color-mix(in srgb, var(--rx-green) 10%, transparent)',
-                color:      'var(--rx-green)',
-                border:     '1px solid color-mix(in srgb, var(--rx-green) 28%, transparent)',
-              }}
-            >
-              {roleObj.label}
-            </span>
-          )}
-          {fasciaObj && (() => {
-            const fc = client.categoria === 'soccer_junior' ? '#a78bfa' : '#facc15'
-            return (
-              <span
-                className="rounded-full px-2.5 py-0.5 text-[10px] font-display font-bold tracking-wide"
-                style={{
-                  background: fc + '1a',
-                  color:      fc,
-                  border:     `1px solid ${fc}4d`,
-                }}
-              >
-                {fasciaObj.label}
-              </span>
-            )
-          })()}
         </div>
 
         {/* XP bar mini */}

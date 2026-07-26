@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react'
 import { awardBadge, revokeBadge, updateBadgeShowcase } from '../firebase/services/badges'
 import { checkAutoBadges }                from '../utils/badges'
 import { BADGES, BADGES_MAP }             from '../config/badges.config'
+import { useToast }                       from './useToast'
 
 /**
  * useBadges(orgId, clientId, client, { readonly })
@@ -16,6 +17,7 @@ import { BADGES, BADGES_MAP }             from '../config/badges.config'
  *   handleRevoke(badgeId)
  */
 export function useBadges(orgId, clientId, client, { readonly = false } = {}) {
+  const { success: toastSuccess, error: toastError } = useToast()
   const awarding = useRef(false)
 
   useEffect(() => {
@@ -38,16 +40,31 @@ export function useBadges(orgId, clientId, client, { readonly = false } = {}) {
     .sort((a, b) => (b.awardedAt ?? 0) - (a.awardedAt ?? 0))
 
   const handleAwardManual = useCallback(async (badgeId, awardedBy, note = null) => {
-    await awardBadge(orgId, clientId, badgeId, awardedBy, note)
-  }, [orgId, clientId])
+    try {
+      await awardBadge(orgId, clientId, badgeId, awardedBy, note)
+      toastSuccess('Badge assegnato')
+    } catch {
+      toastError('Impossibile assegnare il badge')
+    }
+  }, [orgId, clientId, toastSuccess, toastError])
 
   const handleRevoke = useCallback(async (badgeId) => {
-    await revokeBadge(orgId, clientId, badgeId)
-  }, [orgId, clientId])
+    try {
+      await revokeBadge(orgId, clientId, badgeId)
+      toastSuccess('Badge revocato')
+    } catch {
+      toastError('Impossibile revocare il badge')
+    }
+  }, [orgId, clientId, toastSuccess, toastError])
 
   const handleUpdateShowcase = useCallback(async (badgeIds) => {
-    await updateBadgeShowcase(orgId, clientId, badgeIds)
-  }, [orgId, clientId])
+    try {
+      await updateBadgeShowcase(orgId, clientId, badgeIds)
+    } catch (err) {
+      toastError('Impossibile aggiornare la vetrina badge')
+      throw err   // permette al chiamante di annullare l'aggiornamento ottimistico locale
+    }
+  }, [orgId, clientId, toastError])
 
   const badgeProgress = computeBadgeProgress(client)
 

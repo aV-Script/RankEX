@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { updateOrganization }    from '../../../firebase/services/org'
 import { useToast }              from '../../../hooks/useToast'
 import { getPlanLimits }         from '../../../config/plans.config'
+import { Button }                from '../../../components/ui'
 
 const MODULE_LABELS = {
   personal_training: 'Personal Training',
@@ -34,10 +35,11 @@ export function OrgSettingsPage({ org, orgId }) {
 
       <div className="flex flex-col gap-5">
         <div>
-          <label className="font-display text-[10px] tracking-[2px] text-white/30 block mb-1.5">
+          <label htmlFor="settings-org-name" className="font-display text-[10px] tracking-[2px] text-white/30 block mb-1.5">
             NOME ORGANIZZAZIONE
           </label>
           <input
+            id="settings-org-name"
             className="input-base w-full"
             value={name}
             onChange={e => setName(e.target.value)}
@@ -51,7 +53,7 @@ export function OrgSettingsPage({ org, orgId }) {
           <div className="input-base w-full opacity-60 cursor-not-allowed">
             {MODULE_LABELS[org?.moduleType] ?? org?.moduleType}
           </div>
-          <p className="font-body text-[11px] text-white/25 mt-1.5">
+          <p className="font-body text-[11px] text-white/60 mt-1.5">
             Solo il super admin può modificare il modulo dell'organizzazione.
           </p>
         </div>
@@ -63,7 +65,7 @@ export function OrgSettingsPage({ org, orgId }) {
           <div className="input-base w-full opacity-60 cursor-not-allowed">
             {plan.toUpperCase()}
           </div>
-          <div className="font-body text-[11px] text-white/25 mt-1.5">
+          <div className="font-body text-[11px] text-white/60 mt-1.5">
             {limits.trainers === Infinity
               ? 'Trainer e clienti illimitati'
               : `Max ${limits.trainers} trainer · Max ${limits.clients} clienti`
@@ -72,14 +74,9 @@ export function OrgSettingsPage({ org, orgId }) {
           </div>
         </div>
 
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="py-3 rounded-[3px] font-display text-[12px] font-bold cursor-pointer border-0 transition-opacity hover:opacity-85 disabled:opacity-40 mt-2"
-          style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)' }}
-        >
+        <Button onClick={handleSave} disabled={saving} className="mt-2">
           {saving ? 'SALVATAGGIO...' : 'SALVA IMPOSTAZIONI'}
-        </button>
+        </Button>
       </div>
     </div>
   )

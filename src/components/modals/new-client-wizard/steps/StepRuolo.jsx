@@ -13,6 +13,7 @@ export function StepRuolo({ ruolo, setRuolo }) {
         <button
           key={role.value}
           onClick={() => setRuolo(role.value)}
+          aria-pressed={ruolo === role.value}
           className="flex items-center gap-4 p-4 rounded-[4px] cursor-pointer border transition-all text-left"
           style={ruolo === role.value
             ? { background: SOCCER_COLOR + '15', borderColor: SOCCER_COLOR + '55' }

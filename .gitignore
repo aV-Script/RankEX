@@ -62,6 +62,7 @@ test-results/
 e2e/.auth/
 
 # Screenshot / debug scripts temporanei
+/screenshots/
 screenshots2/
 
 # Environment test (contiene credenziali)

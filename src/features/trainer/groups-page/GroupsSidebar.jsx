@@ -28,7 +28,7 @@ export function GroupsSidebar({ groupSearch, onGroupSearchChange, onNewGroup, to
       </div>
 
       <div className="mt-auto">
-        <p className="font-display text-[11px] font-semibold text-white/20 tracking-[2px]">
+        <p className="font-display text-[11px] font-semibold text-white/60 tracking-[2px]">
           {totalGroups} {totalGroups === 1 ? 'GRUPPO' : 'GRUPPI'}
         </p>
       </div>

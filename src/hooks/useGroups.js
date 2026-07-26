@@ -3,11 +3,13 @@ import { getGroups }             from '../firebase/services/groups'
 import { addGroupUseCase }       from '../usecases/addGroupUseCase'
 import { updateGroupUseCase }    from '../usecases/updateGroupUseCase'
 import { deleteGroupUseCase }    from '../usecases/deleteGroupUseCase'
+import { useToast }              from './useToast'
 
 export function useGroups(orgId) {
   const [groups,  setGroups]  = useState([])
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState(null)
+  const { error: toastError } = useToast()
 
   useEffect(() => {
     if (!orgId) return
@@ -33,8 +35,9 @@ export function useGroups(orgId) {
       return realGroup
     } catch {
       setGroups(prev => prev.filter(g => g.id !== tempId))
+      toastError('Impossibile creare il gruppo')
     }
-  }, [orgId])
+  }, [orgId, toastError])
 
   // ── Rename group — ottimistico con rollback ───────────────────────────────
   const handleRenameGroup = useCallback(async (id, name) => {
@@ -48,10 +51,13 @@ export function useGroups(orgId) {
       if (oldName !== undefined) {
         setGroups(prev => prev.map(g => g.id === id ? { ...g, name: oldName } : g))
       }
+      toastError('Impossibile rinominare il gruppo')
     }
-  }, [orgId, groups])
+  }, [orgId, groups, toastError])
 
   // ── Toggle client — ottimistico con rollback ──────────────────────────────
+  // Non mostra un proprio toast: il chiamante (GroupDetailView) avvolge questa
+  // chiamata insieme alla sincronizzazione slot e mostra un unico feedback.
   const handleToggleClient = useCallback(async (groupId, clientId, onAdd, onRemove) => {
     const group = groups.find(g => g.id === groupId)
     if (!group) return
@@ -70,14 +76,17 @@ export function useGroups(orgId) {
       await updateGroupUseCase(orgId, groupId, { clientIds: newIds })
       if (already && onRemove) onRemove(groupId, clientId)
       if (!already && onAdd)   onAdd(groupId, clientId)
-    } catch {
+    } catch (err) {
       setGroups(prev => prev.map(g =>
         g.id === groupId ? { ...g, clientIds: snapshot } : g
       ))
+      throw err
     }
   }, [orgId, groups])
 
   // ── Delete group — ottimistico con rollback ───────────────────────────────
+  // Non mostra un proprio toast: rilancia l'errore così il chiamante
+  // (GroupDetailView) può decidere se navigare via solo in caso di successo.
   const handleDeleteGroup = useCallback(async (id) => {
     const snapshot = groups.find(g => g.id === id)
 
@@ -85,8 +94,9 @@ export function useGroups(orgId) {
 
     try {
       await deleteGroupUseCase(orgId, id)
-    } catch {
+    } catch (err) {
       if (snapshot) setGroups(prev => [...prev, snapshot])
+      throw err
     }
   }, [orgId, groups])
 

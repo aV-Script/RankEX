@@ -104,7 +104,7 @@ export function ClientCalendar({ clientId, orgId, clients }) {
                   {cell.day}
                 </span>
                 {hasSlots && cell.slots[0].startTime && (
-                  <span className="font-display text-[8px] text-white/25">{cell.slots[0].startTime}</span>
+                  <span className="font-display text-[8px] text-white/60">{cell.slots[0].startTime}</span>
                 )}
                 {isCompleted && <div className="w-1 h-1 rounded-full bg-emerald-400" />}
                 {isPlanned   && <div className="w-1 h-1 rounded-full bg-blue-400 opacity-60" />}

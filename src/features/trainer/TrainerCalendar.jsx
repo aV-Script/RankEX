@@ -6,6 +6,7 @@ import { MonthView }                       from './trainer-calendar/MonthView'
 import { WeekView }                        from './trainer-calendar/WeekView'
 import { DayView }                         from './trainer-calendar/DayView'
 import { SlotPopup }                       from './trainer-calendar/SlotPopup'
+import { ConfirmDialog }                   from '../../components/common/ConfirmDialog'
 import { CloseSessionModal }               from './trainer-calendar/CloseSessionModal'
 import { AddSlotModal }                    from './trainer-calendar/AddSlotModal'
 import { RecurrenceModal }                 from './trainer-calendar/RecurrenceModal'
@@ -77,6 +78,8 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
   const [closeModal,     setCloseModal]     = useState(null) // slot
   const [addModal,       setAddModal]       = useState(null) // { date, startTime }
   const [recurrenceModal, setRecurrenceModal] = useState(false)
+  const [pendingDeleteId, setPendingDeleteId] = useState(null) // slotId in attesa di conferma
+  const [deleting,        setDeleting]        = useState(false)
 
   // ── Handlers UI ───────────────────────────────────────────────────────────
   const handleSlotClick = useCallback((slot, e) => {
@@ -106,10 +109,21 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
     await handleSkipSlot(slotId)
   }, [handleSkipSlot])
 
-  const handleDelete = useCallback(async (slotId) => {
+  const handleDelete = useCallback((slotId) => {
     setPopup(null)
-    await handleDeleteSlot(slotId)
-  }, [handleDeleteSlot])
+    setPendingDeleteId(slotId)
+  }, [])
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (deleting || !pendingDeleteId) return
+    setDeleting(true)
+    try {
+      await handleDeleteSlot(pendingDeleteId)
+      setPendingDeleteId(null)
+    } finally {
+      setDeleting(false)
+    }
+  }, [deleting, pendingDeleteId, handleDeleteSlot])
 
   const handleViewRecurrence = useCallback((recurrenceId) => {
     setPopup(null)
@@ -186,6 +200,19 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
           onSkip={() => handleSkip(popup.slot.id)}
           onDelete={() => handleDelete(popup.slot.id)}
           onViewRecurrence={handleViewRecurrence}
+        />
+      )}
+
+      {/* Conferma eliminazione slot */}
+      {pendingDeleteId && (
+        <ConfirmDialog
+          variant="danger"
+          title="Eliminare la sessione?"
+          description="La sessione verrà eliminata definitivamente. L'operazione non può essere annullata."
+          confirmLabel="ELIMINA"
+          loading={deleting}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setPendingDeleteId(null)}
         />
       )}
 

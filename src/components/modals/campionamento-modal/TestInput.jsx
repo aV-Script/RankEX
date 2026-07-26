@@ -27,7 +27,7 @@ export function TestInput({ test, testValues, livePercentile, prevValue, errors,
       <div className="flex items-center justify-between mb-2.5">
         <div>
           <span className="font-display text-[12px] text-white/80">{test.label}</span>
-          <span className="text-white/25 font-body text-[10px] ml-1.5">{test.test}</span>
+          <span className="text-white/60 font-body text-[10px] ml-1.5">{test.test}</span>
         </div>
         {livePercentile !== null && (
           <div className="flex items-baseline gap-1">
@@ -98,7 +98,7 @@ export function TestInput({ test, testValues, livePercentile, prevValue, errors,
             {delta > 0 ? `▲ +${delta}` : delta < 0 ? `▼ ${delta}` : '— invariato'} rispetto al precedente
           </span>
         ) : (
-          <span className="text-white/20">Precedente: {prevValue ?? '—'}</span>
+          <span className="text-white/60">Precedente: {prevValue ?? '—'}</span>
         )}
         {errors[test.stat] && (
           <span className="text-red-400">{errors[test.stat]}</span>

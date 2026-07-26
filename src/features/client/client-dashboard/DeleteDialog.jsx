@@ -1,8 +1,20 @@
+import { useEffect, useRef } from 'react'
+import { useFocusTrap } from '../../../hooks/useFocusTrap'
+
 /**
  * Dialog di conferma eliminazione cliente.
  * Modale semplice con due azioni: annulla e conferma.
  */
 export function DeleteDialog({ clientName, onConfirm, onCancel }) {
+  const dialogRef = useRef(null)
+  useFocusTrap(dialogRef, true)
+
+  useEffect(() => {
+    const handler = e => { if (e.key === 'Escape') onCancel() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onCancel])
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center px-4"
@@ -10,11 +22,15 @@ export function DeleteDialog({ clientName, onConfirm, onCancel }) {
       onClick={onCancel}
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-dialog-title"
         className="p-6 w-full max-w-sm"
         style={{ background: 'var(--rx-surface)', border: '1px solid var(--rx-border)', borderRadius: '4px', boxShadow: '0 20px 60px rgba(0,0,0,0.8)' }}
         onClick={e => e.stopPropagation()}
       >
-        <h3 className="font-display font-black text-[16px] text-white mb-2">
+        <h3 id="delete-dialog-title" className="font-display font-black text-[16px] text-white mb-2">
           Elimina cliente
         </h3>
         <p className="font-body text-[13px] text-white/50 mb-6">

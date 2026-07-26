@@ -41,14 +41,14 @@ export function MobileNav({ page, onNavigate, onLogout }) {
         style={{ background: 'var(--rx-nav-bg)' }}
         aria-label="Header mobile"
       >
-        <div className="w-8" />
+        <div className="w-11" />
         <span className="rx-glow-text font-display font-black text-[17px]">
           RankEX
         </span>
         <button
           onClick={onLogout}
           aria-label="Logout"
-          className="w-8 h-8 flex items-center justify-center rounded-[3px] bg-transparent border-none cursor-pointer transition-colors"
+          className="w-11 h-11 flex items-center justify-center rounded-[3px] bg-transparent border-none cursor-pointer transition-colors"
           style={{ color: 'rgba(200,212,224,0.3)' }}
           onTouchStart={e => { e.currentTarget.style.color = 'rgba(200,212,224,0.7)' }}
           onTouchEnd={e => { e.currentTarget.style.color = 'rgba(200,212,224,0.3)' }}

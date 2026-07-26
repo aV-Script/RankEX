@@ -1,4 +1,5 @@
 // NotificationsPanel — drawer laterale notifiche cliente
+import { IconClose } from '../../components/ui/icons'
 
 // ── Icone per tipo ────────────────────────────────────────────────────────────
 
@@ -113,10 +114,7 @@ export function NotificationsPanel({ notifications, color, onClose, onDelete }) 
             className="flex items-center justify-center cursor-pointer shrink-0"
             style={{ width: 32, height: 32, borderRadius: 6, background: 'color-mix(in srgb, var(--rx-green) 5%, transparent)', border: '1px solid var(--rx-border)', color: 'color-mix(in srgb, var(--rx-green) 45%, rgba(255,255,255,0.35))' }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
+            <IconClose size={14} />
           </button>
         </div>
 
@@ -189,10 +187,7 @@ export function NotificationsPanel({ notifications, color, onClose, onDelete }) 
                         onMouseEnter={e => { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.background = 'rgba(248,113,113,0.10)' }}
                         onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.18)'; e.currentTarget.style.background = 'transparent' }}
                       >
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                          <line x1="18" y1="6" x2="6" y2="18"/>
-                          <line x1="6" y1="6" x2="18" y2="18"/>
-                        </svg>
+                        <IconClose size={11} />
                       </button>
                     </div>
                   </div>

@@ -18,6 +18,9 @@ import { useBadges }                  from '../../../hooks/useBadges'
 import { ThemePicker }                from '../../../components/ui/ThemePicker'
 import { useColorSource }            from '../../../hooks/useColorSource'
 import { logout }                     from '../../../firebase/services/auth'
+import { IconDocument }               from '../../../components/ui/icons'
+import { ErrorBoundary }              from '../../../components/common/ErrorBoundary'
+import { ChartErrorFallback }         from '../../../components/common/ChartErrorFallback'
 
 // ── Icone sub-tab ─────────────────────────────────────────────────────────────
 
@@ -26,12 +29,7 @@ const ICON_AVATAR_EDIT = (
     <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
   </svg>
 )
-const ICON_NOTE = (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-    <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-  </svg>
-)
+const ICON_NOTE = <IconDocument size={13} />
 const ICON_ATTIVITA = (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
@@ -237,7 +235,9 @@ export function ClientDashboardPage({
                     />
                   </div>
                   {(client.campionamenti?.length ?? 0) > 0 && (
-                    <StatsChart campionamenti={client.campionamenti} color={displayColor} categoria={client.categoria} />
+                    <ErrorBoundary fallback={ChartErrorFallback}>
+                      <StatsChart campionamenti={client.campionamenti} color={displayColor} categoria={client.categoria} />
+                    </ErrorBoundary>
                   )}
                 </section>
               )}
@@ -253,7 +253,9 @@ export function ClientDashboardPage({
                     color={displayColor}
                   />
                   {(client.biaHistory?.length ?? 0) > 1 && (
-                    <BiaHistoryChart biaHistory={client.biaHistory} color={displayColor} />
+                    <ErrorBoundary fallback={ChartErrorFallback}>
+                      <BiaHistoryChart biaHistory={client.biaHistory} color={displayColor} />
+                    </ErrorBoundary>
                   )}
                 </section>
               )}

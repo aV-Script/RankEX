@@ -3,6 +3,7 @@ import { useAuth }               from '../features/auth/useAuth'
 import { AppRouter }             from './AppRouter'
 import { LoadingScreen }         from '../components/common/LoadingScreen'
 import { ErrorBoundary }         from '../components/common/ErrorBoundary'
+import { SessionWarningDialog }  from '../components/common/SessionWarningDialog'
 import { useSessionTimeout }     from '../hooks/useSessionTimeout'
 import { useVersionCheck }       from '../hooks/useVersionCheck'
 import { DomainGuard }           from '../components/common/DomainGuard'
@@ -15,7 +16,7 @@ export default function App() {
   const { user, profile, org, terminology, refreshProfile } = useAuth()
   const [timedOut, setTimedOut]                             = useState(false)
 
-  useSessionTimeout(profile?.role)
+  const { showWarning: showSessionWarning, extendSession } = useSessionTimeout(profile?.role)
   const hasUpdate = useVersionCheck()
 
   // true finché l'SDK auth non risponde, o finché l'utente loggato aspetta il profilo+org
@@ -47,6 +48,7 @@ export default function App() {
           <AppRouter user={user} profile={profile} org={org} terminology={terminology} refreshProfile={refreshProfile} />
         </DomainGuard>
       </ErrorBoundary>
+      {showSessionWarning && <SessionWarningDialog onExtend={extendSession} />}
       <ThemeDevPanel />
       {hasUpdate && (
         <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg border"

@@ -53,6 +53,7 @@ const LogoutIcon = (
 export function AdminShell({ page, onNavigate, children }) {
   return (
     <div className="min-h-screen text-white flex flex-col lg:flex-row" style={{ background: 'var(--bg-base, #07090e)' }}>
+      <a href="#main-content" className="skip-to-content">Vai al contenuto</a>
 
       {/* ── Sidebar desktop ─────────────────────────────────────────── */}
       <aside
@@ -139,7 +140,7 @@ export function AdminShell({ page, onNavigate, children }) {
       </div>
 
       {/* ── Contenuto ───────────────────────────────────────────────── */}
-      <main className="flex-1 min-w-0">
+      <main id="main-content" className="flex-1 min-w-0">
         {children}
       </main>
 

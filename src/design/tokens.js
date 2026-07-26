@@ -1,7 +1,19 @@
 /**
- * Design tokens RankEX.
- * Fonte di verità per spacing, tipografia, colori, ombre, motion, z-index.
- * Usa questi in linea con le CSS variables definite nel foglio globale.
+ * Design tokens RankEX — specifica di riferimento per spacing, tipografia,
+ * colori, ombre, motion, z-index.
+ *
+ * ATTENZIONE — stato attuale (verificato: nessun import di questo file nel
+ * resto di src): i componenti NON consumano questi valori. Il sistema
+ * realmente applicato a runtime è l'insieme di CSS custom properties in
+ * src/index.css (`:root`, `.rx-card`, `.input-base`, ecc.) più valori
+ * inline duplicati nei singoli componenti.
+ *
+ * Fino a quando questo file non verrà effettivamente importato dai
+ * componenti (o rimosso), NON considerarlo la fonte di verità dei valori
+ * live — trattalo come la specifica di design verso cui allineare
+ * index.css e i componenti quando li si tocca. Se modifichi un colore/
+ * radius/spaziatura qui, verifica anche src/index.css: oggi possono
+ * divergere silenziosamente.
  */
 
 // ── Spacing ───────────────────────────────────────────────────────────────────
@@ -24,8 +36,18 @@ export const TYPE = {
   body:     { fontFamily: 'Inter, sans-serif',       fontWeight: 400 },
 
   sizes: {
+    // '2xs' 9px promosso a valore ufficiale (lug 2026): secondo text-[Npx]
+    // arbitrario più diffuso in src/features (40 occorrenze) dopo 12px —
+    // di fatto il gradino "micro-label/badge" sotto xs (10px), non documentato
+    // finché non è stato riconosciuto qui.
+    '2xs': '9px',
     xs:   '10px',
     sm:   '11px',
+    // 'sm2' 12px promosso a valore ufficiale della scala (mag 2026): già il
+    // text-[Npx] arbitrario più diffuso in src/features, di fatto una taglia
+    // "sm+" usata ovunque tra sm (11px) e base (13px) — invece di combatterlo,
+    // riconosciuto come gradino ufficiale.
+    sm2:  '12px',
     base: '13px',
     md:   '14px',
     lg:   '16px',
@@ -65,11 +87,12 @@ export const COLOR = {
   cyan600:   '#00c8ff',
   blue500:   '#1a7fd4',
 
-  // Testo
+  // Testo — opacità calibrate per rispettare WCAG 2.2 AA (4.5:1 body, 3:1 UI/large)
+  // su fondi tra bgBase (#07090e) e bgOverlay (#131e2a)
   textPrimary:   '#ffffff',
   textSecondary: 'rgba(255,255,255,0.7)',
-  textTertiary:  'rgba(255,255,255,0.4)',
-  textMuted:     'rgba(255,255,255,0.25)',
+  textTertiary:  'rgba(255,255,255,0.62)', // ~5.1:1 su bgSurface — testo body
+  textMuted:     'rgba(255,255,255,0.45)', // ~3.2:1 — solo elementi UI/large, mai body text
 
   // Bordi
   borderSubtle:  'rgba(255,255,255,0.04)',

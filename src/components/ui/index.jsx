@@ -1,15 +1,16 @@
-import { useEffect }      from 'react'
+import { useEffect, useRef, cloneElement, isValidElement } from 'react'
 import { Pentagon }       from './Pentagon'
 import { getStatsConfig } from '../../constants'
+import { useFocusTrap }   from '../../hooks/useFocusTrap'
 
 export { XPBar } from './XPBar'
 
 // ─── Card ─────────────────────────────────────────────────────────────────────
-export function Card({ className = '', children, glow = 'green' }) {
+export function Card({ className = '', children, variant = 'green' }) {
   return (
     <div
       className={`p-5 rx-card ${className}`}
-      style={glow === 'cyan'
+      style={variant === 'cyan'
         ? { borderColor: 'color-mix(in srgb, var(--rx-cyan) 12%, transparent)' }
         : {}
       }
@@ -31,6 +32,22 @@ export function SectionLabel({ children, className = '' }) {
   )
 }
 
+// ─── Badge ────────────────────────────────────────────────────────────────────
+export function Badge({ color = 'var(--rx-green)', className = '', children }) {
+  return (
+    <span
+      className={`rounded-full px-2.5 py-0.5 text-[10px] font-display font-bold tracking-wide ${className}`}
+      style={{
+        background: `color-mix(in srgb, ${color} 10%, transparent)`,
+        color,
+        border:     `1px solid color-mix(in srgb, ${color} 28%, transparent)`,
+      }}
+    >
+      {children}
+    </span>
+  )
+}
+
 // ─── Modal ────────────────────────────────────────────────────────────────────
 const MODAL_WIDTHS = {
   default: 'w-[420px]',
@@ -39,6 +56,9 @@ const MODAL_WIDTHS = {
 }
 
 export function Modal({ title, onClose, disableOverlayClose, size = 'default', children }) {
+  const dialogRef = useRef(null)
+  useFocusTrap(dialogRef, true)
+
   useEffect(() => {
     const handler = e => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', handler)
@@ -52,6 +72,7 @@ export function Modal({ title, onClose, disableOverlayClose, size = 'default', c
       onClick={disableOverlayClose ? undefined : onClose}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
@@ -114,6 +135,13 @@ const VARIANT_STYLES = {
     border:     '1px solid color-mix(in srgb, var(--rx-green) 30%, transparent)',
     color:      'var(--rx-green)',
   },
+  // Cancel/dismiss neutro — pattern già dominante nei dialog (ConfirmDialog,
+  // CreateMemberForm, GroupToggleDialog, ecc.) ma finora sempre ricopiato a mano.
+  neutral: {
+    background: 'transparent',
+    border:     '1px solid rgba(255,255,255,0.1)',
+    color:      'rgba(255,255,255,0.4)',
+  },
 }
 
 export function Button({ variant = 'primary', size = 'md', loading, disabled, className = '', children, ...props }) {
@@ -157,6 +185,14 @@ export function Divider({ color }) {
 
 // ─── Field ────────────────────────────────────────────────────────────────────
 export function Field({ label, error, htmlFor, children }) {
+  const errorId = htmlFor ? `${htmlFor}-error` : undefined
+  const child = (error && errorId && isValidElement(children))
+    ? cloneElement(children, {
+        'aria-describedby': [children.props['aria-describedby'], errorId].filter(Boolean).join(' '),
+        'aria-invalid': true,
+      })
+    : children
+
   return (
     <div>
       <label
@@ -165,9 +201,9 @@ export function Field({ label, error, htmlFor, children }) {
       >
         {label.toUpperCase()}
       </label>
-      {children}
+      {child}
       {error && (
-        <p role="alert" className="m-0 mt-1 text-red-400 font-body text-[12px]">{error}</p>
+        <p id={errorId} role="alert" className="m-0 mt-1 text-red-400 font-body text-[12px]">{error}</p>
       )}
     </div>
   )
@@ -186,7 +222,7 @@ export function EmptyState({ icon, title, description, color, action }) {
       </div>
       <div className="font-display font-bold text-[13px] text-white/50">{title}</div>
       {description && (
-        <div className="font-body text-[12px] text-white/25 max-w-[200px] leading-relaxed">{description}</div>
+        <div className="font-body text-[12px] text-white/60 max-w-[200px] leading-relaxed">{description}</div>
       )}
       {action && (
         <button
@@ -239,7 +275,7 @@ export function ActivityLog({ log = [], color, limit = 5 }) {
           <div className="flex-1 pb-1">
             <div className="font-body text-[13px] text-white/70">{entry.action}</div>
             <div className="flex gap-2 mt-0.5">
-              <span className="font-body text-[11px] text-white/20">{entry.date}</span>
+              <span className="font-body text-[11px] text-white/60">{entry.date}</span>
               {entry.xp > 0 && (
                 <span className="font-display text-[10px]" style={{ color: color ?? 'var(--rx-green)' }}>+{entry.xp} XP</span>
               )}

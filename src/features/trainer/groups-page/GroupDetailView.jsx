@@ -1,14 +1,19 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useCallback, useEffect, lazy, Suspense } from 'react'
 import { usePagination }                             from '../../../hooks/usePagination'
-import { Pagination }                                from '../../../components/common/Pagination'
 import { ConfirmDialog }                             from '../../../components/common/ConfirmDialog'
 import { GroupToggleDialog }                         from './GroupToggleDialog'
+import { GroupDetailHeader }                         from './GroupDetailHeader'
+import { GroupManageTab }                            from './GroupManageTab'
 import { GroupLeaderboard }                          from './GroupLeaderboard'
 import { GroupChampions }                            from './GroupChampions'
 import { GroupAnalysis }                             from './GroupAnalysis'
 import { GroupComparison }                           from './GroupComparison'
 import { getSlotsByGroup }                           from '../../../firebase/services/calendar'
-import { GroupReportPrint }                          from './GroupReportPrint'
+// Montato solo dietro il flusso di export PDF — lazy-load per non pesare
+// sul bundle iniziale dell'hub gruppo.
+const GroupReportPrint = lazy(() =>
+  import('./GroupReportPrint').then(m => ({ default: m.GroupReportPrint }))
+)
 import { GroupNotes }                               from './GroupNotes'
 import { GroupSessionsPanel }                        from './GroupSessionsPanel'
 import {
@@ -16,93 +21,15 @@ import {
   removeClientFromGroupSlots,
 } from '../../../features/calendar/calendarGroupUtils'
 import { EmptyState } from '../../../components/ui'
+import { ErrorBoundary } from '../../../components/common/ErrorBoundary'
+import { ChartErrorFallback } from '../../../components/common/ChartErrorFallback'
 import { useRegisterContextMenu } from '../../../context/NavMenuContext'
 import { useToast }           from '../../../hooks/useToast'
 import { PrintPickerModal }   from '../../../components/common/PrintPickerModal'
+import { TABS } from './groupDetailIcons'
 
 const CLIENTS_PAGE_SIZE = 8
 const SOCCER_CATS = ['soccer_youth', 'soccer_junior', 'soccer']
-
-// ── Icone tab ─────────────────────────────────────────────────────────────────
-
-const ICON_MANAGE = (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-    <circle cx="9" cy="7" r="4"/>
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-  </svg>
-)
-const ICON_LEADERBOARD = (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="18 20 18 10"/>
-    <polyline points="12 20 12 4"/>
-    <polyline points="6 20 6 14"/>
-  </svg>
-)
-const ICON_ANALYSIS = (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-    <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
-  </svg>
-)
-const ICON_COMPARE = (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-  </svg>
-)
-const ICON_SESSIONS = (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-    <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
-    <line x1="3" y1="10" x2="21" y2="10"/>
-  </svg>
-)
-const ICON_NOTES = (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-  </svg>
-)
-const ICON_RENAME = (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-  </svg>
-)
-const ICON_PDF = (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-    <polyline points="14 2 14 8 20 8"/>
-    <line x1="12" y1="18" x2="12" y2="12"/>
-    <polyline points="9 15 12 18 15 15"/>
-  </svg>
-)
-const ICON_DELETE = (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="3 6 5 6 21 6"/>
-    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-    <path d="M10 11v6M14 11v6"/>
-    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-  </svg>
-)
-const ICON_BACK = (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="15 18 9 12 15 6"/>
-  </svg>
-)
-
-const TABS = [
-  { id: '__back__',    label: 'Gruppi',    icon: ICON_BACK        },
-  { id: 'manage',     label: 'Gestione',  icon: ICON_MANAGE      },
-  { id: 'leaderboard', label: 'Classifica',icon: ICON_LEADERBOARD },
-  { id: 'analysis',   label: 'Analisi',   icon: ICON_ANALYSIS    },
-  { id: 'comparison', label: 'Confronto', icon: ICON_COMPARE     },
-  { id: 'sessions',   label: 'Sessioni',  icon: ICON_SESSIONS    },
-  { id: 'notes',      label: 'Note',      icon: ICON_NOTES       },
-  { id: '__rename__', label: 'Rinomina',  icon: ICON_RENAME      },
-  { id: '__pdf__',    label: 'PDF',       icon: ICON_PDF         },
-  { id: '__delete__', label: 'Elimina',   icon: ICON_DELETE, isDanger: true },
-]
 
 // ── Componente principale ─────────────────────────────────────────────────────
 
@@ -113,6 +40,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
   const [isEditing,    setIsEditing]    = useState(false)
   const [editingName,  setEditingName]  = useState(group.name)
   const [showDelete,   setShowDelete]   = useState(false)
+  const [deleting,     setDeleting]     = useState(false)
   const [toggleDialog, setToggleDialog] = useState(null)
   const [toggling,     setToggling]     = useState(null)
   const [slots,        setSlots]        = useState([])
@@ -181,9 +109,18 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
   }, [editingName, group.id, group.name, onRename])
 
   const handleDelete = useCallback(async () => {
-    await onDelete(group.id)
-    onBack()
-  }, [group.id, onDelete, onBack])
+    if (deleting) return
+    setDeleting(true)
+    try {
+      await onDelete(group.id)
+      onBack()   // naviga via solo se l'eliminazione è riuscita davvero
+    } catch {
+      toast.error('Impossibile eliminare il gruppo')
+      setShowDelete(false)
+    } finally {
+      setDeleting(false)
+    }
+  }, [deleting, group.id, onDelete, onBack, toast])
 
   const handleContextSelect = useCallback((id) => {
     if (id === '__back__')    onBack()
@@ -195,125 +132,48 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
 
   useRegisterContextMenu('Gruppo', TABS, subView, handleContextSelect)
 
+  const handleCancelRename = useCallback(() => {
+    setIsEditing(false)
+    setEditingName(group.name)
+  }, [group.name])
+
+  const handleToggleActions = useCallback(() => {
+    setShowActions(v => !v)
+  }, [])
+
+  const handleOpenRename = useCallback(() => {
+    setShowActions(false)
+    setIsEditing(true)
+  }, [])
+
+  const handleExportPdf = useCallback(() => {
+    setShowActions(false)
+    setShowPrintPicker(true)
+  }, [])
+
+  const handleRequestDelete = useCallback(() => {
+    setShowActions(false)
+    setShowDelete(true)
+  }, [])
+
   return (
     <div className="min-h-screen text-white flex flex-col">
 
-      {/* ── Header + tab bar — riga unica ── */}
-      <header
-        className="border-b border-white/[.05] sticky top-0 z-30 backdrop-blur-md shrink-0 flex items-stretch"
-        style={{ background: 'rgba(7,9,14,0.92)', height: 44 }}
-      >
-        {/* ← Back */}
-        <button
-          onClick={onBack}
-          aria-label="Torna ai gruppi"
-          className="w-10 flex items-center justify-center shrink-0 bg-transparent border-none text-white/40 hover:text-white/70 transition-colors cursor-pointer"
-        >
-          {ICON_BACK}
-        </button>
-
-        {/* Tab bar — centrati */}
-        <div className="flex-1 relative overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-          {isEditing ? (
-            <div className="flex items-center justify-center gap-2 h-full px-2">
-              <input
-                autoFocus
-                value={editingName}
-                onChange={e => setEditingName(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter')  handleRename()
-                  if (e.key === 'Escape') { setIsEditing(false); setEditingName(group.name) }
-                }}
-                className="input-base font-display font-black text-[12px]"
-                style={{ minWidth: 100, maxWidth: 160 }}
-              />
-              <ActionBtn onClick={handleRename} color="var(--rx-green)">SALVA</ActionBtn>
-              <ActionBtn onClick={() => { setIsEditing(false); setEditingName(group.name) }} muted>ANN.</ActionBtn>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-full min-w-full w-fit">
-              {[
-                { id: 'manage',      label: 'Gestione',  icon: ICON_MANAGE      },
-                { id: 'leaderboard', label: 'Classifica',icon: ICON_LEADERBOARD },
-                { id: 'analysis',    label: 'Analisi',   icon: ICON_ANALYSIS    },
-                { id: 'comparison',  label: 'Confronto', icon: ICON_COMPARE     },
-                { id: 'sessions',    label: 'Sessioni',  icon: ICON_SESSIONS    },
-                { id: 'notes',       label: 'Note',      icon: ICON_NOTES       },
-              ].map(t => (
-                <button
-                  key={t.id}
-                  onClick={() => setSubView(t.id)}
-                  aria-current={subView === t.id ? 'page' : undefined}
-                  className="flex items-center gap-1.5 px-3 h-full shrink-0 cursor-pointer border-none bg-transparent relative transition-colors"
-                  style={{ color: subView === t.id ? 'var(--rx-green)' : 'rgba(200,212,224,0.35)' }}
-                >
-                  {subView === t.id && (
-                    <div
-                      className="absolute bottom-0 left-2 right-2 h-[2px] rounded-t-sm"
-                      style={{ background: 'var(--rx-gradient)', boxShadow: '0 0 6px color-mix(in srgb, var(--rx-green) 45%, transparent)' }}
-                    />
-                  )}
-                  <span style={{ display: 'flex', filter: subView === t.id ? 'drop-shadow(0 0 4px color-mix(in srgb, var(--rx-green) 50%, transparent))' : 'none' }}>
-                    {t.icon}
-                  </span>
-                  <span className="font-display text-[9px] tracking-[1px] uppercase whitespace-nowrap">{t.label}</span>
-                </button>
-              ))}
-            </div>
-          )}
-          {/* Fade destra — affordance scroll su mobile */}
-          {!isEditing && (
-            <div
-              className="lg:hidden"
-              style={{
-                position: 'absolute', top: 0, right: 0, bottom: 0, width: 40,
-                background: 'linear-gradient(to right, transparent, var(--rx-nav-bg))',
-                pointerEvents: 'none',
-              }}
-            />
-          )}
-        </div>
-
-        {/* Divisore */}
-        <div className="w-px self-stretch my-2" style={{ background: 'rgba(255,255,255,0.06)' }} />
-
-        {/* ⋮ Overflow actions */}
-        <div className="relative shrink-0">
-          <button
-            onClick={() => setShowActions(v => !v)}
-            aria-label="Azioni gruppo"
-            className="w-10 h-full flex items-center justify-center bg-transparent border-none text-white/40 hover:text-white/70 transition-colors cursor-pointer"
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/>
-            </svg>
-          </button>
-          {showActions && (
-            <>
-              <div className="fixed inset-0 z-40" onClick={() => setShowActions(false)} />
-              <div
-                className="absolute right-0 top-full mt-1 z-50 min-w-[152px] py-1 rounded-[4px]"
-                style={{ background: 'rgba(13,20,30,0.98)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}
-              >
-                <button onClick={() => { setShowActions(false); setIsEditing(true) }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-white/60 hover:text-white hover:bg-white/[.04] transition-colors cursor-pointer bg-transparent border-none text-left font-display text-[10px] tracking-[1.5px] uppercase">
-                  {ICON_RENAME} Rinomina
-                </button>
-                <button onClick={() => { setShowActions(false); setShowPrintPicker(true) }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-white/60 hover:text-white hover:bg-white/[.04] transition-colors cursor-pointer bg-transparent border-none text-left font-display text-[10px] tracking-[1.5px] uppercase">
-                  {ICON_PDF} Esporta PDF
-                </button>
-                <div className="h-px my-1" style={{ background: 'rgba(255,255,255,0.06)' }} />
-                <button onClick={() => { setShowActions(false); setShowDelete(true) }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-red-900/20 transition-colors cursor-pointer bg-transparent border-none text-left font-display text-[10px] tracking-[1.5px] uppercase"
-                  style={{ color: '#f87171' }}>
-                  {ICON_DELETE} Elimina
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      </header>
+      <GroupDetailHeader
+        onBack={onBack}
+        subView={subView}
+        onSelectTab={setSubView}
+        isEditing={isEditing}
+        editingName={editingName}
+        onEditingNameChange={setEditingName}
+        onSaveRename={handleRename}
+        onCancelRename={handleCancelRename}
+        showActions={showActions}
+        onToggleActions={handleToggleActions}
+        onOpenRename={handleOpenRename}
+        onExportPdf={handleExportPdf}
+        onRequestDelete={handleRequestDelete}
+      />
 
       {/* ── Body ── */}
       <div className="max-w-5xl mx-auto w-full flex flex-col flex-1">
@@ -356,7 +216,9 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
             />
           ) : (
             <div className="px-4 sm:px-6 pt-4 pb-12">
-              <GroupAnalysis clients={allClientsInGroup} />
+              <ErrorBoundary fallback={ChartErrorFallback}>
+                <GroupAnalysis clients={allClientsInGroup} />
+              </ErrorBoundary>
             </div>
           )
         )}
@@ -376,88 +238,17 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
         )}
 
         {subView === 'manage' && (
-          <div className="px-4 sm:px-6 pt-4 pb-12 flex flex-col gap-4">
-
-            {/* Tre colonne */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-
-              {/* Col 1: Nel gruppo */}
-              <div className="rounded-[4px] p-5 rx-card">
-                <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-5" style={{ color: 'var(--rx-green)' }}>
-                  ◈ Nel gruppo <span className="text-white/25 ml-1">({clientsInGroup.length})</span>
-                </div>
-                {inGroupPagination.paginatedItems.length === 0 ? (
-                  <EmptyState
-                    icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>}
-                    title={clientSearch ? 'Nessun risultato' : 'Nessun atleta nel gruppo'}
-                    description={clientSearch ? undefined : 'Aggiungi atleti dalla colonna destra.'}
-                  />
-                ) : (
-                  <>
-                    <div className="flex flex-col gap-2">
-                      {inGroupPagination.paginatedItems.map(c => (
-                        <ClientRow key={c.id} client={c} inGroup loading={toggling === c.id} onToggle={() => handleRequestToggle(c, true)} />
-                      ))}
-                    </div>
-                    <Pagination {...inGroupPagination} />
-                  </>
-                )}
-              </div>
-
-              {/* Col 2: Riepilogo gruppo */}
-              <div className="rounded-[4px] p-5 rx-card">
-                <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-5" style={{ color: 'var(--rx-green)' }}>
-                  ◈ Riepilogo
-                </div>
-                <div className="flex flex-col gap-2 mb-4">
-                  <ManageStat label="Nel gruppo"    value={allClientsInGroup.length}                        color="var(--rx-green)" />
-                  <ManageStat label="Disponibili"   value={clients.length - allClientsInGroup.length}       />
-                  <ManageStat label="Totale atleti" value={clients.length}                                  />
-                </div>
-                {allClientsInGroup.length < 2 && (
-                  <div
-                    className="px-3 py-3 rounded-[3px] font-body text-[12px] text-white/35 leading-relaxed"
-                    style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}
-                  >
-                    {allClientsInGroup.length === 0
-                      ? 'Aggiungi almeno 2 atleti per sbloccare Classifica, Analisi e Confronto.'
-                      : 'Aggiungi un altro atleta per sbloccare Classifica, Analisi e Confronto.'}
-                  </div>
-                )}
-              </div>
-
-              {/* Col 3: Da aggiungere */}
-              <div className="rounded-[4px] p-5 rx-card">
-                <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                  ◈ Da aggiungere <span className="text-white/25 ml-1">({clientsNotInGroup.length})</span>
-                </div>
-                <input
-                  value={clientSearch}
-                  onChange={e => setClientSearch(e.target.value)}
-                  placeholder="Cerca per nome..."
-                  className="input-base w-full mb-4"
-                />
-                {notInGroupPagination.paginatedItems.length === 0 ? (
-                  <EmptyState
-                    icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>}
-                    title={clientSearch ? 'Nessun risultato' : 'Tutti nel gruppo'}
-                    description={clientSearch ? undefined : 'Tutti gli atleti sono già in questo gruppo.'}
-                  />
-                ) : (
-                  <>
-                    <div className="flex flex-col gap-2">
-                      {notInGroupPagination.paginatedItems.map(c => (
-                        <ClientRow key={c.id} client={c} inGroup={false} loading={toggling === c.id} onToggle={() => handleRequestToggle(c, false)} />
-                      ))}
-                    </div>
-                    <Pagination {...notInGroupPagination} />
-                  </>
-                )}
-              </div>
-
-            </div>
-
-          </div>
+          <GroupManageTab
+            clientsInGroup={allClientsInGroup}
+            totalClients={clients.length}
+            clientsNotInGroupCount={clientsNotInGroup.length}
+            clientSearch={clientSearch}
+            onSearchChange={setClientSearch}
+            inGroupPagination={inGroupPagination}
+            notInGroupPagination={notInGroupPagination}
+            toggling={toggling}
+            onRequestToggle={handleRequestToggle}
+          />
         )}
 
         {subView === 'sessions' && (
@@ -483,12 +274,14 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
         />
       )}
       {showPrint && (
-        <GroupReportPrint
-          group={group}
-          clients={allClientsInGroup}
-          mode={printMode}
-          onClose={() => setShowPrint(false)}
-        />
+        <Suspense fallback={null}>
+          <GroupReportPrint
+            group={group}
+            clients={allClientsInGroup}
+            mode={printMode}
+            onClose={() => setShowPrint(false)}
+          />
+        </Suspense>
       )}
 
       {toggleDialog && (
@@ -504,89 +297,15 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
 
       {showDelete && (
         <ConfirmDialog
+          variant="danger"
           title={`Eliminare "${group.name}"?`}
           description="Il gruppo verrà eliminato. Gli atleti non verranno rimossi dall'app."
           confirmLabel="ELIMINA"
+          loading={deleting}
           onConfirm={handleDelete}
           onCancel={() => setShowDelete(false)}
         />
       )}
     </div>
-  )
-}
-
-function ClientRow({ client, inGroup, loading, onToggle }) {
-  return (
-    <div
-      className="flex items-center justify-between px-4 py-3 rounded-[3px] transition-all"
-      style={inGroup
-        ? { background: 'color-mix(in srgb, var(--rx-green) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 15%, transparent)' }
-        : { background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }
-      }
-    >
-      <div className="flex items-center gap-3">
-        <div
-          className="w-8 h-8 rounded-[3px] flex items-center justify-center shrink-0"
-          style={inGroup ? { background: 'color-mix(in srgb, var(--rx-green) 15%, transparent)' } : { background: 'rgba(255,255,255,0.05)' }}
-        >
-          <span className="font-display text-[11px]" style={{ color: inGroup ? 'var(--rx-green)' : 'rgba(255,255,255,0.35)' }}>
-            {client.name?.[0]?.toUpperCase()}
-          </span>
-        </div>
-        <div>
-          <div className="font-display font-bold text-[13px] text-white/80">{client.name}</div>
-          {client.rank && (
-            <div className="font-display text-[10px] text-white/30 mt-0.5">
-              {client.rank} · Lv.{client.level}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <button
-        onClick={onToggle}
-        disabled={loading}
-        className="font-display text-[10px] px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all disabled:opacity-40"
-        style={inGroup
-          ? { color: '#f87171', borderColor: 'rgba(248,113,113,0.2)', background: 'transparent' }
-          : { color: 'var(--rx-green)', borderColor: 'color-mix(in srgb, var(--rx-green) 20%, transparent)',   background: 'color-mix(in srgb, var(--rx-green) 6%, transparent)' }
-        }
-      >
-        {loading ? '...' : inGroup ? 'RIMUOVI' : 'AGGIUNGI'}
-      </button>
-    </div>
-  )
-}
-
-function ManageStat({ label, value, color }) {
-  return (
-    <div
-      className="flex items-center justify-between px-3 py-2 rounded-[3px]"
-      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
-    >
-      <span className="font-display text-[10px] tracking-[1px] text-white/30">{label}</span>
-      <span className="font-display font-black text-[16px]" style={{ color: color ?? 'rgba(255,255,255,0.55)' }}>
-        {value}
-      </span>
-    </div>
-  )
-}
-
-function actionBtnStyle(danger, muted, color) {
-  if (danger) return { color: '#f87171',                  borderColor: 'rgba(248,113,113,0.2)', background: 'transparent' }
-  if (muted)  return { color: 'rgba(255,255,255,0.3)',    borderColor: 'rgba(255,255,255,0.1)', background: 'transparent' }
-  if (color)  return { color,                             borderColor: color + '44',            background: color + '11'  }
-  return              { color: 'rgba(255,255,255,0.4)',   borderColor: 'rgba(255,255,255,0.1)', background: 'transparent' }
-}
-
-function ActionBtn({ onClick, children, color, danger, muted }) {
-  return (
-    <button
-      onClick={onClick}
-      className="font-display text-[10px] px-2.5 py-1.5 rounded-[3px] cursor-pointer border transition-all"
-      style={actionBtnStyle(danger, muted, color)}
-    >
-      {children}
-    </button>
   )
 }

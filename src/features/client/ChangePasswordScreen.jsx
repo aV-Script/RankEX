@@ -1,5 +1,5 @@
 import { useState }                              from 'react'
-import { Field }                                 from '../../components/ui'
+import { Field, Button }                         from '../../components/ui'
 import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth'
 import { doc, updateDoc }                        from 'firebase/firestore'
 import { auth }                                  from '../../firebase/services/auth'
@@ -98,17 +98,15 @@ export default function ChangePasswordScreen({ userId, onDone }) {
                 ['Almeno una lettera maiuscola',  /[A-Z]/.test(form.password)],
                 ['Le password coincidono',        form.password.length > 0 && form.password === form.confirm],
               ].map(([label, ok]) => (
-                <li key={label} className={`font-body text-[12px] flex items-center gap-2 ${ok ? 'text-emerald-400' : 'text-white/25'}`}>
+                <li key={label} className={`font-body text-[12px] flex items-center gap-2 ${ok ? 'text-emerald-400' : 'text-white/60'}`}>
                   <span>{ok ? '✓' : '○'}</span> {label}
                 </li>
               ))}
             </ul>
 
-            <button onClick={handleSubmit} disabled={loading}
-              className="w-full py-3.5 rounded-[3px] font-display text-[13px] font-bold tracking-widest text-white cursor-pointer transition-opacity hover:opacity-90 disabled:opacity-50 mt-2"
-              style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)' }}>
+            <Button onClick={handleSubmit} disabled={loading} className="w-full mt-2">
               {loading ? 'SALVATAGGIO...' : 'ENTRA IN RANK EX →'}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

@@ -10,8 +10,9 @@ export function StepAnagrafica({ anagrafica, setAnagrafica, errors }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <Field label="Nome e cognome" error={errors.name}>
+      <Field label="Nome e cognome" htmlFor="wizard-name" error={errors.name}>
         <Input
+          id="wizard-name"
           value={anagrafica.name}
           onChange={update('name')}
           placeholder="Mario Rossi"
@@ -22,9 +23,11 @@ export function StepAnagrafica({ anagrafica, setAnagrafica, errors }) {
       <div className="grid grid-cols-2 gap-3">
         <Field
           label={computedAge !== null ? `Data di nascita (${computedAge} anni)` : 'Data di nascita'}
+          htmlFor="wizard-data-nascita"
           error={errors.dataNascita}
         >
           <Input
+            id="wizard-data-nascita"
             type="date"
             value={anagrafica.dataNascita}
             onChange={update('dataNascita')}
@@ -51,11 +54,11 @@ export function StepAnagrafica({ anagrafica, setAnagrafica, errors }) {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Peso (kg)" error={errors.peso}>
-          <Input type="number" value={anagrafica.peso} onChange={update('peso')} placeholder="70" />
+        <Field label="Peso (kg)" htmlFor="wizard-peso" error={errors.peso}>
+          <Input id="wizard-peso" type="number" value={anagrafica.peso} onChange={update('peso')} placeholder="70" />
         </Field>
-        <Field label="Altezza (cm)" error={errors.altezza}>
-          <Input type="number" value={anagrafica.altezza} onChange={update('altezza')} placeholder="175" />
+        <Field label="Altezza (cm)" htmlFor="wizard-altezza" error={errors.altezza}>
+          <Input id="wizard-altezza" type="number" value={anagrafica.altezza} onChange={update('altezza')} placeholder="175" />
         </Field>
       </div>
     </div>

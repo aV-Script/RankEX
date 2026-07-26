@@ -6,7 +6,7 @@ import { Pagination }                     from '../../components/common/Paginati
 import { GroupCard }                      from './groups-page/GroupCard'
 import { GroupDetailView }                from './groups-page/GroupDetailView'
 import { Skeleton }                       from '../../components/common/Skeleton'
-import { EmptyState }                     from '../../components/ui'
+import { EmptyState, Button }             from '../../components/ui'
 import { PAGINATION_PAGE_SIZE }           from '../../config/app.config'
 import { useRegisterContextMenu }         from '../../context/NavMenuContext'
 
@@ -32,6 +32,7 @@ export function GroupsPage({ orgId }) {
   const [groupSearch,   setGroupSearch]   = useState('')
   const [showNew,       setShowNew]       = useState(false)
   const [newGroupName,  setNewGroupName]  = useState('')
+  const [creating,      setCreating]      = useState(false)
 
   const ctxItems = view === 'list' ? GROUPS_CTX : []
   useRegisterContextMenu('Gruppi', ctxItems, null, id => { if (id === '__new__') setShowNew(true) })
@@ -43,11 +44,16 @@ export function GroupsPage({ orgId }) {
   const pagination = usePagination(filteredGroups, GROUPS_PAGE_SIZE)
 
   const handleCreate = useCallback(async () => {
-    if (!newGroupName.trim()) return
-    await handleAddGroup(newGroupName.trim())
-    setNewGroupName('')
-    setShowNew(false)
-  }, [newGroupName, handleAddGroup])
+    if (!newGroupName.trim() || creating) return
+    setCreating(true)
+    try {
+      await handleAddGroup(newGroupName.trim())
+      setNewGroupName('')
+      setShowNew(false)
+    } finally {
+      setCreating(false)
+    }
+  }, [newGroupName, creating, handleAddGroup])
 
   const handleSelectGroup = useCallback((group) => {
     setSelectedGroup(group)
@@ -115,19 +121,12 @@ export function GroupsPage({ orgId }) {
             placeholder="Nome gruppo..."
             className="input-base flex-1"
           />
-          <button
-            onClick={handleCreate}
-            className="font-display text-[11px] px-4 py-2 rounded-[3px] cursor-pointer border-0 transition-opacity hover:opacity-85"
-            style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)' }}
-          >
+          <Button onClick={handleCreate} loading={creating}>
             CREA
-          </button>
-          <button
-            onClick={() => { setShowNew(false); setNewGroupName('') }}
-            className="font-display text-[11px] px-4 py-2 rounded-[3px] cursor-pointer border border-white/10 bg-transparent text-white/40 hover:text-white/70 transition-all"
-          >
+          </Button>
+          <Button variant="neutral" onClick={() => { setShowNew(false); setNewGroupName('') }} disabled={creating}>
             ANNULLA
-          </button>
+          </Button>
         </div>
       )}
 

@@ -36,7 +36,7 @@ export function CampionamentoView({ client, _color, onSave, onBack }) {
         <p className="text-[13px] text-white/40 mb-2">
           {client.name} · {client.sesso} · {calcAge(client.dataNascita)} anni
         </p>
-        <p className="font-body text-[12px] text-white/25 mb-6 leading-relaxed">
+        <p className="font-body text-[12px] text-white/60 mb-6 leading-relaxed">
           Il percentile indica la posizione rispetto ai pari età/sesso: 70° = meglio del 70% delle persone simili.
         </p>
 

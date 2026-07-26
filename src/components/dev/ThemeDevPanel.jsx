@@ -5,12 +5,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useTheme }                          from '../../context/ThemeContext'
 import { isDev }                             from '../../utils/env'
+import { IconClose }                         from '../ui/icons'
 
-const ICON_CLOSE = (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-  </svg>
-)
+const ICON_CLOSE = <IconClose size={14} />
 const ICON_PALETTE = (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/>

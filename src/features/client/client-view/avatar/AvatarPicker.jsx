@@ -57,6 +57,7 @@ export function AvatarPicker({ client, clientId, orgId, color }) {
             <button
               key={a.id}
               onClick={() => setAvatarId(a.id)}
+              aria-pressed={active}
               className="flex flex-col items-center overflow-hidden cursor-pointer rounded-[5px]"
               style={{
                 background: active ? color + '12' : 'color-mix(in srgb, var(--rx-green) 4%, transparent)',

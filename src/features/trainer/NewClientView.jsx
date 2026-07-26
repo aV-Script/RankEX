@@ -4,12 +4,9 @@ import { getModule }              from '../../config/modules.config'
 import { getPlanLimits }          from '../../config/plans.config'
 import { ConfirmDialog }          from '../../components/common/ConfirmDialog'
 import { useRegisterContextMenu } from '../../context/NavMenuContext'
+import { IconChevronLeft }        from '../../components/ui/icons'
 
-const ICON_BACK = (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="15 18 9 12 15 6"/>
-  </svg>
-)
+const ICON_BACK = <IconChevronLeft />
 const NEW_CLIENT_CTX = [{ id: '__back__', label: 'Clienti', icon: ICON_BACK }]
 import { useWizard }              from '../../components/modals/new-client-wizard/useWizard'
 import { WizardProgress }         from '../../components/modals/new-client-wizard/WizardProgress'
@@ -132,7 +129,7 @@ function PlanLimitScreen({ current, limit, plan, onNavigate }) {
           GESTISCI PIANO
         </button>
       ) : (
-        <p className="font-body text-[12px] text-white/25">
+        <p className="font-body text-[12px] text-white/60">
           Contatta il tuo amministratore per aggiornare il piano.
         </p>
       )}
