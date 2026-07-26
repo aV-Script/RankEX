@@ -15,7 +15,7 @@ test.describe('Mobile — flussi critici', () => {
   test('login funziona su mobile', async ({ page }) => {
     await page.goto(`${BASE}/login`)
     await expect(page.getByLabel(/email/i)).toBeVisible({ timeout: 5_000 })
-    await expect(page.getByLabel(/password/i)).toBeVisible()
+    await expect(page.getByLabel(/password/i).first()).toBeVisible()
     await expect(page.getByRole('button', { name: /accedi/i })).toBeVisible()
   })
 

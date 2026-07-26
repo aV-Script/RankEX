@@ -11,7 +11,7 @@ test.describe('TP-001 — Login e redirect per ruolo', () => {
   test('login con credenziali errate mostra errore leggibile', async ({ page }) => {
     await page.goto(`${BASE}/login`)
     await page.getByLabel(/email/i).fill('nonexiste@test.rankex')
-    await page.getByLabel(/password/i).fill('wrongpassword')
+    await page.getByLabel(/password/i).first().fill('wrongpassword')
     await page.getByRole('button', { name: /accedi/i }).click()
 
     const errore = page.locator('[class*="error"], [class*="alert"], [role="alert"]')
@@ -23,7 +23,7 @@ test.describe('TP-001 — Login e redirect per ruolo', () => {
   test('login come trainer → TrainerShell visibile', async ({ page }) => {
     await page.goto(`${BASE}/login`)
     await page.getByLabel(/email/i).fill(process.env.E2E_TRAINER_EMAIL || 'trainer@test.rankex')
-    await page.getByLabel(/password/i).fill(process.env.E2E_TRAINER_PASSWORD || 'TrainerTest1')
+    await page.getByLabel(/password/i).first().fill(process.env.E2E_TRAINER_PASSWORD || 'TrainerTest1')
     await page.getByRole('button', { name: /accedi/i }).click()
 
     // Dopo login il trainer vede la propria dashboard
@@ -81,7 +81,7 @@ test.describe('TP-003 — Cambio password obbligatorio al primo accesso', () => 
 
     await page.goto(`${BASE}/login`)
     await page.getByLabel(/email/i).fill(email)
-    await page.getByLabel(/password/i).fill(password)
+    await page.getByLabel(/password/i).first().fill(password)
     await page.getByRole('button', { name: /accedi/i }).click()
     await page.waitForLoadState('networkidle')
 
@@ -101,7 +101,7 @@ test.describe('TP-003 — Cambio password obbligatorio al primo accesso', () => 
 
     await page.goto(`${BASE}/login`)
     await page.getByLabel(/email/i).fill(email)
-    await page.getByLabel(/password/i).fill(password)
+    await page.getByLabel(/password/i).first().fill(password)
     await page.getByRole('button', { name: /accedi/i }).click()
     await page.waitForLoadState('networkidle')
 
