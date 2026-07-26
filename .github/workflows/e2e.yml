@@ -1,5 +1,7 @@
 name: E2E
 
+# Trigger verificati manualmente (push su main, push su dev, PR verso main)
+# aprendo una PR di prova — vedi commit history per il branch usato.
 on:
   push:
     branches: [main, dev]
