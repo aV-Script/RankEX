@@ -61,7 +61,13 @@ export const test = base.extend({
     await use(await pageFromSavedSession(browser, AUTH_PATHS.staff))
   },
 
-  superAdminPage: async ({ browser }, use) => {
+  superAdminPage: async ({ browser }, use, testInfo) => {
+    // Nessun fallback hardcoded per il super_admin: se le credenziali non
+    // sono configurate, global.setup.js non genera super-admin.json — va
+    // skippato QUI (prima di use()), non nel corpo del test: i fixture si
+    // risolvono prima che il test parta, quindi un test.skip() nel test
+    // stesso arriverebbe troppo tardi e newContext() lancerebbe ENOENT.
+    testInfo.skip(!process.env.E2E_SUPERADMIN_EMAIL, 'E2E_SUPERADMIN_EMAIL non configurato')
     await use(await pageFromSavedSession(browser, AUTH_PATHS.superAdmin))
   },
 })
