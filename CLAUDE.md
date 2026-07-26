@@ -302,7 +302,10 @@ Il client vede la scheda `active` assegnata a sé in read-only nella propria das
 
 **Nota:** albero riverificato contro il codice reale (lug 2026) dopo aver trovato diversi
 disallineamenti — file rimossi mai tolti dall'albero, feature intere mai documentate, e
-codice morto ancora descritto come se fosse quello attivo. Vedi "Codice morto noto" in fondo.
+alcuni file di codice morto (mai importati da nessuno) rimossi dal repo in questa stessa
+sessione: `Sidebar.jsx`/`MobileNav.jsx`/`SidebarIcon.jsx`/`TabItem.jsx` (sostituiti da
+`AppNav.jsx`), `client-dashboard/DashboardHeader.jsx` (sostituito da `ClientDashboardHeader.jsx`),
+`config/theme.js` (sostituito da `themes.config.js`).
 
 ```
 src/
@@ -352,8 +355,7 @@ src/
 │   ├── badges.config.js     ← BADGES, BADGE_TIERS, MANUAL_BADGES — fonte di verità trofei
 │   ├── avatars.config.js    ← catalogo avatar fissi per org (sostituisce builder DiceBear)
 │   ├── themes.config.js     ← 7 temi client (RankEX, Midnight, Carbon, Violet, Steel, Phantom, Mint)
-│   ├── app.config.js        ← PAGINATION_PAGE_SIZE e altre costanti app-wide
-│   └── theme.js             ← palette colori RankEX (nessun importatore — vedi "Codice morto noto")
+│   └── app.config.js        ← PAGINATION_PAGE_SIZE e altre costanti app-wide
 │
 ├── constants/
 │   ├── index.js             ← RANKS, CATEGORIE, NEW_CLIENT_DEFAULTS,
@@ -570,20 +572,6 @@ src/
     │                           getAgeGroup(testKey, age) → string|null
     │                           getAgeGroupClamped(testKey, age, sex) → { group, outOfRange }
     └── validation.js
-```
-
-### Codice morto noto (trovato lug 2026, mai rimosso)
-
-File ancora presenti nel repo ma senza nessun importatore attivo — probabile residuo di
-refactoring (AppNav.jsx e ClientDashboardHeader.jsx li hanno sostituiti). Non rimossi
-automaticamente: verificare con il team prima di cancellare.
-```
-components/layout/trainer-shell/Sidebar.jsx     → sostituito da AppNav.jsx
-components/layout/trainer-shell/MobileNav.jsx   → sostituito da AppNav.jsx (bottom tab bar integrata)
-components/layout/trainer-shell/SidebarIcon.jsx → usato solo da Sidebar.jsx (sopra)
-components/layout/trainer-shell/TabItem.jsx     → usato solo da MobileNav.jsx (sopra)
-features/client/client-dashboard/DashboardHeader.jsx → sostituito da ClientDashboardHeader.jsx
-config/theme.js                                 → zero importatori — palette client ora in themes.config.js
 ```
 
 ---
