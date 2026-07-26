@@ -300,6 +300,10 @@ Il client vede la scheda `active` assegnata a sé in read-only nella propria das
 
 ## Struttura cartelle
 
+**Nota:** albero riverificato contro il codice reale (lug 2026) dopo aver trovato diversi
+disallineamenti — file rimossi mai tolti dall'albero, feature intere mai documentate, e
+codice morto ancora descritto come se fosse quello attivo. Vedi "Codice morto noto" in fondo.
+
 ```
 src/
 ├── app/
@@ -310,24 +314,32 @@ src/
 ├── components/
 │   ├── common/
 │   │   ├── ConfirmDialog.jsx
+│   │   ├── ChartErrorFallback.jsx ← fallback compatto per ErrorBoundary attorno ai grafici
 │   │   ├── DomainGuard.jsx      ← blocco bidirezionale per dominio+ruolo
-│   │   ├── ErrorBoundary.jsx
-│   │   ├── LoadingScreen.jsx
+│   │   ├── ErrorBoundary.jsx    ← accetta prop fallback (render-prop), default ErrorFallback
+│   │   ├── ErrorFallback.jsx    ← fallback full-page di default
+│   │   ├── LoadingScreen.jsx    ← data-testid="loading" (usato da e2e/helpers/page.js)
 │   │   ├── Pagination.jsx
+│   │   ├── PrintPickerModal.jsx ← scelta modalità stampa (dark/light) prima di ClientReportPrint/GroupReportPrint
+│   │   ├── ProtectedRoute.jsx
 │   │   ├── ReadonlyBanner.jsx
-│   │   └── ReadonlyGuard.jsx
+│   │   ├── ReadonlyGuard.jsx
+│   │   ├── SessionWarningDialog.jsx ← avviso 60s prima del logout per inattività
+│   │   └── Toast.jsx
 │   ├── layout/
-│   │   ├── TrainerShell.jsx
+│   │   ├── TrainerShell.jsx     ← usa SOLO AppNav + NavMenuProvider (vedi sotto)
+│   │   ├── ContextNav.jsx       ← menu circolare contestuale ad-hoc (ClientDashboard, TrainerCalendar)
 │   │   └── trainer-shell/
-│   │       ├── Sidebar.jsx
-│   │       ├── MobileNav.jsx
-│   │       ├── SidebarIcon.jsx
-│   │       ├── TabItem.jsx
+│   │       ├── AppNav.jsx           ← nav attuale: top bar desktop + bottom tab bar mobile con swipe
 │   │       └── navItems.config.jsx  ← NAV_ITEMS + ORG_ADMIN_NAV_ITEMS
 │   └── ui/
 │       ├── index.jsx        ← Card, Button, Badge, Modal, Field,
 │       │                       StatNumber, EmptyState, Skeleton,
 │       │                       ActivityLog, StatsSection, Divider
+│       ├── icons.jsx             ← icon registry condiviso: IconClose, IconChevronLeft,
+│       │                           IconDocument, IconPdf, IconDelete (tutte aria-hidden)
+│       ├── BadgeMedal.jsx        ← medaglia badge (cerchio + icona tier) per TrophiesSection
+│       ├── ThemePicker.jsx       ← selettore tema client (Pentagon Nav + Theme System)
 │       ├── XPBar.jsx            ← prop fullWidth=false rimuove max-w-sm interno
 │       ├── Pentagon.jsx
 │       └── RankRing.jsx
@@ -338,7 +350,10 @@ src/
 │   ├── plans.config.js      ← PLAN_LIMITS, getPlanLimits,
 │   │                           isAtTrainerLimit, isAtClientLimit
 │   ├── badges.config.js     ← BADGES, BADGE_TIERS, MANUAL_BADGES — fonte di verità trofei
-│   └── theme.js             ← palette colori RankEX
+│   ├── avatars.config.js    ← catalogo avatar fissi per org (sostituisce builder DiceBear)
+│   ├── themes.config.js     ← 7 temi client (RankEX, Midnight, Carbon, Violet, Steel, Phantom, Mint)
+│   ├── app.config.js        ← PAGINATION_PAGE_SIZE e altre costanti app-wide
+│   └── theme.js             ← palette colori RankEX (nessun importatore — vedi "Codice morto noto")
 │
 ├── constants/
 │   ├── index.js             ← RANKS, CATEGORIE, NEW_CLIENT_DEFAULTS,
@@ -355,6 +370,9 @@ src/
 │   ├── TrainerContext.jsx   ← selectedClient, orgId, moduleType,
 │   │                           terminology, userRole, orgPlan
 │   ├── ReadonlyContext.jsx  ← readonly boolean
+│   ├── NavMenuContext.jsx   ← registro dei context menu per pagina (useRegisterContextMenu),
+│   │                           consumato da CircularNav.jsx (area admin)
+│   ├── ThemeContext.jsx     ← 5 temi dinamici client (Pentagon Nav + Theme System, giu 2026)
 │   └── ToastContext.jsx
 │
 ├── design/
@@ -363,7 +381,7 @@ src/
 │
 ├── features/
 │   ├── admin/               ← area super_admin
-│   │   ├── AdminShell.jsx   ← sidebar con accent rosso
+│   │   ├── AdminShell.jsx   ← sidebar con accent rosso; usa CircularNav (menu radiale) via NavMenuContext
 │   │   ├── SuperAdminView.jsx
 │   │   └── admin-pages/
 │   │       ├── AdminDashboard.jsx  ← stat + piano breakdown + orgs recenti
@@ -398,27 +416,34 @@ src/
 │   │
 │   ├── client/              ← area cliente (role: client)
 │   │   ├── ClientView.jsx
+│   │   ├── ClientBadges.jsx
 │   │   ├── useClient.js     ← useClient(orgId, clientId)
 │   │   ├── CampionamentoView.jsx
 │   │   ├── ClientCalendar.jsx
-│   │   ├── PlayerCard.jsx
 │   │   ├── StatsChart.jsx
 │   │   ├── ChangePasswordScreen.jsx
-│   │   ├── ClientDashboard.jsx          ← vista trainer: layout 2 col + mobile AVATAR tab
+│   │   ├── ClientDashboard.jsx          ← vista trainer: layout 2 col + mobile ATLETA tab
 │   │   ├── client-view/
 │   │   │   ├── ClientShell.jsx
-│   │   │   ├── ClientDashboardPage.jsx  ← vista client: stesso layout, AVATAR tab mobile
-│   │   │   ├── ClientProfilePage.jsx
+│   │   │   ├── ClientHub.jsx            ← hub pentagono client (Pentagon Nav, giu 2026)
+│   │   │   ├── ClientHUD.jsx
+│   │   │   ├── ClientBottomNav.jsx
+│   │   │   ├── ClientDashboardPage.jsx  ← vista client: stesso layout, ATLETA tab mobile
+│   │   │   ├── avatar/
+│   │   │   │   ├── AvatarDisplay.jsx    ← renderizza avatar dal catalogo fisso, onError fallback
+│   │   │   │   └── AvatarPicker.jsx     ← selezione tra avatar predefiniti (sostituisce builder DiceBear)
 │   │   │   └── client.config.jsx
 │   │   ├── useMisure.js                 ← hook CRUD peso+altezza su cliente
 │   │   └── client-dashboard/
-│   │       ├── DashboardHeader.jsx
+│   │       ├── ClientDashboardHeader.jsx ← header estratto da ClientDashboard.jsx (RX-07)
+│   │       ├── AtletaTab.jsx             ← tab "Atleta": card riepilogo avatar+rank+XP (RX-07)
+│   │       ├── clientDashboardIcons.jsx  ← icone tab/azioni estratte (RX-07)
 │   │       ├── DeleteDialog.jsx
-│   │       ├── ClientSessionsSummary.jsx
 │   │       ├── NotesSection.jsx          ← thread note + commenti (trainer+client)
 │   │       ├── WorkoutPlanSection.jsx    ← schede allenamento (trainer): CRUD + storico
 │   │       ├── ClientWorkoutSection.jsx  ← scheda allenamento read-only (client)
 │   │       ├── MisureSection.jsx         ← tab Misure: storico peso+altezza con trend inline
+│   │       ├── WearableSection.jsx       ← tab Wearable: collega/sync Google Fit (vedi sezione dedicata)
 │   │       ├── XPTrendChart.jsx          ← grafico XP accumulato Giorno/Settimana/Mese
 │   │       ├── TrophiesSection.jsx       ← tab Trofei: badge auto+manuali, showcase (trainer+client)
 │   │       └── ClientReportPrint.jsx     ← export PDF via window.print() (trainer)
@@ -431,7 +456,9 @@ src/
 │   │   └── org-pages/
 │   │       ├── OrgDashboard.jsx
 │   │       ├── MembersPage.jsx     ← limite piano: banner + blocco aggiungi
-│   │       ├── OrgSettingsPage.jsx ← select piano con limiti visibili
+│   │       ├── OrgSettingsPage.jsx ← select piano con limiti visibili; raggiunta solo dal
+│   │       │                         bottone "IMPOSTAZIONI" del banner limite in MembersPage,
+│   │       │                         nessuna voce di nav persistente
 │   │       └── CreateMemberForm.jsx
 │   │
 │   └── trainer/             ← area trainer / staff_readonly
@@ -452,20 +479,26 @@ src/
 │       │   └── WorkoutPlanForm.jsx   ← form multi-giorno creazione/modifica scheda
 │       ├── groups-page/
 │       │   ├── GroupCard.jsx
-│       │   ├── GroupDetailView.jsx        ← hub 6 tab (Gestione/Classifica/Analisi/Confronto/Sessioni/Note)
+│       │   ├── GroupDetailView.jsx        ← orchestratore: stato + handler, JSX nei file sotto
+│       │   ├── GroupDetailHeader.jsx      ← header hub gruppo estratto da GroupDetailView (RX-07)
+│       │   ├── GroupManageTab.jsx         ← tab Gestione estratto da GroupDetailView (RX-07)
+│       │   ├── groupDetailIcons.jsx       ← icone tab + config TABS estratte (RX-07)
 │       │   ├── GroupLeaderboard.jsx       ← classifica ordinabile per media o stat, paginata
 │       │   ├── GroupChampions.jsx         ← campioni per disciplina (griglia)
 │       │   ├── GroupAnalysis.jsx          ← riepilogo + trend LineChart + heatmap + più migliorati
 │       │   ├── GroupComparison.jsx        ← confronto 3 atleti: selettore paginato + radar SVG + tabella
 │       │   ├── GroupNotes.jsx             ← note di gruppo: publish/delete, paginazione
+│       │   ├── GroupSessionsPanel.jsx     ← tab Sessioni: slot del gruppo
 │       │   ├── GroupReportPrint.jsx       ← export PDF gruppo via window.print()
 │       │   ├── GroupsSidebar.jsx
 │       │   └── GroupToggleDialog.jsx
 │       ├── trainer-calendar/
 │       │   ├── CalendarHeader.jsx    ← bottoni uniformati (entrambi filled)
-│       │   ├── WeekView.jsx
-│       │   ├── MonthView.jsx
-│       │   ├── DayView.jsx
+│       │   ├── CalendarSidebar.jsx
+│       │   ├── WeekView.jsx          ← bottone + dedicato per cella (RX-34, niente role="button" sulla cella)
+│       │   ├── MonthView.jsx         ← idem
+│       │   ├── DayView.jsx           ← idem
+│       │   ├── SlotCard.jsx
 │       │   ├── EventBlock.jsx
 │       │   ├── SlotPopup.jsx
 │       │   ├── CloseSessionModal.jsx
@@ -473,15 +506,20 @@ src/
 │       │   └── RecurrenceModal.jsx
 │       └── recurrences-page/
 │           ├── RecurrenceCard.jsx
-│           └── RecurrenceDetailView.jsx ← header giorni+orario, layout 2 col,
-│                                           ricerca clienti, settimane calcolate
+│           ├── RecurrenceDetailView.jsx      ← orchestratore: stato + handler
+│           ├── RecurrenceDetailHeader.jsx    ← header giorni+orario (RX-42)
+│           ├── RecurrenceSummaryBar.jsx      ← riga STATUS/PERIODO/CLIENTI (RX-42)
+│           ├── RecurrenceScheduleSection.jsx ← sezioni Orario + Giorni (RX-42)
+│           ├── RecurrencePeriodSection.jsx   ← sezione Periodo + estendi (RX-42)
+│           ├── RecurrenceClientsSection.jsx  ← sezione Clienti + ricerca aggiungi (RX-42)
+│           └── recurrenceDetailShared.jsx    ← costanti/helper condivisi (WEEK_DAYS, dateFmt, ActionRow, ecc.)
 │
 │   (wizard)
 │   components/modals/new-client-wizard/
 │       └── steps/StepRuolo.jsx  ← step ruolo per soccer_academy
 │
 ├── firebase/
-│   ├── config.js            ← initializeApp + App Check (ReCaptchaV3Provider, dev debug token)
+│   ├── config.js            ← initializeApp (App Check rimosso — vedi sezione Sicurezza)
 │   ├── paths.js             ← path helpers subcollection
 │   └── services/
 │       ├── auth.js          ← changeTrainerPassword, changeUserEmail
@@ -490,11 +528,13 @@ src/
 │       ├── clients.js       ← addClient/deleteClient usano batch + increment
 │       ├── db.js
 │       ├── groups.js        ← tutte le fn accettano orgId come primo arg
+│       ├── groupNotes.js    ← getGroupNotes, addGroupNote, deleteGroupNote (orgId, groupId)
 │       ├── notifications.js ← tutte le fn accettano orgId come primo arg
 │       ├── notes.js         ← getNotes, addNote, deleteNoteItem (orgId, clientId)
 │       ├── org.js           ← addMember/removeMember usano batch + increment; getMember (singolo)
 │       ├── workoutPlans.js  ← getWorkoutPlans, getWorkoutPlanForClient, addWorkoutPlan, update, delete (orgId)
 │       ├── badges.js        ← awardBadge, revokeBadge, updateBadgeShowcase (orgId, clientId)
+│       ├── wearable.js      ← enableWearable, linkGoogleFit, fetchAndSaveWearableData (vedi sezione dedicata)
 │       └── users.js
 │
 ├── hooks/
@@ -505,10 +545,13 @@ src/
 │   ├── useNotifications.js     ← useNotifications(orgId, clientId)
 │   ├── useNotes.js             ← useNotes(orgId, clientId, author) → threads
 │   ├── useBadges.js            ← useBadges(orgId, clientId, client, { readonly }) — auto-award + manuale
+│   ├── useWearable.js          ← useWearable (trainer) + useClientWearable (client) — Google Fit
+│   ├── useColorSource.js       ← sorgente colore dinamico (Pentagon Nav + Theme System)
+│   ├── useVersionCheck.js      ← rileva nuova build disponibile, mostra banner ricarica
+│   ├── useFocusTrap.js         ← focus trap da tastiera per dialog/modal (Tab/Shift+Tab)
 │   ├── usePagination.js
 │   ├── useSessionTimeout.js    ← logout automatico per inattività
-│   ├── useToast.js
-│   └── useWorkoutPlans.js      ← (rimosso — logica CRUD ora in WorkoutPlanSection)
+│   └── useToast.js
 │
 └── utils/
     ├── auditLog.js          ← auditLog(action, details?) + AUDIT_ACTIONS
@@ -527,6 +570,20 @@ src/
     │                           getAgeGroup(testKey, age) → string|null
     │                           getAgeGroupClamped(testKey, age, sex) → { group, outOfRange }
     └── validation.js
+```
+
+### Codice morto noto (trovato lug 2026, mai rimosso)
+
+File ancora presenti nel repo ma senza nessun importatore attivo — probabile residuo di
+refactoring (AppNav.jsx e ClientDashboardHeader.jsx li hanno sostituiti). Non rimossi
+automaticamente: verificare con il team prima di cancellare.
+```
+components/layout/trainer-shell/Sidebar.jsx     → sostituito da AppNav.jsx
+components/layout/trainer-shell/MobileNav.jsx   → sostituito da AppNav.jsx (bottom tab bar integrata)
+components/layout/trainer-shell/SidebarIcon.jsx → usato solo da Sidebar.jsx (sopra)
+components/layout/trainer-shell/TabItem.jsx     → usato solo da MobileNav.jsx (sopra)
+features/client/client-dashboard/DashboardHeader.jsx → sostituito da ClientDashboardHeader.jsx
+config/theme.js                                 → zero importatori — palette client ora in themes.config.js
 ```
 
 ---
@@ -960,6 +1017,44 @@ visceralFat     direction: inverse  (scala 1-12)
 
 ---
 
+## Wearable — Google Fit
+
+Feature opzionale, non documentata prima d'ora. Tab "Wearable" nella dashboard cliente
+(trainer: `ClientDashboard.jsx` + `WearableSection.jsx`; stesso componente lato client).
+
+```
+Trainer  → abilita/disabilita il tracking per il cliente (client.wearableEnabled)
+Cliente  → collega/scollega il proprio account Google Fit dal proprio profilo
+```
+
+**Collegamento** (`firebase/services/wearable.js`, `hooks/useWearable.js`):
+- Autenticazione tramite `GoogleAuthProvider` di Firebase Auth (non un client ID separato —
+  vedi nota su `VITE_GOOGLE_FIT_CLIENT_ID` sopra), scope `fitness.activity.read`
+- Flusso redirect (`linkWithRedirect` / `reauthenticateWithRedirect`) — compatibile con Edge
+  e browser con tracking prevention che bloccano i popup
+- `useClientWearable` risolve automaticamente il redirect OAuth al rientro da Google
+  (`resolveGoogleFitRedirect`), usando `sessionStorage` per portare `orgId`/`clientId`
+  attraverso il round-trip del redirect
+
+**Dati sincronizzati** (`client.wearable`):
+```js
+{
+  provider:    'google_fit',
+  linkedAt, lastSync,
+  accessToken,
+  lastData: {
+    steps30d, stepsAvg30d, stepsAvg7d,
+    activeMins30d, activeMinsAvg30d, activeMinsAvg7d,
+    calories30d, caloriesAvg30d, caloriesAvg7d,   // best-effort, .catch(() => null)
+    syncedAt,
+  },
+}
+```
+Sync via Google Fitness REST API (`fitness.googleapis.com/.../dataset:aggregate`), 30 giorni
+di storico, aggregati anche a 7 giorni. Token scaduto (401/403) → toast chiede di ricollegare.
+
+---
+
 ## Calendario
 
 ```
@@ -1092,32 +1187,35 @@ Struttura: `organizations/{orgId}/workoutPlans/{planId}`.
   perché `resource.data.clientId == userProfile().clientId` non è valutabile
   da Firestore a query-plan time su collection query.
 
-### Dashboard cliente — layout (aggiornato apr 2026)
+### Dashboard cliente — layout (riverificato lug 2026 — la doc apr 2026 era obsoleta)
 
-`ClientDashboard.jsx` (trainer) e `ClientDashboardPage.jsx` (client) condividono lo stesso pattern:
+**`ClientDashboard.jsx` (vista trainer) e `ClientDashboardPage.jsx` (vista client) NON condividono
+più lo stesso pattern** — sono divergute dopo due redesign successivi (RX-07 decomposizione apr 2026,
+poi Pentagon Nav giu 2026). Non esiste più `AvatarPlaceholder`, non esiste più il layout 2 colonne
+con `aside` sticky, non esiste più `mobileOnly`/`window.innerWidth < 1024`.
 
-**Desktop** — 2 colonne (40/60):
-- Colonna sinistra (`aside`): scheda Atleta sticky `top-[49px]` in `rx-card` — avatar + nome + badge + XPBar
-- Colonna destra: tab nav sticky + contenuto tab
+**Vista trainer** (`ClientDashboard.jsx` + `ClientDashboardHeader.jsx`, colonna unica):
+- Header unico: back button + tab bar orizzontale scrollabile (`overflow-x-auto`) + menu
+  overflow "⋮" (Esporta PDF / Reset password / Elimina)
+- Tab: `atleta` (AtletaTab.jsx — card riepilogo avatar+rank+XP, non più un aside persistente),
+  `test` (solo se `hasTests`), `bia`, `allenamento`, `calendario`, `note`, `attivita`, `misure`,
+  `wearable`, `trofei` — tutte sempre visibili/scrollabili, nessuna nascosta per breakpoint
 
-**Mobile** — colonna unica:
-- `aside` collassa (vuota su mobile)
-- Tab nav sticky subito sotto l'header
-- Primo tab = **AVATAR** (mobile only, `mobileOnly: true`) → scheda atleta in `rx-card`
-- Tab AVATAR nascosto su desktop (`lg:hidden`), default `window.innerWidth < 1024 ? 'avatar' : defaultTab`
-
-**AvatarPlaceholder** — componente locale in entrambi i file:
-- `small` prop → 110×138px (per tab AVATAR mobile)
-- Full size → 174×218px (desktop left panel)
-- Il `RankRing` NON è più dentro l'avatar — rank mostrato solo nei badge vicino a categoria
-- Badge row: `categoriaObj | ruoloObj | Piccoli | rank test | rank BIA`
-
-**Tab mobileOnly** — pattern:
-```js
-{ id: 'avatar', label: 'Avatar', icon: ICON_AVATAR, mobileOnly: true }
-// nel render:
-className={`... ${t.mobileOnly ? 'lg:hidden' : ''}`}
-```
+**Vista client** (`ClientDashboardPage.jsx` — Pentagon Navigation Hub, giu 2026):
+- `ClientHub.jsx` sostituisce la vecchia `ClientCircularNav` — 5 sezioni sui vertici di un
+  pentagono (Test in cima, poi in senso orario: Trofei, Calendario, Scheda, Profilo), avatar
+  al centro non cliccabile. Formula vertici: `(90 - i*72) * PI/180`
+- `ClientBottomNav.jsx`: mobile = barra fissa bottom 62px; desktop = barra sticky top 52px
+  (solo quando non si è nella home/hub)
+- `activeTab` default `'home'` (hub); `testTab` per Fisici/BIA; `profiloTab` per
+  Avatar/Note/Attività/Misure/Tema/Account (BIA è sub-tab di Test, non più di Profilo;
+  Wearable rimossa da qui — resta nella vista trainer)
+- Sistema temi: `ThemeContext.jsx` + `config/themes.config.js`, 7 temi (RankEX, Midnight,
+  Carbon, Violet, Steel, Phantom, Mint), persistenza `localStorage['rankex-theme']`,
+  applicati via CSS custom properties `--rx-*`. `ThemePicker.jsx` in Profilo > Tema
+  (client), ProfilePage.jsx (trainer), AdminProfilePage.jsx (super_admin).
+  `ThemeDevPanel.jsx` — overlay solo dev, toggle `Ctrl+Shift+T`, nessun bottone flottante
+- Dettagli completi: vedi memoria `project_client_pentagon_theme`
 
 **XPBar** — usare `fullWidth` nelle dashboard + `self-stretch` sul wrapper per larghezza piena:
 ```jsx
@@ -1224,11 +1322,14 @@ Referrer-Policy           → strict-origin-when-cross-origin
 Permissions-Policy        → camera=(), microphone=(), geolocation=()
 ```
 
-**App Check** (`firebase/config.js`):
-- Provider: `ReCaptchaV3Provider` con `VITE_RECAPTCHA_SITE_KEY`
-- Prod: enforcement attivo su Firestore e Authentication
-- Dev: App Check non inizializzato (chiave vuota in `.env.development`)
-- Guard: `if (recaptchaKey)` — se la chiave non è presente, App Check non parte
+**App Check — RIMOSSO (mag 2026):**
+- Il codice (`ReCaptchaV3Provider`, `initializeAppCheck`) è stato eliminato da `firebase/config.js`
+- Enforcement disattivato anche lato Firebase Console (era in Monitoring mode, mai Enforced)
+- Motivo: RankEX è una SaaS chiusa con Auth + Firestore Rules solide — App Check aggiungeva
+  complessità senza beneficio reale, e la CSP bloccava gli script reCAPTCHA causando loop di login
+- Nessuna variabile `VITE_RECAPTCHA_SITE_KEY` richiesta — non esiste più in `.env.example`
+- Domini autorizzati Firebase Auth restano configurati manualmente in Console
+  (`rankex-app.web.app`, `rankex-admin.web.app`)
 
 **Limitazioni note (strutturali — richiedono backend):**
 - Session timeout solo client-side (Firebase puro frontend)
@@ -1251,11 +1352,12 @@ fitquest-60a09  → produzione     (npm run build / deploy)
 ```
 Entrambi gitignored. Template: `.env.example`.
 
-Variabili richieste in `.env.production` (non in dev):
-```
-VITE_RECAPTCHA_SITE_KEY=   ← chiave pubblica sito reCAPTCHA v3 (google.com/recaptcha/admin)
-```
-In dev la chiave è vuota → App Check non inizializzato → nessun enforcement su rankex-dev.
+`.env.example` elenca anche `VITE_GOOGLE_FIT_CLIENT_ID` — **non è letta da nessun file sorgente**
+(verificato: zero occorrenze in `src/`). La feature Wearable/Google Fit (vedi sotto) autentica
+tramite `GoogleAuthProvider` di Firebase Auth, che usa la configurazione OAuth del progetto
+Firebase stesso, non un client ID separato. La variabile sembra residua di un approccio
+precedente mai completato — non rimuoverla senza conferma, potrebbe servire per un flusso
+OAuth diretto pianificato ma non ancora collegato.
 
 ### Hosting Firebase — multisito
 ```
