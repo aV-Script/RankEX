@@ -6,11 +6,19 @@ import { SLOT_STATUS } from '../../../constants/slotStatus'
  * Memoizzato — si aggiorna solo se slot, clients o onSelect cambiano.
  */
 export const EventBlock = memo(function EventBlock({ slot, clients, onSelect, style }) {
+  const status = slot.status ?? SLOT_STATUS.PLANNED
+
   const statusColor = {
     [SLOT_STATUS.PLANNED]:   '#00c8ff',
     [SLOT_STATUS.COMPLETED]: '#34d399',
     [SLOT_STATUS.SKIPPED]:   '#6b7280',
-  }[slot.status ?? SLOT_STATUS.PLANNED]
+  }[status]
+
+  const statusIcon = {
+    [SLOT_STATUS.PLANNED]:   null,
+    [SLOT_STATUS.COMPLETED]: '✓',
+    [SLOT_STATUS.SKIPPED]:   '↷',
+  }[status]
 
   const clientNames = slot.clientIds
     .map(id => clients.find(c => c.id === id)?.name)
@@ -30,7 +38,8 @@ export const EventBlock = memo(function EventBlock({ slot, clients, onSelect, st
         ...style,
       }}
     >
-      <div className="font-display text-[10px] font-black leading-tight" style={{ color: statusColor }}>
+      <div className="font-display text-[10px] font-black leading-tight flex items-center gap-1" style={{ color: statusColor }}>
+        {statusIcon && <span aria-hidden="true">{statusIcon}</span>}
         {slot.startTime}
       </div>
       <div className="font-display font-bold text-[11px] text-white/80 truncate leading-tight mt-0.5">

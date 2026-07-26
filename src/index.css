@@ -8,7 +8,7 @@
   --font-body:    'Inter', sans-serif;
 
   /* Colors — Rank EX palette */
-  --color-rx-bg:           #080c12;
+  --color-rx-bg:           #07090e;
   --color-rx-surface:      #0d1520;
   --color-rx-green:        #0fd65a;
   --color-rx-green-bright: #1aff6e;
@@ -32,7 +32,7 @@
 /* ── CSS Variables ─────────────────────────────────────────────── */
 :root {
   /* Sfondi */
-  --rx-bg:          #080c12;
+  --rx-bg:          #07090e;
   --rx-surface:     #0d1520;
   --rx-surface-alt: #111820;
 
@@ -81,7 +81,7 @@ html, body, #root {
 
 /* ── Background brand CSS-only — fisso, infinitamente scalabile ── */
 html {
-  background-color: #06080d;
+  background-color: #07090e;
   background-image:
     /* 1 — Vignette perimetrale */
     radial-gradient(ellipse 120% 120% at 50% 50%,

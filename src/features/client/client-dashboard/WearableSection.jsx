@@ -85,7 +85,7 @@ function StepsChart({ chartData, color, barSize }) {
 }
 
 export function WearableSection({ client, orgId, color }) {
-  const { loading, readonly, handleEnable, handleDisable, handleSync } =
+  const { loading, readonly, handleDisable, handleSync } =
     useWearable(client, orgId)
 
   const [period, setPeriod] = useState('7gg')
@@ -124,29 +124,26 @@ export function WearableSection({ client, orgId, color }) {
 
         <div className="flex items-center justify-between">
           <SectionLabel>◈ Wearable</SectionLabel>
-          {!readonly && (
+          {!readonly && client.wearableEnabled && (
             <button
-              onClick={client.wearableEnabled ? handleDisable : handleEnable}
+              onClick={handleDisable}
               className="font-display text-[10px] tracking-[1px] px-3 py-1.5 rounded-[3px] border cursor-pointer transition-all"
-              style={client.wearableEnabled
-                ? { color: '#f87171', borderColor: 'rgba(248,113,113,0.25)', background: 'rgba(248,113,113,0.06)' }
-                : { color, borderColor: color + '55', background: color + '11' }
-              }
+              style={{ color: '#f87171', borderColor: 'rgba(248,113,113,0.25)', background: 'rgba(248,113,113,0.06)' }}
             >
-              {client.wearableEnabled ? 'DISABILITA' : 'ABILITA'}
+              DISABILITA
             </button>
           )}
         </div>
 
         {!client.wearableEnabled && (
           <p className="font-body text-[13px] text-white/30 text-center py-4">
-            Abilita la sezione per permettere al cliente di collegare Google Fit.
+            Collegamento Wearable non disponibile al momento.
           </p>
         )}
 
         {client.wearableEnabled && !client.wearable && (
           <p className="font-body text-[13px] text-white/30 text-center py-4">
-            In attesa che il cliente colleghi il proprio Google Fit.
+            Collegamento Wearable non disponibile al momento per i clienti.
           </p>
         )}
 

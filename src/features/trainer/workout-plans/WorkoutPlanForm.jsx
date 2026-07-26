@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react'
+import { ConfirmDialog }         from '../../../components/common/ConfirmDialog'
 
 const EMPTY_EXERCISE = { name: '', sets: '', reps: '', restSeconds: '', notes: '' }
+const MAX_DAYS = 7
 
 function makeDay(index) {
   return { label: `Giorno ${index + 1}`, exercises: [{ ...EMPTY_EXERCISE }] }
@@ -41,6 +43,7 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
   const [activeDay,    setActiveDay]    = useState(0)
   const [loading,      setLoading]      = useState(false)
   const [errors,       setErrors]       = useState({})
+  const [pendingRemoveDay, setPendingRemoveDay] = useState(null)
 
   // ── Gestione giorni ─────────────────────────────────────────────────────────
 
@@ -54,6 +57,13 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
     if (days.length <= 1) return
     setDays(prev => prev.filter((_, i) => i !== index))
     setActiveDay(prev => Math.min(prev, days.length - 2))
+  }
+
+  const requestRemoveDay = (index) => {
+    if (days.length <= 1) return
+    const hasNamedExercise = days[index].exercises.some(ex => ex.name.trim())
+    if (hasNamedExercise) setPendingRemoveDay(index)
+    else removeDay(index)
   }
 
   const renameDay = (index, label) =>
@@ -213,7 +223,8 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
                 )}
                 {days.length > 1 && activeDay === i && (
                   <button
-                    onClick={() => removeDay(i)}
+                    onClick={() => requestRemoveDay(i)}
+                    aria-label="Rimuovi giorno"
                     className="text-[11px] bg-transparent border-none cursor-pointer transition-colors"
                     style={{ color: 'rgba(255,255,255,0.2)' }}
                     onMouseEnter={e => { e.currentTarget.style.color = '#f87171' }}
@@ -224,7 +235,7 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
                 )}
               </div>
             ))}
-            {days.length < 7 && (
+            {days.length < MAX_DAYS && (
               <button
                 onClick={addDay}
                 className="font-display text-[11px] bg-transparent border-none cursor-pointer px-1 transition-opacity hover:opacity-70"
@@ -233,6 +244,9 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
                 + giorno
               </button>
             )}
+            <span className="font-display text-[10px] tracking-[1px] ml-auto" style={{ color: 'rgba(255,255,255,0.25)' }}>
+              {days.length}/{MAX_DAYS} giorni
+            </span>
           </div>
 
           {/* Esercizi giorno corrente */}
@@ -279,6 +293,17 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
           </button>
         </div>
       </div>
+
+      {pendingRemoveDay !== null && (
+        <ConfirmDialog
+          variant="danger"
+          title={`Rimuovere "${days[pendingRemoveDay]?.label || 'questo giorno'}"?`}
+          description="Il giorno contiene esercizi già compilati che andranno persi."
+          confirmLabel="RIMUOVI"
+          onConfirm={() => { removeDay(pendingRemoveDay); setPendingRemoveDay(null) }}
+          onCancel={() => setPendingRemoveDay(null)}
+        />
+      )}
     </div>
   )
 }
@@ -286,6 +311,7 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
 // ── Componenti locali ─────────────────────────────────────────────────────────
 
 function ExerciseRow({ index, exercise, total, onChange, onRemove }) {
+  const baseId = `wp-ex-${index}`
   return (
     <div
       className="rounded-[3px] p-3 flex flex-col gap-2"
@@ -298,11 +324,13 @@ function ExerciseRow({ index, exercise, total, onChange, onRemove }) {
           value={exercise.name}
           onChange={e => onChange('name', e.target.value)}
           placeholder="Nome esercizio"
+          aria-label="Nome esercizio"
           className="input-base flex-1 py-1.5 text-[13px]"
         />
         {total > 1 && (
           <button
             onClick={onRemove}
+            aria-label="Rimuovi esercizio"
             className="text-[12px] bg-transparent border-none cursor-pointer shrink-0 transition-colors"
             style={{ color: 'rgba(255,255,255,0.2)' }}
             onMouseEnter={e => { e.currentTarget.style.color = '#f87171' }}
@@ -313,9 +341,9 @@ function ExerciseRow({ index, exercise, total, onChange, onRemove }) {
         )}
       </div>
       <div className="grid grid-cols-3 gap-2 pl-7">
-        <LabeledInput label="Serie"        value={exercise.sets}        type="number" placeholder="3"    onChange={v => onChange('sets', v)} />
-        <LabeledInput label="Rip. / Tempo" value={exercise.reps}                      placeholder="10 / 30s" onChange={v => onChange('reps', v)} />
-        <LabeledInput label="Recupero (s)" value={exercise.restSeconds} type="number" placeholder="90"   onChange={v => onChange('restSeconds', v)} />
+        <LabeledInput id={`${baseId}-sets`} label="Serie"        value={exercise.sets}        type="number" placeholder="3"    onChange={v => onChange('sets', v)} />
+        <LabeledInput id={`${baseId}-reps`} label="Rip. / Tempo" value={exercise.reps}                      placeholder="10 / 30s" onChange={v => onChange('reps', v)} />
+        <LabeledInput id={`${baseId}-rest`} label="Recupero (s)" value={exercise.restSeconds} type="number" placeholder="90"   onChange={v => onChange('restSeconds', v)} />
       </div>
       <div className="pl-7">
         <input
@@ -323,6 +351,7 @@ function ExerciseRow({ index, exercise, total, onChange, onRemove }) {
           value={exercise.notes}
           onChange={e => onChange('notes', e.target.value)}
           placeholder="Note (opzionale)"
+          aria-label="Note esercizio"
           className="input-base w-full text-[12px] py-1 text-white/50"
         />
       </div>
@@ -330,11 +359,12 @@ function ExerciseRow({ index, exercise, total, onChange, onRemove }) {
   )
 }
 
-function LabeledInput({ label, value, type = 'text', placeholder, onChange }) {
+function LabeledInput({ id, label, value, type = 'text', placeholder, onChange }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="font-display text-[10px] tracking-[1px] text-white/30">{label}</span>
+      <label htmlFor={id} className="font-display text-[10px] tracking-[1px] text-white/30">{label}</label>
       <input
+        id={id}
         type={type}
         value={value}
         onChange={e => onChange(e.target.value)}

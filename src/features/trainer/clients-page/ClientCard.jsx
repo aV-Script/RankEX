@@ -10,7 +10,7 @@ import { Badge }                                       from '../../../components
 export const ClientCard = memo(function ClientCard({ client, onSelect }) {
   const { moduleType }  = useTrainerState()
   const isSoccer        = getModule(moduleType).isSoccer
-  const { color: _rankColor } = useClientRank(client)
+  const { color: rankColor } = useClientRank(client)
 
   const profileType = client.profileType ?? 'tests_only'
   const biaScore    = calcBiaScore(client.lastBia, client.sesso, calcAge(client.dataNascita))
@@ -42,12 +42,13 @@ export const ClientCard = memo(function ClientCard({ client, onSelect }) {
       {/* Badge rank */}
       {profileType === 'complete' ? (
         <div className="flex gap-1.5 shrink-0">
-          <RankSquare label={client.rank ?? 'F'} sub="TEST" />
-          <RankSquare label={biaRank?.label ?? 'F'} sub="BIA" />
+          <RankSquare label={client.rank ?? 'F'} sub="TEST" color={rankColor} />
+          <RankSquare label={biaRank?.label ?? 'F'} sub="BIA" color={biaRank?.color} />
         </div>
       ) : (
         <RankSquare
           label={profileType === 'bia_only' ? (biaRank?.label ?? 'F') : (client.rank ?? 'F')}
+          color={profileType === 'bia_only' ? biaRank?.color : rankColor}
         />
       )}
 
@@ -100,23 +101,23 @@ export const ClientCard = memo(function ClientCard({ client, onSelect }) {
   )
 })
 
-function RankSquare({ label, sub }) {
+function RankSquare({ label, sub, color = 'var(--rx-green)' }) {
   return (
     <div className="flex flex-col items-center gap-0.5">
       <div
         className="w-10 h-10 rounded-[3px] flex items-center justify-center"
         style={{
-          background: 'color-mix(in srgb, var(--rx-green) 13%, transparent)',
-          border:     '2px solid color-mix(in srgb, var(--rx-green) 38%, transparent)',
+          background: `color-mix(in srgb, ${color} 13%, transparent)`,
+          border:     `2px solid color-mix(in srgb, ${color} 38%, transparent)`,
         }}
       >
-        <span className="font-display font-black text-[14px]" style={{ color: 'var(--rx-green)' }}>
+        <span className="font-display font-black text-[14px]" style={{ color }}>
           {label}
         </span>
       </div>
       {sub && (
         <span className="font-display text-[8px] tracking-[1px]"
-          style={{ color: 'color-mix(in srgb, var(--rx-green) 45%, transparent)' }}>
+          style={{ color: `color-mix(in srgb, ${color} 45%, transparent)` }}>
           {sub}
         </span>
       )}

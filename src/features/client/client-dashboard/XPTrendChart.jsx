@@ -91,7 +91,7 @@ export function XPTrendChart({ log = [], color }) {
       ) : (
         <div className="h-48">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} barCategoryGap="30%" margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
+            <BarChart data={chartData} barCategoryGap="30%" margin={{ top: 5, right: 5, bottom: 0, left: -20 }} accessibilityLayer>
               <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
               <XAxis
                 dataKey="label"

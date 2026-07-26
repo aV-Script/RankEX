@@ -38,7 +38,7 @@ function applyTheme(theme) {
     el.id = 'rx-theme-bg'
     document.head.appendChild(el)
   }
-  el.textContent = `html { background-color: ${theme.bg.base ?? '#06080d'} !important; background-image: ${buildBgImage(theme.bg)} !important; }`
+  el.textContent = `html { background-color: ${theme.bg.base ?? '#07090e'} !important; background-image: ${buildBgImage(theme.bg)} !important; }`
 }
 
 // ── Provider ──────────────────────────────────────────────────────────────────

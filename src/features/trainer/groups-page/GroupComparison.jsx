@@ -34,6 +34,13 @@ export function GroupComparison({ clients }) {
 
   const statCols = useMemo(() => buildComparisonStatCols(selectedClients), [selectedClients])
 
+  const radarStatKeys   = useMemo(() => statCols.map(s => s.key),   [statCols])
+  const radarStatLabels = useMemo(() => statCols.map(s => s.label), [statCols])
+  const radarColors     = useMemo(
+    () => selectedClients.map((_, i) => COMPARISON_COLORS[i]),
+    [selectedClients]
+  )
+
   const selectorPagination = usePagination(unselectedClients, SELECTOR_PAGE_SIZE)
 
   const handleToggle = (id) => {
@@ -119,9 +126,9 @@ export function GroupComparison({ clients }) {
           <div style={{ width: '100%', aspectRatio: '1 / 1' }}>
             <PentagonMulti
               clients={selectedClients}
-              statKeys={statCols.map(s => s.key)}
-              statLabels={statCols.map(s => s.label)}
-              colors={selectedClients.map((_, i) => COMPARISON_COLORS[i])}
+              statKeys={radarStatKeys}
+              statLabels={radarStatLabels}
+              colors={radarColors}
             />
           </div>
         ) : (

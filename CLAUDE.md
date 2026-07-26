@@ -305,7 +305,10 @@ disallineamenti — file rimossi mai tolti dall'albero, feature intere mai docum
 alcuni file di codice morto (mai importati da nessuno) rimossi dal repo in questa stessa
 sessione: `Sidebar.jsx`/`MobileNav.jsx`/`SidebarIcon.jsx`/`TabItem.jsx` (sostituiti da
 `AppNav.jsx`), `client-dashboard/DashboardHeader.jsx` (sostituito da `ClientDashboardHeader.jsx`),
-`config/theme.js` (sostituito da `themes.config.js`).
+`config/theme.js` (sostituito da `themes.config.js`), `components/ui/RankRing.jsx` (mai
+importato — audit round 4, RX-77), `hooks/useClientWearable` + `linkGoogleFit`/
+`resolveGoogleFitRedirect`/`unlinkWearable` in `firebase/services/wearable.js` (feature
+Wearable lato client mai raggiungibile — audit round 4, RX-62, vedi sezione dedicata).
 
 ```
 src/
@@ -344,8 +347,7 @@ src/
 │       ├── BadgeMedal.jsx        ← medaglia badge (cerchio + icona tier) per TrophiesSection
 │       ├── ThemePicker.jsx       ← selettore tema client (Pentagon Nav + Theme System)
 │       ├── XPBar.jsx            ← prop fullWidth=false rimuove max-w-sm interno
-│       ├── Pentagon.jsx
-│       └── RankRing.jsx
+│       └── Pentagon.jsx
 │
 ├── config/
 │   ├── modules.config.js    ← MODULES, TERMINOLOGIES, PLAYER_ROLES,
@@ -536,7 +538,7 @@ src/
 │       ├── org.js           ← addMember/removeMember usano batch + increment; getMember (singolo)
 │       ├── workoutPlans.js  ← getWorkoutPlans, getWorkoutPlanForClient, addWorkoutPlan, update, delete (orgId)
 │       ├── badges.js        ← awardBadge, revokeBadge, updateBadgeShowcase (orgId, clientId)
-│       ├── wearable.js      ← enableWearable, linkGoogleFit, fetchAndSaveWearableData (vedi sezione dedicata)
+│       ├── wearable.js      ← enableWearable, disableWearable, fetchAndSaveWearableData (link client rimosso, vedi sezione dedicata)
 │       └── users.js
 │
 ├── hooks/
@@ -547,7 +549,7 @@ src/
 │   ├── useNotifications.js     ← useNotifications(orgId, clientId)
 │   ├── useNotes.js             ← useNotes(orgId, clientId, author) → threads
 │   ├── useBadges.js            ← useBadges(orgId, clientId, client, { readonly }) — auto-award + manuale
-│   ├── useWearable.js          ← useWearable (trainer) + useClientWearable (client) — Google Fit
+│   ├── useWearable.js          ← useWearable (trainer, solo enable/disable/sync) — link client rimosso, vedi sezione dedicata
 │   ├── useColorSource.js       ← sorgente colore dinamico (Pentagon Nav + Theme System)
 │   ├── useVersionCheck.js      ← rileva nuova build disponibile, mostra banner ricarica
 │   ├── useFocusTrap.js         ← focus trap da tastiera per dialog/modal (Tab/Shift+Tab)
@@ -746,7 +748,7 @@ Passare sempre `test.key` come quinto argomento in `useCampionamento.js`.
 Il background globale è definito su `html` in `src/index.css` — nessuna immagine esterna.
 Layer in ordine (dal basso all'alto):
 ```
-1. Base color           #06080d
+1. Base color           #07090e
 2. Vignette perimetrale radial-gradient scuro ai bordi
 3. Green glow           bordo sinistro — rgba(15,214,90,0.20) — luce ambientale logo
 4. Cyan trace           angolo top-right — rgba(0,200,255,0.10) — fulmine elettrico
@@ -1007,24 +1009,30 @@ visceralFat     direction: inverse  (scala 1-12)
 
 ## Wearable — Google Fit
 
-Feature opzionale, non documentata prima d'ora. Tab "Wearable" nella dashboard cliente
-(trainer: `ClientDashboard.jsx` + `WearableSection.jsx`; stesso componente lato client).
+Feature parzialmente disattivata (audit lug 2026, RX-62): il collegamento lato cliente
+non è mai stato raggiungibile in produzione dal redesign Pentagon Nav di giugno 2026
+(nessun entry point client montava `useClientWearable`). Rimossi come codice morto:
+`useClientWearable` (hook), `linkGoogleFit` / `resolveGoogleFitRedirect` / `unlinkWearable`
+(service) — nessuna sostituzione, solo eliminazione.
+
+Stato attuale: `WearableSection.jsx` (solo vista trainer, `ClientDashboard.jsx`) mostra
+"Collegamento Wearable non disponibile al momento" — il bottone ABILITA è nascosto,
+resta solo DISABILITA per eventuali client già abilitati in precedenza. Nessun modo,
+oggi, di collegare un account Google Fit reale.
 
 ```
-Trainer  → abilita/disabilita il tracking per il cliente (client.wearableEnabled)
-Cliente  → collega/scollega il proprio account Google Fit dal proprio profilo
+Trainer  → può solo disabilitare il tracking per un cliente già abilitato in passato
+Cliente  → nessuna azione disponibile (entry point rimosso)
 ```
 
-**Collegamento** (`firebase/services/wearable.js`, `hooks/useWearable.js`):
-- Autenticazione tramite `GoogleAuthProvider` di Firebase Auth (non un client ID separato —
-  vedi nota su `VITE_GOOGLE_FIT_CLIENT_ID` sopra), scope `fitness.activity.read`
-- Flusso redirect (`linkWithRedirect` / `reauthenticateWithRedirect`) — compatibile con Edge
-  e browser con tracking prevention che bloccano i popup
-- `useClientWearable` risolve automaticamente il redirect OAuth al rientro da Google
-  (`resolveGoogleFitRedirect`), usando `sessionStorage` per portare `orgId`/`clientId`
-  attraverso il round-trip del redirect
+**Se si reintroduce la feature**: serve un nuovo entry point client (es. Profilo) che
+richiami un flusso di link equivalente a quello rimosso, **e** va risolto RX-63 (il
+campo `client.wearable.accessToken` è leggibile da qualunque membro dell'org, incluso
+`staff_readonly`, per mancanza di filtro di ruolo in `firestore.rules` — richiede
+spostare il token in una subcollection con regole più strette prima di tornare a
+scriverlo).
 
-**Dati sincronizzati** (`client.wearable`):
+**Dati sincronizzati** (`client.wearable`, solo per client abilitati prima della rimozione):
 ```js
 {
   provider:    'google_fit',
@@ -1038,8 +1046,10 @@ Cliente  → collega/scollega il proprio account Google Fit dal proprio profilo
   },
 }
 ```
-Sync via Google Fitness REST API (`fitness.googleapis.com/.../dataset:aggregate`), 30 giorni
-di storico, aggregati anche a 7 giorni. Token scaduto (401/403) → toast chiede di ricollegare.
+Sync via Google Fitness REST API (`fitness.googleapis.com/.../dataset:aggregate`,
+`firebase/services/wearable.js`), 30 giorni di storico, aggregati anche a 7 giorni —
+la funzione resta per eventuale riattivazione ma non è più raggiungibile da nessun
+flusso UI dato che nessun nuovo `accessToken` può più essere generato.
 
 ---
 

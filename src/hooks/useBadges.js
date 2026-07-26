@@ -29,7 +29,7 @@ export function useBadges(orgId, clientId, client, { readonly = false } = {}) {
     awarding.current = true
     Promise.all(
       toAward.map(id => awardBadge(orgId, clientId, id, 'system'))
-    ).finally(() => { awarding.current = false })
+    ).catch(() => {}).finally(() => { awarding.current = false })
   }, [client, orgId, clientId, readonly])
 
   const rawBadges = client?.badges ?? {}

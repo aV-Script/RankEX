@@ -23,6 +23,8 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
   const [showArchive, setShowArchive] = useState(false)
   const [pendingDelete, setPendingDelete] = useState(null)   // piano in attesa di conferma eliminazione
   const [deleting,   setDeleting]   = useState(false)
+  const [pendingArchive, setPendingArchive] = useState(null) // piano in attesa di conferma archiviazione
+  const [archiving,  setArchiving]  = useState(false)
 
   useEffect(() => {
     if (!orgId || !clientId) return
@@ -70,11 +72,15 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
   }, [orgId, clientId, activePlan, editing, toastError])
 
   const handleArchive = useCallback(async (plan) => {
+    setArchiving(true)
     try {
       await updateWorkoutPlanUseCase(orgId, plan.id, { status: 'archived' })
       setPlans(prev => prev.map(p => p.id === plan.id ? { ...p, status: 'archived' } : p))
+      setPendingArchive(null)
     } catch {
       toastError('Impossibile archiviare la scheda')
+    } finally {
+      setArchiving(false)
     }
   }, [orgId, toastError])
 
@@ -171,7 +177,7 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
             activeDay={activeDay}
             onDayChange={setActiveDay}
             readonly={readonly}
-            onArchive={() => handleArchive(activePlan)}
+            onArchive={() => setPendingArchive(activePlan)}
           />
         )}
 
@@ -212,6 +218,17 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
           loading={deleting}
           onConfirm={() => handleDelete(pendingDelete)}
           onCancel={() => setPendingDelete(null)}
+        />
+      )}
+
+      {pendingArchive && (
+        <ConfirmDialog
+          title="Archiviare la scheda?"
+          description={`"${pendingArchive.title}" verrà spostata nello storico. Potrai comunque consultarla in seguito.`}
+          confirmLabel="ARCHIVIA"
+          loading={archiving}
+          onConfirm={() => handleArchive(pendingArchive)}
+          onCancel={() => setPendingArchive(null)}
         />
       )}
     </section>
@@ -334,6 +351,7 @@ function ArchivedPlanRow({ plan, _color, readonly, _onEdit, onDelete }) {
         {!readonly && (
           <button
             onClick={onDelete}
+            aria-label="Elimina scheda"
             className="text-[11px] bg-transparent border-none cursor-pointer shrink-0 transition-colors"
             style={{ color: 'rgba(255,255,255,0.15)' }}
             onMouseEnter={e => { e.currentTarget.style.color = '#f87171' }}

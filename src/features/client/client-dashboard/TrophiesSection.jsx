@@ -108,7 +108,7 @@ export function TrophiesSection({
     }
   }, [confirmRevoke, revoking, handleRevoke])
 
-  const earnedList = allBadges.filter(b => earnedSet.has(b.id))
+  const earnedList = earnedBadges
   const lockedList = allBadges.filter(b => !earnedSet.has(b.id))
 
   return (
@@ -161,6 +161,7 @@ export function TrophiesSection({
                   {!!onUpdateShowcase && (
                     <button
                       onClick={() => toggleShowcase(id)}
+                      aria-label="Rimuovi dalla vetrina"
                       className="absolute -top-1 -right-1 flex items-center justify-center cursor-pointer rounded-full"
                       style={{ width: 18, height: 18, background: '#374151', border: '1.5px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)' }}
                     >
@@ -249,6 +250,7 @@ export function TrophiesSection({
                       <button
                         onClick={() => toggleShowcase(b.id)}
                         title={isPinned ? 'Rimuovi dal profilo' : currentShowcase.length >= MAX_SHOWCASE ? 'Profilo pieno' : 'Mostra sul profilo'}
+                        aria-pressed={isPinned}
                         disabled={!canPin}
                         className="flex items-center justify-center cursor-pointer rounded-full transition-opacity"
                         style={{

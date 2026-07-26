@@ -47,6 +47,15 @@ export function BiaGaugeBar({ param, value, prevValue, sex, age }) {
         {displayValue}
       </span>
 
+      {value !== '' && value !== null && (
+        <span
+          className="font-body text-[10px] text-right shrink-0"
+          style={{ color: status.color, minWidth: '4.5rem' }}
+        >
+          {status.label}
+        </span>
+      )}
+
       {delta !== null && (
         <span
           className="font-display text-[10px] w-10 text-right tabular-nums shrink-0"

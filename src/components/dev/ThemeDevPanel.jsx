@@ -36,7 +36,7 @@ function ThemePreviewCard({ theme, active, previewing, onHover, onLeave, onSelec
       <div
         style={{
           height: PREVIEW_H,
-          background: '#080c12',
+          background: '#07090e',
           position: 'relative',
           overflow: 'hidden',
         }}

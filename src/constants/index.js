@@ -34,8 +34,8 @@ export const RANKS = [
   { min: 45, label: 'C',   color: '#facc15' },  // giallo
   { min: 40, label: 'D+',  color: '#fb923c' },  // arancio
   { min: 35, label: 'D',   color: '#f97316' },  // arancio scuro
-  { min: 30, label: 'E+',  color: '#f87171' },  // rosso chiaro
-  { min: 25, label: 'E',   color: '#ef4444' },  // rosso
+  { min: 30, label: 'E+',  color: '#d97757' },  // terracotta — evita family "errore" (#f87171/#ef4444)
+  { min: 25, label: 'E',   color: '#b5563a' },  // terracotta scuro
   { min: 20, label: 'F+',  color: '#8a9bb0' },  // metallo chiaro
   { min: 0,  label: 'F',   color: '#4a5568' },  // metallo scuro
 ]

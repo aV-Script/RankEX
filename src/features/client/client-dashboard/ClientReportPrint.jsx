@@ -217,7 +217,7 @@ export function ClientReportPrint({ client, _color, rankObj, mode = 'dark', onCl
           </div>
 
           {/* ── RIGA CENTRALE ──────────────────────────────────────────── */}
-          <div style={{ display: 'grid', gridTemplateColumns: '58fr 42fr', gap: 12, marginBottom: 14, pageBreakInside: 'avoid' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: profile.hasTests && statsConfig.length > 0 ? '58fr 42fr' : '1fr', gap: 12, marginBottom: 14, pageBreakInside: 'avoid' }}>
 
             {/* Sinistra: Pentagon centrato + stat list — card flex per riempire l'altezza della grid */}
             {profile.hasTests && statsConfig.length > 0 && (

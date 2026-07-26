@@ -40,12 +40,18 @@ export const Pentagon = memo(function Pentagon({
   const vbPad = 30
   const vbSize = size + vbPad * 2
 
+  const summary = statKeys
+    .map((key, i) => `${statLabels[i] ?? key} ${Math.round(stats[key] ?? 0)}°`)
+    .join(', ')
+
   return (
     <svg
       width={fluid ? '100%' : size}
       height={fluid ? '100%' : size}
       viewBox={`${-vbPad} ${-vbPad} ${vbSize} ${vbSize}`}
       style={fluid ? { display: 'block' } : undefined}
+      role="img"
+      aria-label={`Radar percentili: ${summary}`}
     >
       {/* Grid rings */}
       {[0.25, 0.5, 0.75, 1].map(f => (

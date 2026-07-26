@@ -67,6 +67,7 @@ export function GroupReportPrint({ group, clients, mode = 'dark', onClose }) {
           background: ${BG} !important;
         }
         #rankex-print-controls { display: none !important; }
+        tr { break-inside: avoid; }
         @page { margin: 0; size: A4 portrait; }
       }
     `
@@ -164,7 +165,7 @@ export function GroupReportPrint({ group, clients, mode = 'dark', onClose }) {
         <div style={{ padding: '18px 32px 32px' }}>
 
           {/* ── HERO ───────────────────────────────────────────────────── */}
-          <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '16px 20px', marginBottom: 14 }}>
+          <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '16px 20px', marginBottom: 14, pageBreakInside: 'avoid' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20 }}>
               <div>
                 <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 900, fontSize: 26, color: PRI, lineHeight: 1, marginBottom: 6 }}>
@@ -191,7 +192,7 @@ export function GroupReportPrint({ group, clients, mode = 'dark', onClose }) {
             <div style={{ display: 'grid', gridTemplateColumns: '52fr 48fr', gap: 12, marginBottom: 14 }}>
 
               {/* Sinistra: Pentagon centrato + stat bars sotto */}
-              <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '16px 20px', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '16px 20px', display: 'flex', flexDirection: 'column', pageBreakInside: 'avoid' }}>
                 <SectionTitle>Profilo Medio Gruppo</SectionTitle>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 10 }}>
                   <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -223,7 +224,7 @@ export function GroupReportPrint({ group, clients, mode = 'dark', onClose }) {
 
               {/* Destra: Campioni per Disciplina */}
               {champions.length > 0 && (
-                <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '16px 20px', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '16px 20px', display: 'flex', flexDirection: 'column', pageBreakInside: 'avoid' }}>
                   <SectionTitle>Campioni per Disciplina</SectionTitle>
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 7 }}>
                     {champions.map(({ key, label, max, winners }) => (
@@ -309,7 +310,7 @@ export function GroupReportPrint({ group, clients, mode = 'dark', onClose }) {
 
           {/* Campioni fallback — solo se non c'è pentagon */}
           {!hasPentagon && champions.length > 0 && (
-            <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '16px 20px', marginBottom: 14 }}>
+            <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '16px 20px', marginBottom: 14, pageBreakInside: 'avoid' }}>
               <SectionTitle>Campioni per Disciplina</SectionTitle>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
                 {champions.map(({ key, label, max, winners }) => (

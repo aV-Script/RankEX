@@ -21,6 +21,7 @@ import {
   collection, doc, setDoc, writeBatch,
 } from 'firebase/firestore'
 import { db } from '../firebase/services/db'
+import { getRankFromMedia } from '../constants'
 
 // ── Stat keys soccer ──────────────────────────────────────────────────────────
 const SOCCER_STATS = ['stabilita', 'esplosivita', 'agilita', 'velocita', 'resistenza']
@@ -77,26 +78,7 @@ function rand(min, max) {
 }
 
 function getRank(media) {
-  const RANKS = [
-    { min: 95, label: 'EX',  color: '#ffd700' },
-    { min: 90, label: 'SS+', color: '#ff4560' },
-    { min: 85, label: 'SS',  color: '#ff7043' },
-    { min: 80, label: 'S+',  color: 'var(--rx-green-bright)' },
-    { min: 75, label: 'S',   color: 'var(--rx-green)' },
-    { min: 70, label: 'A+',  color: '#00c8ff' },
-    { min: 65, label: 'A',   color: '#4db8ff' },
-    { min: 60, label: 'B+',  color: '#38bdf8' },
-    { min: 55, label: 'B',   color: '#0066cc' },
-    { min: 50, label: 'C+',  color: '#a3e635' },
-    { min: 45, label: 'C',   color: '#facc15' },
-    { min: 40, label: 'D+',  color: '#fb923c' },
-    { min: 35, label: 'D',   color: '#f97316' },
-    { min: 30, label: 'E+',  color: '#f87171' },
-    { min: 25, label: 'E',   color: '#ef4444' },
-    { min: 20, label: 'F+',  color: '#8a9bb0' },
-    { min: 0,  label: 'F',   color: '#4a5568' },
-  ]
-  return RANKS.find(r => media >= r.min) ?? RANKS[RANKS.length - 1]
+  return getRankFromMedia(media)
 }
 
 function calcLevelProgression(totalXP) {

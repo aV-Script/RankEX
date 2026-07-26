@@ -1,22 +1,10 @@
 import {
-  getAuth,
-  GoogleAuthProvider,
-  linkWithRedirect,
-  reauthenticateWithRedirect,
-  getRedirectResult,
-} from 'firebase/auth'
-import {
   doc, updateDoc, Timestamp, deleteField,
 } from 'firebase/firestore'
-import app             from '../config'
 import { db }          from './db'
 import { clientsPath } from '../paths'
 
 const FIT_AGGREGATE  = 'https://fitness.googleapis.com/fitness/v1/users/me/dataset:aggregate'
-const FITNESS_SCOPES = [
-  'https://www.googleapis.com/auth/fitness.activity.read',
-]
-const PENDING_KEY = 'rankex_wearable_pending'
 
 // ── Google Fit REST helpers ───────────────────────────────────────────────────
 
@@ -79,56 +67,6 @@ export async function disableWearable(orgId, clientId) {
     wearableEnabled: false,
     wearable:        deleteField(),
   })
-}
-
-export async function linkGoogleFit(orgId, clientId) {
-  const auth = getAuth(app)
-  const user = auth.currentUser
-  if (!user) throw new Error('Nessun utente autenticato')
-
-  const provider = new GoogleAuthProvider()
-  FITNESS_SCOPES.forEach(s => provider.addScope(s))
-  provider.setCustomParameters({ prompt: 'consent' })
-
-  sessionStorage.setItem(PENDING_KEY, JSON.stringify({ orgId, clientId }))
-
-  const isGoogleLinked = user.providerData.some(p => p.providerId === 'google.com')
-  if (isGoogleLinked) {
-    await reauthenticateWithRedirect(user, provider)
-  } else {
-    await linkWithRedirect(user, provider)
-  }
-}
-
-export async function resolveGoogleFitRedirect() {
-  const pending = sessionStorage.getItem(PENDING_KEY)
-  if (!pending) return null
-
-  const auth   = getAuth(app)
-  const result = await getRedirectResult(auth)
-  if (!result) return null
-
-  const token = GoogleAuthProvider.credentialFromResult(result)?.accessToken
-  if (!token) return null
-
-  sessionStorage.removeItem(PENDING_KEY)
-  const { orgId, clientId } = JSON.parse(pending)
-
-  await updateDoc(doc(db, clientsPath(orgId), clientId), {
-    wearable: {
-      provider:    'google_fit',
-      linkedAt:    Timestamp.now(),
-      lastSync:    null,
-      accessToken: token,
-      lastData:    null,
-    },
-  })
-
-  return fetchAndSaveWearableData(orgId, clientId, token)
-}
-
-export async function unlinkWearable(orgId, clientId) {
-  await updateDoc(doc(db, clientsPath(orgId), clientId), { wearable: deleteField() })
 }
 
 export async function fetchAndSaveWearableData(orgId, clientId, accessToken) {
