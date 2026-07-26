@@ -67,6 +67,19 @@ export default async function globalSetup() {
     AUTH_PATHS.staff,
   )
 
+  // Nessun fallback hardcoded — le credenziali super_admin non vanno mai
+  // committate. Se non configurate, i test che usano superAdminPage skippano.
+  if (process.env.E2E_SUPERADMIN_EMAIL && process.env.E2E_SUPERADMIN_PASSWORD) {
+    await loginAndSave(
+      browser,
+      process.env.E2E_SUPERADMIN_EMAIL,
+      process.env.E2E_SUPERADMIN_PASSWORD,
+      AUTH_PATHS.superAdmin,
+    )
+  } else {
+    console.log('  ⏭️   super_admin non configurato (E2E_SUPERADMIN_EMAIL/PASSWORD) — skip')
+  }
+
   await browser.close()
   console.log('\n✅  Sessioni auth salvate in e2e/.auth/\n')
 }

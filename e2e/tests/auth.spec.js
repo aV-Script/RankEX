@@ -76,8 +76,7 @@ test.describe('TP-003 — Cambio password obbligatorio al primo accesso', () => 
     await page.waitForLoadState('load')
 
     // Deve apparire la schermata di cambio password, NON la dashboard
-    const changeScreen = page.locator('[class*="change-password"], [class*="ChangePassword"]')
-      .or(page.getByText(/cambia password/i))
+    const changeScreen = page.getByText(/imposta la tua password/i)
     await expect(changeScreen).toBeVisible({ timeout: 8_000 })
   })
 

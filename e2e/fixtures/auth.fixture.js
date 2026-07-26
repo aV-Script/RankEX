@@ -17,10 +17,11 @@ import path              from 'path'
 const AUTH_DIR = path.join(import.meta.dirname, '..', '.auth')
 
 export const AUTH_PATHS = {
-  trainer:  path.join(AUTH_DIR, 'trainer.json'),
-  orgAdmin: path.join(AUTH_DIR, 'org-admin.json'),
-  client:   path.join(AUTH_DIR, 'client.json'),
-  staff:    path.join(AUTH_DIR, 'staff.json'),
+  trainer:    path.join(AUTH_DIR, 'trainer.json'),
+  orgAdmin:   path.join(AUTH_DIR, 'org-admin.json'),
+  client:     path.join(AUTH_DIR, 'client.json'),
+  staff:      path.join(AUTH_DIR, 'staff.json'),
+  superAdmin: path.join(AUTH_DIR, 'super-admin.json'),
 }
 
 const BASE = () => process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173'
@@ -58,6 +59,10 @@ export const test = base.extend({
 
   staffPage: async ({ browser }, use) => {
     await use(await pageFromSavedSession(browser, AUTH_PATHS.staff))
+  },
+
+  superAdminPage: async ({ browser }, use) => {
+    await use(await pageFromSavedSession(browser, AUTH_PATHS.superAdmin))
   },
 })
 
