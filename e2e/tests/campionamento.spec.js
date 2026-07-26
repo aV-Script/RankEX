@@ -9,10 +9,10 @@ const BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173'
 
 async function apriDashboardCliente(page) {
   await goto(page, `${BASE}/clients`)
-  const firstCard = page.locator('[class*="ClientCard"], [data-testid="client-card"]').first()
+  const firstCard = page.locator('button[class*="rx-card"]').first()
   if (!await firstCard.isVisible({ timeout: 5_000 }).catch(() => false)) return false
   await firstCard.click()
-  await page.waitForLoadState('networkidle')
+  await page.waitForLoadState('load')
   return true
 }
 

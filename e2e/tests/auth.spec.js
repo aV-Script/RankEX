@@ -2,7 +2,7 @@
  * E2E — Autenticazione
  * Copre: TP-001 (login/redirect), TP-003 (password obbligatoria), TP-005 (logout)
  */
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../fixtures/auth.fixture.js'
 
 const BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173'
 
@@ -42,16 +42,7 @@ test.describe('TP-001 — Login e redirect per ruolo', () => {
 
 test.describe('TP-005 — Logout', () => {
 
-  test('logout reindirizza al login', async ({ browser }) => {
-    // Usa storageState del trainer per partire autenticato
-    let ctx
-    try {
-      ctx = await browser.newContext({ storageState: 'e2e/.auth/trainer.json' })
-    } catch {
-      test.skip(true, 'Sessione trainer non disponibile — eseguire global-setup prima')
-      return
-    }
-    const page = await ctx.newPage()
+  test('logout reindirizza al login', async ({ trainerPage: page }) => {
     await page.goto(`${BASE}/`)
     await page.waitForLoadState('load')
 
@@ -61,7 +52,6 @@ test.describe('TP-005 — Logout', () => {
     await logoutBtn.first().click()
 
     await expect(page).toHaveURL(/login/, { timeout: 8_000 })
-    await ctx.close()
   })
 
 })
@@ -83,7 +73,7 @@ test.describe('TP-003 — Cambio password obbligatorio al primo accesso', () => 
     await page.getByLabel(/email/i).fill(email)
     await page.getByLabel(/password/i).first().fill(password)
     await page.getByRole('button', { name: /accedi/i }).click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('load')
 
     // Deve apparire la schermata di cambio password, NON la dashboard
     const changeScreen = page.locator('[class*="change-password"], [class*="ChangePassword"]')
@@ -103,7 +93,7 @@ test.describe('TP-003 — Cambio password obbligatorio al primo accesso', () => 
     await page.getByLabel(/email/i).fill(email)
     await page.getByLabel(/password/i).first().fill(password)
     await page.getByRole('button', { name: /accedi/i }).click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('load')
 
     // Inserisci nuova password debole
     const nuovaPw = page.getByPlaceholder(/nuova password/i)

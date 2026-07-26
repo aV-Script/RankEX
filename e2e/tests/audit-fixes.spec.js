@@ -188,7 +188,7 @@ test.describe('RX-36 — Conferma su revoca badge ed eliminazione note', () => {
     await openTab(page, 'Clienti')
     await page.waitForTimeout(500)
 
-    const firstClientCard = page.locator('.card-interactive').first()
+    const firstClientCard = page.locator('button[class*="rx-card"]').first()
     if (!await firstClientCard.isVisible({ timeout: 5000 }).catch(() => false)) {
       test.skip(true, 'Nessun cliente trovato')
       return
@@ -219,7 +219,7 @@ test.describe('RX-36 — Conferma su revoca badge ed eliminazione note', () => {
     await openTab(page, 'Clienti')
     await page.waitForTimeout(500)
 
-    const firstClientCard = page.locator('.card-interactive').first()
+    const firstClientCard = page.locator('button[class*="rx-card"]').first()
     if (!await firstClientCard.isVisible({ timeout: 5000 }).catch(() => false)) {
       test.skip(true, 'Nessun cliente trovato')
       return

@@ -7,11 +7,11 @@
  * Per eseguirlo manualmente:  npm run test:e2e:setup
  */
 
-import { chromium }   from '@playwright/test'
-import { mkdirSync }   from 'fs'
-import { join }        from 'path'
-import { config }      from 'dotenv'
-import { AUTH_PATHS }  from './fixtures/auth.fixture.js'
+import { chromium }              from '@playwright/test'
+import { mkdirSync }              from 'fs'
+import { join }                   from 'path'
+import { config }                 from 'dotenv'
+import { AUTH_PATHS, loginViaUI } from './fixtures/auth.fixture.js'
 
 config({ path: '.env.test', override: false })
 config({ path: '.env.development', override: false })
@@ -19,26 +19,12 @@ config({ path: '.env.development', override: false })
 // Crea la cartella .auth se non esiste
 mkdirSync(join(import.meta.dirname, '.auth'), { recursive: true })
 
-const BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173'
-
 async function loginAndSave(browser, email, password, authPath) {
   const ctx  = await browser.newContext()
   const page = await ctx.newPage()
 
   try {
-    await page.goto(`${BASE}/login`)
-    await page.waitForLoadState('load')
-
-    // .first() necessario: getByLabel(/password/i) intercetta anche il bottone
-    // "Mostra password", che matcha la stessa regex tramite aria-label.
-    await page.getByLabel(/email/i).first().fill(email)
-    await page.getByLabel(/password/i).first().fill(password)
-    await page.getByRole('button', { name: /accedi/i }).click()
-
-    // Aspetta che il login sia completato (URL cambia da /login)
-    await page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 20_000 })
-    await page.waitForLoadState('load')
-
+    await loginViaUI(page, email, password)
     await ctx.storageState({ path: authPath })
     console.log(`  ✅  ${email}`)
   } catch (err) {

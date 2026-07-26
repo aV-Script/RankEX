@@ -27,13 +27,13 @@ test.describe('TP-033 — Staff readonly', () => {
 
   test('nella dashboard cliente i bottoni di modifica sono nascosti', async ({ staffPage: page }) => {
     await goto(page, `${BASE}/clients`)
-    const firstCard = page.locator('[class*="ClientCard"]').first()
+    const firstCard = page.locator('button[class*="rx-card"]').first()
     if (!await firstCard.isVisible({ timeout: 5_000 }).catch(() => false)) {
       test.skip(true, 'Nessun cliente trovato')
       return
     }
     await firstCard.click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('load')
 
     // Il bottone "Campionamento" non deve essere visibile
     const campBtn = page.getByRole('button', { name: /campionam/i })
@@ -46,31 +46,31 @@ test.describe('TP-033 — Staff readonly', () => {
 
   test('lo staff può leggere i dati del cliente', async ({ staffPage: page }) => {
     await goto(page, `${BASE}/clients`)
-    const firstCard = page.locator('[class*="ClientCard"]').first()
+    const firstCard = page.locator('button[class*="rx-card"]').first()
     if (!await firstCard.isVisible({ timeout: 5_000 }).catch(() => false)) {
       test.skip(true, 'Nessun cliente trovato')
       return
     }
     await firstCard.click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('load')
 
     // La dashboard del cliente deve caricare correttamente (dati visibili)
-    const xpBar = page.locator('[class*="XPBar"], [class*="xp"]').first()
+    const xpBar = page.getByText(/exp|lv\.|liv\.|level/i).first()
     await expect(xpBar).toBeVisible({ timeout: 8_000 })
   })
 
   test('calendario visibile in sola lettura', async ({ staffPage: page }) => {
     await goto(page, `${BASE}/`)
-    const calLink = page.getByText(/calendario/i)
+    const calLink = page.getByText(/calendario/i).first()
     if (!await calLink.isVisible({ timeout: 5_000 }).catch(() => false)) {
       test.skip(true, 'Link calendario non trovato')
       return
     }
     await calLink.first().click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('load')
 
-    // Il calendario deve caricare
-    const cal = page.locator('[class*="Calendar"], [class*="calendar"]').first()
+    // Il calendario deve caricare (bottone "OGGI" sempre presente nell'header)
+    const cal = page.getByRole('button', { name: 'OGGI' })
     await expect(cal).toBeVisible({ timeout: 8_000 })
 
     // Il bottone "Nuovo slot" non deve essere visibile

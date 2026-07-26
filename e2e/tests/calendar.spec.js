@@ -56,7 +56,7 @@ test.describe('TP-CAL-02 — Nuova sessione', () => {
   test('bottone + Sessione apre il modal con data/orari precompilati', async ({ trainerPage: page }) => {
     await apriCalendario(page)
 
-    const addBtn = page.getByRole('button', { name: 'Aggiungi sessione' })
+    const addBtn = page.getByRole('button', { name: 'Aggiungi sessione', exact: true })
     if (!await addBtn.isVisible({ timeout: 8_000 }).catch(() => false)) {
       test.skip(true, 'Bottone + Sessione non trovato')
       return
@@ -72,7 +72,7 @@ test.describe('TP-CAL-02 — Nuova sessione', () => {
   test('senza clienti selezionati il salvataggio resta bloccato', async ({ trainerPage: page }) => {
     await apriCalendario(page)
 
-    const addBtn = page.getByRole('button', { name: 'Aggiungi sessione' })
+    const addBtn = page.getByRole('button', { name: 'Aggiungi sessione', exact: true })
     if (!await addBtn.isVisible({ timeout: 8_000 }).catch(() => false)) {
       test.skip(true, 'Bottone + Sessione non trovato')
       return
@@ -89,7 +89,7 @@ test.describe('TP-CAL-02 — Nuova sessione', () => {
   test('selezionare un cliente abilita il salvataggio', async ({ trainerPage: page }) => {
     await apriCalendario(page)
 
-    const addBtn = page.getByRole('button', { name: 'Aggiungi sessione' })
+    const addBtn = page.getByRole('button', { name: 'Aggiungi sessione', exact: true })
     if (!await addBtn.isVisible({ timeout: 8_000 }).catch(() => false)) {
       test.skip(true, 'Bottone + Sessione non trovato')
       return

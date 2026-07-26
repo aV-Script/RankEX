@@ -1,16 +1,21 @@
 /**
  * Auth fixture — ogni test parte con una pagina già autenticata.
  *
- * Firebase Auth usa IndexedDB, non localStorage: Playwright storageState
- * non può catturare i token. La soluzione più robusta è fare il login
- * via UI all'inizio di ogni fixture — dura ~2s ma è sempre affidabile.
+ * L'app usa browserLocalPersistence (localStorage, non IndexedDB — vedi
+ * firebase/services/auth.js), quindi Playwright storageState la cattura
+ * correttamente. Il login via UI reale (verifica password contro Firebase
+ * Auth) avviene UNA SOLA VOLTA per ruolo in global.setup.js; ogni fixture
+ * qui sotto apre un contesto già autenticato da quello storageState invece
+ * di rifare login ad ogni singolo test — con decine di test per file,
+ * un login per test esauriva rapidamente la quota "verifying passwords"
+ * del piano Spark (auth/quota-exceeded), causando skip silenziosi mascherati
+ * da "nessun dato trovato".
  */
 import { test as base } from '@playwright/test'
 import path              from 'path'
 
 const AUTH_DIR = path.join(import.meta.dirname, '..', '.auth')
 
-// Mantenuti per compatibilità con global.setup.js (opzionale)
 export const AUTH_PATHS = {
   trainer:  path.join(AUTH_DIR, 'trainer.json'),
   orgAdmin: path.join(AUTH_DIR, 'org-admin.json'),
@@ -20,7 +25,7 @@ export const AUTH_PATHS = {
 
 const BASE = () => process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173'
 
-async function loginViaUI(page, email, password) {
+export async function loginViaUI(page, email, password) {
   await page.goto(`${BASE()}/login`)
   await page.waitForLoadState('load')
   await page.getByLabel(/email/i).first().fill(email)
@@ -31,42 +36,28 @@ async function loginViaUI(page, email, password) {
   await page.waitForLoadState('load')
 }
 
+async function pageFromSavedSession(browser, authPath) {
+  const context = await browser.newContext({ storageState: authPath })
+  const page    = await context.newPage()
+  return page
+}
+
 export const test = base.extend({
 
-  trainerPage: async ({ page }, use) => {
-    await loginViaUI(
-      page,
-      process.env.E2E_TRAINER_EMAIL    || 'trainer@test.rankex',
-      process.env.E2E_TRAINER_PASSWORD || 'TrainerTest1',
-    )
-    await use(page)
+  trainerPage: async ({ browser }, use) => {
+    await use(await pageFromSavedSession(browser, AUTH_PATHS.trainer))
   },
 
-  orgAdminPage: async ({ page }, use) => {
-    await loginViaUI(
-      page,
-      process.env.E2E_ORGADMIN_EMAIL    || 'orgadmin@test.rankex',
-      process.env.E2E_ORGADMIN_PASSWORD || 'OrgAdminTest1',
-    )
-    await use(page)
+  orgAdminPage: async ({ browser }, use) => {
+    await use(await pageFromSavedSession(browser, AUTH_PATHS.orgAdmin))
   },
 
-  clientPage: async ({ page }, use) => {
-    await loginViaUI(
-      page,
-      process.env.E2E_CLIENT_EMAIL    || 'client@test.rankex',
-      process.env.E2E_CLIENT_PASSWORD || 'ClientTest1',
-    )
-    await use(page)
+  clientPage: async ({ browser }, use) => {
+    await use(await pageFromSavedSession(browser, AUTH_PATHS.client))
   },
 
-  staffPage: async ({ page }, use) => {
-    await loginViaUI(
-      page,
-      process.env.E2E_STAFF_EMAIL    || 'staff@test.rankex',
-      process.env.E2E_STAFF_PASSWORD || 'StaffTest1',
-    )
-    await use(page)
+  staffPage: async ({ browser }, use) => {
+    await use(await pageFromSavedSession(browser, AUTH_PATHS.staff))
   },
 })
 

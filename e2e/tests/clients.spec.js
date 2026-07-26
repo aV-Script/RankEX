@@ -60,24 +60,36 @@ test.describe('TP-008 — Wizard nuovo cliente PT', () => {
     await addBtn.first().click()
     await page.waitForLoadState('load')
 
-    // Compila anagrafica step 1
+    // Compila anagrafica step 1 (nome, data nascita, peso e altezza sono obbligatori)
     await page.getByPlaceholder('Mario Rossi').first().fill('Test E2E')
     const dataNascita = page.getByPlaceholder(/aaaa-mm-gg|data/i)
       .or(page.locator('input[type="date"]'))
     await dataNascita.first().fill('1990-05-15')
+    await page.getByLabel(/peso/i).fill('70')
+    await page.getByLabel(/altezza/i).fill('175')
 
-    // Avanti
+    // Avanti — step 2: Tipologia profilo (selezionare "Solo Test" per sbloccare lo step Categoria)
     const avanti = page.getByRole('button', { name: /avanti/i })
-    if (await avanti.isVisible({ timeout: 3_000 }).catch(() => false)) {
-      await avanti.click()
-      await page.waitForTimeout(500)
-      // Deve comparire la selezione categoria
-      await expect(page.getByText(/health/i)).toBeVisible({ timeout: 5_000 })
-      await expect(page.getByText(/active/i)).toBeVisible()
-      await expect(page.getByText(/athlete/i)).toBeVisible()
-    } else {
+    if (!await avanti.isVisible({ timeout: 3_000 }).catch(() => false)) {
       test.skip(true, 'Bottone AVANTI non trovato — verifica UX wizard')
+      return
     }
+    await avanti.click()
+    await page.waitForTimeout(500)
+
+    const soloTest = page.getByRole('button', { name: /solo test/i })
+    if (!await soloTest.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      test.skip(true, 'Step Tipologia profilo non trovato — verifica UX wizard')
+      return
+    }
+    await soloTest.click()
+    await page.getByRole('button', { name: /avanti/i }).click()
+    await page.waitForTimeout(500)
+
+    // Deve comparire la selezione categoria (step 3)
+    await expect(page.getByText(/health/i)).toBeVisible({ timeout: 5_000 })
+    await expect(page.getByText(/active/i)).toBeVisible()
+    await expect(page.getByText(/athlete/i)).toBeVisible()
   })
 
 })
@@ -153,7 +165,7 @@ test.describe('TP-011 — Dashboard cliente', () => {
     }
   })
 
-  test('su mobile la tab AVATAR è visibile', async ({ trainerPage: page }) => {
+  test('su mobile la tab ATLETA è visibile', async ({ trainerPage: page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await goto(page, `${BASE()}/clients`)
     const firstCard = page.locator(CARD).first()
@@ -164,8 +176,8 @@ test.describe('TP-011 — Dashboard cliente', () => {
     await firstCard.click()
     await page.waitForLoadState('load')
 
-    const avatarTab = page.getByRole('button', { name: /avatar/i })
-    await expect(avatarTab).toBeVisible({ timeout: 5_000 })
+    const atletaTab = page.getByRole('button', { name: /atleta/i })
+    await expect(atletaTab).toBeVisible({ timeout: 5_000 })
   })
 
 })

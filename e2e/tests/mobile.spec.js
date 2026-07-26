@@ -25,7 +25,7 @@ test.describe('Mobile — flussi critici', () => {
     await expect(cards.first()).toBeVisible({ timeout: 10_000 })
   })
 
-  test('tab AVATAR visibile su mobile nella dashboard cliente', async ({ trainerPage: page }) => {
+  test('tab ATLETA visibile su mobile nella dashboard cliente', async ({ trainerPage: page }) => {
     await goto(page, `${BASE}/clients`)
     const firstCard = page.locator('button[class*="rx-card"]').first()
     if (!await firstCard.isVisible({ timeout: 5_000 }).catch(() => false)) {
@@ -33,10 +33,10 @@ test.describe('Mobile — flussi critici', () => {
       return
     }
     await firstCard.click()
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('load')
 
-    const avatarTab = page.getByRole('button', { name: /avatar/i })
-    await expect(avatarTab).toBeVisible({ timeout: 8_000 })
+    const atletaTab = page.getByRole('button', { name: /atleta/i })
+    await expect(atletaTab).toBeVisible({ timeout: 8_000 })
   })
 
   test('MobileNav è visibile (bottom navigation)', async ({ trainerPage: page }) => {
