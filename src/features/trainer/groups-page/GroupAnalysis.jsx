@@ -178,13 +178,17 @@ function GroupTrendChart({ clients }) {
       ) : (
         <div className="h-44">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 5, right: 8, bottom: 0, left: -20 }}>
+            <LineChart data={chartData} margin={{ top: 5, right: 8, bottom: 16, left: -20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
               <XAxis
                 dataKey="date"
                 tick={{ fill: 'rgba(255,255,255,0.28)', fontSize: 10, fontFamily: 'Inter' }}
                 axisLine={false}
                 tickLine={false}
+                interval="preserveStartEnd"
+                angle={-35}
+                textAnchor="end"
+                height={32}
               />
               <YAxis
                 domain={[0, 100]}
