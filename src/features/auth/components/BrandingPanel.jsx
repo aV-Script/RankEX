@@ -74,10 +74,11 @@ function RankDecorations() {
           position: 'absolute', left: `${x}%`, top: `${y}%`,
           transform: 'translate(-50%, -50%)',
           width: size, height: size, borderRadius: '50%',
-          border: `1.5px solid ${color}33`, background: color + '08',
+          border: `1.5px solid color-mix(in srgb, ${color} 20%, transparent)`,
+          background: `color-mix(in srgb, ${color} 3%, transparent)`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontFamily: "'Montserrat', sans-serif", fontWeight: 900,
-          fontSize: size * 0.28, color: color + '44', userSelect: 'none',
+          fontSize: size * 0.28, color: `color-mix(in srgb, ${color} 27%, transparent)`, userSelect: 'none',
         }}>
           {label}
         </div>
