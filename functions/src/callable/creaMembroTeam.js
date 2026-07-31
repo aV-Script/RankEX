@@ -2,6 +2,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { getAuth }           from 'firebase-admin/auth'
 import { requireOrgAdmin }   from '../shared/auth.js'
+import { isAtTrainerLimit }  from '../shared/plans.js'
 
 const REGION = 'europe-west1'
 
@@ -17,13 +18,20 @@ export const creaMembroTeam = onCall({ region: REGION }, async (request) => {
     throw new HttpsError('invalid-argument', `Ruolo non valido: ${role}`)
   }
 
-  await requireOrgAdmin(request, orgId)
+  const profile = await requireOrgAdmin(request, orgId)
 
   const db  = getFirestore()
   const org = await db.doc(`organizations/${orgId}`).get()
   if (!org.exists) throw new HttpsError('not-found', 'Organizzazione non trovata')
 
   const orgData = org.data()
+
+  // Limite piano applicato qui perché le Firestore rules (withinTrainerLimit) non
+  // proteggono le Cloud Functions: l'Admin SDK le bypassa sempre. super_admin bypassa
+  // il limite come in tutte le altre superfici (rules, UI) — vedi CLAUDE.md "Piani SaaS".
+  if (profile.role !== 'super_admin' && isAtTrainerLimit(orgData.plan, orgData.memberCount)) {
+    throw new HttpsError('resource-exhausted', `Limite trainer del piano ${orgData.plan ?? 'free'} raggiunto`)
+  }
 
   // Crea account Firebase Auth con Admin SDK
   let uid

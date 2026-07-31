@@ -3,6 +3,7 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { getAuth }          from 'firebase-admin/auth'
 import { requireOrgAccess } from '../shared/auth.js'
 import { buildNewClient }   from '../shared/gamification.js'
+import { isAtClientLimit }  from '../shared/plans.js'
 
 const REGION = 'europe-west1'
 
@@ -27,10 +28,23 @@ const NEW_CLIENT_DEFAULTS = {
 
 export const creaCliente = onCall({ region: REGION }, async (request) => {
   const { orgId, trainerId, formData } = request.data
-  await requireOrgAccess(request, orgId)
+  const profile = await requireOrgAccess(request, orgId)
 
   if (!formData?.email || !formData?.password) {
     throw new HttpsError('invalid-argument', 'email e password sono obbligatori')
+  }
+
+  const db = getFirestore()
+
+  // Limite piano applicato qui perché le Firestore rules (withinClientLimit) non
+  // proteggono le Cloud Functions: l'Admin SDK le bypassa sempre. super_admin bypassa
+  // il limite come in tutte le altre superfici (rules, UI) — vedi CLAUDE.md "Piani SaaS".
+  const orgSnap = await db.doc(`organizations/${orgId}`).get()
+  if (!orgSnap.exists) throw new HttpsError('not-found', 'Organizzazione non trovata')
+  const orgData = orgSnap.data()
+
+  if (profile.role !== 'super_admin' && isAtClientLimit(orgData.plan, orgData.clientCount)) {
+    throw new HttpsError('resource-exhausted', `Limite clienti del piano ${orgData.plan ?? 'free'} raggiunto`)
   }
 
   const { email, password, testValues = {}, stats = {}, ...anagrafica } = formData
@@ -49,7 +63,6 @@ export const creaCliente = onCall({ region: REGION }, async (request) => {
 
   const data = buildNewClient(trainerId, { ...anagrafica, testValues, stats }, NEW_CLIENT_DEFAULTS)
 
-  const db = getFirestore()
   const clientRef = db.collection(`organizations/${orgId}/clients`).doc()
   const clientId  = clientRef.id
 
