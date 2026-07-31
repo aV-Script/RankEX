@@ -4,14 +4,23 @@
 
 // Calcola l'età intera corrente da una data di nascita (YYYY-MM-DD).
 // Restituisce null se la data è assente o non valida.
+//
+// `new Date(dataNascita)` interpreterebbe una stringa "YYYY-MM-DD" come
+// mezzanotte UTC (per spec ECMAScript) invece che mezzanotte locale — con un
+// fuso orario indietro rispetto a UTC la data locale risultante scivola di un
+// giorno, producendo un'età sbagliata di ±1 esattamente nel giorno prima di un
+// compleanno. Costruiamo la data dai componenti y/m/d per restare sempre in
+// tempo locale.
 export function calcAge(dataNascita) {
   if (!dataNascita) return null
-  const birth = new Date(dataNascita)
+  const [y, m, d] = String(dataNascita).slice(0, 10).split('-').map(Number)
+  if (!y || !m || !d) return null
+  const birth = new Date(y, m - 1, d)
   if (isNaN(birth.getTime())) return null
   const today = new Date()
   let age = today.getFullYear() - birth.getFullYear()
-  const m = today.getMonth() - birth.getMonth()
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
+  const mDiff = today.getMonth() - birth.getMonth()
+  if (mDiff < 0 || (mDiff === 0 && today.getDate() < birth.getDate())) age--
   return age
 }
 

@@ -9,6 +9,18 @@ import {
   validateNumber,
 } from '../../utils/validation.js'
 
+// Formatta i componenti LOCALI di una data come "YYYY-MM-DD" — a differenza di
+// `.toISOString().slice(0,10)`, non passa per UTC: con un fuso orario diverso
+// da UTC+0 quella conversione può far scivolare la data di un giorno,
+// producendo fixture di test che non rappresentano più la data locale intesa
+// (lo stesso bug — parsing "YYYY-MM-DD" come UTC — è stato corretto in calcAge).
+function toDateStr(date) {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
 // ── calcAge ───────────────────────────────────────────────────────────────────
 describe('calcAge', () => {
   it('restituisce null per input vuoto', () => {
@@ -24,7 +36,7 @@ describe('calcAge', () => {
   it('calcola età corretta', () => {
     const today = new Date()
     const birth = new Date(today.getFullYear() - 25, today.getMonth(), today.getDate())
-    expect(calcAge(birth.toISOString().slice(0, 10))).toBe(25)
+    expect(calcAge(toDateStr(birth))).toBe(25)
   })
 
   it('non incrementa se il compleanno non è ancora passato quest\'anno', () => {
@@ -32,7 +44,7 @@ describe('calcAge', () => {
     const nextYear = today.getFullYear() - 25
     const future   = new Date(nextYear, today.getMonth() + 1, 1)
     if (future.getMonth() <= 11) {
-      const age = calcAge(future.toISOString().slice(0, 10))
+      const age = calcAge(toDateStr(future))
       expect(age).toBe(24)
     }
   })
