@@ -555,7 +555,6 @@ src/
 │   ├── useNotes.js             ← useNotes(orgId, clientId, author) → threads
 │   ├── useBadges.js            ← useBadges(orgId, clientId, client, { readonly }) — auto-award + manuale
 │   ├── useWearable.js          ← useWearable (trainer, solo enable/disable/sync) — link client rimosso, vedi sezione dedicata
-│   ├── useColorSource.js       ← sorgente colore dinamico (Pentagon Nav + Theme System)
 │   ├── useVersionCheck.js      ← rileva nuova build disponibile, mostra banner ricarica
 │   ├── useFocusTrap.js         ← focus trap da tastiera per dialog/modal (Tab/Shift+Tab)
 │   ├── usePagination.js

@@ -16,7 +16,6 @@ import { TrophiesSection }            from '../client-dashboard/TrophiesSection'
 import { XPTrendChart }               from '../client-dashboard/XPTrendChart'
 import { useBadges }                  from '../../../hooks/useBadges'
 import { ThemePicker }                from '../../../components/ui/ThemePicker'
-import { useColorSource }            from '../../../hooks/useColorSource'
 import { logout }                     from '../../../firebase/services/auth'
 import { IconDocument }               from '../../../components/ui/icons'
 import { ErrorBoundary }              from '../../../components/common/ErrorBoundary'
@@ -146,11 +145,8 @@ export function ClientDashboardPage({
   const [activeTab,    setActiveTab]    = useState('home')
   const [profiloTab,   setProfiloTab]   = useState('avatar')
   const [testTab,      setTestTab]      = useState('fisici')
-  const [colorSource,  setColorSource]  = useColorSource()
 
-  const displayColor = colorSource === 'rank'
-    ? color
-    : getComputedStyle(document.documentElement).getPropertyValue('--rx-accent').trim() || color
+  const displayColor = color
 
   // Sub-tab Profilo
   const profiloTabs = [
@@ -335,44 +331,6 @@ export function ClientDashboardPage({
                         ◈ Tema interfaccia
                       </div>
                       <ThemePicker />
-                    </div>
-
-                    {/* Colore interfaccia */}
-                    <div className="rounded-[4px] p-5 rx-card">
-                      <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-1" style={{ color: 'var(--rx-accent)' }}>
-                        ◈ Colore interfaccia
-                      </div>
-                      <div className="font-body text-[11px] mb-4" style={{ color: 'rgba(255,255,255,0.30)' }}>
-                        Scegli se i colori dell'interfaccia seguono il tuo rank o il tema selezionato.
-                      </div>
-                      <div className="flex rounded-[4px] overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
-                        {[
-                          { id: 'rank', label: 'Rank', desc: 'Colore del tuo rank atletico' },
-                          { id: 'theme', label: 'Tema', desc: 'Colore primario del tema' },
-                        ].map(opt => (
-                          <button
-                            key={opt.id}
-                            onClick={() => setColorSource(opt.id)}
-                            className="flex-1 flex flex-col items-center gap-0.5 py-3 cursor-pointer border-none transition-colors"
-                            style={{
-                              background: colorSource === opt.id
-                                ? 'color-mix(in srgb, var(--rx-accent) 12%, transparent)'
-                                : 'transparent',
-                              borderRight: opt.id === 'rank' ? '1px solid rgba(255,255,255,0.08)' : 'none',
-                            }}
-                          >
-                            <span
-                              className="font-display font-bold text-[11px] tracking-[1px]"
-                              style={{ color: colorSource === opt.id ? 'var(--rx-accent)' : 'rgba(255,255,255,0.35)' }}
-                            >
-                              {opt.label}
-                            </span>
-                            <span className="font-body text-[9px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
-                              {opt.desc}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
                     </div>
 
                   </div>
