@@ -1,12 +1,13 @@
 import { useRef } from 'react'
 import { useTrainerState } from '../../../context/TrainerContext'
-import { NAV_ITEMS, ORG_ADMIN_NAV_ITEMS, LogoutIcon } from './navItems.config'
+import { getNavItems, ORG_ADMIN_NAV_ITEMS, LogoutIcon } from './navItems.config'
 
 export function AppNav({ page, onNavigate, onLogout }) {
-  const { userRole } = useTrainerState()
+  const { userRole, terminology } = useTrainerState()
+  const navItems     = getNavItems(terminology)
   const allNavItems  = userRole === 'org_admin'
-    ? [...NAV_ITEMS, ...ORG_ADMIN_NAV_ITEMS]
-    : NAV_ITEMS
+    ? [...navItems, ...ORG_ADMIN_NAV_ITEMS]
+    : navItems
 
   const activeIndex = allNavItems.findIndex(item => item.id === page)
   const touchStartX = useRef(null)
@@ -53,7 +54,7 @@ export function AppNav({ page, onNavigate, onLogout }) {
                 onClick={() => onNavigate(item.id)}
                 aria-current={active ? 'page' : undefined}
                 className="relative flex items-center gap-1.5 px-3 h-full cursor-pointer border-none bg-transparent font-display text-[11px] tracking-[1.5px] uppercase transition-colors"
-                style={{ color: active ? 'var(--rx-green)' : 'rgba(200,212,224,0.38)' }}
+                style={{ color: active ? 'var(--rx-accent)' : 'rgba(200,212,224,0.38)' }}
                 onMouseEnter={e => {
                   if (!active) e.currentTarget.style.color = 'rgba(200,212,224,0.75)'
                 }}
@@ -65,10 +66,10 @@ export function AppNav({ page, onNavigate, onLogout }) {
                   <div
                     aria-hidden="true"
                     className="absolute bottom-0 left-2 right-2 h-[2px] rounded-t-sm"
-                    style={{ background: 'var(--rx-gradient)', boxShadow: '0 0 6px color-mix(in srgb, var(--rx-green) 45%, transparent)' }}
+                    style={{ background: 'var(--rx-gradient)', boxShadow: '0 0 6px color-mix(in srgb, var(--rx-accent) 45%, transparent)' }}
                   />
                 )}
-                <span style={{ display: 'flex', filter: active ? 'drop-shadow(0 0 4px color-mix(in srgb, var(--rx-green) 50%, transparent))' : 'none' }}>
+                <span style={{ display: 'flex', filter: active ? 'drop-shadow(0 0 4px color-mix(in srgb, var(--rx-accent) 50%, transparent))' : 'none' }}>
                   {item.icon}
                 </span>
                 {item.label}
@@ -130,18 +131,18 @@ export function AppNav({ page, onNavigate, onLogout }) {
                 aria-label={item.label}
                 aria-current={active ? 'page' : undefined}
                 className="flex-1 min-w-0 flex flex-col items-center gap-1 py-2.5 px-0.5 cursor-pointer relative border-none bg-transparent"
-                style={{ color: active ? 'var(--rx-green)' : 'rgba(200,212,224,0.3)', transition: 'color 150ms' }}
+                style={{ color: active ? 'var(--rx-accent)' : 'rgba(200,212,224,0.3)', transition: 'color 150ms' }}
               >
                 {active && (
                   <div
                     aria-hidden="true"
                     className="absolute top-0 left-2 right-2 h-[2px] rounded-b-sm"
-                    style={{ background: 'var(--rx-gradient)', boxShadow: '0 0 6px color-mix(in srgb, var(--rx-green) 45%, transparent)' }}
+                    style={{ background: 'var(--rx-gradient)', boxShadow: '0 0 6px color-mix(in srgb, var(--rx-accent) 45%, transparent)' }}
                   />
                 )}
                 <span style={{
                   display: 'flex',
-                  filter:  active ? 'drop-shadow(0 0 6px color-mix(in srgb, var(--rx-green) 50%, transparent))' : 'none',
+                  filter:  active ? 'drop-shadow(0 0 6px color-mix(in srgb, var(--rx-accent) 50%, transparent))' : 'none',
                 }}>
                   {item.icon}
                 </span>

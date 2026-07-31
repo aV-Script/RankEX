@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, lazy, Suspense } from 'react'
+import { useState, useCallback, lazy, Suspense } from 'react'
 import { useClientRank }                    from '../../hooks/useClientRank'
 import { useReadonly }                       from '../../context/ReadonlyContext'
 import { useTrainerState }                   from '../../context/TrainerContext'
@@ -27,7 +27,6 @@ import { resetPassword }                     from '../../firebase/services/auth'
 import { PLAYER_ROLES }                      from '../../config/modules.config'
 import { TrophiesSection }                   from './client-dashboard/TrophiesSection'
 import { useBadges }                         from '../../hooks/useBadges'
-import { useRegisterContextMenu }            from '../../context/NavMenuContext'
 import { getAuth }                           from 'firebase/auth'
 import app                                   from '../../firebase/config'
 import { PrintPickerModal }                  from '../../components/common/PrintPickerModal'
@@ -35,11 +34,6 @@ import { ClientDashboardHeader }             from './client-dashboard/ClientDash
 import { AtletaTab }                         from './client-dashboard/AtletaTab'
 import { ErrorBoundary }                     from '../../components/common/ErrorBoundary'
 import { ChartErrorFallback }                from '../../components/common/ChartErrorFallback'
-import {
-  ICON_TEST, ICON_BIA, ICON_WORKOUT, ICON_CALENDAR, ICON_NOTES, ICON_ACTIVITY,
-  ICON_AVATAR, ICON_WEARABLE, ICON_MISURE, ICON_BACK,
-  ICON_CAMPIONAMENTO, ICON_BIA_REC, ICON_PDF, ICON_RESET_PW, ICON_DELETE_CLIENT,
-} from './client-dashboard/clientDashboardIcons'
 
 // Montato solo dietro il flusso di export PDF — lazy-load per non pesare
 // sul bundle iniziale della dashboard cliente.
@@ -57,8 +51,16 @@ const ClientReportPrint = lazy(() =>
  */
 export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDelete }) {
   const { rankObj: testRankObj, color: testColor } = useClientRank(client)
-  const { userRole }  = useTrainerState()
+  const { userRole, terminology } = useTrainerState()
   const readonly      = useReadonly()
+
+  // Verde di brand risolto dal tema attivo — mai il letterale 'var(--rx-accent)':
+  // diversi componenti figli applicano l'opacità concatenando due cifre hex al
+  // prop `color` (es. color + '22'), tecnica che produce CSS non valido se
+  // `color` è una CSS custom property invece di un hex risolto.
+  const brandGreen = typeof document !== 'undefined'
+    ? (getComputedStyle(document.documentElement).getPropertyValue('--rx-accent').trim() || '#0fd65a')
+    : '#0fd65a'
 
   const [view,         setView]        = useState('dashboard')
   const [activeTab,    setActiveTab]   = useState(null)
@@ -98,24 +100,6 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
     name: getAuth(app).currentUser?.email ?? 'Trainer',
   }
 
-  const contextItems = useMemo(() => [
-    { id: '__back__',    label: 'Clienti',     icon: ICON_BACK },
-    { id: 'atleta',      label: 'Atleta',      icon: ICON_AVATAR },
-    profile.hasTests && { id: 'test',        label: 'Test',        icon: ICON_TEST },
-    { id: 'bia',         label: 'BIA',         icon: ICON_BIA },
-    { id: 'allenamento', label: 'Allenamento', icon: ICON_WORKOUT },
-    { id: 'calendario',  label: 'Calendario',  icon: ICON_CALENDAR },
-    { id: 'note',        label: 'Note',        icon: ICON_NOTES },
-    { id: 'attivita',    label: 'Attività',    icon: ICON_ACTIVITY },
-    { id: 'misure',      label: 'Misure',      icon: ICON_MISURE },
-    { id: 'wearable',    label: 'Wearable',    icon: ICON_WEARABLE },
-    !readonly && profile.hasTests && { id: '__campionamento__', label: 'Campionam.', icon: ICON_CAMPIONAMENTO },
-    !readonly && profile.hasBia   && { id: '__bia_rec__',       label: 'Nuova BIA',  icon: ICON_BIA_REC },
-    { id: '__pdf__',      label: 'PDF',       icon: ICON_PDF },
-    client.email && { id: '__reset_pw__', label: 'Reset PW',  icon: ICON_RESET_PW },
-    { id: '__delete__',   label: 'Elimina',   icon: ICON_DELETE_CLIENT, isDanger: true },
-  ].filter(Boolean), [profile.hasTests, profile.hasBia, readonly, client.email])
-
   const defaultTab = 'atleta'
   const tab        = activeTab ?? defaultTab
 
@@ -141,18 +125,6 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
       setTimeout(() => setResetState('idle'), 3000)
     }
   }, [client.email, resetState])
-
-  const handleContextNav = useCallback((id) => {
-    if      (id === '__back__')          onBack()
-    else if (id === '__campionamento__') setView('campionamento')
-    else if (id === '__bia_rec__')       setView('bia')
-    else if (id === '__pdf__')           setShowPrintPicker(true)
-    else if (id === '__reset_pw__')      handleResetPassword()
-    else if (id === '__delete__')        setShowDelete(true)
-    else                                 setActiveTab(id)
-  }, [handleResetPassword, onBack])
-
-  useRegisterContextMenu('Atleta', contextItems, tab, handleContextNav)
 
   const handleSelectTab = useCallback((id) => {
     setView('dashboard')
@@ -198,7 +170,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
       {view === 'campionamento' && (
         <CampionamentoView
           client={client}
-          color="var(--rx-green)"
+          color={brandGreen}
           onSave={handleSaveCampionamento}
           onBack={() => setView('dashboard')}
         />
@@ -206,7 +178,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
       {view === 'bia' && (
         <BiaView
           client={client}
-          color="var(--rx-green)"
+          color={brandGreen}
           onSave={(biaData) => handleSaveBia(client, biaData)}
           onBack={() => setView('dashboard')}
         />
@@ -216,7 +188,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
         {/* Banner upgrade — solo per bia_only (manca i test); il caso tests_only è gestito nel tab BIA */}
         {profileType === 'bia_only' && (
           <div className="px-4 pt-3">
-            <UpgradeCategoryBanner client={client} color="var(--rx-green)" onUpgrade={handleUpgradeProfile} />
+            <UpgradeCategoryBanner client={client} color={brandGreen} onUpgrade={handleUpgradeProfile} />
           </div>
         )}
 
@@ -224,9 +196,9 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
         {campCount === 0 && !readonly && profile.hasTests && (
           <div
             className="mx-4 mt-3 px-4 py-3 rounded-[4px] font-body text-[12px] text-white/50 leading-relaxed"
-            style={{ background: 'color-mix(in srgb, var(--rx-green) 4%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 14%, transparent)' }}
+            style={{ background: 'color-mix(in srgb, var(--rx-accent) 4%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-accent) 14%, transparent)' }}
           >
-            <span className="font-display text-[9px] tracking-[2px] uppercase mr-2 align-middle" style={{ color: 'var(--rx-green)' }}>
+            <span className="font-display text-[9px] tracking-[2px] uppercase mr-2 align-middle" style={{ color: 'var(--rx-accent)' }}>
               Inizia
             </span>
             Esegui il primo campionamento per calcolare il rank dell'atleta. Le sessioni chiuse aggiungono XP e fanno salire di livello.
@@ -254,22 +226,22 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
             <section className="px-4 pt-6">
               <div className="rounded-[4px] p-5 rx-card">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase" style={{ color: 'var(--rx-green)' }}>◈ Status</div>
+                  <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase" style={{ color: 'var(--rx-accent)' }}>◈ Status</div>
                   {!readonly && (
                     <button
                       onClick={() => setView('campionamento')}
                       className="font-display text-[10px] tracking-[1px] px-3 py-1.5 rounded-[3px] border cursor-pointer transition-all"
-                      style={{ color: 'var(--rx-green)', borderColor: 'color-mix(in srgb, var(--rx-green) 33%, transparent)', background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)' }}
+                      style={{ color: 'var(--rx-accent)', borderColor: 'color-mix(in srgb, var(--rx-accent) 33%, transparent)', background: 'color-mix(in srgb, var(--rx-accent) 7%, transparent)' }}
                     >
                       + CAMPIONAMENTO
                     </button>
                   )}
                 </div>
-                <StatsSection stats={client.stats} prevStats={prevStats} color="var(--rx-green)" categoria={client.categoria} pentagonSize={160} rankObj={rankObj} />
+                <StatsSection stats={client.stats} prevStats={prevStats} color={brandGreen} categoria={client.categoria} pentagonSize={160} rankObj={rankObj} />
                 {(client.campionamenti?.length ?? 0) > 0 && (
                   <div className="mt-6">
                     <ErrorBoundary fallback={ChartErrorFallback}>
-                      <StatsChart campionamenti={client.campionamenti} color="var(--rx-green)" categoria={client.categoria} />
+                      <StatsChart campionamenti={client.campionamenti} color={brandGreen} categoria={client.categoria} />
                     </ErrorBoundary>
                   </div>
                 )}
@@ -282,60 +254,62 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
               <section className="px-4 pt-6">
                 <div className="rounded-[4px] p-5 rx-card flex flex-col gap-4">
                   <div className="flex items-center justify-between">
-                    <div className="font-display text-[10px] tracking-[3px] uppercase" style={{ color: 'var(--rx-green)' }}>◈ BIA</div>
+                    <div className="font-display text-[10px] tracking-[3px] uppercase" style={{ color: 'var(--rx-accent)' }}>◈ BIA</div>
                     {!readonly && (
                       <button
                         onClick={() => setView('bia')}
                         className="font-display text-[10px] tracking-[1px] px-3 py-1.5 rounded-[3px] border cursor-pointer transition-all"
-                        style={{ color: 'var(--rx-green)', borderColor: 'color-mix(in srgb, var(--rx-green) 33%, transparent)', background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)' }}
+                        style={{ color: 'var(--rx-accent)', borderColor: 'color-mix(in srgb, var(--rx-accent) 33%, transparent)', background: 'color-mix(in srgb, var(--rx-accent) 7%, transparent)' }}
                       >
                         + RILEVAMENTO
                       </button>
                     )}
                   </div>
-                  <BiaSummary bia={client.lastBia} prevBia={client.biaHistory?.[1] ?? null} sex={client.sesso} age={calcAge(client.dataNascita)} color="var(--rx-green)" rank={biaRank.label} />
+                  <BiaSummary bia={client.lastBia} prevBia={client.biaHistory?.[1] ?? null} sex={client.sesso} age={calcAge(client.dataNascita)} color={brandGreen} rank={biaRank.label} />
                   <ErrorBoundary fallback={ChartErrorFallback}>
-                    <BiaHistoryChart biaHistory={client.biaHistory} color="var(--rx-green)" />
+                    <BiaHistoryChart biaHistory={client.biaHistory} color={brandGreen} />
                   </ErrorBoundary>
                 </div>
               </section>
             ) : (
               <div className="px-4 pt-6">
-                <UpgradeCategoryBanner client={client} color="var(--rx-green)" onUpgrade={handleUpgradeProfile} />
+                <UpgradeCategoryBanner client={client} color={brandGreen} onUpgrade={handleUpgradeProfile} />
               </div>
             )
           )}
 
           {tab === 'allenamento' && (
-            <WorkoutPlanSection orgId={orgId} clientId={client.id} color="var(--rx-green)" readonly={readonly} />
+            <WorkoutPlanSection orgId={orgId} clientId={client.id} color={brandGreen} readonly={readonly} />
           )}
 
           {tab === 'calendario' && (
             <section className="px-4 pt-6">
               <div className="rounded-[4px] p-5 rx-card">
-                <div className="font-display text-[10px] tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-green)' }}>◈ Calendario allenamenti</div>
+                <div className="font-display text-[10px] tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-accent)' }}>◈ Calendario allenamenti</div>
                 <ClientCalendar clientId={client.id} orgId={orgId} />
               </div>
             </section>
           )}
 
           {tab === 'note' && (
-            <NotesSection orgId={orgId} clientId={client.id} color="var(--rx-green)" author={trainerAuthor} readonly={readonly} />
+            <NotesSection orgId={orgId} clientId={client.id} color={brandGreen} author={trainerAuthor} readonly={readonly} />
           )}
 
           {tab === 'attivita' && (
             <section className="px-4 pt-6 flex flex-col gap-4">
-              <XPTrendChart log={client.log ?? []} color="var(--rx-green)" />
-              <ActivityLog log={client.log} color="var(--rx-green)" limit={10} />
+              <ErrorBoundary fallback={ChartErrorFallback}>
+                <XPTrendChart log={client.log ?? []} color={brandGreen} />
+              </ErrorBoundary>
+              <ActivityLog log={client.log} color={brandGreen} limit={10} />
             </section>
           )}
 
           {tab === 'misure' && (
-            <MisureSection client={client} color="var(--rx-green)" readonly={readonly} onUpdate={handleUpdateMisure} />
+            <MisureSection client={client} color={brandGreen} readonly={readonly} onUpdate={handleUpdateMisure} />
           )}
 
           {tab === 'wearable' && (
-            <WearableSection client={client} orgId={orgId} color="var(--rx-green)" />
+            <WearableSection client={client} orgId={orgId} color={brandGreen} />
           )}
 
           {tab === 'trofei' && (
@@ -346,7 +320,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
               showcase={client.badgeShowcase ?? []}
               readonly={readonly}
               badgeProgress={badgeProgress}
-              color="var(--rx-green)"
+              color={brandGreen}
               onAward={(badgeId, note) => handleAwardManual(badgeId, trainerUid, note)}
               onRevoke={handleRevoke}
               onUpdateShowcase={handleUpdateShowcase}
@@ -359,7 +333,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
 
 
       {showDelete && (
-        <DeleteDialog clientName={client.name} onConfirm={handleDelete} onCancel={() => setShowDelete(false)} />
+        <DeleteDialog clientName={client.name} clientLabel={terminology.client} onConfirm={handleDelete} onCancel={() => setShowDelete(false)} />
       )}
       {showPrintPicker && (
         <PrintPickerModal
@@ -369,7 +343,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
       )}
       {showReport && (
         <Suspense fallback={null}>
-          <ClientReportPrint client={client} color="var(--rx-green)" rankObj={rankObj} mode={printMode} onClose={() => setShowReport(false)} />
+          <ClientReportPrint client={client} color={brandGreen} rankObj={rankObj} mode={printMode} onClose={() => setShowReport(false)} />
         </Suspense>
       )}
     </div>

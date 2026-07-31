@@ -92,7 +92,7 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
                 key={value} onClick={() => toggleDay(value)}
                 className="w-10 h-10 font-display text-[11px] cursor-pointer border transition-all"
                 style={selectedDays.includes(value)
-                  ? { background: 'color-mix(in srgb, var(--rx-green) 15%, transparent)', borderColor: 'var(--rx-green)', color: '#fff', borderRadius: '4px' }
+                  ? { background: 'color-mix(in srgb, var(--rx-accent) 15%, transparent)', borderColor: 'var(--rx-accent)', color: '#fff', borderRadius: '4px' }
                   : { background: 'transparent', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.35)', borderRadius: '4px' }
                 }
               >
@@ -136,9 +136,9 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
         {previewCount > 0 && (
           <div
             className="rounded-[3px] p-3 mb-4"
-            style={{ background: 'color-mix(in srgb, var(--rx-green) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 20%, transparent)' }}
+            style={{ background: 'color-mix(in srgb, var(--rx-accent) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-accent) 20%, transparent)' }}
           >
-            <span className="font-display text-[11px]" style={{ color: 'var(--rx-green)' }}>
+            <span className="font-display text-[11px]" style={{ color: 'var(--rx-accent)' }}>
               Verranno create {previewCount} sessioni
             </span>
           </div>
@@ -154,7 +154,7 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
                   key={g.id} onClick={() => selectGroup(g)}
                   className="rounded-[3px] px-3 py-1.5 font-display text-[11px] cursor-pointer border transition-all"
                   style={selectedGroups.includes(g.id)
-                    ? { background: 'color-mix(in srgb, var(--rx-cyan) 10%, transparent)', borderColor: 'color-mix(in srgb, var(--rx-cyan) 35%, transparent)', color: 'var(--rx-cyan)' }
+                    ? { background: 'color-mix(in srgb, var(--rx-accent-2) 10%, transparent)', borderColor: 'color-mix(in srgb, var(--rx-accent-2) 35%, transparent)', color: 'var(--rx-accent-2)' }
                     : { background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)' }
                   }
                 >
@@ -182,15 +182,15 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
                 key={c.id} onClick={() => toggleClient(c.id)}
                 className="flex items-center gap-3 px-3 py-2 rounded-[3px] cursor-pointer border transition-all text-left"
                 style={selectedClients.includes(c.id)
-                  ? { background: 'color-mix(in srgb, var(--rx-green) 8%, transparent)', borderColor: 'color-mix(in srgb, var(--rx-green) 35%, transparent)', color: '#fff' }
+                  ? { background: 'color-mix(in srgb, var(--rx-accent) 8%, transparent)', borderColor: 'color-mix(in srgb, var(--rx-accent) 35%, transparent)', color: '#fff' }
                   : { background: 'transparent', borderColor: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }
                 }
               >
                 <div
                   className="w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0"
                   style={{
-                    background:  selectedClients.includes(c.id) ? 'var(--rx-green)' : 'transparent',
-                    borderColor: selectedClients.includes(c.id) ? 'var(--rx-green)' : 'rgba(255,255,255,0.2)',
+                    background:  selectedClients.includes(c.id) ? 'var(--rx-accent)' : 'transparent',
+                    borderColor: selectedClients.includes(c.id) ? 'var(--rx-accent)' : 'rgba(255,255,255,0.2)',
                   }}
                 >
                   {selectedClients.includes(c.id) && (
@@ -209,7 +209,7 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
           onClick={handleSave}
           disabled={!canSave}
           className="w-full py-3 font-display text-[12px] tracking-widest border-0 transition-opacity"
-          style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', borderRadius: '3px', color: 'var(--rx-green)', fontWeight: 700, opacity: canSave ? 1 : 0.4, cursor: canSave ? 'pointer' : 'not-allowed' }}
+          style={{ background: 'color-mix(in srgb, var(--rx-accent) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-accent) 35%, transparent)', borderRadius: '3px', color: 'var(--rx-accent)', fontWeight: 700, opacity: canSave ? 1 : 0.4, cursor: canSave ? 'pointer' : 'not-allowed' }}
         >
           {saving ? 'ATTENDERE...' : 'CREA RICORRENZA'}
         </button>

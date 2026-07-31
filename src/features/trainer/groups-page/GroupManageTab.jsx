@@ -1,8 +1,8 @@
 import { Pagination } from '../../../components/common/Pagination'
-import { EmptyState } from '../../../components/ui'
+import { EmptyState, SectionLabel } from '../../../components/ui'
 
 const ICON_EMPTY_CLIENTS = (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
 )
 
 /**
@@ -23,9 +23,9 @@ export function GroupManageTab({
 
         {/* Col 1: Nel gruppo */}
         <div className="rounded-[4px] p-5 rx-card">
-          <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-5" style={{ color: 'var(--rx-green)' }}>
+          <SectionLabel className="mb-5">
             ◈ Nel gruppo <span className="text-white/60 ml-1">({clientsInGroup.length})</span>
-          </div>
+          </SectionLabel>
           {inGroupPagination.paginatedItems.length === 0 ? (
             <EmptyState
               icon={ICON_EMPTY_CLIENTS}
@@ -46,11 +46,9 @@ export function GroupManageTab({
 
         {/* Col 2: Riepilogo gruppo */}
         <div className="rounded-[4px] p-5 rx-card">
-          <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-5" style={{ color: 'var(--rx-green)' }}>
-            ◈ Riepilogo
-          </div>
+          <SectionLabel className="mb-5">◈ Riepilogo</SectionLabel>
           <div className="flex flex-col gap-2 mb-4">
-            <ManageStat label="Nel gruppo"    value={clientsInGroup.length}                 color="var(--rx-green)" />
+            <ManageStat label="Nel gruppo"    value={clientsInGroup.length}                 color="var(--rx-accent)" />
             <ManageStat label="Disponibili"   value={totalClients - clientsInGroup.length}  />
             <ManageStat label="Totale atleti" value={totalClients}                          />
           </div>
@@ -68,9 +66,9 @@ export function GroupManageTab({
 
         {/* Col 3: Da aggiungere */}
         <div className="rounded-[4px] p-5 rx-card">
-          <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>
+          <SectionLabel color="rgba(255,255,255,0.3)" className="mb-3">
             ◈ Da aggiungere <span className="text-white/60 ml-1">({clientsNotInGroupCount})</span>
-          </div>
+          </SectionLabel>
           <input
             value={clientSearch}
             onChange={e => onSearchChange(e.target.value)}
@@ -107,16 +105,16 @@ function ClientRow({ client, inGroup, loading, onToggle }) {
     <div
       className="flex items-center justify-between px-4 py-3 rounded-[3px] transition-all"
       style={inGroup
-        ? { background: 'color-mix(in srgb, var(--rx-green) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 15%, transparent)' }
+        ? { background: 'color-mix(in srgb, var(--rx-accent) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-accent) 15%, transparent)' }
         : { background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }
       }
     >
       <div className="flex items-center gap-3">
         <div
           className="w-8 h-8 rounded-[3px] flex items-center justify-center shrink-0"
-          style={inGroup ? { background: 'color-mix(in srgb, var(--rx-green) 15%, transparent)' } : { background: 'rgba(255,255,255,0.05)' }}
+          style={inGroup ? { background: 'color-mix(in srgb, var(--rx-accent) 15%, transparent)' } : { background: 'rgba(255,255,255,0.05)' }}
         >
-          <span className="font-display text-[11px]" style={{ color: inGroup ? 'var(--rx-green)' : 'rgba(255,255,255,0.35)' }}>
+          <span className="font-display text-[11px]" style={{ color: inGroup ? 'var(--rx-accent)' : 'rgba(255,255,255,0.35)' }}>
             {client.name?.[0]?.toUpperCase()}
           </span>
         </div>
@@ -136,7 +134,7 @@ function ClientRow({ client, inGroup, loading, onToggle }) {
         className="font-display text-[10px] px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all disabled:opacity-40"
         style={inGroup
           ? { color: '#f87171', borderColor: 'rgba(248,113,113,0.2)', background: 'transparent' }
-          : { color: 'var(--rx-green)', borderColor: 'color-mix(in srgb, var(--rx-green) 20%, transparent)',   background: 'color-mix(in srgb, var(--rx-green) 6%, transparent)' }
+          : { color: 'var(--rx-accent)', borderColor: 'color-mix(in srgb, var(--rx-accent) 20%, transparent)',   background: 'color-mix(in srgb, var(--rx-accent) 6%, transparent)' }
         }
       >
         {loading ? '...' : inGroup ? 'RIMUOVI' : 'AGGIUNGI'}

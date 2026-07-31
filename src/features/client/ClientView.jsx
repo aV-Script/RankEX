@@ -28,7 +28,7 @@ export default function ClientView({ clientId, orgId }) {
   const [colorSource] = useColorSource()
   const displayColor  = colorSource === 'rank'
     ? color
-    : getComputedStyle(document.documentElement).getPropertyValue('--rx-green').trim() || color
+    : getComputedStyle(document.documentElement).getPropertyValue('--rx-accent').trim() || color
 
   const { notifications, unreadCount, markAllRead, remove } = useNotifications(orgId, clientId)
 

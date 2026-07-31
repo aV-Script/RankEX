@@ -309,6 +309,16 @@ sessione: `Sidebar.jsx`/`MobileNav.jsx`/`SidebarIcon.jsx`/`TabItem.jsx` (sostitu
 importato — audit round 4, RX-77), `hooks/useClientWearable` + `linkGoogleFit`/
 `resolveGoogleFitRedirect`/`unlinkWearable` in `firebase/services/wearable.js` (feature
 Wearable lato client mai raggiungibile — audit round 4, RX-62, vedi sezione dedicata).
+Rimossi anche (audit di Art Direction, lug 2026, fix P1.7): `ContextNav.jsx` +
+`trainer-shell/CircularNav.jsx` + `context/NavMenuContext.jsx` (~640 righe di sistema di
+navigazione radiale mai montato a runtime — zero consumer JSX, confermato via grep),
+`client-view/ClientHUD.jsx` (secondo "HUD" cliente, design language mai adottato),
+`clients-page/FiltersSidebar.jsx` + `clients-page/MobileControls.jsx` (split filtri
+responsive mai collegato, `ClientsPage.jsx` usa un pattern inline proprio). La rimozione
+ha scoperto due bug funzionali reali nascosti dietro il sistema morto — vedi
+`RecurrenceDetailHeader.jsx` (nessun modo di cancellare una ricorrenza attiva) e
+`NewClientView.jsx` (nessun bottone indietro) — entrambi fixati con un'affordance reale
+nell'header, non più un menu contestuale invisibile.
 
 ```
 src/
@@ -333,15 +343,15 @@ src/
 │   │   ├── SessionWarningDialog.jsx ← avviso 60s prima del logout per inattività
 │   │   └── Toast.jsx
 │   ├── layout/
-│   │   ├── TrainerShell.jsx     ← usa SOLO AppNav + NavMenuProvider (vedi sotto)
-│   │   ├── ContextNav.jsx       ← menu circolare contestuale ad-hoc (ClientDashboard, TrainerCalendar)
+│   │   ├── TrainerShell.jsx     ← usa SOLO AppNav
 │   │   └── trainer-shell/
 │   │       ├── AppNav.jsx           ← nav attuale: top bar desktop + bottom tab bar mobile con swipe
 │   │       └── navItems.config.jsx  ← NAV_ITEMS + ORG_ADMIN_NAV_ITEMS
 │   └── ui/
-│       ├── index.jsx        ← Card, Button, Badge, Modal, Field,
-│       │                       StatNumber, EmptyState, Skeleton,
-│       │                       ActivityLog, StatsSection, Divider
+│       ├── index.jsx        ← Card, SectionLabel, Badge, RankBadge, DayTabs,
+│       │                       Modal, Input, Textarea, Button, Divider, Field,
+│       │                       EmptyState, ActivityLog, StatsSection, StatCard,
+│       │                       XPBar (re-export da ./XPBar.jsx)
 │       ├── icons.jsx             ← icon registry condiviso: IconClose, IconChevronLeft,
 │       │                           IconDocument, IconPdf, IconDelete (tutte aria-hidden)
 │       ├── BadgeMedal.jsx        ← medaglia badge (cerchio + icona tier) per TrophiesSection
@@ -374,8 +384,6 @@ src/
 │   ├── TrainerContext.jsx   ← selectedClient, orgId, moduleType,
 │   │                           terminology, userRole, orgPlan
 │   ├── ReadonlyContext.jsx  ← readonly boolean
-│   ├── NavMenuContext.jsx   ← registro dei context menu per pagina (useRegisterContextMenu),
-│   │                           consumato da CircularNav.jsx (area admin)
 │   ├── ThemeContext.jsx     ← 5 temi dinamici client (Pentagon Nav + Theme System, giu 2026)
 │   └── ToastContext.jsx
 │
@@ -385,7 +393,7 @@ src/
 │
 ├── features/
 │   ├── admin/               ← area super_admin
-│   │   ├── AdminShell.jsx   ← sidebar con accent rosso; usa CircularNav (menu radiale) via NavMenuContext
+│   │   ├── AdminShell.jsx   ← sidebar con accent rosso (ADMIN_COLOR da config/app.config.js)
 │   │   ├── SuperAdminView.jsx
 │   │   └── admin-pages/
 │   │       ├── AdminDashboard.jsx  ← stat + piano breakdown + orgs recenti
@@ -430,7 +438,6 @@ src/
 │   │   ├── client-view/
 │   │   │   ├── ClientShell.jsx
 │   │   │   ├── ClientHub.jsx            ← hub pentagono client (Pentagon Nav, giu 2026)
-│   │   │   ├── ClientHUD.jsx
 │   │   │   ├── ClientBottomNav.jsx
 │   │   │   ├── ClientDashboardPage.jsx  ← vista client: stesso layout, ATLETA tab mobile
 │   │   │   ├── avatar/
@@ -460,9 +467,9 @@ src/
 │   │   └── org-pages/
 │   │       ├── OrgDashboard.jsx
 │   │       ├── MembersPage.jsx     ← limite piano: banner + blocco aggiungi
-│   │       ├── OrgSettingsPage.jsx ← select piano con limiti visibili; raggiunta solo dal
-│   │       │                         bottone "IMPOSTAZIONI" del banner limite in MembersPage,
-│   │       │                         nessuna voce di nav persistente
+│   │       ├── OrgSettingsPage.jsx ← mostra il piano corrente (sola lettura, non un <select>)
+│   │       │                         con i limiti; raggiunta solo dal bottone "IMPOSTAZIONI"
+│   │       │                         del banner limite in MembersPage, nessuna voce di nav persistente
 │   │       └── CreateMemberForm.jsx
 │   │
 │   └── trainer/             ← area trainer / staff_readonly
@@ -476,9 +483,7 @@ src/
 │       ├── TestGuidePage.jsx
 │       ├── ProfilePage.jsx        ← modifica email e password
 │       ├── clients-page/
-│       │   ├── ClientCard.jsx        ← badge categoria (PT) / ruolo+fascia (Soccer)
-│       │   ├── FiltersSidebar.jsx    ← filtro categoria/ruolo/fascia per moduleType
-│       │   └── MobileControls.jsx
+│       │   └── ClientCard.jsx        ← badge categoria (PT) / ruolo+fascia (Soccer)
 │       ├── workout-plans/
 │       │   └── WorkoutPlanForm.jsx   ← form multi-giorno creazione/modifica scheda
 │       ├── groups-page/
@@ -664,8 +669,8 @@ qualsiasi ramificazione condizionale.
 | Badge sul client card | categoria colorata        | ruolo colorato + badge "Piccoli" (giallo) se soccer_youth |
 | Filtro laterale       | per categoria            | per ruolo + FASCIA (se presenti entrambe) |
 
-Filtro FASCIA in `FiltersSidebar` appare **solo** quando ci sono allievi sia Senior
-che Piccoli (cioè `fasce.length > 1`). Gestito in `useClientFilters.js`.
+Filtro FASCIA nel pannello filtri inline di `ClientsPage.jsx` appare **solo** quando ci
+sono allievi sia Senior che Piccoli (cioè `fasce.length > 1`). Gestito in `useClientFilters.js`.
 
 ### NewClientView — differenze soccer vs PT
 | Campo                | personal_training         | soccer_academy               |
@@ -803,35 +808,59 @@ select.input-base option {
 ```
 
 ### Classi CSS globali
+**Verificate contro `src/index.css` (lug 2026)** — la lista precedente elencava classi
+(`.card`, `.card-interactive`, `.card-green`, `.btn`/`.btn-primary`/`.btn-ghost`,
+`.badge`/`.badge-green`, `.type-display/label/caption`, `.animate-fade-up`, `.stagger`,
+`.skeleton`, `.text-gradient`) che **non sono mai esistite** nel CSS reale — un caso
+(`.skeleton`, usata in `GroupSessionsPanel.jsx`/`GroupNotes.jsx`) ha causato un bug reale
+di placeholder di caricamento invisibili, fixato lug 2026. Le varianti di `Card`/`Button`/
+`Badge` in `components/ui/index.jsx` sono gestite via prop JS + style inline, non via classi.
 ```
-.card                → card base con elevation
-.card-interactive    → card cliccabile con hover
-.card-green          → card con accent verde
-.btn .btn-primary    → bottone gradiente
-.btn .btn-ghost      → bottone outline
-.badge .badge-green  → badge colorato
-.type-display        → numero grande 48px/900
-.type-label          → label 11px/700/uppercase
-.type-caption        → caption 10px/600/uppercase
-.animate-fade-up     → animazione entrata
-.stagger             → stagger animation sui figli
-.skeleton            → loading placeholder
-.text-gradient       → testo con gradiente logo
-.input-base          → input standard con focus verde
-.rx-hex-bg           → pattern esagonale decorativo (usato in BrandingPanel)
-.bg-hex              → alias pattern esagonale
+.rx-card                        → card base con elevation + hover glow
+.rx-btn-primary                 → bottone gradiente/outline verde
+.rx-badge                       → badge rank (font-display, 10px, tracking largo)
+.input-base (+ .input-compact)  → input standard con focus verde
+.rx-hex-bg / .bg-hex            → pattern esagonale decorativo (usato in BrandingPanel)
+.rx-grid-bg                     → griglia dati decorativa
+.rx-glow-text                   → testo con gradiente logo
+.rx-animate-in                  → animazione entrata (fade + translateY)
+.no-scrollbar                   → nasconde la scrollbar orizzontale
+.toast-in                       → animazione slide-in del Toast
+.skip-to-content                → link accessibilità "vai al contenuto"
 ```
 
 ### Token principali (CSS variables)
+Definiti in `src/index.css` (`:root`), sovrascritti per tema da `config/themes.config.js`:
 ```
---bg-base, --bg-surface, --bg-raised, --bg-overlay
---border-subtle, --border-default, --border-strong, --border-focus
---text-primary, --text-secondary, --text-tertiary
---green-400, --cyan-400, --gradient-primary
---shadow-md, --shadow-lg, --shadow-green, --shadow-cyan
---duration-fast, --duration-normal, --ease-standard, --ease-spring
---radius-sm, --radius-lg, --radius-xl, --radius-2xl
+--rx-bg, --rx-surface, --rx-surface-alt, --rx-card-bg, --rx-nav-bg
+--rx-accent, --rx-accent-bright, --rx-accent-dark, --rx-accent-glow
+--rx-accent-2, --rx-accent-2-glow
+--rx-text, --rx-text-muted, --rx-border
+--rx-gradient, --rx-gradient-accent, --rx-gradient-accent-2
 ```
+Le var `--bg-base/surface/raised/overlay`, `--border-subtle/default/strong/focus`,
+`--text-primary/secondary/tertiary`, `--green-400`/`--cyan-400`/`--gradient-primary`,
+`--shadow-md/lg/green/cyan`, `--duration-*`, `--ease-*`, `--radius-sm/lg/xl/2xl` **non
+esistono** nel CSS — sono la nomenclatura di `design/tokens.js`, il design system dichiarato
+ma mai importato da alcun componente (vedi "File critici" più sotto).
+
+**Naming `--rx-accent`/`--rx-accent-2` (rinominate da `--rx-green`/`--rx-cyan`, lug 2026):**
+i nomi sono deliberatamente neutri, non legati a un colore letterale — ogni tema in
+`themes.config.js` riassegna questi slot a hue completamente diverse (es. tema Carbon:
+`--rx-accent` = arancio, `--rx-accent-2` = rosso; tema Midnight: blu/indigo). Prima del
+rename si chiamavano `--rx-green`/`--rx-cyan`, e nel tema di default "rankex" i valori
+erano di fatto invertiti rispetto al nome (`--rx-green` conteneva il ciano del logo)
+perché il nome letterale non aveva mai davvero corrisposto al ruolo di "slot tema
+riassegnabile" che la variabile ricopre in tutti gli altri 6 temi.
+
+**`--rx-blue`/`--rx-metal`/`--rx-metal-dark` — rimosse (audit lug 2026, P3.16/P3.17):**
+a differenza di `--rx-green`/`--rx-cyan` pre-rename, queste tre erano definite in
+`index.css` e remappate nei 7 temi ma **zero componenti le consumavano** (confermato via
+grep, nessun `var(--rx-blue)` nel codice) — non uno slot-accent generico come `--rx-green`
+era, semplicemente codice morto. Rimosse da `:root`, `@theme` e tutti e 7 i temi in
+`themes.config.js`. Stessa sorte per le classi `.rx-text-green/cyan`, `.rx-glow-green/cyan`,
+`.rx-pulse-green/cyan` in `index.css` (e i relativi `@keyframes`) — anche queste mai
+referenziate da alcun `className` nel JSX, rimosse.
 
 ---
 

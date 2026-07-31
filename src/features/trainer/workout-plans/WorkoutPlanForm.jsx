@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { ConfirmDialog }         from '../../../components/common/ConfirmDialog'
+import { IconChevronLeft }       from '../../../components/ui/icons'
 
 const EMPTY_EXERCISE = { name: '', sets: '', reps: '', restSeconds: '', notes: '' }
 const MAX_DAYS = 7
@@ -35,7 +36,8 @@ function initDays(initialData) {
  *   onSubmit     — callback con { title, description, clientId, days }
  *   onBack       — callback annulla
  */
-export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBack }) {
+export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBack, terminology }) {
+  const clientLabel = terminology?.client ?? 'Cliente'
   const [title,        setTitle]        = useState(initialData?.title       ?? '')
   const [description,  setDescription]  = useState(initialData?.description ?? '')
   const [selClientId,  setSelClientId]  = useState(initialData?.clientId    ?? '')
@@ -100,7 +102,7 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
   const validate = () => {
     const e = {}
     if (!title.trim())                       e.title    = 'Il titolo è obbligatorio'
-    if (!clientId && !selClientId)           e.clientId = 'Seleziona un cliente'
+    if (!clientId && !selClientId)           e.clientId = `Seleziona un ${clientLabel.toLowerCase()}`
     if (days.every(d => d.exercises.every(ex => !ex.name.trim())))
       e.exercises = 'Aggiungi almeno un esercizio'
     setErrors(e)
@@ -145,7 +147,7 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
           onClick={onBack}
           className="flex items-center gap-1.5 text-white/30 font-body text-[13px] hover:text-white/60 transition-colors bg-transparent border-none cursor-pointer p-0"
         >
-          ‹ {clientId ? 'Cliente' : 'Schede'}
+          <IconChevronLeft size={12} /> {clientId ? clientLabel : 'Schede'}
         </button>
         <span className="font-display font-black text-[16px] text-white">
           {initialData ? 'Modifica scheda' : 'Nuova scheda'}
@@ -173,13 +175,13 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
           {/* Selettore cliente — solo se clientId non è pre-impostato */}
           {!clientId && clients?.length > 0 && (
             <div className="flex flex-col gap-1.5">
-              <label className="font-display text-[11px] tracking-[2px] text-white/40">CLIENTE *</label>
+              <label className="font-display text-[11px] tracking-[2px] text-white/40">{clientLabel.toUpperCase()} *</label>
               <select
                 value={selClientId}
                 onChange={e => setSelClientId(e.target.value)}
                 className="input-base"
               >
-                <option value="">Seleziona cliente…</option>
+                <option value="">Seleziona {clientLabel.toLowerCase()}…</option>
                 {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
               {errors.clientId && <span className="text-red-400 text-[11px]">{errors.clientId}</span>}
@@ -239,7 +241,7 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
               <button
                 onClick={addDay}
                 className="font-display text-[11px] bg-transparent border-none cursor-pointer px-1 transition-opacity hover:opacity-70"
-                style={{ color: 'var(--rx-green)' }}
+                style={{ color: 'var(--rx-accent)' }}
               >
                 + giorno
               </button>
@@ -256,7 +258,7 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
               <button
                 onClick={() => addExercise(activeDay)}
                 className="font-display text-[11px] bg-transparent border-none cursor-pointer transition-opacity hover:opacity-70"
-                style={{ color: 'var(--rx-green)' }}
+                style={{ color: 'var(--rx-accent)' }}
               >
                 + aggiungi
               </button>

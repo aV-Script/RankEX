@@ -1,17 +1,5 @@
 import { buildSessionUpdate } from '../../../utils/gamification'
-import { SLOT_STATUS } from '../../../constants/slotStatus'
-
-const STATUS_COLORS = {
-  [SLOT_STATUS.PLANNED]:   '#00c8ff',
-  [SLOT_STATUS.COMPLETED]: '#34d399',
-  [SLOT_STATUS.SKIPPED]:   '#6b7280',
-}
-
-const STATUS_LABELS = {
-  [SLOT_STATUS.PLANNED]:   'PIANIFICATA',
-  [SLOT_STATUS.COMPLETED]: 'COMPLETATA',
-  [SLOT_STATUS.SKIPPED]:   'SALTATA',
-}
+import { SLOT_STATUS, SLOT_STATUS_COLORS as STATUS_COLORS, SLOT_STATUS_LABELS as STATUS_LABELS } from '../../../constants/slotStatus'
 
 /**
  * Card singolo slot nella vista giornaliera.
@@ -41,7 +29,7 @@ export function SlotCard({ slot, clients, onClick }) {
           {slot.recurrenceId && (
             <span
               className="font-display text-[9px] px-2 py-0.5 rounded-[3px]"
-              style={{ background: 'color-mix(in srgb, var(--rx-cyan) 8%, transparent)', color: 'var(--rx-cyan)' }}
+              style={{ background: 'color-mix(in srgb, var(--rx-accent-2) 8%, transparent)', color: 'var(--rx-accent-2)' }}
             >
               ↺ RICORRENTE
             </span>

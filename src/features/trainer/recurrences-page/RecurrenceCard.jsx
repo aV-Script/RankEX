@@ -7,7 +7,7 @@ function dateFmt(str) {
 }
 
 const STATUS_COLORS = {
-  active:    'var(--rx-green)',
+  active:    'var(--rx-accent)',
   ended:     '#6b7280',
   cancelled: '#f87171',
 }
@@ -27,20 +27,7 @@ export function RecurrenceCard({ recurrence, clients, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="w-full text-left p-4 cursor-pointer border transition-all hover:opacity-90"
-      style={{
-        background:   'var(--rx-card-bg)',
-        borderColor:  'color-mix(in srgb, var(--rx-green) 12%, transparent)',
-        borderRadius: '4px',
-      }}
-      onMouseEnter={e => {
-        e.currentTarget.style.background   = 'color-mix(in srgb, var(--rx-green) 4%, transparent)'
-        e.currentTarget.style.borderColor  = 'color-mix(in srgb, var(--rx-green) 25%, transparent)'
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.background   = 'var(--rx-card-bg)'
-        e.currentTarget.style.borderColor  = 'color-mix(in srgb, var(--rx-green) 12%, transparent)'
-      }}
+      className="w-full text-left p-4 cursor-pointer transition-all rx-card"
     >
       <div className="flex items-start justify-between mb-3">
         {/* Giorni */}

@@ -31,21 +31,21 @@ export function CalendarHeader({ currentDate, view, onNavigate, onToday, onViewC
         <button
           onClick={() => onNavigate(-1)}
           aria-label="Periodo precedente"
-          className="w-8 h-8 rounded-[3px] flex items-center justify-center bg-transparent border border-[color-mix(in srgb, var(--rx-green) 15%, transparent)] text-white/40 hover:text-white/70 hover:border-[color-mix(in srgb, var(--rx-green) 35%, transparent)] transition-all cursor-pointer font-display text-[16px]"
+          className="w-8 h-8 rounded-[3px] flex items-center justify-center bg-transparent border border-[color-mix(in srgb, var(--rx-accent) 15%, transparent)] text-white/40 hover:text-white/70 hover:border-[color-mix(in srgb, var(--rx-accent) 35%, transparent)] transition-all cursor-pointer font-display text-[16px]"
         >
           ‹
         </button>
         <button
           onClick={onToday}
           aria-label="Vai a oggi"
-          className="px-2.5 py-1.5 rounded-[3px] font-display text-[11px] cursor-pointer border border-[color-mix(in srgb, var(--rx-green) 15%, transparent)] bg-transparent text-white/40 hover:text-white/70 transition-all"
+          className="px-2.5 py-1.5 rounded-[3px] font-display text-[11px] cursor-pointer border border-[color-mix(in srgb, var(--rx-accent) 15%, transparent)] bg-transparent text-white/40 hover:text-white/70 transition-all"
         >
           OGGI
         </button>
         <button
           onClick={() => onNavigate(1)}
           aria-label="Periodo successivo"
-          className="w-8 h-8 rounded-[3px] flex items-center justify-center bg-transparent border border-[color-mix(in srgb, var(--rx-green) 15%, transparent)] text-white/40 hover:text-white/70 hover:border-[color-mix(in srgb, var(--rx-green) 35%, transparent)] transition-all cursor-pointer font-display text-[16px]"
+          className="w-8 h-8 rounded-[3px] flex items-center justify-center bg-transparent border border-[color-mix(in srgb, var(--rx-accent) 15%, transparent)] text-white/40 hover:text-white/70 hover:border-[color-mix(in srgb, var(--rx-accent) 35%, transparent)] transition-all cursor-pointer font-display text-[16px]"
         >
           ›
         </button>
@@ -65,8 +65,8 @@ export function CalendarHeader({ currentDate, view, onNavigate, onToday, onViewC
                 aria-pressed={view === opt.id}
                 className="px-2.5 py-1.5 font-display text-[10px] tracking-[1.5px] cursor-pointer border-none transition-all"
                 style={{
-                  background: view === opt.id ? 'color-mix(in srgb, var(--rx-green) 15%, transparent)' : 'transparent',
-                  color:      view === opt.id ? 'var(--rx-green)' : 'rgba(200,212,224,0.35)',
+                  background: view === opt.id ? 'color-mix(in srgb, var(--rx-accent) 15%, transparent)' : 'transparent',
+                  color:      view === opt.id ? 'var(--rx-accent)' : 'rgba(200,212,224,0.35)',
                   borderRight: opt.id !== 'day' ? '1px solid rgba(255,255,255,0.06)' : 'none',
                 }}
               >
@@ -83,9 +83,9 @@ export function CalendarHeader({ currentDate, view, onNavigate, onToday, onViewC
             aria-label="Aggiungi sessione"
             className="px-3 py-1.5 rounded-[3px] font-display text-[10px] tracking-[1.5px] uppercase cursor-pointer transition-all border"
             style={{
-              background:   'color-mix(in srgb, var(--rx-green) 12%, transparent)',
-              borderColor:  'color-mix(in srgb, var(--rx-green) 30%, transparent)',
-              color:        'var(--rx-green)',
+              background:   'color-mix(in srgb, var(--rx-accent) 12%, transparent)',
+              borderColor:  'color-mix(in srgb, var(--rx-accent) 30%, transparent)',
+              color:        'var(--rx-accent)',
             }}
           >
             + Sessione

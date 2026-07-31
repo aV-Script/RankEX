@@ -1,3 +1,5 @@
+import { ProgressTrack } from '../../ui/XPBar'
+
 /**
  * Barra di progresso e titolo dello step corrente.
  */
@@ -10,12 +12,13 @@ export function WizardProgress({ step, totalSteps, title, progressPct }) {
           Step {step + 1} di {totalSteps}
         </span>
       </div>
-      <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
-        <div
-          className="h-full rounded-full transition-[width] duration-300"
-          style={{ width: `${progressPct}%`, background: 'var(--rx-gradient)' }}
-        />
-      </div>
+      <ProgressTrack
+        pct={progressPct}
+        color="var(--rx-gradient)"
+        trackColor="rgba(255,255,255,0.06)"
+        height="h-1"
+        duration="duration-300"
+      />
     </div>
   )
 }

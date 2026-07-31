@@ -3,6 +3,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip,
          ResponsiveContainer, CartesianGrid }          from 'recharts'
 import { SectionLabel }                                from '../../../components/ui'
 import { BIA_PARAMS }                                  from '../../../constants/bia'
+import { CHART_TICK_STYLE, chartTooltipStyle, lineCursor } from '../../../utils/chartTheme'
 
 /**
  * Grafico andamento storico BIA.
@@ -57,30 +58,23 @@ export function BiaHistoryChart({ biaHistory, color }) {
       {/* Grafico */}
       <div className="h-40">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
+          <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 0, left: -20 }} accessibilityLayer>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
             <XAxis
               dataKey="name"
-              tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'Inter' }}
+              tick={CHART_TICK_STYLE}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
-              tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'Inter' }}
+              tick={CHART_TICK_STYLE}
               axisLine={false}
               tickLine={false}
             />
             <Tooltip
+              cursor={lineCursor(color)}
               formatter={(v) => [`${v} ${param?.unit ?? ''}`, param?.label]}
-              contentStyle={{
-                background:   'var(--rx-surface)',
-                border:       '1px solid var(--rx-border)',
-                borderRadius: 4,
-                fontFamily:   'Inter',
-                fontSize:     12,
-              }}
-              labelStyle={{ color: 'rgba(255,255,255,0.4)', fontWeight: 400 }}
-              itemStyle={{ color, fontWeight: 400 }}
+              {...chartTooltipStyle(color)}
             />
             <Line
               type="monotone"

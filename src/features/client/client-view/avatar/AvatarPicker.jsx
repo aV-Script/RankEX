@@ -48,7 +48,7 @@ export function AvatarPicker({ client, clientId, orgId, color }) {
   return (
     <div className="flex flex-col items-center gap-6 p-6" style={{ minHeight: 'calc(100svh - 80px)' }}>
       <AvatarDisplay avatarId={avatarId} orgId={orgId} width={200} height={200}
-        style={{ borderRadius: 16, border: '1px solid var(--rx-border)' }} />
+        style={{ borderRadius: 8, border: '1px solid var(--rx-border)' }} />
 
       <div className="grid grid-cols-3 gap-3 w-full max-w-md">
         {avatars.map(a => {
@@ -58,9 +58,9 @@ export function AvatarPicker({ client, clientId, orgId, color }) {
               key={a.id}
               onClick={() => setAvatarId(a.id)}
               aria-pressed={active}
-              className="flex flex-col items-center overflow-hidden cursor-pointer rounded-[5px]"
+              className="flex flex-col items-center overflow-hidden cursor-pointer rounded-[4px]"
               style={{
-                background: active ? color + '12' : 'color-mix(in srgb, var(--rx-green) 4%, transparent)',
+                background: active ? color + '12' : 'color-mix(in srgb, var(--rx-accent) 4%, transparent)',
                 border:     active ? `2px solid ${color}` : '2px solid var(--rx-border)',
                 transition: 'all 0.15s ease',
               }}

@@ -1,4 +1,20 @@
 /**
+ * Traccia+riempimento di una barra di progresso — molecola condivisa tra
+ * XPBar (sotto) e WizardProgress (wizard nuovo cliente), che prima
+ * reimplementava lo stesso markup con altezza/colore/durata diversi.
+ */
+export function ProgressTrack({ pct, color, trackColor, height = 'h-3', duration = 'duration-1000' }) {
+  return (
+    <div className={`${height} rounded-full overflow-hidden`} style={{ background: trackColor ?? `color-mix(in srgb, ${color} 10%, transparent)` }}>
+      <div
+        className={`h-full rounded-full transition-[width] ${duration}`}
+        style={{ width: `${pct}%`, background: color }}
+      />
+    </div>
+  )
+}
+
+/**
  * Barra XP riusabile.
  * Usata in ClientView, DashboardHeader, CampionamentoView.
  *
@@ -17,15 +33,10 @@ export function XPBar({ xp, xpNext, color, size = 'lg', fullWidth = false }) {
       <div className="flex justify-between mb-1.5">
         <span className="font-display text-[11px] text-white/30 tracking-[0.2em]">EXP</span>
         <span className="font-display text-[12px] font-semibold" style={{ color }}>
-          {xp.toLocaleString()} / {xpNext.toLocaleString()}
+          {xp.toLocaleString('it-IT')} / {xpNext.toLocaleString('it-IT')}
         </span>
       </div>
-      <div className={`${height} rounded-full overflow-hidden`} style={{ background: `color-mix(in srgb, ${color} 10%, transparent)` }}>
-        <div
-          className="h-full rounded-full transition-[width] duration-1000"
-          style={{ width: `${pct}%`, background: color }}
-        />
-      </div>
+      <ProgressTrack pct={pct} color={color} height={height} />
     </div>
   )
 }

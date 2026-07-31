@@ -8,12 +8,13 @@ import { LoadingScreen }    from '../../components/common/LoadingScreen'
 import { useTrainerNav }    from './useTrainerNav'
 import { useClients }       from '../../hooks/useClients'
 import { PAGES }            from './trainer.config'
+import { getTerminology }   from '../../config/modules.config'
 
-export default function TrainerView({ user, profile, org }) {
+export default function TrainerView({ user, profile, org, terminology }) {
   const orgId      = profile?.orgId ?? user.uid
   const moduleType = org?.moduleType ?? 'personal_training'
-  const terminology = org
-    ? { trainer: 'Trainer', client: 'Cliente', clients: 'Clienti', group: 'Gruppo', groups: 'Gruppi', session: 'Sessione', sessions: 'Sessioni' }
+  const resolvedTerminology = org
+    ? (terminology ?? getTerminology(moduleType, org?.terminologyVariant))
     : undefined
   const userRole   = profile?.role ?? 'trainer'
   const readonly   = userRole === 'staff_readonly'
@@ -22,7 +23,7 @@ export default function TrainerView({ user, profile, org }) {
     <TrainerProvider
       orgId={orgId}
       moduleType={moduleType}
-      terminology={terminology}
+      terminology={resolvedTerminology}
       userRole={userRole}
       orgPlan={org?.plan ?? 'free'}
     >

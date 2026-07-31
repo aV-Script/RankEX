@@ -7,13 +7,8 @@ import {
   heatColor, buildHeatmap, buildGroupSummary,
   buildTrendStatOptions, buildTrendChartData,
 } from '../../../utils/groupAnalysis'
-import { EmptyState } from '../../../components/ui'
-
-const ICON_ANALYSIS = (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
-  </svg>
-)
+import { CHART_TICK_STYLE, chartTooltipStyle, lineCursor } from '../../../utils/chartTheme'
+import { SectionLabel } from '../../../components/ui'
 
 export function GroupAnalysis({ clients }) {
 
@@ -23,22 +18,12 @@ export function GroupAnalysis({ clients }) {
   // ── Riepilogo ────────────────────────────────────────────────────────────────
   const summary = useMemo(() => buildGroupSummary(clients), [clients])
 
-  if (clients.length === 0) {
-    return (
-      <EmptyState
-        icon={ICON_ANALYSIS}
-        title="Nessun atleta nel gruppo"
-        description="Aggiungi atleti al gruppo per vedere heatmap e trend."
-      />
-    )
-  }
-
   return (
     <div className="flex flex-col gap-4">
 
       {/* Riga 1 — Riepilogo gruppo (full width) */}
       <div className="rounded-[4px] p-5 rx-card">
-        <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-5" style={{ color: 'var(--rx-green)' }}>◈ Riepilogo gruppo</div>
+        <SectionLabel className="mb-5">◈ Riepilogo gruppo</SectionLabel>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
           <StatTile label="ATLETI"      value={clients.length}             />
           {summary.avgLevel    != null && <StatTile label="LV. MEDIO"     value={`Lv.${summary.avgLevel}`}     />}
@@ -53,7 +38,7 @@ export function GroupAnalysis({ clients }) {
 
       {/* Riga 3 — Heatmap full width */}
       <div className="rounded-[4px] p-5 rx-card">
-          <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-5" style={{ color: 'var(--rx-green)' }}>◈ Heatmap gruppo</div>
+          <SectionLabel className="mb-5">◈ Heatmap gruppo</SectionLabel>
           {statCols.length > 0 ? (
             <div
               className="rounded-[3px] p-4 overflow-x-auto"
@@ -131,9 +116,9 @@ export function GroupAnalysis({ clients }) {
 // ── Componenti locali ──────────────────────────────────────────────────────────
 
 const STAT_TILE_VARIANTS = {
-  gold:     { color: '#ffd700',               bg: 'rgba(255,215,0,0.06)',      bd: 'rgba(255,215,0,0.18)'      },
-  positive: { color: 'var(--rx-green)',               bg: 'color-mix(in srgb, var(--rx-green) 6%, transparent)',      bd: 'color-mix(in srgb, var(--rx-green) 18%, transparent)'      },
-  negative: { color: '#f87171',               bg: 'rgba(248,113,113,0.06)',    bd: 'rgba(248,113,113,0.18)'    },
+  gold:     { color: 'var(--rx-gold)',         bg: 'color-mix(in srgb, var(--rx-gold) 6%, transparent)',      bd: 'color-mix(in srgb, var(--rx-gold) 18%, transparent)'      },
+  positive: { color: 'var(--rx-accent)',       bg: 'color-mix(in srgb, var(--rx-accent) 6%, transparent)',    bd: 'color-mix(in srgb, var(--rx-accent) 18%, transparent)'    },
+  negative: { color: 'var(--rx-danger)',       bg: 'color-mix(in srgb, var(--rx-danger) 6%, transparent)',    bd: 'color-mix(in srgb, var(--rx-danger) 18%, transparent)'    },
   default:  { color: 'rgba(255,255,255,0.75)', bg: 'rgba(255,255,255,0.03)',   bd: 'rgba(255,255,255,0.06)'    },
 }
 
@@ -145,7 +130,7 @@ function StatTile({ label, value, sub, gold, positive, negative }) {
     <div className="px-3 py-3 rounded-[3px] flex flex-col gap-1.5" style={{ background: bg, border: `1px solid ${bd}` }}>
       <span className="font-display text-[10px] font-semibold tracking-[1.5px]" style={{ color: 'rgba(255,255,255,0.28)' }}>{label}</span>
       <span className="font-display font-black text-[15px] leading-tight truncate" style={{ color }}>{value}</span>
-      {sub && <span className="font-display text-[11px]" style={{ color: color + 'aa' }}>{sub}</span>}
+      {sub && <span className="font-display text-[11px]" style={{ color: `color-mix(in srgb, ${color} 67%, transparent)` }}>{sub}</span>}
     </div>
   )
 }
@@ -161,7 +146,7 @@ function GroupTrendChart({ clients }) {
 
   return (
     <div className="rounded-[4px] p-5 rx-card">
-      <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-4" style={{ color: 'var(--rx-green)' }}>◈ Andamento nel tempo</div>
+      <SectionLabel className="mb-4">◈ Andamento nel tempo</SectionLabel>
 
       <div className="flex gap-1.5 flex-wrap mb-4">
         {statOptions.map(opt => (
@@ -178,11 +163,11 @@ function GroupTrendChart({ clients }) {
       ) : (
         <div className="h-44">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 5, right: 8, bottom: 16, left: -20 }}>
+            <LineChart data={chartData} margin={{ top: 5, right: 8, bottom: 16, left: -20 }} accessibilityLayer>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
               <XAxis
                 dataKey="date"
-                tick={{ fill: 'rgba(255,255,255,0.28)', fontSize: 10, fontFamily: 'Inter' }}
+                tick={CHART_TICK_STYLE}
                 axisLine={false}
                 tickLine={false}
                 interval="preserveStartEnd"
@@ -192,33 +177,26 @@ function GroupTrendChart({ clients }) {
               />
               <YAxis
                 domain={[0, 100]}
-                tick={{ fill: 'rgba(255,255,255,0.28)', fontSize: 10, fontFamily: 'Inter' }}
+                tick={CHART_TICK_STYLE}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={v => `${v}°`}
               />
               <Tooltip
+                cursor={lineCursor('var(--rx-accent)')}
                 formatter={(v, _name, { payload }) => [
                   `${v}° · ${payload?.n ?? 1} atleti`,
                   statOptions.find(o => o.key === selected)?.label ?? selected,
                 ]}
-                contentStyle={{
-                  background:   'var(--rx-surface)',
-                  border:       '1px solid var(--rx-border)',
-                  borderRadius: 4,
-                  fontFamily:   'Inter',
-                  fontSize:     12,
-                }}
-                labelStyle={{ color: 'rgba(255,255,255,0.4)', fontWeight: 400 }}
-                itemStyle={{ color: 'var(--rx-green)', fontWeight: 400 }}
+                {...chartTooltipStyle('var(--rx-accent)')}
               />
               <Line
                 type="monotone"
                 dataKey="valore"
-                stroke="var(--rx-green)"
+                stroke="var(--rx-accent)"
                 strokeWidth={2}
-                dot={{ fill: 'var(--rx-green)', r: 3 }}
-                activeDot={{ fill: 'var(--rx-green)', r: 5 }}
+                dot={{ fill: 'var(--rx-accent)', r: 3 }}
+                activeDot={{ fill: 'var(--rx-accent)', r: 5 }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -234,7 +212,7 @@ function TrendPill({ active, onClick, children }) {
       onClick={onClick}
       className="px-3 py-1 rounded-[3px] font-display text-[11px] border cursor-pointer transition-all"
       style={active
-        ? { background: 'color-mix(in srgb, var(--rx-green) 12%, transparent)', borderColor: 'color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)' }
+        ? { background: 'color-mix(in srgb, var(--rx-accent) 12%, transparent)', borderColor: 'color-mix(in srgb, var(--rx-accent) 35%, transparent)', color: 'var(--rx-accent)' }
         : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.28)' }
       }
     >

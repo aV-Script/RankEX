@@ -33,7 +33,7 @@ export function ThemePicker() {
           <button
             key={t.id}
             onClick={() => setTheme(t.id)}
-            className="flex items-center gap-3 cursor-pointer rounded-lg transition-all text-left w-full"
+            className="flex items-center gap-3 cursor-pointer rounded-[3px] transition-all text-left w-full"
             style={{
               padding:    '9px 12px',
               background: active ? t.swatches[0] + '14' : 'transparent',

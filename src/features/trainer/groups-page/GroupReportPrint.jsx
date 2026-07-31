@@ -1,41 +1,12 @@
-import { useEffect, createContext, useContext } from 'react'
 import { createPortal }                        from 'react-dom'
 import { ALL_TESTS, getRankFromMedia }          from '../../../constants/index'
 import { Pentagon }                            from '../../../components/ui/Pentagon'
-
-// ── Palette ────────────────────────────────────────────────────────────────────
-
-const PCtx = createContext(null)
-const useP  = () => useContext(PCtx)
-
-const PALETTE = {
-  dark: {
-    BG:      '#07090e',
-    SURFACE: '#0c1219',
-    RAISED:  '#0f1820',
-    BORDER:  '#1e293b',
-    PRI:     '#f1f5f9',
-    SEC:     '#94a3b8',
-    TER:     '#475569',
-    GREEN:   '#0ec452',
-    DANGER:  '#ef4444',
-    TRACK:   '#1e293b',
-    MARKER:  'rgba(255,255,255,0.45)',
-  },
-  bw: {
-    BG:      '#ffffff',
-    SURFACE: '#f5f7fa',
-    RAISED:  '#eaedf1',
-    BORDER:  '#d0d5dd',
-    PRI:     '#0f1117',
-    SEC:     '#444c5c',
-    TER:     '#7a8394',
-    GREEN:   '#1a202c',
-    DANGER:  '#6b7280',
-    TRACK:   '#d0d5dd',
-    MARKER:  'rgba(0,0,0,0.25)',
-  },
-}
+import { useTrainerState }                     from '../../../context/TrainerContext'
+import { getModule }                           from '../../../config/modules.config'
+import {
+  PALETTE, usePrintTheme, PrintThemeProvider, usePrintDocument,
+  DarkModeWarning, DeltaBadge, SectionTitle, Th, CircularGauge,
+} from '../../../components/common/reportPrintKit'
 
 // Podium: oro / argento / bronzo → in B&W scale di grigi
 const PODIUM_DARK = ['#f59e0b', '#94a3b8', '#b45309']
@@ -44,42 +15,16 @@ const PODIUM_BW   = ['#111111', '#444444', '#777777']
 // ── Componente principale ──────────────────────────────────────────────────────
 
 export function GroupReportPrint({ group, clients, mode = 'dark', onClose }) {
+  const { moduleType, terminology } = useTrainerState()
+  const isSoccer = getModule(moduleType).isSoccer
+
   const p = { ...(PALETTE[mode] ?? PALETTE.dark), mode }
   const { BG, SURFACE, RAISED, BORDER, PRI, SEC, TER, GREEN, TRACK } = p
   const PODIUM = mode === 'bw' ? PODIUM_BW : PODIUM_DARK
 
   const today = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' })
 
-  useEffect(() => {
-    const style = document.createElement('style')
-    style.id = 'rankex-print-style'
-    style.textContent = `
-      @media print {
-        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        html, body { background: ${BG} !important; margin: 0 !important; padding: 0 !important; }
-        body > *:not(#rankex-print-root) { display: none !important; }
-        #rankex-print-root {
-          position: static !important;
-          display: block !important;
-          width: 100% !important;
-          min-height: 297mm !important;
-          overflow: visible !important;
-          background: ${BG} !important;
-        }
-        #rankex-print-controls { display: none !important; }
-        tr { break-inside: avoid; }
-        @page { margin: 0; size: A4 portrait; }
-      }
-    `
-    document.head.appendChild(style)
-    const timer = setTimeout(() => window.print(), 350)
-    window.addEventListener('afterprint', onClose)
-    return () => {
-      clearTimeout(timer)
-      window.removeEventListener('afterprint', onClose)
-      document.getElementById('rankex-print-style')?.remove()
-    }
-  }, [onClose, BG])
+  usePrintDocument(BG, onClose)
 
   // Classifica
   const sorted = [...clients]
@@ -119,14 +64,17 @@ export function GroupReportPrint({ group, clients, mode = 'dark', onClose }) {
   const hasPentagon = statKeys.length >= 3
 
   return createPortal(
-    <PCtx.Provider value={p}>
+    <PrintThemeProvider value={p}>
     <div id="rankex-print-root" style={{ background: BG, position: 'fixed', inset: 0, zIndex: 9999, overflow: 'auto' }}>
 
       {/* Barra controlli */}
       <div id="rankex-print-controls" style={{ background: SURFACE, borderBottom: `1px solid ${BORDER}`, padding: '10px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
-        <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 10, letterSpacing: 3, color: SEC, fontWeight: 700 }}>
-          ANTEPRIMA PDF — REPORT GRUPPO
-        </span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 10, letterSpacing: 3, color: SEC, fontWeight: 700 }}>
+            ANTEPRIMA PDF — REPORT {terminology.group.toUpperCase()}
+          </span>
+          {mode === 'dark' && <DarkModeWarning />}
+        </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button
             onClick={() => window.print()}
@@ -153,11 +101,11 @@ export function GroupReportPrint({ group, clients, mode = 'dark', onClose }) {
               RANK<span style={{ color: GREEN }}>EX</span>
             </div>
             <div style={{ fontSize: 8, letterSpacing: 3, color: TER, marginTop: 3, fontFamily: 'Montserrat, sans-serif', fontWeight: 600 }}>
-              PERFORMANCE PLATFORM
+              {isSoccer ? 'YOUTH SOCCER PROJECT' : 'PERFORMANCE PLATFORM'}
             </div>
           </div>
           <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 700, fontSize: 12, letterSpacing: 6, color: PRI, textTransform: 'uppercase' }}>
-            Report Gruppo
+            Report {terminology.group}
           </div>
           <div style={{ textAlign: 'right', fontSize: 11, color: SEC }}>{today}</div>
         </div>
@@ -172,13 +120,13 @@ export function GroupReportPrint({ group, clients, mode = 'dark', onClose }) {
                   {group.name}
                 </div>
                 <div style={{ fontSize: 11, color: SEC }}>
-                  {clients.length} {clients.length === 1 ? 'atleta' : 'atleti'}
+                  {clients.length} {clients.length === 1 ? terminology.client.toLowerCase() : terminology.clients.toLowerCase()}
                   {noData.length > 0 && ` · ${noData.length} senza campionamento`}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0 }}>
-                <StatPill label="ATLETI"       value={clients.length} />
-                {avgMedia != null && <StatPill label="MEDIA GRUPPO" value={`${avgMedia}°`} color={avgColor} />}
+                <StatPill label={terminology.clients.toUpperCase()} value={clients.length} />
+                {avgMedia != null && <StatPill label={`MEDIA ${terminology.group.toUpperCase()}`} value={`${avgMedia}°`} color={avgColor} />}
                 {champions.length > 0 && <StatPill label="DISCIPLINE" value={champions.length} />}
                 {avgMedia != null && (
                   <CircularGauge value={avgMedia} color={avgColor} sublabel={mode === 'bw' ? (avgRank?.label ?? '') : (avgRank?.label ?? '')} />
@@ -189,11 +137,11 @@ export function GroupReportPrint({ group, clients, mode = 'dark', onClose }) {
 
           {/* ── RIGA CENTRALE: Pentagon + Campioni ─────────────────────── */}
           {hasPentagon && sorted.length > 0 && (
-            <div style={{ display: 'grid', gridTemplateColumns: '52fr 48fr', gap: 12, marginBottom: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '52fr 48fr', gap: 12, marginBottom: 14, pageBreakInside: 'avoid' }}>
 
               {/* Sinistra: Pentagon centrato + stat bars sotto */}
               <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '16px 20px', display: 'flex', flexDirection: 'column', pageBreakInside: 'avoid' }}>
-                <SectionTitle>Profilo Medio Gruppo</SectionTitle>
+                <SectionTitle>Profilo Medio {terminology.group}</SectionTitle>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 10 }}>
                   <div style={{ display: 'flex', justifyContent: 'center' }}>
                     <Pentagon
@@ -254,7 +202,7 @@ export function GroupReportPrint({ group, clients, mode = 'dark', onClose }) {
                 <thead>
                   <tr>
                     <Th style={{ width: 24 }}>#</Th>
-                    <Th>Atleta</Th>
+                    <Th>{terminology.client}</Th>
                     <Th right>Rank</Th>
                     <Th right>Lv.</Th>
                     <Th right>Media</Th>
@@ -344,75 +292,19 @@ export function GroupReportPrint({ group, clients, mode = 'dark', onClose }) {
         </div>
       </div>
     </div>
-    </PCtx.Provider>,
+    </PrintThemeProvider>,
     document.body
   )
 }
 
-// ── SVG ────────────────────────────────────────────────────────────────────────
-
-function CircularGauge({ value, color, sublabel }) {
-  const { PRI, SEC, BORDER } = useP()
-  const r = 32, cx = 48, cy = 48
-  const circumference = 2 * Math.PI * r
-  const dash = Math.min(1, value / 100) * circumference
-  return (
-    <svg width="96" height="96" viewBox="0 0 96 96">
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke={BORDER} strokeWidth="8" />
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth="8"
-        strokeDasharray={`${dash} ${circumference}`}
-        strokeLinecap="round"
-        transform={`rotate(-90 ${cx} ${cy})`}
-      />
-      <text x={cx} y={cy - 3} textAnchor="middle" fill={PRI} fontSize="18" fontWeight="900" fontFamily="Montserrat">{value}°</text>
-      <text x={cx} y={cy + 12} textAnchor="middle" fill={SEC} fontSize="7" fontFamily="Montserrat" fontWeight="700" letterSpacing="1">{sublabel}</text>
-    </svg>
-  )
-}
-
-// ── UI micro-components ────────────────────────────────────────────────────────
-
-function DeltaBadge({ delta, compact }) {
-  const { SEC, GREEN, DANGER } = useP()
-  if (delta === null || delta === undefined) return null
-  if (delta === 0) return (
-    <span style={{ fontSize: compact ? 9 : 10, fontFamily: 'Montserrat, sans-serif', fontWeight: 700, color: SEC }}>—</span>
-  )
-  const positive = delta > 0
-  const c = positive ? GREEN : DANGER
-  return (
-    <span style={{
-      fontSize: compact ? 9 : 10,
-      fontFamily: 'Montserrat, sans-serif', fontWeight: 800,
-      color: c,
-      background: c + '1a',
-      border: `1px solid ${c}44`,
-      borderRadius: 3,
-      padding: compact ? '1px 4px' : '2px 7px',
-      whiteSpace: 'nowrap',
-    }}>
-      {positive ? '↑' : '↓'} {positive ? `+${delta}°` : `${delta}°`}
-    </span>
-  )
-}
-
-function SectionTitle({ children }) {
-  const { GREEN, SEC } = useP()
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-      <div style={{ width: 2.5, height: 12, borderRadius: 2, background: GREEN, flexShrink: 0 }} />
-      <span style={{ fontSize: 8, letterSpacing: 3, textTransform: 'uppercase', fontWeight: 800, color: SEC, fontFamily: 'Montserrat, sans-serif' }}>
-        {children}
-      </span>
-    </div>
-  )
-}
+// ── UI micro-components specifici del report gruppo ──────────────────────────
+// (CircularGauge, SectionTitle, Th, DeltaBadge sono condivisi — vedi reportPrintKit.jsx)
 
 function StatPill({ label, value, color }) {
-  const { RAISED, BORDER, SEC, PRI } = useP()
+  const { RAISED, BORDER, SEC, PRI } = usePrintTheme()
   const c = color ?? null
   return (
-    <div style={{ textAlign: 'center', background: c ? c + '14' : RAISED, border: `1px solid ${c ? c + '44' : BORDER}`, borderRadius: 4, padding: '7px 12px', minWidth: 60 }}>
+    <div style={{ textAlign: 'center', background: c ? `color-mix(in srgb, ${c} 8%, transparent)` : RAISED, border: `1px solid ${c ? `color-mix(in srgb, ${c} 27%, transparent)` : BORDER}`, borderRadius: 4, padding: '7px 12px', minWidth: 60 }}>
       <div style={{ fontSize: 8, letterSpacing: 2, color: c ?? SEC, fontFamily: 'Montserrat, sans-serif', fontWeight: 700, textTransform: 'uppercase', marginBottom: 3 }}>
         {label}
       </div>
@@ -420,14 +312,5 @@ function StatPill({ label, value, color }) {
         {value}
       </div>
     </div>
-  )
-}
-
-function Th({ children, right, style: extraStyle }) {
-  const { TER, BORDER } = useP()
-  return (
-    <th style={{ textAlign: right ? 'right' : 'left', padding: '6px 8px', color: TER, fontWeight: 700, fontSize: 8, letterSpacing: 1.5, fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase', borderBottom: `1px solid ${BORDER}`, ...extraStyle }}>
-      {children}
-    </th>
   )
 }

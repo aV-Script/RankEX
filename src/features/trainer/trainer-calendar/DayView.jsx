@@ -1,5 +1,6 @@
 import { useRef, useEffect }                        from 'react'
 import { HOUR_HEIGHT_PX as HOUR_H,
+         MIN_EVENT_HEIGHT_PX,
          computeSlotLayout }                        from '../../../utils/calendarUtils'
 import { EventBlock }                              from './EventBlock'
 
@@ -105,7 +106,7 @@ export function DayView({ currentDate, slots, clients, today, onSlotClick, onEmp
             {/* Slot */}
             {daySlots.map(slot => {
               const top    = timeToY(slot.startTime)
-              const height = Math.max(40, timeToY(slot.endTime) - top)
+              const height = Math.max(MIN_EVENT_HEIGHT_PX, timeToY(slot.endTime) - top)
               const { col, totalCols } = layout[slot.id] ?? { col: 0, totalCols: 1 }
               const left  = `calc(${(col / totalCols) * 100}% + 4px)`
               const width = `calc(${(1 / totalCols) * 100}% - 8px)`

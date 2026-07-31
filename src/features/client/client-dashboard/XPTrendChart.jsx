@@ -3,12 +3,20 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid,
 } from 'recharts'
+import { EmptyState, SegmentedToggle } from '../../../components/ui'
+import { CHART_GRID_STROKE, CHART_TICK_STYLE, chartTooltipStyle, BAR_CURSOR } from '../../../utils/chartTheme'
 
 const BUCKETS = [
   { id: 'giorno',    label: 'Giorno' },
   { id: 'settimana', label: 'Settimana' },
   { id: 'mese',      label: 'Mese' },
 ]
+
+const ICON_TREND = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+  </svg>
+)
 
 function getMondayKey(ts) {
   const d = new Date(ts)
@@ -67,56 +75,49 @@ export function XPTrendChart({ log = [], color }) {
         </div>
         <div className="flex gap-1">
           {BUCKETS.map(b => (
-            <button
+            <SegmentedToggle
               key={b.id}
+              active={bucket === b.id}
               onClick={() => setBucket(b.id)}
-              className="px-2.5 py-1 rounded-[3px] font-display text-[10px] border cursor-pointer transition-all"
-              style={bucket === b.id
-                ? { background: color + '33', borderColor: color + '55', color }
-                : { background: 'transparent', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.3)' }
-              }
+              color={color}
+              className="px-2.5 py-1 rounded-[3px] text-[10px]"
             >
               {b.label}
-            </button>
+            </SegmentedToggle>
           ))}
         </div>
       </div>
 
       {!hasTimestamped || chartData.length === 0 ? (
-        <p className="text-white/60 font-body text-[13px] text-center py-6">
-          {!hasTimestamped
+        <EmptyState
+          color={color}
+          icon={ICON_TREND}
+          title={!hasTimestamped ? 'In arrivo' : 'Nessun dato'}
+          description={!hasTimestamped
             ? 'Il grafico si riempirà con le prossime attività.'
             : 'Nessun dato per il periodo selezionato.'}
-        </p>
+        />
       ) : (
         <div className="h-48">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} barCategoryGap="30%" margin={{ top: 5, right: 5, bottom: 0, left: -20 }} accessibilityLayer>
-              <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
+              <CartesianGrid stroke={CHART_GRID_STROKE} vertical={false} />
               <XAxis
                 dataKey="label"
-                tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'Inter' }}
+                tick={CHART_TICK_STYLE}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 allowDecimals={false}
-                tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'Inter' }}
+                tick={CHART_TICK_STYLE}
                 axisLine={false}
                 tickLine={false}
               />
               <Tooltip
-                cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                cursor={BAR_CURSOR}
                 formatter={(v) => [`+${v}`, 'XP']}
-                contentStyle={{
-                  background:   'var(--rx-surface)',
-                  border:       '1px solid var(--rx-border)',
-                  borderRadius: 4,
-                  fontFamily:   'Inter',
-                  fontSize:     12,
-                }}
-                labelStyle={{ color: 'rgba(255,255,255,0.4)', fontWeight: 400 }}
-                itemStyle={{ color, fontWeight: 400 }}
+                {...chartTooltipStyle(color)}
               />
               <Bar dataKey="xp" fill={color} radius={[4, 4, 0, 0]} maxBarSize={22} />
             </BarChart>

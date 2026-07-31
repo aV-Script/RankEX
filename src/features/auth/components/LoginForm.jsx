@@ -1,5 +1,6 @@
 import { useState }      from 'react'
-import { FormField, ErrorBox, SubmitButton } from './primitives'
+import { ErrorBox } from './primitives'
+import { Field, Button } from '../../../components/ui'
 
 const ICON_EYE = (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -28,7 +29,7 @@ export function LoginForm({ form }) {
       </div>
 
       <form onSubmit={handleLogin} className="flex flex-col gap-3.5" noValidate>
-        <FormField label="Email" htmlFor="login-email">
+        <Field label="Email" htmlFor="login-email">
           <input
             id="login-email"
             type="email"
@@ -38,9 +39,9 @@ export function LoginForm({ form }) {
             onChange={e => setEmail(e.target.value)}
             autoFocus
           />
-        </FormField>
+        </Field>
 
-        <FormField label="Password" htmlFor="login-password">
+        <Field label="Password" htmlFor="login-password">
           <div style={{ position: 'relative' }}>
             <input
               id="login-password"
@@ -64,11 +65,11 @@ export function LoginForm({ form }) {
               {showPassword ? ICON_EYE_OFF : ICON_EYE}
             </button>
           </div>
-        </FormField>
+        </Field>
 
         {error && <ErrorBox>{error}</ErrorBox>}
 
-        <SubmitButton loading={loading}>ACCEDI</SubmitButton>
+        <Button type="submit" variant="primary" loading={loading}>ACCEDI</Button>
       </form>
 
       <div className="mt-5 text-center">

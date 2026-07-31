@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { updateOrganization }    from '../../../firebase/services/org'
 import { useToast }              from '../../../hooks/useToast'
 import { getPlanLimits }         from '../../../config/plans.config'
-import { Button }                from '../../../components/ui'
+import { Button, PageTitle }     from '../../../components/ui'
 
 const MODULE_LABELS = {
   personal_training: 'Personal Training',
@@ -31,7 +31,7 @@ export function OrgSettingsPage({ org, orgId }) {
 
   return (
     <div className="px-6 py-8 text-white max-w-lg">
-      <h1 className="font-display font-black text-[20px] mb-8">Impostazioni</h1>
+      <PageTitle className="mb-8">Impostazioni</PageTitle>
 
       <div className="flex flex-col gap-5">
         <div>

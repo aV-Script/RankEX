@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo } from 'react'
 import { httpsCallable }                from 'firebase/functions'
 import { getOrganizations }             from '../../../firebase/services/org'
 import { functions }                    from '../../../firebase/config'
+import { ADMIN_COLOR }                  from '../../../config/app.config'
+import { StatCard }                     from '../../../components/ui'
 
 const _recalcola = httpsCallable(functions, 'recalcolaCampionamenti')
 
@@ -11,7 +13,7 @@ const MODULE_LABELS = {
 }
 
 const STATUS_COLORS = {
-  active:    'var(--rx-green)',
+  active:    'var(--rx-accent)',
   inactive:  '#6b7280',
   suspended: '#f87171',
 }
@@ -102,7 +104,7 @@ export function AdminDashboard({ onSelectOrg }) {
 
       {/* Stat principali */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-        <StatCard label="Organizzazioni" value={orgs.length}        color="var(--rx-green)" />
+        <StatCard label="Organizzazioni" value={orgs.length}        color={ADMIN_COLOR} />
         <StatCard label="Attive"          value={stats.active}       color="#34d399" />
         <StatCard label="Personal Tr."    value={stats.pt}           color="#60a5fa" />
         <StatCard label="Soccer Academy"  value={stats.soccer}       color="#f59e0b" />
@@ -252,20 +254,6 @@ export function AdminDashboard({ onSelectOrg }) {
           )}
         </div>
       </div>
-    </div>
-  )
-}
-
-function StatCard({ label, value, color }) {
-  return (
-    <div
-      className="p-5 rounded-[4px]"
-      style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${color}22` }}
-    >
-      <div className="font-display font-black text-[32px] mb-1" style={{ color }}>
-        {value}
-      </div>
-      <div className="font-body text-[12px] text-white/40">{label}</div>
     </div>
   )
 }

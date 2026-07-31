@@ -1,23 +1,12 @@
 import { useState, useCallback, useMemo } from 'react'
 import { ConfirmDialog }                  from '../../../components/common/ConfirmDialog'
-import { useRegisterContextMenu }         from '../../../context/NavMenuContext'
 import { useToast }                       from '../../../hooks/useToast'
-import { IconChevronLeft }                from '../../../components/ui/icons'
 import { RecurrenceDetailHeader }         from './RecurrenceDetailHeader'
 import { RecurrenceSummaryBar }           from './RecurrenceSummaryBar'
 import { RecurrenceScheduleSection }      from './RecurrenceScheduleSection'
 import { RecurrencePeriodSection }        from './RecurrencePeriodSection'
 import { RecurrenceClientsSection }       from './RecurrenceClientsSection'
 import { STATUS_INFO, weeksBetween }      from './recurrenceDetailShared'
-
-const ICON_BACK = <IconChevronLeft />
-const ICON_CANCEL_REC = (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"/>
-    <line x1="15" y1="9" x2="9" y2="15"/>
-    <line x1="9" y1="9" x2="15" y2="15"/>
-  </svg>
-)
 
 export function RecurrenceDetailView({
   recurrence, clients,
@@ -88,22 +77,15 @@ export function RecurrenceDetailView({
     }
   }, [cancelling, recurrence.id, onCancel, onBack, toast])
 
-  const recCtxItems = useMemo(() => [
-    { id: '__back__',   label: 'Ricorrenze', icon: ICON_BACK },
-    isActive && { id: '__cancel__', label: 'Cancella', icon: ICON_CANCEL_REC, isDanger: true },
-  ].filter(Boolean), [isActive])
-
-  const handleRecCtxNav = useCallback((id) => {
-    if (id === '__back__') onBack()
-    else if (id === '__cancel__') setShowCancel(true)
-  }, [onBack])
-
-  useRegisterContextMenu('Ricorrenza', recCtxItems, null, handleRecCtxNav)
-
   return (
     <div className="min-h-screen text-white rx-animate-in">
 
-      <RecurrenceDetailHeader recurrence={recurrence} />
+      <RecurrenceDetailHeader
+        recurrence={recurrence}
+        onBack={onBack}
+        isActive={isActive}
+        onRequestCancel={() => setShowCancel(true)}
+      />
 
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 flex flex-col gap-5">
 

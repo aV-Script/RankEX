@@ -45,12 +45,12 @@ export const PROTECTED_ROUTES = [
   {
     path:         '/trainer',
     allowedRoles: ['trainer', 'staff_readonly'],
-    element:      (user, profile, { org, refreshProfile }) => (
+    element:      (user, profile, { org, terminology, refreshProfile }) => (
       <ErrorBoundary>
         <Suspense fallback={<LoadingScreen />}>
           {profile?.mustChangePassword
             ? <ChangePasswordScreen userId={user.uid} onDone={() => refreshProfile(user.uid)} />
-            : <TrainerView user={user} profile={profile} org={org} />
+            : <TrainerView user={user} profile={profile} org={org} terminology={terminology} />
           }
         </Suspense>
       </ErrorBoundary>

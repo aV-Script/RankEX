@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
-import { SLOT_STATUS } from '../../../constants/slotStatus'
-import { IconClose }   from '../../../components/ui/icons'
+import { SLOT_STATUS }   from '../../../constants/slotStatus'
+import { IconClose }     from '../../../components/ui/icons'
+import { useFocusTrap }  from '../../../hooks/useFocusTrap'
 
 /**
  * Popup dettaglio slot — appare al click su un evento.
@@ -8,6 +9,7 @@ import { IconClose }   from '../../../components/ui/icons'
  */
 export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, onCloseSession, onViewRecurrence }) {
   const ref = useRef(null)
+  useFocusTrap(ref, true)
 
   // Chiude al click fuori
   useEffect(() => {
@@ -16,6 +18,13 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
+  }, [onClose])
+
+  // Chiude con Escape, come Modal/ConfirmDialog
+  useEffect(() => {
+    const handler = e => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
   }, [onClose])
 
   const slotClients = slot.clientIds
@@ -35,6 +44,9 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
   return (
     <div
       ref={ref}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Dettaglio sessione"
       className="fixed z-50 w-72 rounded-[4px] p-4 shadow-2xl"
       style={{
         background: 'var(--rx-surface)',
@@ -128,7 +140,7 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
           <button
             onClick={onCloseSession}
             className="w-full py-2.5 rounded-[3px] font-display text-[11px] tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
-            style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)' }}
+            style={{ background: 'color-mix(in srgb, var(--rx-accent) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-accent) 35%, transparent)', color: 'var(--rx-accent)' }}
           >
             CHIUDI SESSIONE
           </button>

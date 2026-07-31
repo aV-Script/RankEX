@@ -2,7 +2,7 @@ import { SectionLabel, EmptyState } from '../../../components/ui'
 import { sectionStyle } from './recurrenceDetailShared'
 
 const ICON_CLIENTS = (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
   </svg>
 )
@@ -22,14 +22,14 @@ export function RecurrenceClientsSection({
           <div
             key={c.id}
             className="flex items-center justify-between px-3 py-2.5 rounded-[3px]"
-            style={{ background: 'color-mix(in srgb, var(--rx-green) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 15%, transparent)' }}
+            style={{ background: 'color-mix(in srgb, var(--rx-accent) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-accent) 15%, transparent)' }}
           >
             <div className="flex items-center gap-2.5">
               <div
                 className="w-7 h-7 flex items-center justify-center rounded-[3px] shrink-0"
-                style={{ background: 'color-mix(in srgb, var(--rx-green) 15%, transparent)' }}
+                style={{ background: 'color-mix(in srgb, var(--rx-accent) 15%, transparent)' }}
               >
-                <span className="font-display text-[10px]" style={{ color: 'var(--rx-green)' }}>
+                <span className="font-display text-[10px]" style={{ color: 'var(--rx-accent)' }}>
                   {c.name[0].toUpperCase()}
                 </span>
               </div>
@@ -71,11 +71,11 @@ export function RecurrenceClientsSection({
                   onClick={() => onAddClient(recurrenceId, c.id)}
                   className="flex items-center justify-between px-3 py-2 cursor-pointer border text-left transition-all rounded-[3px]"
                   style={{ background: 'transparent', borderColor: 'rgba(255,255,255,0.06)' }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--rx-green) 25%, transparent)' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--rx-accent) 25%, transparent)' }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)' }}
                 >
                   <span className="font-display font-bold text-[12px] text-white/60">{c.name}</span>
-                  <span className="font-display text-[10px]" style={{ color: 'var(--rx-green)' }}>+ AGGIUNGI</span>
+                  <span className="font-display text-[10px]" style={{ color: 'var(--rx-accent)' }}>+ AGGIUNGI</span>
                 </button>
               ))}
             </div>

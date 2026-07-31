@@ -23,12 +23,12 @@ export function StepBia({ biaValues, setBiaValues, errors, anagrafica }) {
       {bmiComputed && (
         <div
           className="rounded-[3px] px-4 py-2.5 flex items-center justify-between"
-          style={{ background: 'color-mix(in srgb, var(--rx-cyan) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-cyan) 20%, transparent)' }}
+          style={{ background: 'color-mix(in srgb, var(--rx-accent-2) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-accent-2) 20%, transparent)' }}
         >
-          <span className="font-display text-[11px] tracking-wider" style={{ color: 'var(--rx-cyan)' }}>
+          <span className="font-display text-[11px] tracking-wider" style={{ color: 'var(--rx-accent-2)' }}>
             BMI
           </span>
-          <span className="font-display font-black text-[14px]" style={{ color: 'var(--rx-cyan)' }}>
+          <span className="font-display font-black text-[14px]" style={{ color: 'var(--rx-accent-2)' }}>
             {bmiComputed} <span className="font-body text-[11px] text-white/30">kg/m²</span>
           </span>
         </div>

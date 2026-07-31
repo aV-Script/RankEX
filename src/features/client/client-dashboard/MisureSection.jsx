@@ -14,7 +14,7 @@ function MisureLineChart({ data = [], dataKey, label, unit, color }) {
       <div
         className="rounded-[4px] p-4 mt-4 rx-card"
       >
-        <div className="font-display text-[10px] tracking-[3px] uppercase mb-2" style={{ color: 'var(--rx-green)' }}>
+        <div className="font-display text-[10px] tracking-[3px] uppercase mb-2" style={{ color: 'var(--rx-accent)' }}>
           ◈ {label}
         </div>
         <p className="text-white/60 font-body text-[13px] text-center py-3">
@@ -34,7 +34,7 @@ function MisureLineChart({ data = [], dataKey, label, unit, color }) {
       className="rounded-[4px] p-4 mt-4"
       style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
     >
-      <div className="font-display text-[10px] tracking-[3px] uppercase mb-3" style={{ color: 'var(--rx-green)' }}>
+      <div className="font-display text-[10px] tracking-[3px] uppercase mb-3" style={{ color: 'var(--rx-accent)' }}>
         ◈ {label}
       </div>
       <div className="h-36">
@@ -105,7 +105,7 @@ export function MisureSection({ client, color, readonly, onUpdate }) {
   return (
     <section className="px-4 pt-6">
       <div className="rounded-[4px] p-5 rx-card">
-        <div className="font-display text-[10px] tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-green)' }}>
+        <div className="font-display text-[10px] tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-accent)' }}>
           ◈ Misure
         </div>
 

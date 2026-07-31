@@ -20,20 +20,19 @@ import {
   addClientToGroupSlots,
   removeClientFromGroupSlots,
 } from '../../../features/calendar/calendarGroupUtils'
-import { EmptyState } from '../../../components/ui'
+import { EmptyState, SectionLabel } from '../../../components/ui'
+import { IconLeaderboard, IconAnalysis, IconCompare } from './groupDetailIcons'
 import { ErrorBoundary } from '../../../components/common/ErrorBoundary'
 import { ChartErrorFallback } from '../../../components/common/ChartErrorFallback'
-import { useRegisterContextMenu } from '../../../context/NavMenuContext'
 import { useToast }           from '../../../hooks/useToast'
 import { PrintPickerModal }   from '../../../components/common/PrintPickerModal'
-import { TABS } from './groupDetailIcons'
 
 const CLIENTS_PAGE_SIZE = 8
 const SOCCER_CATS = ['soccer_youth', 'soccer_junior', 'soccer']
 
 // ── Componente principale ─────────────────────────────────────────────────────
 
-export function GroupDetailView({ group, clients, orgId, onToggleClient, onRename, onDelete, onBack }) {
+export function GroupDetailView({ group, clients, orgId, onToggleClient, onRename, onDelete, onBack, terminology }) {
   const toast = useToast()
   const [subView,      setSubView]      = useState('manage')
   const [clientSearch, setClientSearch] = useState('')
@@ -96,11 +95,11 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
         await addClientToGroupSlots(orgId, group.id, client.id)
       }
     } catch {
-      toast.error('Impossibile aggiornare il gruppo')
+      toast.error(`Aggiornamento ${terminology.group.toLowerCase()} non riuscito`)
     } finally {
       setToggling(null)
     }
-  }, [toggleDialog, group.id, onToggleClient, orgId, toast])
+  }, [toggleDialog, group.id, onToggleClient, orgId, toast, terminology.group])
 
   const handleRename = useCallback(async () => {
     if (!editingName.trim() || editingName === group.name) { setIsEditing(false); return }
@@ -115,22 +114,12 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
       await onDelete(group.id)
       onBack()   // naviga via solo se l'eliminazione è riuscita davvero
     } catch {
-      toast.error('Impossibile eliminare il gruppo')
+      toast.error(`Eliminazione ${terminology.group.toLowerCase()} non riuscita`)
       setShowDelete(false)
     } finally {
       setDeleting(false)
     }
-  }, [deleting, group.id, onDelete, onBack, toast])
-
-  const handleContextSelect = useCallback((id) => {
-    if (id === '__back__')    onBack()
-    else if (id === '__rename__') setIsEditing(true)
-    else if (id === '__pdf__')    setShowPrintPicker(true)
-    else if (id === '__delete__') setShowDelete(true)
-    else setSubView(id)
-  }, [onBack])
-
-  useRegisterContextMenu('Gruppo', TABS, subView, handleContextSelect)
+  }, [deleting, group.id, onDelete, onBack, toast, terminology.group])
 
   const handleCancelRename = useCallback(() => {
     setIsEditing(false)
@@ -161,6 +150,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
 
       <GroupDetailHeader
         onBack={onBack}
+        terminology={terminology}
         subView={subView}
         onSelectTab={setSubView}
         isEditing={isEditing}
@@ -182,7 +172,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
         {mixedFascia && (
           <div className="mx-4 sm:mx-6 mt-3 px-4 py-3 rounded-[3px] font-body text-[12px] leading-relaxed"
             style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24' }}>
-            ⚠ Questo gruppo contiene atleti di fasce d'età diverse. Classifica, Analisi e Confronto potrebbero non essere significativi.
+            ⚠ {terminology.group} con atleti di fasce d'età diverse: Classifica, Analisi e Confronto potrebbero non essere significativi.
           </div>
         )}
 
@@ -192,15 +182,15 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
         {subView === 'leaderboard' && (
           allClientsInGroup.length < 2 ? (
             <EmptyState
-              icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 20 18 10"/><polyline points="12 20 12 4"/><polyline points="6 20 6 14"/></svg>}
+              icon={<IconLeaderboard size={20} />}
               title="Classifica non disponibile"
-              description="Aggiungi almeno 2 atleti al gruppo per vedere la classifica e i campioni per disciplina."
+              description="Aggiungi almeno 2 atleti per vedere la classifica e i campioni per disciplina."
             />
           ) : (
             <div className="px-4 sm:px-6 pt-4 pb-12 flex flex-col gap-4">
               <GroupChampions clients={allClientsInGroup} />
               <div className="rounded-[4px] p-5 rx-card">
-                <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-5" style={{ color: 'var(--rx-green)' }}>◈ Classifica</div>
+                <SectionLabel className="mb-5">◈ Classifica</SectionLabel>
                 <GroupLeaderboard clients={allClientsInGroup} />
               </div>
             </div>
@@ -210,9 +200,9 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
         {subView === 'analysis' && (
           allClientsInGroup.length < 2 ? (
             <EmptyState
-              icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>}
+              icon={<IconAnalysis size={20} />}
               title="Analisi non disponibile"
-              description="Aggiungi almeno 2 atleti al gruppo per sbloccare heatmap e report miglioramenti."
+              description="Aggiungi almeno 2 atleti per sbloccare heatmap e report miglioramenti."
             />
           ) : (
             <div className="px-4 sm:px-6 pt-4 pb-12">
@@ -226,13 +216,15 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
         {subView === 'comparison' && (
           allClientsInGroup.length < 2 ? (
             <EmptyState
-              icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>}
+              icon={<IconCompare size={20} />}
               title="Confronto non disponibile"
               description="Aggiungi almeno 2 atleti per confrontare le loro statistiche e l'andamento nel tempo."
             />
           ) : (
             <div className="px-4 sm:px-6 pt-4 pb-12">
-              <GroupComparison clients={allClientsInGroup} />
+              <ErrorBoundary fallback={ChartErrorFallback}>
+                <GroupComparison clients={allClientsInGroup} />
+              </ErrorBoundary>
             </div>
           )
         )}
@@ -299,7 +291,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
         <ConfirmDialog
           variant="danger"
           title={`Eliminare "${group.name}"?`}
-          description="Il gruppo verrà eliminato. Gli atleti non verranno rimossi dall'app."
+          description={`${terminology.group} da eliminare — gli atleti non verranno rimossi dall'app.`}
           confirmLabel="ELIMINA"
           loading={deleting}
           onConfirm={handleDelete}

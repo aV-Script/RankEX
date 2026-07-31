@@ -1,3 +1,5 @@
+import { IconClose } from '../ui/icons'
+
 const VARIANT = {
   success: { bg: '#059669', icon: '✓' },
   error:   { bg: '#dc2626', icon: '✕' },
@@ -12,7 +14,7 @@ export function Toast({ toasts, onRemove }) {
       role="status"
       aria-live="polite"
       aria-atomic="false"
-      className="fixed z-[200] flex flex-col gap-2 pointer-events-none"
+      className="fixed z-[10001] flex flex-col gap-2 pointer-events-none"
       style={{ bottom: '1rem', right: '1rem', left: '1rem', maxWidth: '20rem', marginLeft: 'auto' }}
     >
       {toasts.map(t => (
@@ -34,9 +36,9 @@ function ToastItem({ toast, onRemove }) {
       <button
         onClick={() => onRemove(toast.id)}
         aria-label="Chiudi notifica"
-        className="text-white/60 hover:text-white bg-transparent border-none cursor-pointer p-0 text-sm leading-none shrink-0"
+        className="text-white/60 hover:text-white bg-transparent border-none cursor-pointer p-0 flex items-center justify-center shrink-0"
       >
-        ✕
+        <IconClose size={11} />
       </button>
     </div>
   )

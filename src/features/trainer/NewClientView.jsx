@@ -3,11 +3,7 @@ import { useTrainerState }        from '../../context/TrainerContext'
 import { getModule }              from '../../config/modules.config'
 import { getPlanLimits }          from '../../config/plans.config'
 import { ConfirmDialog }          from '../../components/common/ConfirmDialog'
-import { useRegisterContextMenu } from '../../context/NavMenuContext'
 import { IconChevronLeft }        from '../../components/ui/icons'
-
-const ICON_BACK = <IconChevronLeft />
-const NEW_CLIENT_CTX = [{ id: '__back__', label: 'Clienti', icon: ICON_BACK }]
 import { useWizard }              from '../../components/modals/new-client-wizard/useWizard'
 import { WizardProgress }         from '../../components/modals/new-client-wizard/WizardProgress'
 import { WizardNav }              from '../../components/modals/new-client-wizard/WizardNav'
@@ -19,13 +15,11 @@ import { StepProfileType }        from '../../components/modals/new-client-wizar
 import { TOTAL_STEPS_MAP }        from '../../components/modals/new-client-wizard/wizard.config'
 
 export function NewClientView({ orgId, onAdd, onBack, clients = [], onNavigate }) {
-  const { moduleType, orgPlan }                     = useTrainerState()
+  const { moduleType, orgPlan, terminology }        = useTrainerState()
   const isSoccer                                    = getModule(moduleType).isSoccer
   const planLimits                                  = getPlanLimits(orgPlan)
   const atClientLimit                               = clients.length >= planLimits.clients
   const { groups, handleAddGroup, handleToggleClient } = useGroups(orgId)
-
-  useRegisterContextMenu('Cliente', NEW_CLIENT_CTX, null, id => { if (id === '__back__') onBack() })
 
   const wizard = useWizard({
     orgId,
@@ -44,10 +38,18 @@ export function NewClientView({ orgId, onAdd, onBack, clients = [], onNavigate }
   return (
     <div className="min-h-screen text-white">
 
-      <div className="flex items-center justify-center px-4 sm:px-6 py-4 border-b border-white/[.05]">
-        <span className="font-display font-black text-[16px] text-white">
-          Nuovo cliente
+      <div className="flex items-center px-4 sm:px-6 py-4 border-b border-white/[.05]">
+        <button
+          onClick={onBack}
+          aria-label={`Torna ai ${terminology.clients.toLowerCase()}`}
+          className="w-10 shrink-0 flex items-center justify-center bg-transparent border-none text-white/40 hover:text-white/70 transition-colors cursor-pointer"
+        >
+          <IconChevronLeft />
+        </button>
+        <span className="flex-1 text-center font-display font-black text-[16px] text-white">
+          Nuovo {terminology.client.toLowerCase()}
         </span>
+        <div className="w-10 shrink-0" aria-hidden="true" />
       </div>
 
       {atClientLimit ? (
@@ -56,6 +58,7 @@ export function NewClientView({ orgId, onAdd, onBack, clients = [], onNavigate }
           limit={planLimits.clients}
           plan={orgPlan}
           onNavigate={onNavigate}
+          terminology={terminology}
         />
       ) : null}
 
@@ -83,9 +86,9 @@ export function NewClientView({ orgId, onAdd, onBack, clients = [], onNavigate }
 
           {wizard.showConfirm && (
             <ConfirmDialog
-              title="Creare il cliente?"
+              title={`Creare nuovo ${terminology.client.toLowerCase()}?`}
               description={`Stai per creare l'account per ${wizard.anagrafica.name}.`}
-              confirmLabel="CREA CLIENTE"
+              confirmLabel={`CREA ${terminology.client.toUpperCase()}`}
               loading={wizard.isLoading}
               onConfirm={wizard.handleConfirmSubmit}
               onCancel={() => wizard.setShowConfirm(false)}
@@ -98,7 +101,7 @@ export function NewClientView({ orgId, onAdd, onBack, clients = [], onNavigate }
   )
 }
 
-function PlanLimitScreen({ current, limit, plan, onNavigate }) {
+function PlanLimitScreen({ current, limit, plan, onNavigate, terminology }) {
   return (
     <div className="max-w-md mx-auto px-6 py-16 flex flex-col items-center gap-4 text-center">
       <div
@@ -113,8 +116,8 @@ function PlanLimitScreen({ current, limit, plan, onNavigate }) {
       <h2 className="font-display font-black text-[18px] text-white">Limite piano raggiunto</h2>
       <p className="font-body text-[14px] text-white/40 leading-relaxed">
         Il piano <span className="text-white/70 font-bold">{plan?.toUpperCase() ?? 'FREE'}</span> consente
-        un massimo di <span className="text-white/70 font-bold">{limit} clienti</span>.
-        Hai già {current} {current === 1 ? 'cliente' : 'clienti'}.
+        un massimo di <span className="text-white/70 font-bold">{limit} {terminology.clients.toLowerCase()}</span>.
+        Hai già {current} {current === 1 ? terminology.client.toLowerCase() : terminology.clients.toLowerCase()}.
       </p>
       {onNavigate ? (
         <button

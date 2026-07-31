@@ -77,3 +77,16 @@ export function calcStatMedia(stats = {}) {
   if (vals.length === 0) return 0
   return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length)
 }
+
+/**
+ * Colore semantico per una fascia di percentile (0-100), su terzili.
+ * Fonte di verità unica: usata sia dalla heatmap di gruppo (GroupAnalysis)
+ * sia dal percentile live del campionamento (TestInput), così lo stesso
+ * valore riceve sempre lo stesso giudizio visivo su tutte le schermate.
+ */
+export function percentileColor(val) {
+  if (val == null) return { text: 'rgba(255,255,255,0.25)', bg: 'transparent' }
+  if (val >= 67)    return { text: 'var(--rx-accent)', bg: 'color-mix(in srgb, var(--rx-accent) 15%, transparent)' }
+  if (val >= 34)    return { text: '#facc15', bg: 'rgba(250,204,21,0.12)' }
+  return                 { text: '#f87171', bg: 'rgba(248,113,113,0.13)' }
+}

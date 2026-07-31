@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { SectionLabel }                  from '../../../components/ui'
+import { SectionLabel, DayTabs, EmptyState } from '../../../components/ui'
+import { IconChevronDown }               from '../../../components/ui/icons'
 import { ConfirmDialog }                 from '../../../components/common/ConfirmDialog'
 import { WorkoutPlanForm }               from '../../trainer/workout-plans/WorkoutPlanForm'
 import { getClientPlans }                from '../../../firebase/services/workoutPlans'
@@ -8,6 +9,7 @@ import { updateWorkoutPlanUseCase }      from '../../../usecases/updateWorkoutPl
 import { deleteWorkoutPlanUseCase }      from '../../../usecases/deleteWorkoutPlanUseCase'
 import { useToast }                      from '../../../hooks/useToast'
 import { normalizePlanDays }             from '../../../utils/workoutPlans'
+import { useTrainerState }               from '../../../context/TrainerContext'
 
 /**
  * Sezione schede allenamento nella dashboard trainer.
@@ -15,6 +17,7 @@ import { normalizePlanDays }             from '../../../utils/workoutPlans'
  */
 export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
   const { error: toastError } = useToast()
+  const { terminology } = useTrainerState()
   const [plans,      setPlans]      = useState([])
   const [loading,    setLoading]    = useState(true)
   const [view,       setView]       = useState('read')   // 'read' | 'form'
@@ -119,6 +122,7 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
           initialData={editing}
           onSubmit={handleSubmit}
           onBack={handleBack}
+          terminology={terminology}
         />
       </section>
     )
@@ -164,9 +168,12 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
 
         {/* Nessuna scheda attiva */}
         {!activePlan && (
-          <p className="font-body text-[13px] text-white/30 py-4 text-center">
-            Nessuna scheda attiva assegnata.
-          </p>
+          <EmptyState
+            color={color}
+            icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4v6a6 6 0 0 0 12 0V4"/><line x1="6" y1="20" x2="18" y2="20"/></svg>}
+            title="Nessuna scheda attiva"
+            description="Crea una scheda per assegnarla a questo cliente."
+          />
         )}
 
         {/* Scheda attiva */}
@@ -188,7 +195,7 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
               onClick={() => setShowArchive(v => !v)}
               className="flex items-center gap-2 font-display text-[10px] tracking-[2px] text-white/30 hover:text-white/50 transition-colors bg-transparent border-none cursor-pointer p-0 mb-3"
             >
-              <span>{showArchive ? '▾' : '▸'}</span>
+              <IconChevronDown size={10} rotated={showArchive} />
               STORICO ({archived.length})
             </button>
             {showArchive && (
@@ -256,20 +263,8 @@ function PlanDisplay({ plan, color, activeDay, onDayChange, readonly, onArchive 
 
       {/* Tab giorni — solo se più di uno */}
       {days.length > 1 && (
-        <div className="flex items-center gap-2 flex-wrap mb-4 mt-3">
-          {days.map((d, i) => (
-            <button
-              key={i}
-              onClick={() => onDayChange(i)}
-              className="font-display text-[11px] font-bold px-3 py-1 rounded-[3px] cursor-pointer border transition-all"
-              style={safeDay === i
-                ? { background: color + '18', borderColor: color + '55', color }
-                : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)' }
-              }
-            >
-              {d.label || `Giorno ${i + 1}`}
-            </button>
-          ))}
+        <div className="mb-4 mt-3">
+          <DayTabs days={days} activeDay={safeDay} onChange={onDayChange} color={color} />
         </div>
       )}
 
@@ -317,7 +312,7 @@ function PlanDisplay({ plan, color, activeDay, onDayChange, readonly, onArchive 
   )
 }
 
-function ArchivedPlanRow({ plan, _color, readonly, _onEdit, onDelete }) {
+function ArchivedPlanRow({ plan, color, readonly, onEdit, onDelete }) {
   const [open, setOpen] = useState(false)
   const [activeDay, setActiveDay] = useState(0)
 
@@ -341,7 +336,7 @@ function ArchivedPlanRow({ plan, _color, readonly, _onEdit, onDelete }) {
           onClick={() => setOpen(v => !v)}
           className="font-display text-[12px] font-bold text-white/50 hover:text-white/70 transition-colors bg-transparent border-none cursor-pointer p-0 text-left flex-1 min-w-0"
         >
-          <span className="mr-2 text-white/25">{open ? '▾' : '▸'}</span>
+          <span className="inline-flex mr-2 text-white/25 align-middle"><IconChevronDown size={10} rotated={open} /></span>
           {plan.title}
         </button>
         <span className="font-body text-[11px] text-white/60 shrink-0">
@@ -349,16 +344,27 @@ function ArchivedPlanRow({ plan, _color, readonly, _onEdit, onDelete }) {
         </span>
         {date && <span className="font-body text-[11px] text-white/60 shrink-0">{date}</span>}
         {!readonly && (
-          <button
-            onClick={onDelete}
-            aria-label="Elimina scheda"
-            className="text-[11px] bg-transparent border-none cursor-pointer shrink-0 transition-colors"
-            style={{ color: 'rgba(255,255,255,0.15)' }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#f87171' }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.15)' }}
-          >
-            ✕
-          </button>
+          <>
+            <button
+              onClick={onEdit}
+              className="font-display text-[10px] tracking-[1px] bg-transparent border-none cursor-pointer shrink-0 transition-colors"
+              style={{ color: 'rgba(255,255,255,0.3)' }}
+              onMouseEnter={e => { e.currentTarget.style.color = color }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.3)' }}
+            >
+              MODIFICA
+            </button>
+            <button
+              onClick={onDelete}
+              aria-label="Elimina scheda"
+              className="text-[11px] bg-transparent border-none cursor-pointer shrink-0 transition-colors"
+              style={{ color: 'rgba(255,255,255,0.15)' }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#f87171' }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.15)' }}
+            >
+              ✕
+            </button>
+          </>
         )}
       </div>
 
@@ -366,20 +372,8 @@ function ArchivedPlanRow({ plan, _color, readonly, _onEdit, onDelete }) {
       {open && (
         <div className="px-3 pb-3 border-t border-white/[0.04]">
           {days.length > 1 && (
-            <div className="flex items-center gap-2 flex-wrap mt-3 mb-3">
-              {days.map((d, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveDay(i)}
-                  className="font-display text-[11px] font-bold px-3 py-1 rounded-[3px] cursor-pointer border transition-all"
-                  style={activeDay === i
-                    ? { background: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.7)' }
-                    : { background: 'transparent', borderColor: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.3)' }
-                  }
-                >
-                  {d.label || `Giorno ${i + 1}`}
-                </button>
-              ))}
+            <div className="mt-3 mb-3">
+              <DayTabs days={days} activeDay={activeDay} onChange={setActiveDay} color={color} />
             </div>
           )}
           <div className="flex flex-col gap-1.5 mt-2">

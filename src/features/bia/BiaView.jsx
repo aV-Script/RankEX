@@ -68,7 +68,7 @@ export function BiaView({ client, color, onSave, onBack }) {
         <p className="font-body text-[13px] text-white/40 mb-6">
           {client.name} · {client.sesso} · {calcAge(client.dataNascita)} anni
           {bmiComputed && (
-            <span className="ml-3 font-display text-[11px]" style={{ color: 'color-mix(in srgb, var(--rx-green) 67%, transparent)' }}>
+            <span className="ml-3 font-display text-[11px]" style={{ color: 'color-mix(in srgb, var(--rx-accent) 67%, transparent)' }}>
               BMI calcolato: {bmiComputed}
             </span>
           )}
@@ -86,7 +86,7 @@ export function BiaView({ client, color, onSave, onBack }) {
                   background: 'rgba(255,255,255,0.02)',
                   border:     `1px solid ${
                     values[param.key] !== ''
-                      ? 'color-mix(in srgb, var(--rx-green) 20%, transparent)'
+                      ? 'color-mix(in srgb, var(--rx-accent) 20%, transparent)'
                       : 'rgba(255,255,255,0.06)'
                   }`,
                 }}
@@ -99,7 +99,7 @@ export function BiaView({ client, color, onSave, onBack }) {
                   {KEY_PARAMS.has(param.key) && (
                     <span
                       className="font-display text-[9px] px-1.5 py-0.5 rounded-[2px]"
-                      style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', color: 'color-mix(in srgb, var(--rx-green) 67%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 16%, transparent)' }}
+                      style={{ background: 'color-mix(in srgb, var(--rx-accent) 7%, transparent)', color: 'color-mix(in srgb, var(--rx-accent) 67%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-accent) 16%, transparent)' }}
                     >
                       chiave
                     </span>

@@ -6,7 +6,7 @@ export const WEEK_DAYS = [
 ]
 
 export const STATUS_INFO = {
-  active:    { label: 'ATTIVA',     color: 'var(--rx-green)' },
+  active:    { label: 'ATTIVA',     color: 'var(--rx-accent)' },
   cancelled: { label: 'CANCELLATA', color: '#f87171' },
   ended:     { label: 'TERMINATA',  color: '#6b7280' },
 }
@@ -75,7 +75,7 @@ export function ActionRow({ onCancel, onSave, saving, saveLabel = 'SALVA', saveD
         onClick={onSave}
         disabled={saving || saveDisabled}
         className="flex-1 py-2 font-display text-[11px] cursor-pointer border-0 disabled:opacity-40 transition-opacity hover:opacity-85"
-        style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', borderRadius: '3px', color: 'var(--rx-green)', fontWeight: 700 }}
+        style={{ background: 'color-mix(in srgb, var(--rx-accent) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-accent) 35%, transparent)', borderRadius: '3px', color: 'var(--rx-accent)', fontWeight: 700 }}
       >
         {saving ? 'ATTENDERE...' : saveLabel}
       </button>

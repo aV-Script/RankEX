@@ -1,4 +1,5 @@
-import { FormField, ErrorBox, SubmitButton } from './primitives'
+import { ErrorBox } from './primitives'
+import { Field, Button } from '../../../components/ui'
 
 export function ResetForm({ form }) {
   const { email, error, loading, setEmail, handleReset, goTo } = form
@@ -15,7 +16,7 @@ export function ResetForm({ form }) {
       </div>
 
       <form onSubmit={handleReset} className="flex flex-col gap-3.5" noValidate>
-        <FormField label="Email" htmlFor="reset-email">
+        <Field label="Email" htmlFor="reset-email">
           <input
             id="reset-email"
             type="email"
@@ -25,11 +26,11 @@ export function ResetForm({ form }) {
             onChange={e => setEmail(e.target.value)}
             autoFocus
           />
-        </FormField>
+        </Field>
 
         {error && <ErrorBox>{error}</ErrorBox>}
 
-        <SubmitButton loading={loading}>INVIA LINK</SubmitButton>
+        <Button type="submit" variant="primary" loading={loading}>INVIA LINK</Button>
       </form>
 
       <div className="mt-5 text-center">

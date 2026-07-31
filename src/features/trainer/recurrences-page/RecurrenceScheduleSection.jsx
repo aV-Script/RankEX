@@ -1,4 +1,4 @@
-import { SectionLabel } from '../../../components/ui'
+import { SectionLabel, SegmentedToggle } from '../../../components/ui'
 import { WEEK_DAYS, sectionStyle, EditBtn, WarningNote, ActionRow } from './recurrenceDetailShared'
 
 export function RecurrenceScheduleSection({
@@ -40,7 +40,7 @@ export function RecurrenceScheduleSection({
             />
           </div>
         ) : (
-          <div className="font-display font-black text-[24px]" style={{ color: 'var(--rx-green)' }}>
+          <div className="font-display font-black text-[24px]" style={{ color: 'var(--rx-accent)' }}>
             {recurrence.startTime} → {recurrence.endTime}
           </div>
         )}
@@ -59,20 +59,17 @@ export function RecurrenceScheduleSection({
           <div className="flex flex-col gap-3">
             <div className="flex gap-2 flex-wrap">
               {WEEK_DAYS.map(({ value, label }) => (
-                <button
+                <SegmentedToggle
                   key={value}
+                  active={days.includes(value)}
                   onClick={() => setDays(prev =>
                     prev.includes(value) ? prev.filter(d => d !== value) : [...prev, value]
                   )}
-                  aria-pressed={days.includes(value)}
-                  className="w-10 h-10 font-display text-[11px] cursor-pointer border transition-all"
-                  style={days.includes(value)
-                    ? { background: 'color-mix(in srgb, var(--rx-green) 15%, transparent)', borderColor: 'var(--rx-green)', color: '#fff', borderRadius: '4px' }
-                    : { background: 'transparent', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.35)', borderRadius: '4px' }
-                  }
+                  solid
+                  className="w-10 h-10 text-[11px] rounded-[4px]"
                 >
                   {label}
-                </button>
+                </SegmentedToggle>
               ))}
             </div>
             <WarningNote text="La modifica dei giorni non aggiorna gli slot esistenti." />
@@ -89,7 +86,7 @@ export function RecurrenceScheduleSection({
               <span
                 key={label}
                 className="font-display text-[11px] px-3 py-1.5 rounded-[3px]"
-                style={{ background: 'color-mix(in srgb, var(--rx-green) 12%, transparent)', color: 'var(--rx-green)' }}
+                style={{ background: 'color-mix(in srgb, var(--rx-accent) 12%, transparent)', color: 'var(--rx-accent)' }}
               >
                 {label}
               </span>

@@ -56,14 +56,14 @@ export function ClientBottomNav({
           minWidth: 0,
         }}
       >
-        <span style={{ color: active ? 'var(--rx-green)' : 'rgba(255,255,255,0.28)', transition: 'color 180ms', flexShrink: 0 }}>
+        <span style={{ color: active ? 'var(--rx-accent)' : 'rgba(255,255,255,0.28)', transition: 'color 180ms', flexShrink: 0 }}>
           {icon}
         </span>
         <span className="font-display" style={{
           fontWeight: 700,
           fontSize: compact ? 10 : 8, letterSpacing: compact ? '1px' : '1.5px',
           textTransform: 'uppercase', whiteSpace: 'nowrap',
-          color: active ? 'var(--rx-green)' : 'rgba(255,255,255,0.22)', transition: 'color 180ms',
+          color: active ? 'var(--rx-accent)' : 'rgba(255,255,255,0.22)', transition: 'color 180ms',
         }}>
           {label}
         </span>
@@ -148,7 +148,7 @@ export function ClientBottomNav({
             style={{
               width: 34, height: 34, borderRadius: '50%',
               overflow: 'hidden', padding: 0,
-              border: '1.5px solid color-mix(in srgb, var(--rx-green) 40%, transparent)',
+              border: '1.5px solid color-mix(in srgb, var(--rx-accent) 40%, transparent)',
               cursor: 'pointer', background: 'var(--rx-surface)',
               flexShrink: 0, marginRight: 16,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -171,17 +171,17 @@ export function ClientBottomNav({
                     display: 'flex', alignItems: 'center', gap: 6,
                     padding: '0 14px', height: 52,
                     cursor: 'pointer', background: 'none', border: 'none',
-                    borderBottom: `2px solid ${active ? 'var(--rx-green)' : 'transparent'}`,
+                    borderBottom: `2px solid ${active ? 'var(--rx-accent)' : 'transparent'}`,
                     transition: 'border-color 180ms',
                   }}
                 >
-                  <span style={{ color: active ? 'var(--rx-green)' : 'rgba(255,255,255,0.30)', transition: 'color 180ms' }}>
+                  <span style={{ color: active ? 'var(--rx-accent)' : 'rgba(255,255,255,0.30)', transition: 'color 180ms' }}>
                     {sec.icon}
                   </span>
                   <span className="font-display" style={{
                     fontWeight: 700,
                     fontSize: 10, letterSpacing: '1.5px', textTransform: 'uppercase',
-                    color: active ? 'var(--rx-green)' : 'rgba(255,255,255,0.30)', transition: 'color 180ms',
+                    color: active ? 'var(--rx-accent)' : 'rgba(255,255,255,0.30)', transition: 'color 180ms',
                   }}>
                     {sec.label}
                   </span>

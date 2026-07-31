@@ -1,3 +1,5 @@
+import { Button } from '../ui'
+
 export function ErrorFallback({ error, onReset }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-6 px-4 text-center">
@@ -16,19 +18,8 @@ export function ErrorFallback({ error, onReset }) {
       </div>
 
       <div className="flex gap-3">
-        <button
-          onClick={onReset}
-          className="px-4 py-2.5 rounded-[3px] font-display text-[11px] tracking-widest text-white border border-white/20 bg-transparent cursor-pointer hover:bg-white/10 transition-colors"
-        >
-          RIPROVA
-        </button>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-4 py-2.5 rounded-[3px] font-display text-[11px] tracking-widest text-white cursor-pointer hover:opacity-90 transition-opacity"
-          style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)' }}
-        >
-          RICARICA
-        </button>
+        <Button variant="neutral" size="sm" onClick={onReset}>RIPROVA</Button>
+        <Button variant="primary" size="sm" onClick={() => window.location.reload()}>RICARICA</Button>
       </div>
     </div>
   )

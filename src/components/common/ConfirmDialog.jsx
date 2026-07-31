@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useFocusTrap } from '../../hooks/useFocusTrap'
+import { Button } from '../ui'
 
 /**
  * Modal generico di conferma.
@@ -39,25 +40,18 @@ export function ConfirmDialog({ title, description, confirmLabel = 'CONFERMA', c
           <p className="font-body text-[13px] text-white/40 leading-relaxed m-0 mb-5">{description}</p>
         )}
         <div className="flex gap-3">
-          <button
-            onClick={onCancel}
-            disabled={loading}
-            className="flex-1 py-2.5 font-display text-[12px] cursor-pointer bg-transparent text-white/40 hover:text-white/70 transition-all disabled:opacity-50"
-            style={{ borderRadius: '3px', border: '1px solid rgba(255,255,255,0.1)' }}
-          >
+          <Button variant="neutral" size="sm" className="flex-1" onClick={onCancel} disabled={loading}>
             {cancelLabel}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant={isDanger ? 'dangerGhost' : 'primary'}
+            size="sm"
+            className="flex-1"
             onClick={onConfirm}
-            disabled={loading}
-            className="flex-1 py-2.5 font-display text-[12px] cursor-pointer border-0 transition-opacity hover:opacity-85 disabled:opacity-50"
-            style={isDanger
-              ? { background: 'color-mix(in srgb, #f87171 7%, transparent)', border: '1px solid color-mix(in srgb, #f87171 35%, transparent)', borderRadius: '3px', color: '#f87171', fontWeight: 700 }
-              : { background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', borderRadius: '3px', color: 'var(--rx-green)', fontWeight: 700 }
-            }
+            loading={loading}
           >
-            {loading ? 'ATTENDERE...' : confirmLabel}
-          </button>
+            {confirmLabel}
+          </Button>
         </div>
       </div>
     </div>

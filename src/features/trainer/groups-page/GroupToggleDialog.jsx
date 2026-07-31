@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { getGroupTogglePreview } from '../../../features/calendar/calendarGroupUtils'
 import { useFocusTrap }          from '../../../hooks/useFocusTrap'
+import { Button }                from '../../../components/ui'
 
 const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
 
@@ -41,7 +42,7 @@ export function GroupToggleDialog({
     finally { setSaving(false) }
   }
 
-  const actionColor = isRemoving ? '#f87171' : 'var(--rx-green)'
+  const actionColor = isRemoving ? '#f87171' : 'var(--rx-accent)'
   const actionLabel = isRemoving ? 'RIMUOVI' : 'AGGIUNGI'
 
   return (
@@ -142,7 +143,7 @@ export function GroupToggleDialog({
                     <div key={r.id} className="flex items-center gap-2 py-1">
                       <span
                         className="font-display text-[10px] font-semibold px-2 py-0.5 rounded-[3px]"
-                        style={{ background: 'color-mix(in srgb, var(--rx-green) 12%, transparent)', color: 'color-mix(in srgb, var(--rx-green) 80%, transparent)' }}
+                        style={{ background: 'color-mix(in srgb, var(--rx-accent) 12%, transparent)', color: 'color-mix(in srgb, var(--rx-accent) 80%, transparent)' }}
                       >
                         {DAY_LABELS.filter((_, i) => r.days.includes(i)).join(' · ')}
                       </span>
@@ -165,25 +166,19 @@ export function GroupToggleDialog({
 
         {/* Azioni */}
         <div className="flex gap-3">
-          <button
-            onClick={onCancel}
-            disabled={saving}
-            className="flex-1 py-2.5 font-display text-[12px] cursor-pointer bg-transparent text-white/40 hover:text-white/70 transition-all disabled:opacity-50"
-            style={{ borderRadius: '3px', border: '1px solid rgba(255,255,255,0.1)' }}
-          >
+          <Button variant="neutral" size="sm" className="flex-1" onClick={onCancel} disabled={saving}>
             ANNULLA
-          </button>
-          <button
+          </Button>
+          <Button
+            variant={isRemoving ? 'dangerGhost' : 'primary'}
+            size="sm"
+            className="flex-1"
             onClick={handleConfirm}
-            disabled={saving || loading}
-            className="flex-1 py-2.5 font-display text-[12px] font-bold cursor-pointer border-0 transition-opacity hover:opacity-85 disabled:opacity-40"
-            style={isRemoving
-              ? { background: '#f87171', borderRadius: '3px', color: '#080c12' }
-              : { background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', borderRadius: '3px', color: 'var(--rx-green)' }
-            }
+            loading={saving}
+            disabled={loading}
           >
-            {saving ? 'ATTENDERE...' : actionLabel}
-          </button>
+            {actionLabel}
+          </Button>
         </div>
       </div>
     </div>

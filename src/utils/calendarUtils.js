@@ -1,6 +1,9 @@
 /** Altezza in px di un'ora nelle viste settimana e giorno. */
 export const HOUR_HEIGHT_PX = 60
 
+/** Altezza minima in px di uno slot breve, uniforme tra WeekView e DayView (prima 30 vs 40). */
+export const MIN_EVENT_HEIGHT_PX = 40
+
 /**
  * Restituisce il range {from, to} del mese dato in formato 'YYYY-MM-DD'.
  * @param {number} year  — anno (es. 2026)

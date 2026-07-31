@@ -1,4 +1,4 @@
-import { Field, Input } from '../../../ui'
+import { Field, Input, SegmentedToggle } from '../../../ui'
 import { calcAge }     from '../../../../utils/validation'
 
 export function StepAnagrafica({ anagrafica, setAnagrafica, errors }) {
@@ -37,18 +37,15 @@ export function StepAnagrafica({ anagrafica, setAnagrafica, errors }) {
         <Field label="Sesso">
           <div className="flex gap-2">
             {['M', 'F'].map(s => (
-              <button
+              <SegmentedToggle
                 key={s}
+                active={anagrafica.sesso === s}
                 onClick={() => setAnagrafica(p => ({ ...p, sesso: s }))}
-                aria-pressed={anagrafica.sesso === s}
-                className="flex-1 py-2.5 rounded-[3px] font-display text-[12px] cursor-pointer border transition-all"
-                style={anagrafica.sesso === s
-                  ? { background: 'color-mix(in srgb, var(--rx-green) 15%, transparent)', borderColor: 'var(--rx-green)', color: '#fff' }
-                  : { background: 'transparent', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' }
-                }
+                solid
+                className="flex-1 py-2.5 rounded-[3px] text-[12px]"
               >
                 {s}
-              </button>
+              </SegmentedToggle>
             ))}
           </div>
         </Field>

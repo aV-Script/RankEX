@@ -1,6 +1,6 @@
 import { useMemo, useState }                                        from 'react'
 import { BarChart, Bar, XAxis, LabelList, ResponsiveContainer, Cell } from 'recharts'
-import { SectionLabel }                                               from '../../../components/ui'
+import { SectionLabel, SegmentedToggle }                              from '../../../components/ui'
 import { useWearable }                                                from '../../../hooks/useWearable'
 import {
   getActivityLevel, formatSteps, formatSyncTime, formatCalories,
@@ -171,17 +171,15 @@ export function WearableSection({ client, orgId, color }) {
             {/* Toggle periodo */}
             <div className="flex items-center gap-1">
               {[{ id: '7gg', label: '7 GIORNI' }, { id: '30gg', label: '30 GIORNI' }].map(p => (
-                <button
+                <SegmentedToggle
                   key={p.id}
+                  active={period === p.id}
                   onClick={() => setPeriod(p.id)}
-                  className="font-display text-[9px] tracking-[1px] px-3 py-1 rounded-[3px] border cursor-pointer transition-all"
-                  style={period === p.id
-                    ? { background: color + '22', borderColor: color + '55', color }
-                    : { background: 'transparent', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.3)' }
-                  }
+                  color={color}
+                  className="text-[9px] tracking-[1px] px-3 py-1 rounded-[3px]"
                 >
                   {p.label}
-                </button>
+                </SegmentedToggle>
               ))}
               <span className="font-body text-[10px] text-white/60 ml-auto">media / giorno</span>
             </div>

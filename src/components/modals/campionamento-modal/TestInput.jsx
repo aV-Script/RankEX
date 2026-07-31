@@ -1,4 +1,5 @@
-import { Input } from '../../ui'
+import { Input }            from '../../ui'
+import { percentileColor }  from '../../../utils/percentile'
 
 /**
  * Card singolo test con input e percentile live.
@@ -9,18 +10,16 @@ export function TestInput({ test, testValues, livePercentile, prevValue, errors,
     ? livePercentile - prevValue
     : null
 
-  const color =
-    livePercentile === null  ? 'rgba(255,255,255,0.25)' :
-    livePercentile >= 75     ? '#6ee7b7' :
-    livePercentile >= 40     ? '#f59e0b' :
-                               '#f87171'
+  // Stessa scala usata dalla heatmap di gruppo (utils/percentile.js) — evita che
+  // lo stesso percentile riceva un giudizio visivo diverso a seconda della schermata.
+  const { text: color } = percentileColor(livePercentile)
 
   return (
     <div
       className="rounded-[4px] p-4 transition-colors"
       style={{
         background: 'var(--rx-card-bg)',
-        border:     `1px solid ${livePercentile !== null ? color + '44' : 'color-mix(in srgb, var(--rx-green) 8%, transparent)'}`,
+        border:     `1px solid ${livePercentile !== null ? `color-mix(in srgb, ${color} 27%, transparent)` : 'color-mix(in srgb, var(--rx-accent) 8%, transparent)'}`,
       }}
     >
       {/* Header test */}

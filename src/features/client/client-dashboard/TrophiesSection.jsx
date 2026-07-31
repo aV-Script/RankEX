@@ -1,8 +1,18 @@
 import { useState, useCallback } from 'react'
 import { BadgeMedal }            from '../../../components/ui/BadgeMedal'
 import { IconClose }             from '../../../components/ui/icons'
+import { EmptyState }            from '../../../components/ui'
 import { ConfirmDialog }         from '../../../components/common/ConfirmDialog'
 import { BADGES, BADGE_TIERS, MANUAL_BADGES } from '../../../config/badges.config'
+
+const ICON_TROPHY = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+    <path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+    <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
+  </svg>
+)
 
 const MAX_SHOWCASE = 5
 
@@ -42,7 +52,7 @@ export function TrophiesSection({
   onAward,
   onRevoke,
   onUpdateShowcase,
-  color = 'var(--rx-green)',
+  color = 'var(--rx-accent)',
 }) {
   const [showPicker,     setShowPicker]     = useState(false)
   const [note,           setNote]           = useState('')
@@ -142,7 +152,7 @@ export function TrophiesSection({
 
       {/* ── Showcase preview ─────────────────────────────────────────────── */}
       {earnedList.length > 0 && (
-        <div className="mb-6 rounded-xl p-4">
+        <div className="mb-6 rounded-[4px] p-4">
           <div className="font-display text-[8px] tracking-[2.5px] uppercase mb-3 flex items-center gap-2" style={{ color: color + '80' }}>
             {ICON_PIN}
             Profilo ({currentShowcase.length}/{MAX_SHOWCASE})
@@ -349,9 +359,7 @@ export function TrophiesSection({
       )}
 
       {earnedList.length === 0 && lockedList.length === 0 && (
-        <div className="text-center py-12 font-display uppercase tracking-[3px] text-[9px]" style={{ color: 'rgba(255,255,255,0.18)' }}>
-          Nessun badge disponibile
-        </div>
+        <EmptyState color={color} icon={ICON_TROPHY} title="Nessun badge disponibile" />
       )}
 
       {/* ── Modal assegna badge manuale ──────────────────────────────────── */}
@@ -362,7 +370,7 @@ export function TrophiesSection({
           onClick={() => setShowPicker(false)}
         >
           <div
-            className="w-full max-w-md rounded-t-2xl p-5 animate-in slide-in-from-bottom duration-300"
+            className="w-full max-w-md rounded-t-[4px] p-5 animate-in slide-in-from-bottom duration-300"
             style={{ background: 'var(--rx-surface)', border: '1px solid rgba(255,255,255,0.08)', borderBottom: 'none' }}
             onClick={e => e.stopPropagation()}
           >
@@ -370,7 +378,9 @@ export function TrophiesSection({
               <div className="font-display font-black uppercase text-white text-sm tracking-wide">
                 Assegna Badge
               </div>
-              <button onClick={() => setShowPicker(false)} className="cursor-pointer" style={{ color: 'rgba(255,255,255,0.35)', border: 'none', background: 'none', fontSize: 20, lineHeight: 1 }}>✕</button>
+              <button onClick={() => setShowPicker(false)} aria-label="Chiudi" className="cursor-pointer flex items-center justify-center" style={{ color: 'rgba(255,255,255,0.35)', border: 'none', background: 'none' }}>
+                <IconClose size={14} />
+              </button>
             </div>
             <input
               type="text"
@@ -389,7 +399,7 @@ export function TrophiesSection({
                     key={b.id}
                     disabled={alreadyEarned || picking === b.id}
                     onClick={() => handlePick(b)}
-                    className="flex items-center gap-3 cursor-pointer text-left rounded-lg transition-all"
+                    className="flex items-center gap-3 cursor-pointer text-left rounded-[3px] transition-all"
                     style={{
                       padding:    '10px 12px',
                       background: alreadyEarned ? 'rgba(255,255,255,0.03)' : color + '09',

@@ -1,4 +1,5 @@
 import { useTrainerState } from '../../../context/TrainerContext'
+import { StatCard, PageTitle } from '../../../components/ui'
 
 export function OrgDashboard({ clients, org }) {
   const { terminology } = useTrainerState()
@@ -6,9 +7,9 @@ export function OrgDashboard({ clients, org }) {
 
   return (
     <div className="px-6 py-8 text-white">
-      <h1 className="font-display font-black text-[20px] mb-2">
+      <PageTitle className="mb-2">
         {org?.name ?? 'Organizzazione'}
-      </h1>
+      </PageTitle>
       <p className="font-body text-[13px] text-white/40 mb-8">
         Pannello di controllo organizzazione
       </p>
@@ -17,7 +18,7 @@ export function OrgDashboard({ clients, org }) {
         <StatCard
           label={t.clients ?? 'Clienti'}
           value={clients?.length ?? 0}
-          color="var(--rx-green)"
+          color="var(--rx-accent)"
         />
         <StatCard
           label="Modulo"
@@ -30,20 +31,6 @@ export function OrgDashboard({ clients, org }) {
           color="#f59e0b"
         />
       </div>
-    </div>
-  )
-}
-
-function StatCard({ label, value, color }) {
-  return (
-    <div
-      className="p-5 rounded-[4px]"
-      style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${color}22` }}
-    >
-      <div className="font-display font-black text-[32px] mb-1" style={{ color }}>
-        {value}
-      </div>
-      <div className="font-body text-[12px] text-white/40">{label}</div>
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { useEffect, useRef, cloneElement, isValidElement } from 'react'
 import { Pentagon }       from './Pentagon'
 import { getStatsConfig } from '../../constants'
 import { useFocusTrap }   from '../../hooks/useFocusTrap'
+import { IconClose }      from './icons'
 
 export { XPBar } from './XPBar'
 
@@ -11,7 +12,7 @@ export function Card({ className = '', children, variant = 'green' }) {
     <div
       className={`p-5 rx-card ${className}`}
       style={variant === 'cyan'
-        ? { borderColor: 'color-mix(in srgb, var(--rx-cyan) 12%, transparent)' }
+        ? { borderColor: 'color-mix(in srgb, var(--rx-accent-2) 12%, transparent)' }
         : {}
       }
     >
@@ -20,12 +21,26 @@ export function Card({ className = '', children, variant = 'green' }) {
   )
 }
 
+// ─── PageTitle ────────────────────────────────────────────────────────────────
+// h1 di pagina — 3 dimensioni diverse (24/22/20px) per lo stesso ruolo
+// semantico su pagine diverse, senza motivo. Uniformato a 20px (già la
+// dimensione più diffusa). Margini/spaziatura restano a carico del chiamante
+// via className, perché variano legittimamente in base al layout della pagina
+// (riga flex con bottone accanto, sottotitolo sotto, pagina standalone...).
+export function PageTitle({ children, className = '' }) {
+  return (
+    <h1 className={`font-display font-black text-[20px] text-white m-0 ${className}`}>
+      {children}
+    </h1>
+  )
+}
+
 // ─── SectionLabel ─────────────────────────────────────────────────────────────
-export function SectionLabel({ children, className = '' }) {
+export function SectionLabel({ children, color = 'var(--rx-accent)', className = '' }) {
   return (
     <div
       className={`font-display text-[11px] font-semibold tracking-[3px] uppercase mb-3.5 ${className}`}
-      style={{ color: 'var(--rx-green)' }}
+      style={{ color }}
     >
       {children}
     </div>
@@ -33,7 +48,7 @@ export function SectionLabel({ children, className = '' }) {
 }
 
 // ─── Badge ────────────────────────────────────────────────────────────────────
-export function Badge({ color = 'var(--rx-green)', className = '', children }) {
+export function Badge({ color = 'var(--rx-accent)', className = '', children }) {
   return (
     <span
       className={`rounded-full px-2.5 py-0.5 text-[10px] font-display font-bold tracking-wide ${className}`}
@@ -48,6 +63,76 @@ export function Badge({ color = 'var(--rx-green)', className = '', children }) {
   )
 }
 
+// ─── RankBadge ────────────────────────────────────────────────────────────────
+// Pillola colorata col rank atleta ("S+", "A", ecc.) — condivisa tra ClientHub,
+// GroupLeaderboard e qualunque altro punto mostri il rank accanto a un nome.
+export function RankBadge({ label, color, size = 'md' }) {
+  return (
+    <span
+      className={`inline-flex items-center shrink-0 rounded-[3px] font-display font-black ${size === 'sm' ? 'text-[11px] px-2 py-0.5' : 'text-[12px] px-3 py-1'}`}
+      style={{
+        color,
+        background: `color-mix(in srgb, ${color} 12%, transparent)`,
+        border:     `1px solid color-mix(in srgb, ${color} 28%, transparent)`,
+      }}
+    >
+      {label}
+    </span>
+  )
+}
+
+// ─── DayTabs ──────────────────────────────────────────────────────────────────
+// Selettore "Giorno 1/2/3" read-only — condiviso tra la scheda attiva, lo
+// storico archiviato e la vista cliente. Non copre WorkoutPlanForm.jsx: lì il
+// tab attivo diventa un input di rinomina, un'interazione diversa, non una
+// variante dello stesso componente.
+export function DayTabs({ days, activeDay, onChange, color }) {
+  if (!days || days.length <= 1) return null
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      {days.map((d, i) => (
+        <button
+          key={i}
+          onClick={() => onChange(i)}
+          className="font-display text-[11px] font-bold px-3 py-1 rounded-[3px] cursor-pointer border transition-all"
+          style={activeDay === i
+            ? { background: `color-mix(in srgb, ${color} 18%, transparent)`, borderColor: `color-mix(in srgb, ${color} 55%, transparent)`, color }
+            : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)' }
+          }
+        >
+          {d.label || `Giorno ${i + 1}`}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+// ─── SegmentedToggle ────────────────────────────────────────────────────────────
+// Pillola di un selettore a scelta esclusiva (M/F, giorni ricorrenza, periodo
+// wearable, bucket grafico XP...) — prima 4 implementazioni indipendenti, solo
+// alcune dotate di aria-pressed. `solid` replica lo stile a bordo pieno/testo
+// bianco di M/F e giorni ricorrenza; il default (soft) è il chip accent-tinted
+// usato altrove (periodo wearable, bucket XP trend).
+export function SegmentedToggle({ active, onClick, color = 'var(--rx-accent)', solid = false, className = '', children, ...props }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`font-display cursor-pointer border transition-all ${className}`}
+      style={active
+        ? solid
+          ? { background: `color-mix(in srgb, ${color} 15%, transparent)`, borderColor: color, color: '#fff' }
+          : { background: `color-mix(in srgb, ${color} 20%, transparent)`, borderColor: `color-mix(in srgb, ${color} 55%, transparent)`, color }
+        : { background: 'transparent', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.35)' }
+      }
+      {...props}
+    >
+      {children}
+    </button>
+  )
+}
+
 // ─── Modal ────────────────────────────────────────────────────────────────────
 const MODAL_WIDTHS = {
   default: 'w-[420px]',
@@ -55,7 +140,7 @@ const MODAL_WIDTHS = {
   xl:      'w-[420px] lg:w-[960px]',
 }
 
-export function Modal({ title, onClose, disableOverlayClose, size = 'default', children }) {
+export function Modal({ title, onClose, disableOverlayClose, size = 'default', accentColor = 'var(--rx-accent)', children }) {
   const dialogRef = useRef(null)
   useFocusTrap(dialogRef, true)
 
@@ -79,8 +164,8 @@ export function Modal({ title, onClose, disableOverlayClose, size = 'default', c
         className={`rx-card p-6 lg:p-8 ${MODAL_WIDTHS[size]} max-w-[96vw] my-auto`}
         style={{
           background:  'var(--rx-surface)',
-          borderColor: 'color-mix(in srgb, var(--rx-green) 20%, transparent)',
-          boxShadow:   '0 20px 60px rgba(0,0,0,0.8), 0 0 40px var(--rx-green-glow)',
+          borderColor: `color-mix(in srgb, ${accentColor} 20%, transparent)`,
+          boxShadow:   `0 20px 60px rgba(0,0,0,0.8), 0 0 40px color-mix(in srgb, ${accentColor} 15%, transparent)`,
         }}
         onClick={e => e.stopPropagation()}
       >
@@ -91,9 +176,9 @@ export function Modal({ title, onClose, disableOverlayClose, size = 'default', c
           <button
             onClick={onClose}
             aria-label="Chiudi"
-            className="bg-transparent border-none text-white/30 text-xl cursor-pointer leading-none hover:text-white/70 transition-colors"
+            className="bg-transparent border-none text-white/30 cursor-pointer flex items-center justify-center hover:text-white/70 transition-colors"
           >
-            ✕
+            <IconClose size={14} />
           </button>
         </div>
         {children}
@@ -118,33 +203,44 @@ export function Textarea({ className = '', ...props }) {
 }
 
 // ─── Button ───────────────────────────────────────────────────────────────────
-const VARIANT_STYLES = {
-  primary: {
-    background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)',
-    border:     '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)',
-    color:      'var(--rx-green)',
-    fontWeight: 700,
-  },
-  danger: {
-    background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
-    border:     'none',
-    color:      '#ffffff',
-  },
-  ghost: {
-    background: 'transparent',
-    border:     '1px solid color-mix(in srgb, var(--rx-green) 30%, transparent)',
-    color:      'var(--rx-green)',
-  },
-  // Cancel/dismiss neutro — pattern già dominante nei dialog (ConfirmDialog,
-  // CreateMemberForm, GroupToggleDialog, ecc.) ma finora sempre ricopiato a mano.
-  neutral: {
-    background: 'transparent',
-    border:     '1px solid rgba(255,255,255,0.1)',
-    color:      'rgba(255,255,255,0.4)',
-  },
+function variantStyles(variant, accentColor) {
+  return {
+    primary: {
+      background: `color-mix(in srgb, ${accentColor} 7%, transparent)`,
+      border:     `1px solid color-mix(in srgb, ${accentColor} 35%, transparent)`,
+      color:      accentColor,
+      fontWeight: 700,
+    },
+    danger: {
+      background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+      border:     'none',
+      color:      '#ffffff',
+    },
+    // Ghost/outline rosso — per conferme distruttive dove il "danger" pieno
+    // sopra risulterebbe più aggressivo dell'impatto reale dell'azione
+    // (pattern nato in ConfirmDialog, riusato da GroupToggleDialog).
+    dangerGhost: {
+      background: 'color-mix(in srgb, #f87171 7%, transparent)',
+      border:     '1px solid color-mix(in srgb, #f87171 35%, transparent)',
+      color:      '#f87171',
+      fontWeight: 700,
+    },
+    ghost: {
+      background: 'transparent',
+      border:     `1px solid color-mix(in srgb, ${accentColor} 30%, transparent)`,
+      color:      accentColor,
+    },
+    // Cancel/dismiss neutro — pattern già dominante nei dialog (ConfirmDialog,
+    // CreateMemberForm, GroupToggleDialog, ecc.) ma finora sempre ricopiato a mano.
+    neutral: {
+      background: 'transparent',
+      border:     '1px solid rgba(255,255,255,0.1)',
+      color:      'rgba(255,255,255,0.4)',
+    },
+  }[variant]
 }
 
-export function Button({ variant = 'primary', size = 'md', loading, disabled, className = '', children, ...props }) {
+export function Button({ variant = 'primary', size = 'md', loading, disabled, accentColor = 'var(--rx-accent)', className = '', children, ...props }) {
   const padding = size === 'sm' ? '8px 14px' : '12px 16px'
   return (
     <button
@@ -156,7 +252,7 @@ export function Button({ variant = 'primary', size = 'md', loading, disabled, cl
         ${className}
       `}
       style={{
-        ...VARIANT_STYLES[variant],
+        ...variantStyles(variant, accentColor),
         borderRadius: '3px',
         padding,
       }}
@@ -176,7 +272,7 @@ export function Divider({ color }) {
         style={{
           background: color
             ? `linear-gradient(90deg, transparent, ${color}55, transparent)`
-            : 'linear-gradient(90deg, transparent, color-mix(in srgb, var(--rx-green) 20%, transparent), transparent)',
+            : 'linear-gradient(90deg, transparent, color-mix(in srgb, var(--rx-accent) 20%, transparent), transparent)',
         }}
       />
     </div>
@@ -197,7 +293,7 @@ export function Field({ label, error, htmlFor, children }) {
     <div>
       <label
         htmlFor={htmlFor}
-        className="text-white/40 text-[11px] font-display tracking-wider mb-1.5 block"
+        className="text-white/40 text-[11px] font-display tracking-[3px] mb-1.5 block"
       >
         {label.toUpperCase()}
       </label>
@@ -210,15 +306,14 @@ export function Field({ label, error, htmlFor, children }) {
 }
 
 // ─── EmptyState ───────────────────────────────────────────────────────────────
-export function EmptyState({ icon, title, description, color, action }) {
-  const accent = color ?? 'rgba(255,255,255,0.15)'
+export function EmptyState({ icon, title, description, color = 'var(--rx-accent)', action }) {
   return (
     <div className="flex flex-col items-center justify-center py-10 text-center gap-3">
       <div
         className="w-12 h-12 rounded-full flex items-center justify-center"
-        style={{ background: accent + '14', border: `1px solid ${accent}30` }}
+        style={{ background: `color-mix(in srgb, ${color} 14%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 30%, transparent)` }}
       >
-        <div style={{ color: accent + 'aa' }}>{icon}</div>
+        <div style={{ color: `color-mix(in srgb, ${color} 85%, transparent)` }}>{icon}</div>
       </div>
       <div className="font-display font-bold text-[13px] text-white/50">{title}</div>
       {description && (
@@ -233,10 +328,10 @@ export function EmptyState({ icon, title, description, color, action }) {
             padding: '7px 16px',
             fontSize: 10, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase',
             cursor: 'pointer',
-            background: accent + '14',
-            border: `1px solid ${accent}40`,
+            background: `color-mix(in srgb, ${color} 14%, transparent)`,
+            border: `1px solid color-mix(in srgb, ${color} 40%, transparent)`,
             borderRadius: 3,
-            color: accent,
+            color,
             transition: 'opacity 150ms',
           }}
           onMouseEnter={e => { e.currentTarget.style.opacity = '0.75' }}
@@ -245,6 +340,25 @@ export function EmptyState({ icon, title, description, color, action }) {
           {action.label}
         </button>
       )}
+    </div>
+  )
+}
+
+// ─── StatCard ─────────────────────────────────────────────────────────────────
+// Riquadro numero+label per dashboard aggregate (super_admin, org_admin) — prima
+// duplicato identico in AdminDashboard.jsx e OrgDashboard.jsx, con lo stesso bug
+// silenzioso di CLAUDE.md P1.3 (`color + '22'` produceva un bordo invisibile
+// quando `color` era una CSS var come `var(--rx-accent)`, non un hex).
+export function StatCard({ label, value, color }) {
+  return (
+    <div
+      className="p-5 rounded-[4px]"
+      style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid color-mix(in srgb, ${color} 13%, transparent)` }}
+    >
+      <div className="font-display font-black text-[32px] mb-1" style={{ color }}>
+        {value}
+      </div>
+      <div className="font-body text-[12px] text-white/40">{label}</div>
     </div>
   )
 }
@@ -259,7 +373,7 @@ export function ActivityLog({ log = [], color, limit = 5 }) {
       {log.length === 0 && (
         <EmptyState
           color={color}
-          icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>}
+          icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>}
           title="Nessuna attività"
           description="Sessioni e campionamenti appariranno qui man mano che vengono registrati."
         />
@@ -267,7 +381,7 @@ export function ActivityLog({ log = [], color, limit = 5 }) {
       {log.slice(0, limit).map((entry, i) => (
         <div key={i} className="flex gap-2.5 items-start mb-2.5">
           <div className="flex flex-col items-center pt-1.5 gap-1">
-            <div className="w-[5px] h-[5px] rounded-full shrink-0" style={{ background: color ? `${color}88` : 'color-mix(in srgb, var(--rx-green) 55%, transparent)' }} />
+            <div className="w-[5px] h-[5px] rounded-full shrink-0" style={{ background: color ? `${color}88` : 'color-mix(in srgb, var(--rx-accent) 55%, transparent)' }} />
             {i < Math.min(log.length, limit) - 1 && (
               <div className="w-px flex-1 min-h-[12px]" style={{ background: 'rgba(255,255,255,0.06)' }} />
             )}
@@ -277,7 +391,7 @@ export function ActivityLog({ log = [], color, limit = 5 }) {
             <div className="flex gap-2 mt-0.5">
               <span className="font-body text-[11px] text-white/60">{entry.date}</span>
               {entry.xp > 0 && (
-                <span className="font-display text-[10px]" style={{ color: color ?? 'var(--rx-green)' }}>+{entry.xp} XP</span>
+                <span className="font-display text-[10px]" style={{ color: color ?? 'var(--rx-accent)' }}>+{entry.xp} XP</span>
               )}
             </div>
           </div>
@@ -309,7 +423,7 @@ export function StatsSection({ stats = {}, prevStats = null, categoria = 'health
               </span>
               <div
                 className="flex-1 h-[5px] rounded-full overflow-hidden"
-                style={{ background: 'color-mix(in srgb, var(--rx-cyan) 10%, transparent)' }}
+                style={{ background: 'color-mix(in srgb, var(--rx-accent-2) 10%, transparent)' }}
               >
                 <div
                   className="h-full rounded-full transition-[width] duration-700"

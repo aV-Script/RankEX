@@ -6,7 +6,7 @@ import { Pagination }          from '../../../components/common/Pagination'
 import { EmptyState }          from '../../../components/ui'
 
 const ICON_ORG = (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/>
     <line x1="9" y1="9" x2="9" y2="9.01"/><line x1="9" y1="12" x2="9" y2="12.01"/><line x1="9" y1="15" x2="9" y2="15.01"/>
   </svg>
@@ -18,7 +18,7 @@ const MODULE_LABELS = {
 }
 
 const STATUS_COLORS = {
-  active:   'var(--rx-green)',
+  active:   'var(--rx-accent)',
   inactive: '#6b7280',
   suspended:'#f87171',
 }

@@ -16,7 +16,7 @@ export function RecurrenceSummaryBar({ recurrence, clientsCount, weeks, statusIn
         )}
       </InfoChip>
       <InfoChip label="CLIENTI">
-        <span style={{ color: 'var(--rx-green)' }}>{clientsCount}</span>
+        <span style={{ color: 'var(--rx-accent)' }}>{clientsCount}</span>
       </InfoChip>
     </div>
   )

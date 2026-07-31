@@ -38,8 +38,8 @@ describe('heatColor', () => {
     expect(heatColor(null).text).toBe('rgba(255,255,255,0.15)')
   })
   it('classifica >=67 come verde (fascia alta)', () => {
-    expect(heatColor(67).text).toBe('var(--rx-green)')
-    expect(heatColor(100).text).toBe('var(--rx-green)')
+    expect(heatColor(67).text).toBe('var(--rx-accent)')
+    expect(heatColor(100).text).toBe('var(--rx-accent)')
   })
   it('classifica 34-66 come giallo (fascia media)', () => {
     expect(heatColor(34).text).toBe('#facc15')

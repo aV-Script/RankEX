@@ -109,7 +109,7 @@ export function BadgeMedal({ badgeId, unlocked, size = 64, animate = false, show
           height:         size,
           borderRadius:   '50%',
           background:     unlocked
-            ? `radial-gradient(circle at 35% 35%, ${tier.color}22, rgba(0,0,0,0.55))`
+            ? `radial-gradient(circle at 35% 35%, color-mix(in srgb, ${tier.color} 13%, transparent), rgba(0,0,0,0.55))`
             : 'rgba(255,255,255,0.04)',
           border:         `${borderW}px solid ${unlocked ? tier.color : 'rgba(255,255,255,0.09)'}`,
           boxShadow:      unlocked ? `0 0 ${Math.round(size / 2.5)}px ${tier.glow}` : 'none',

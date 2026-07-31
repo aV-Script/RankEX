@@ -34,7 +34,7 @@ export default function App() {
       <button
         onClick={() => window.location.reload()}
         className="px-4 py-2 text-sm text-white/70 border rounded-[3px] hover:opacity-80 transition-opacity"
-        style={{ borderColor: 'color-mix(in srgb, var(--rx-green) 20%, transparent)' }}
+        style={{ borderColor: 'color-mix(in srgb, var(--rx-accent) 20%, transparent)' }}
       >
         Ricarica
       </button>
@@ -51,18 +51,18 @@ export default function App() {
       {showSessionWarning && <SessionWarningDialog onExtend={extendSession} />}
       <ThemeDevPanel />
       {hasUpdate && (
-        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg border"
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-3 px-5 py-3 rounded-[4px] border"
           style={{
-            background:   'var(--bg-overlay)',
-            borderColor:  'color-mix(in srgb, var(--rx-green) 35%, transparent)',
-            boxShadow:    'var(--shadow-green)',
+            background:   'var(--rx-card-bg)',
+            borderColor:  'color-mix(in srgb, var(--rx-accent) 35%, transparent)',
+            boxShadow:    '0 8px 24px rgba(0,0,0,0.6), 0 0 20px var(--rx-accent-glow)',
           }}
         >
           <span className="text-sm font-display text-white/80">Nuova versione disponibile</span>
           <button
             onClick={() => window.location.reload()}
-            className="px-3 py-1 rounded-lg text-xs font-display font-bold tracking-wider transition-opacity hover:opacity-80"
-            style={{ background: 'var(--rx-green)', color: '#000' }}
+            className="px-3 py-1 rounded-[3px] text-xs font-display font-bold tracking-wider transition-opacity hover:opacity-80"
+            style={{ background: 'var(--rx-accent)', color: '#000' }}
           >
             RICARICA
           </button>

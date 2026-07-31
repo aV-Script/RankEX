@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import {
   ICON_BACK, ICON_MANAGE, ICON_LEADERBOARD, ICON_ANALYSIS, ICON_COMPARE,
   ICON_SESSIONS, ICON_NOTES, ICON_RENAME, ICON_PDF, ICON_DELETE,
@@ -17,10 +18,19 @@ const SUB_TABS = [
  * (Rinomina / Esporta PDF / Elimina). Estratto da GroupDetailView.jsx (RX-07).
  */
 export function GroupDetailHeader({
-  onBack, subView, onSelectTab,
+  onBack, terminology, subView, onSelectTab,
   isEditing, editingName, onEditingNameChange, onSaveRename, onCancelRename,
   showActions, onToggleActions, onOpenRename, onExportPdf, onRequestDelete,
 }) {
+  // Chiusura da tastiera per il menu overflow — l'unico modo per chiuderlo
+  // era prima un click esterno su un div non focusabile.
+  useEffect(() => {
+    if (!showActions) return
+    const handler = e => { if (e.key === 'Escape') onToggleActions() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [showActions, onToggleActions])
+
   return (
     <header
       className="border-b border-white/[.05] sticky top-0 z-30 backdrop-blur-md shrink-0 flex items-stretch"
@@ -29,7 +39,7 @@ export function GroupDetailHeader({
       {/* ← Back */}
       <button
         onClick={onBack}
-        aria-label="Torna ai gruppi"
+        aria-label={`Torna a ${terminology.groups}`}
         className="w-10 flex items-center justify-center shrink-0 bg-transparent border-none text-white/40 hover:text-white/70 transition-colors cursor-pointer"
       >
         {ICON_BACK}
@@ -50,7 +60,7 @@ export function GroupDetailHeader({
               className="input-base font-display font-black text-[12px]"
               style={{ minWidth: 100, maxWidth: 160 }}
             />
-            <ActionBtn onClick={onSaveRename} color="var(--rx-green)">SALVA</ActionBtn>
+            <ActionBtn onClick={onSaveRename} color="var(--rx-accent)">SALVA</ActionBtn>
             <ActionBtn onClick={onCancelRename} muted>ANN.</ActionBtn>
           </div>
         ) : (
@@ -61,15 +71,15 @@ export function GroupDetailHeader({
                 onClick={() => onSelectTab(t.id)}
                 aria-current={subView === t.id ? 'page' : undefined}
                 className="flex items-center gap-1.5 px-3 h-full shrink-0 cursor-pointer border-none bg-transparent relative transition-colors"
-                style={{ color: subView === t.id ? 'var(--rx-green)' : 'rgba(200,212,224,0.35)' }}
+                style={{ color: subView === t.id ? 'var(--rx-accent)' : 'rgba(200,212,224,0.35)' }}
               >
                 {subView === t.id && (
                   <div
                     className="absolute bottom-0 left-2 right-2 h-[2px] rounded-t-sm"
-                    style={{ background: 'var(--rx-gradient)', boxShadow: '0 0 6px color-mix(in srgb, var(--rx-green) 45%, transparent)' }}
+                    style={{ background: 'var(--rx-gradient)', boxShadow: '0 0 6px color-mix(in srgb, var(--rx-accent) 45%, transparent)' }}
                   />
                 )}
-                <span style={{ display: 'flex', filter: subView === t.id ? 'drop-shadow(0 0 4px color-mix(in srgb, var(--rx-green) 50%, transparent))' : 'none' }}>
+                <span style={{ display: 'flex', filter: subView === t.id ? 'drop-shadow(0 0 4px color-mix(in srgb, var(--rx-accent) 50%, transparent))' : 'none' }}>
                   {t.icon}
                 </span>
                 <span className="font-display text-[9px] tracking-[1px] uppercase whitespace-nowrap">{t.label}</span>
@@ -97,7 +107,7 @@ export function GroupDetailHeader({
       <div className="relative shrink-0">
         <button
           onClick={onToggleActions}
-          aria-label="Azioni gruppo"
+          aria-label={`Azioni ${terminology.group.toLowerCase()}`}
           className="w-10 h-full flex items-center justify-center bg-transparent border-none text-white/40 hover:text-white/70 transition-colors cursor-pointer"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">

@@ -1,9 +1,9 @@
 const RANK_DECORATIONS = [
-  { label: 'EX', color: 'var(--rx-green-bright)', x: 72, y: 18, size: 80 },
+  { label: 'EX', color: 'var(--rx-accent-bright)', x: 72, y: 18, size: 80 },
   { label: 'S+', color: '#00c8ff',                x: 18, y: 42, size: 56 },
-  { label: 'A',  color: 'var(--rx-green)',         x: 78, y: 62, size: 64 },
+  { label: 'A',  color: 'var(--rx-accent)',         x: 78, y: 62, size: 64 },
   { label: 'B+', color: '#4db8ff',                x: 30, y: 75, size: 44 },
-  { label: 'SS', color: 'var(--rx-green-bright)', x: 55, y: 38, size: 48 },
+  { label: 'SS', color: 'var(--rx-accent-bright)', x: 55, y: 38, size: 48 },
 ]
 
 const STATS = [
@@ -32,13 +32,13 @@ export function BrandingPanel() {
       <div className="relative z-10">
         <p
           className="font-display text-[11px] tracking-[4px] mb-4"
-          style={{ color: 'var(--rx-green)' }}
+          style={{ color: 'var(--rx-accent)' }}
         >
           PERFORMANCE PLATFORM
         </p>
         <h1 className="font-display font-black text-[52px] leading-[1.05] text-white m-0">
           Allena.<br />
-          <span style={{ color: 'var(--rx-green)' }}>Misura.</span><br />
+          <span style={{ color: 'var(--rx-accent)' }}>Misura.</span><br />
           Evolvi.
         </h1>
         <p className="font-body text-white/40 text-[15px] mt-6 leading-relaxed max-w-sm">
@@ -58,7 +58,7 @@ export function BrandingPanel() {
             </div>
           ))}
         </div>
-        <p className="font-body text-[10px] tracking-[1.5px]" style={{ color: 'color-mix(in srgb, var(--rx-green) 35%, transparent)' }}>
+        <p className="font-body text-[10px] tracking-[1.5px]" style={{ color: 'color-mix(in srgb, var(--rx-accent) 35%, transparent)' }}>
           by Dr. Lamberti Valerio
         </p>
       </div>

@@ -3,18 +3,18 @@
  * Estratte da GroupAnalysis.jsx e GroupComparison.jsx per essere testabili
  * in isolamento (nessuna dipendenza da React/Recharts/DOM).
  */
-import { ALL_TESTS } from '../constants/index'
+import { ALL_TESTS }       from '../constants/index'
+import { percentileColor } from './percentile'
 
 function labelForStat(key) {
   return ALL_TESTS.find(t => t.stat === key)?.label ?? key
 }
 
 // ── Heatmap ───────────────────────────────────────────────────────────────────
+// Soglie/colori condivisi con il campionamento live — vedi utils/percentile.js
 export function heatColor(val) {
   if (val == null) return { bg: 'transparent', text: 'rgba(255,255,255,0.15)' }
-  if (val >= 67)   return { bg: 'color-mix(in srgb, var(--rx-green) 15%, transparent)', text: 'var(--rx-green)' }
-  if (val >= 34)   return { bg: 'rgba(250,204,21,0.12)',  text: '#facc15' }
-  return               { bg: 'rgba(248,113,113,0.13)', text: '#f87171' }
+  return percentileColor(val)
 }
 
 export function buildHeatmap(clients) {

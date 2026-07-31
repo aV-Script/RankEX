@@ -1,7 +1,8 @@
-import { useState, useRef }      from 'react'
-import { Field, Input, Button }  from '../../../components/ui'
-import { useFocusTrap }          from '../../../hooks/useFocusTrap'
+import { useState }              from 'react'
+import { Modal, Field, Input, Button } from '../../../components/ui'
 import { createMemberUseCase }   from '../../../usecases/createMemberUseCase'
+import { getFirebaseErrorMessage } from '../../../utils/firebaseErrors'
+import { validateRequired }      from '../../../utils/validation'
 
 const ROLE_OPTIONS = [
   { value: 'trainer',        label: 'Trainer' },
@@ -15,48 +16,39 @@ const ROLE_OPTIONS = [
 export function CreateMemberForm({ orgId, onClose, onCreated }) {
   const [form,   setForm]   = useState({ name: '', email: '', password: '', role: 'trainer' })
   const [saving, setSaving] = useState(false)
-  const [error,  setError]  = useState(null)
-  const formRef = useRef(null)
-  useFocusTrap(formRef, true)
+  const [errors, setErrors] = useState({})
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.name || !form.email || !form.password) return
+
+    const nameCheck  = validateRequired(form.name, 'Nome')
+    const emailCheck = validateRequired(form.email, 'Email')
+    const pwCheck     = validateRequired(form.password, 'Password')
+    if (!nameCheck.valid || !emailCheck.valid || !pwCheck.valid) {
+      setErrors({ name: nameCheck.error, email: emailCheck.error, password: pwCheck.error })
+      return
+    }
+
     setSaving(true)
-    setError(null)
+    setErrors({})
 
     try {
       const member = await createMemberUseCase(orgId, form.role, form.name, form.email, form.password)
       onCreated({ id: member.uid, name: member.name, email: member.email, role: member.role })
     } catch (err) {
-      setError(err.message)
+      const message = getFirebaseErrorMessage(err, 'Impossibile creare il membro')
+      const isEmailError = err?.code === 'auth/email-already-in-use' || err?.code === 'auth/invalid-email'
+      setErrors(isEmailError ? { email: message } : { form: message })
     } finally {
       setSaving(false)
     }
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center px-4"
-      style={{ background: 'rgba(8,12,18,0.9)' }}
-      onClick={onClose}
-    >
-      <form
-        ref={formRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="create-member-title"
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm p-6"
-        style={{ background: 'var(--rx-surface)', border: '1px solid var(--rx-border)', borderRadius: '4px' }}
-        onClick={e => e.stopPropagation()}
-      >
-        <h3 id="create-member-title" className="font-display font-black text-[16px] text-white mb-5">
-          Aggiungi membro
-        </h3>
-
+    <Modal title="Aggiungi membro" onClose={onClose}>
+      <form onSubmit={handleSubmit}>
         <div className="flex flex-col gap-3 mb-5">
-          <Field label="Nome" htmlFor="member-name">
+          <Field label="Nome" htmlFor="member-name" error={errors.name}>
             <Input
               id="member-name"
               placeholder="Nome"
@@ -65,7 +57,7 @@ export function CreateMemberForm({ orgId, onClose, onCreated }) {
               required
             />
           </Field>
-          <Field label="Email" htmlFor="member-email">
+          <Field label="Email" htmlFor="member-email" error={errors.email}>
             <Input
               id="member-email"
               placeholder="Email"
@@ -75,7 +67,7 @@ export function CreateMemberForm({ orgId, onClose, onCreated }) {
               required
             />
           </Field>
-          <Field label="Password temporanea" htmlFor="member-password">
+          <Field label="Password temporanea" htmlFor="member-password" error={errors.password}>
             <Input
               id="member-password"
               placeholder="Password temporanea"
@@ -99,8 +91,8 @@ export function CreateMemberForm({ orgId, onClose, onCreated }) {
           </Field>
         </div>
 
-        {error && (
-          <p role="alert" className="font-body text-[12px] mb-4" style={{ color: '#f87171' }}>{error}</p>
+        {errors.form && (
+          <p role="alert" className="font-body text-[12px] mb-4 m-0" style={{ color: '#f87171' }}>{errors.form}</p>
         )}
 
         <div className="flex gap-3">
@@ -112,6 +104,6 @@ export function CreateMemberForm({ orgId, onClose, onCreated }) {
           </Button>
         </div>
       </form>
-    </div>
+    </Modal>
   )
 }

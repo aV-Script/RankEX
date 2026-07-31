@@ -12,7 +12,7 @@ export function GroupsSidebar({ groupSearch, onGroupSearchChange, onNewGroup, to
       <button
         onClick={onNewGroup}
         className="w-full py-2.5 text-[11px] rounded-[3px] font-display tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
-        style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)' }}
+        style={{ background: 'color-mix(in srgb, var(--rx-accent) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-accent) 35%, transparent)', color: 'var(--rx-accent)' }}
       >
         NUOVO GRUPPO
       </button>

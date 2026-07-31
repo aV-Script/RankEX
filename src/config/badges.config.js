@@ -1,11 +1,14 @@
 // ── Badge system — fonte di verità ────────────────────────────────────────────
 // Le icone sono identificatori stringa — il rendering SVG sta in BadgeMedal.jsx
 
+// Platino: bianco-argento ad alta luminosità con glow ciano residuo (non più
+// ciano pieno) — per una progressione bronzo→argento→oro→platino monotona in
+// luminosità, dove prima il ciano leggeva meno "premium" dell'oro (P3.2).
 export const BADGE_TIERS = {
-  bronze:   { label: 'Bronzo',  color: '#cd7f32', glow: 'rgba(205,127,50,0.35)' },
-  silver:   { label: 'Argento', color: '#9ca3af', glow: 'rgba(156,163,175,0.35)' },
-  gold:     { label: 'Oro',     color: '#ffd700', glow: 'rgba(255,215,0,0.35)' },
-  platinum: { label: 'Platino', color: '#2ecfff', glow: 'rgba(46,207,255,0.35)' },
+  bronze:   { label: 'Bronzo',  color: '#cd7f32',           glow: 'rgba(205,127,50,0.35)' },
+  silver:   { label: 'Argento', color: 'var(--rx-silver)',  glow: 'rgba(192,192,192,0.35)' },
+  gold:     { label: 'Oro',     color: 'var(--rx-gold)',    glow: 'rgba(255,215,0,0.35)' },
+  platinum: { label: 'Platino', color: '#f5fbff',           glow: 'rgba(93,212,255,0.4)' },
 }
 
 export const BADGES = [

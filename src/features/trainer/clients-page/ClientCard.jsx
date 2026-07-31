@@ -29,15 +29,7 @@ export const ClientCard = memo(function ClientCard({ client, onSelect }) {
   return (
     <button
       onClick={() => onSelect(client)}
-      className="text-left w-full rounded-[4px] p-4 cursor-pointer transition-all duration-200 flex items-start gap-3 group rx-card"
-      onMouseEnter={e => {
-        e.currentTarget.style.background  = 'color-mix(in srgb, var(--rx-green) 5%, transparent)'
-        e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--rx-green) 33%, transparent)'
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.background  = ''
-        e.currentTarget.style.borderColor = ''
-      }}
+      className="text-left w-full p-4 cursor-pointer transition-all duration-200 flex items-start gap-3 group rx-card"
     >
       {/* Badge rank */}
       {profileType === 'complete' ? (
@@ -63,8 +55,8 @@ export const ClientCard = memo(function ClientCard({ client, onSelect }) {
           <span
             className="rounded-full px-2 py-0.5 text-[10px] font-display"
             style={{
-              color:  'color-mix(in srgb, var(--rx-green) 55%, transparent)',
-              border: '1px solid color-mix(in srgb, var(--rx-green) 20%, transparent)',
+              color:  'color-mix(in srgb, var(--rx-accent) 55%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--rx-accent) 20%, transparent)',
             }}
           >
             LV.{client.level}
@@ -83,25 +75,25 @@ export const ClientCard = memo(function ClientCard({ client, onSelect }) {
         {/* XP bar mini */}
         <div className="flex items-center gap-2 mt-0.5">
           <div className="flex-1 h-[3px] rounded-full overflow-hidden"
-            style={{ background: 'color-mix(in srgb, var(--rx-green) 8%, transparent)' }}>
+            style={{ background: 'color-mix(in srgb, var(--rx-accent) 8%, transparent)' }}>
             <div className="h-full rounded-full"
-              style={{ width: `${xpPct}%`, background: 'var(--rx-green)' }} />
+              style={{ width: `${xpPct}%`, background: 'var(--rx-accent)' }} />
           </div>
           <span className="font-display text-[9px] shrink-0"
-            style={{ color: 'color-mix(in srgb, var(--rx-green) 55%, transparent)' }}>
-            {xp.toLocaleString()} XP
+            style={{ color: 'color-mix(in srgb, var(--rx-accent) 55%, transparent)' }}>
+            {xp.toLocaleString('it-IT')} XP
           </span>
         </div>
       </div>
 
-      <svg className="shrink-0 text-white/20 group-hover:text-white/50 transition-colors mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg className="shrink-0 text-white/20 group-hover:text-white/50 transition-colors mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <polyline points="9 18 15 12 9 6"/>
       </svg>
     </button>
   )
 })
 
-function RankSquare({ label, sub, color = 'var(--rx-green)' }) {
+function RankSquare({ label, sub, color = 'var(--rx-accent)' }) {
   return (
     <div className="flex flex-col items-center gap-0.5">
       <div

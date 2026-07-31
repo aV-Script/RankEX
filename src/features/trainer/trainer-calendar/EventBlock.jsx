@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { SLOT_STATUS } from '../../../constants/slotStatus'
+import { SLOT_STATUS, SLOT_STATUS_COLORS } from '../../../constants/slotStatus'
 
 /**
  * Blocco evento nelle viste settimana e giorno.
@@ -8,11 +8,7 @@ import { SLOT_STATUS } from '../../../constants/slotStatus'
 export const EventBlock = memo(function EventBlock({ slot, clients, onSelect, style }) {
   const status = slot.status ?? SLOT_STATUS.PLANNED
 
-  const statusColor = {
-    [SLOT_STATUS.PLANNED]:   '#00c8ff',
-    [SLOT_STATUS.COMPLETED]: '#34d399',
-    [SLOT_STATUS.SKIPPED]:   '#6b7280',
-  }[status]
+  const statusColor = SLOT_STATUS_COLORS[status]
 
   const statusIcon = {
     [SLOT_STATUS.PLANNED]:   null,

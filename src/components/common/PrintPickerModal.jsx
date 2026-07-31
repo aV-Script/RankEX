@@ -2,7 +2,7 @@ export function PrintPickerModal({ onSelect, onCancel }) {
   return (
     <div className="fixed inset-0 z-[9998] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.72)' }}>
       <div
-        className="rounded-xl p-6 flex flex-col gap-5"
+        className="rounded-[4px] p-6 flex flex-col gap-5"
         style={{ background: '#0c1219', border: '1px solid #1e293b', width: 360, boxShadow: '0 24px 64px rgba(0,0,0,0.8)' }}
       >
         <div>
@@ -13,13 +13,13 @@ export function PrintPickerModal({ onSelect, onCancel }) {
         <div className="flex flex-col gap-3">
           <button
             onClick={() => onSelect('dark')}
-            className="flex items-center gap-4 p-4 rounded-lg text-left cursor-pointer transition-colors"
+            className="flex items-center gap-4 p-4 rounded-[4px] text-left cursor-pointer transition-colors"
             style={{ background: '#07090e', border: '1px solid #1e293b' }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--rx-green)'}
+            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--rx-accent)'}
             onMouseLeave={e => e.currentTarget.style.borderColor = '#1e293b'}
           >
             <div className="flex-shrink-0 w-10 h-10 rounded flex items-center justify-center" style={{ background: '#0f1820' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--rx-green)" strokeWidth="1.8">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--rx-accent)" strokeWidth="1.8">
                 <path d="M21 15.9A9 9 0 1 1 8.1 3a7 7 0 0 0 12.9 12.9z"/>
               </svg>
             </div>
@@ -31,7 +31,7 @@ export function PrintPickerModal({ onSelect, onCancel }) {
 
           <button
             onClick={() => onSelect('bw')}
-            className="flex items-center gap-4 p-4 rounded-lg text-left cursor-pointer transition-colors"
+            className="flex items-center gap-4 p-4 rounded-[4px] text-left cursor-pointer transition-colors"
             style={{ background: '#07090e', border: '1px solid #1e293b' }}
             onMouseEnter={e => e.currentTarget.style.borderColor = '#94a3b8'}
             onMouseLeave={e => e.currentTarget.style.borderColor = '#1e293b'}

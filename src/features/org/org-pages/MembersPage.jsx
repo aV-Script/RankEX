@@ -5,7 +5,7 @@ import { updateMemberRoleUseCase }          from '../../../usecases/updateMember
 import { ConfirmDialog }                    from '../../../components/common/ConfirmDialog'
 import { CreateMemberForm }                 from './CreateMemberForm'
 import { getPlanLimits }                    from '../../../config/plans.config'
-import { EmptyState }                       from '../../../components/ui'
+import { EmptyState, PageTitle }            from '../../../components/ui'
 import { auditLog, AUDIT_ACTIONS }          from '../../../utils/auditLog'
 import { useToast }                         from '../../../hooks/useToast'
 
@@ -79,12 +79,12 @@ export function MembersPage({ orgId, org, onNavigate }) {
   return (
     <div className="px-6 py-8 text-white">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="font-display font-black text-[24px]">Team</h1>
+        <PageTitle>Team</PageTitle>
         <button
           onClick={() => !atTrainerLimit && setShowCreate(true)}
           disabled={atTrainerLimit}
           className="font-display text-[11px] px-4 py-2 rounded-[3px] border-0 transition-opacity hover:opacity-85 disabled:opacity-40 disabled:cursor-not-allowed"
-          style={{ background: 'color-mix(in srgb, var(--rx-green) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)', fontWeight: 700, cursor: atTrainerLimit ? 'not-allowed' : 'pointer' }}
+          style={{ background: 'color-mix(in srgb, var(--rx-accent) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-accent) 35%, transparent)', color: 'var(--rx-accent)', fontWeight: 700, cursor: atTrainerLimit ? 'not-allowed' : 'pointer' }}
         >
           + AGGIUNGI
         </button>
@@ -96,7 +96,7 @@ export function MembersPage({ orgId, org, onNavigate }) {
           className="flex items-start gap-3 px-4 py-3 rounded-[3px] mb-5"
           style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)' }}
         >
-          <svg className="shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg className="shrink-0 mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
             <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
           </svg>
@@ -141,7 +141,7 @@ export function MembersPage({ orgId, org, onNavigate }) {
         </div>
       ) : members.length === 0 ? (
         <EmptyState
-          icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
+          icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
           title="Nessun membro"
           description="Aggiungi il primo membro del team per iniziare."
           action={!atTrainerLimit ? { label: 'Aggiungi membro', onClick: () => setShowCreate(true) } : undefined}

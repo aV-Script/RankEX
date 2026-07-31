@@ -2,13 +2,13 @@ import { useState, useMemo, useCallback } from 'react'
 import { useGroups }                      from '../../hooks/useGroups'
 import { useClients }                     from '../../hooks/useClients'
 import { usePagination }                  from '../../hooks/usePagination'
+import { useTrainerState }                from '../../context/TrainerContext'
 import { Pagination }                     from '../../components/common/Pagination'
 import { GroupCard }                      from './groups-page/GroupCard'
 import { GroupDetailView }                from './groups-page/GroupDetailView'
 import { Skeleton }                       from '../../components/common/Skeleton'
 import { EmptyState, Button }             from '../../components/ui'
 import { PAGINATION_PAGE_SIZE }           from '../../config/app.config'
-import { useRegisterContextMenu }         from '../../context/NavMenuContext'
 
 const GROUPS_PAGE_SIZE = PAGINATION_PAGE_SIZE
 
@@ -21,11 +21,10 @@ const ICON_NEW_GROUP = (
   </svg>
 )
 
-const GROUPS_CTX = [{ id: '__new__', label: 'Nuovo', icon: ICON_NEW_GROUP }]
-
 export function GroupsPage({ orgId }) {
   const { groups, isLoading, handleAddGroup, handleRenameGroup, handleToggleClient, handleDeleteGroup } = useGroups(orgId)
   const { clients } = useClients(orgId)
+  const { terminology } = useTrainerState()
 
   const [view,          setView]          = useState('list')
   const [selectedGroup, setSelectedGroup] = useState(null)
@@ -33,9 +32,6 @@ export function GroupsPage({ orgId }) {
   const [showNew,       setShowNew]       = useState(false)
   const [newGroupName,  setNewGroupName]  = useState('')
   const [creating,      setCreating]      = useState(false)
-
-  const ctxItems = view === 'list' ? GROUPS_CTX : []
-  useRegisterContextMenu('Gruppi', ctxItems, null, id => { if (id === '__new__') setShowNew(true) })
 
   const filteredGroups = useMemo(() =>
     groups.filter(g => g.name.toLowerCase().includes(groupSearch.toLowerCase()))
@@ -79,6 +75,7 @@ export function GroupsPage({ orgId }) {
         onRename={handleRenameGroup}
         onDelete={handleDeleteGroup}
         onBack={handleBack}
+        terminology={terminology}
       />
     )
   }
@@ -92,7 +89,7 @@ export function GroupsPage({ orgId }) {
           <input
             value={groupSearch}
             onChange={e => setGroupSearch(e.target.value)}
-            placeholder="Cerca gruppo..."
+            placeholder={`Cerca ${terminology.group.toLowerCase()}...`}
             className="input-base input-compact flex-1"
           />
           <button
@@ -108,7 +105,7 @@ export function GroupsPage({ orgId }) {
       {showNew && (
         <div
           className="mx-4 sm:mx-6 mb-3 rounded-[4px] p-4 flex gap-3"
-          style={{ background: 'color-mix(in srgb, var(--rx-green) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 15%, transparent)' }}
+          style={{ background: 'color-mix(in srgb, var(--rx-accent) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-accent) 15%, transparent)' }}
         >
           <input
             autoFocus
@@ -118,7 +115,7 @@ export function GroupsPage({ orgId }) {
               if (e.key === 'Enter')  handleCreate()
               if (e.key === 'Escape') { setShowNew(false); setNewGroupName('') }
             }}
-            placeholder="Nome gruppo..."
+            placeholder={`Nome ${terminology.group.toLowerCase()}...`}
             className="input-base flex-1"
           />
           <Button onClick={handleCreate} loading={creating}>
@@ -139,12 +136,12 @@ export function GroupsPage({ orgId }) {
         ) : filteredGroups.length === 0 ? (
           <EmptyState
             icon={ICON_NEW_GROUP}
-            title={groups.length === 0 ? 'Nessun gruppo' : 'Nessun risultato'}
+            title={groups.length === 0 ? `Nessun ${terminology.group.toLowerCase()}` : 'Nessun risultato'}
             description={groups.length === 0
-              ? 'Crea il primo gruppo per organizzare i clienti.'
+              ? `Crea il primo ${terminology.group.toLowerCase()} per organizzare i ${terminology.clients.toLowerCase()}.`
               : 'Prova a cambiare il termine di ricerca.'
             }
-            action={groups.length === 0 ? { label: 'Crea gruppo', onClick: () => setShowNew(true) } : undefined}
+            action={groups.length === 0 ? { label: `Crea ${terminology.group.toLowerCase()}`, onClick: () => setShowNew(true) } : undefined}
           />
         ) : (
           <div className="rx-animate-in">

@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { ALL_TESTS } from '../../../constants/index'
+import { SectionLabel } from '../../../components/ui'
 
 export function GroupChampions({ clients }) {
   const champions = useMemo(() => {
@@ -21,9 +22,7 @@ export function GroupChampions({ clients }) {
 
   return (
     <div className="rounded-[4px] p-5 rx-card">
-      <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-5" style={{ color: 'var(--rx-green)' }}>
-        ◈ Campioni per disciplina
-      </div>
+      <SectionLabel className="mb-5">◈ Campioni per disciplina</SectionLabel>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {champions.map(({ stat, label, maxVal, winners }) => (
           <ChampionCard key={stat} label={label} maxVal={maxVal} winners={winners} />
@@ -54,7 +53,7 @@ function ChampionCard({ label, maxVal, winners }) {
           </div>
         ))}
       </div>
-      <div className="font-display font-black text-[18px] leading-none" style={{ color: '#ffd700' }}>
+      <div className="font-display font-black text-[18px] leading-none" style={{ color: 'var(--rx-gold)' }}>
         {Math.round(maxVal)}°
       </div>
     </div>

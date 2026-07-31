@@ -19,7 +19,7 @@ export function useAuth() {
         try {
           const o = await getOrganization(p.orgId)
           setOrg(o)
-          setTerminology(getTerminology(o?.moduleType, p.terminologyVariant))
+          setTerminology(getTerminology(o?.moduleType, o?.terminologyVariant))
         } catch {
           // Org non raggiungibile (regole, rete) — procedi senza
           setOrg(null)

@@ -5,16 +5,7 @@ export function GroupCard({ group, clients, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="text-left w-full rounded-[4px] p-4 cursor-pointer transition-all duration-200 group border"
-      style={{ background: 'var(--rx-card-bg)', borderColor: 'color-mix(in srgb, var(--rx-green) 12%, transparent)' }}
-      onMouseEnter={e => {
-        e.currentTarget.style.background  = 'color-mix(in srgb, var(--rx-green) 5%, transparent)'
-        e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--rx-green) 25%, transparent)'
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.background  = 'var(--rx-card-bg)'
-        e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--rx-green) 12%, transparent)'
-      }}
+      className="text-left w-full p-4 cursor-pointer transition-all duration-200 group rx-card"
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex-1 min-w-0">
@@ -32,7 +23,7 @@ export function GroupCard({ group, clients, onClick }) {
                 <div
                   key={c.id}
                   className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-display font-black"
-                  style={{ background: 'color-mix(in srgb, var(--rx-green) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 20%, transparent)', color: 'var(--rx-green)' }}
+                  style={{ background: 'color-mix(in srgb, var(--rx-accent) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-accent) 20%, transparent)', color: 'var(--rx-accent)' }}
                   title={c.name}
                 >
                   {c.name?.charAt(0).toUpperCase()}
@@ -50,7 +41,7 @@ export function GroupCard({ group, clients, onClick }) {
           )}
         </div>
 
-        <svg className="shrink-0 text-white/20 group-hover:text-white/50 transition-colors" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg className="shrink-0 text-white/20 group-hover:text-white/50 transition-colors" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="9 18 15 12 9 6"/>
         </svg>
       </div>

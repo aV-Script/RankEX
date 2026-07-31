@@ -14,7 +14,7 @@ export function SessionWarningDialog({ onExtend }) {
 
   return (
     <div
-      className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[9999] px-4 w-full max-w-sm"
+      className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[10000] px-4 w-full max-w-sm"
     >
       <div
         ref={dialogRef}

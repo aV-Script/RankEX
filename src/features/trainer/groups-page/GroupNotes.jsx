@@ -5,7 +5,7 @@ import { useTrainerState }                   from '../../../context/TrainerConte
 import { usePagination }                     from '../../../hooks/usePagination'
 import { Pagination }                        from '../../../components/common/Pagination'
 import { useToast }                          from '../../../hooks/useToast'
-import { Button, EmptyState }                from '../../../components/ui'
+import { Button, EmptyState, SectionLabel }  from '../../../components/ui'
 import { ConfirmDialog }                     from '../../../components/common/ConfirmDialog'
 import { IconDocument }                      from '../../../components/ui/icons'
 
@@ -94,7 +94,7 @@ export function GroupNotes({ orgId, groupId }) {
 
   return (
     <div className="rounded-[4px] p-5 rx-card">
-      <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-5" style={{ color: 'var(--rx-green)' }}>◈ Note di gruppo</div>
+      <SectionLabel className="mb-5">◈ Note di gruppo</SectionLabel>
 
       {/* Composer */}
       <div className="mb-5">
@@ -117,7 +117,7 @@ export function GroupNotes({ orgId, groupId }) {
       {/* Lista note */}
       {loading ? (
         <div className="flex flex-col gap-2">
-          {[...Array(3)].map((_, i) => <div key={i} className="skeleton h-16 rounded-[3px]" />)}
+          {[...Array(3)].map((_, i) => <div key={i} className="bg-white/[.06] rounded-[3px] animate-pulse h-16" />)}
         </div>
       ) : notes.length === 0 ? (
         <EmptyState
@@ -173,9 +173,9 @@ function NoteCard({ note, currentUserId, userRole, deleting, onDelete }) {
         <div className="flex items-center gap-2">
           <div
             className="w-7 h-7 rounded-[3px] flex items-center justify-center shrink-0"
-            style={{ background: 'color-mix(in srgb, var(--rx-green) 10%, transparent)' }}
+            style={{ background: 'color-mix(in srgb, var(--rx-accent) 10%, transparent)' }}
           >
-            <span className="font-display text-[11px]" style={{ color: 'var(--rx-green)' }}>
+            <span className="font-display text-[11px]" style={{ color: 'var(--rx-accent)' }}>
               {note.authorName?.[0]?.toUpperCase()}
             </span>
           </div>
@@ -183,7 +183,7 @@ function NoteCard({ note, currentUserId, userRole, deleting, onDelete }) {
             <span className="font-display font-bold text-[13px] text-white/80">{note.authorName}</span>
             <span
               className="ml-2 font-display text-[10px] font-semibold tracking-[1px] px-1.5 py-0.5 rounded-[2px]"
-              style={{ background: 'color-mix(in srgb, var(--rx-green) 8%, transparent)', color: 'color-mix(in srgb, var(--rx-green) 40%, transparent)' }}
+              style={{ background: 'color-mix(in srgb, var(--rx-accent) 8%, transparent)', color: 'color-mix(in srgb, var(--rx-accent) 40%, transparent)' }}
             >
               {ROLE_LABELS[note.authorRole] ?? note.authorRole}
             </span>

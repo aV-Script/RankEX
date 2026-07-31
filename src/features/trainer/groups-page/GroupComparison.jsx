@@ -1,19 +1,16 @@
-import { useState, useMemo, memo } from 'react'
+import { useState, useMemo } from 'react'
 import { usePagination }           from '../../../hooks/usePagination'
 import { Pagination }              from '../../../components/common/Pagination'
+import { Pentagon }                from '../../../components/ui/Pentagon'
+import { SectionLabel }            from '../../../components/ui'
 import {
   pickDefaultComparisonClients, buildComparisonStatCols, isMaxValue,
-  computeRadarAngles, computeRadarOuterPoints, buildRadarPolygon,
 } from '../../../utils/groupAnalysis'
-import { EmptyState } from '../../../components/ui'
 
-const ICON_COMPARISON = (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-  </svg>
-)
-
-const COMPARISON_COLORS  = ['var(--rx-green)', '#2ecfff', '#ffd700']
+// Il secondo colore era '#2ecfff' letterale — un secondo "ciano di brand" in
+// parallelo a --rx-accent-2 (var(--rx-accent-2) reale a runtime), non allineato
+// al tema attivo. Corretto lug 2026.
+const COMPARISON_COLORS  = ['var(--rx-accent)', 'var(--rx-accent-2)', 'var(--rx-gold)']
 const MAX_SELECTED       = 2
 const SELECTOR_PAGE_SIZE = 6
 
@@ -51,24 +48,12 @@ export function GroupComparison({ clients }) {
     })
   }
 
-  if (clients.length === 0) {
-    return (
-      <EmptyState
-        icon={ICON_COMPARISON}
-        title="Nessun atleta nel gruppo"
-        description="Aggiungi atleti al gruppo per confrontare le loro statistiche."
-      />
-    )
-  }
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
 
       {/* Col 1: Selettore atleti */}
       <div className="rounded-[4px] p-5 rx-card min-w-0">
-        <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-1" style={{ color: 'var(--rx-green)' }}>
-          ◈ Confronto atleti
-        </div>
+        <SectionLabel className="mb-1">◈ Confronto atleti</SectionLabel>
         <div className="font-display text-[10px] text-white/60 tracking-[1px] mb-4">
           {selected.length}/{MAX_SELECTED} selezionati
         </div>
@@ -121,14 +106,14 @@ export function GroupComparison({ clients }) {
 
       {/* Col 2: Radar (centro) */}
       <div className="rounded-[4px] p-5 rx-card flex flex-col items-center gap-4 min-w-0">
-        <div className="w-full font-display text-[11px] font-semibold tracking-[2px] uppercase" style={{ color: 'var(--rx-green)' }}>◈ Radar</div>
+        <SectionLabel className="w-full mb-0">◈ Radar</SectionLabel>
         {selectedClients.length > 0 && statCols.length > 0 ? (
           <div style={{ width: '100%', aspectRatio: '1 / 1' }}>
-            <PentagonMulti
-              clients={selectedClients}
+            <Pentagon
+              size={300}
               statKeys={radarStatKeys}
               statLabels={radarStatLabels}
-              colors={radarColors}
+              multi={selectedClients.map((c, i) => ({ id: c.id, stats: c.stats ?? {}, color: radarColors[i] }))}
             />
           </div>
         ) : (
@@ -144,7 +129,7 @@ export function GroupComparison({ clients }) {
 
       {/* Col 3: Tabella valori */}
       <div className="rounded-[4px] p-5 rx-card min-w-0">
-        <div className="font-display text-[11px] font-semibold tracking-[2px] uppercase mb-4" style={{ color: 'var(--rx-green)' }}>◈ Valori</div>
+        <SectionLabel className="mb-4">◈ Valori</SectionLabel>
         {selectedClients.length > 0 && statCols.length > 0 ? (
           <>
             <div className="flex gap-3 flex-wrap mb-4">
@@ -175,60 +160,6 @@ export function GroupComparison({ clients }) {
   )
 }
 
-// ── Pentagon multi-overlay ─────────────────────────────────────────────────────
-
-const PentagonMulti = memo(function PentagonMulti({ clients, statKeys, statLabels, colors }) {
-  const size = 300
-  const cx   = size / 2
-  const cy   = size / 2
-  const R    = size * 0.38
-
-  const angles      = computeRadarAngles(statKeys.length)
-  const outerPoints = computeRadarOuterPoints(cx, cy, R, angles)
-  const toPath = pts =>
-    pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ') + ' Z'
-
-  const vbPad  = 38
-  const vbSize = size + vbPad * 2
-
-  return (
-    <svg width="100%" height="100%" viewBox={`${-vbPad} ${-vbPad} ${vbSize} ${vbSize}`} style={{ display: 'block' }}>
-      {[0.25, 0.5, 0.75, 1].map(f => (
-        <polygon key={f}
-          points={outerPoints.map(p =>
-            `${(cx + (p.x - cx) * f).toFixed(1)},${(cy + (p.y - cy) * f).toFixed(1)}`
-          ).join(' ')}
-          fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1"
-        />
-      ))}
-      {outerPoints.map((p, i) => (
-        <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-      ))}
-      {[...clients].reverse().map((client, revIdx) => {
-        const i     = clients.length - 1 - revIdx
-        const color = colors[i]
-        const pts = buildRadarPolygon(cx, cy, R, angles, statKeys, client.stats)
-        return (
-          <g key={client.id}>
-            <path d={toPath(pts)} fill={color + '22'} stroke={color} strokeWidth="2" strokeLinejoin="round" />
-            {pts.map((p, pi) => <circle key={pi} cx={p.x} cy={p.y} r="3.5" fill={color} />)}
-          </g>
-        )
-      })}
-      {statLabels.map((label, i) => {
-        const lx = cx + (R + 28) * Math.cos(angles[i])
-        const ly = cy + (R + 28) * Math.sin(angles[i])
-        return (
-          <text key={i} x={lx} y={ly} textAnchor="middle" dominantBaseline="middle"
-            fontSize="10" fill="rgba(255,255,255,0.5)" fontFamily="Montserrat" fontWeight="600" letterSpacing="1">
-            {label}
-          </text>
-        )
-      })}
-    </svg>
-  )
-})
-
 // ── Riga selettore atleta ─────────────────────────────────────────────────────
 
 function ComparisonAthleteRow({ client, selIdx, disabled, onToggle }) {
@@ -239,7 +170,7 @@ function ComparisonAthleteRow({ client, selIdx, disabled, onToggle }) {
     <div
       className="flex items-center justify-between px-3 py-2.5 rounded-[3px] transition-all"
       style={isSelected
-        ? { background: `${color}0d`, border: `1px solid ${color}33` }
+        ? { background: `color-mix(in srgb, ${color} 5%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 20%, transparent)` }
         : { background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }
       }
     >
@@ -250,7 +181,7 @@ function ComparisonAthleteRow({ client, selIdx, disabled, onToggle }) {
         />
         <div
           className="w-7 h-7 rounded-[3px] flex items-center justify-center shrink-0"
-          style={{ background: isSelected ? `${color}18` : 'rgba(255,255,255,0.05)' }}
+          style={{ background: isSelected ? `color-mix(in srgb, ${color} 10%, transparent)` : 'rgba(255,255,255,0.05)' }}
         >
           <span className="font-display text-[11px] font-bold" style={{ color: isSelected ? color : 'rgba(255,255,255,0.35)' }}>
             {client.name?.[0]?.toUpperCase()}
@@ -271,7 +202,7 @@ function ComparisonAthleteRow({ client, selIdx, disabled, onToggle }) {
         className="font-display text-[10px] px-2.5 py-1.5 rounded-[3px] cursor-pointer border transition-all disabled:opacity-30 disabled:cursor-not-allowed shrink-0 ml-2"
         style={isSelected
           ? { color: '#f87171', borderColor: 'rgba(248,113,113,0.2)', background: 'transparent' }
-          : { color: 'var(--rx-green)', borderColor: 'color-mix(in srgb, var(--rx-green) 20%, transparent)', background: 'color-mix(in srgb, var(--rx-green) 6%, transparent)' }
+          : { color: 'var(--rx-accent)', borderColor: 'color-mix(in srgb, var(--rx-accent) 20%, transparent)', background: 'color-mix(in srgb, var(--rx-accent) 6%, transparent)' }
         }
       >
         {isSelected ? '−' : '+'}

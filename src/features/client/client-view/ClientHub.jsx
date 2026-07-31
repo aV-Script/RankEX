@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { AvatarDisplay }       from './avatar/AvatarDisplay'
 import { BadgeMedal }          from '../../../components/ui/BadgeMedal'
+import { RankBadge }           from '../../../components/ui'
 import { BADGES }              from '../../../config/badges.config'
 
 // ── Icone sezioni ─────────────────────────────────────────────────────────────
@@ -140,17 +141,12 @@ export function ClientHub({ client, orgId, color, rankObj, onTabChange }) {
       <div className="text-center px-4">
         <div
           className="font-display font-black uppercase text-white leading-tight"
-          style={{ fontSize: mobile ? 16 : 20, letterSpacing: '0.06em', textShadow: '0 0 28px var(--rx-green-glow)' }}
+          style={{ fontSize: mobile ? 16 : 20, letterSpacing: '0.06em', textShadow: '0 0 28px var(--rx-accent-glow)' }}
         >
           {client.name}
         </div>
         <div className="mt-2 flex items-center justify-center gap-1.5 flex-wrap">
-          {rankObj && (
-            <div className="inline-flex items-center px-3 py-1 rounded-[3px] font-display font-black"
-              style={{ fontSize: 12, background: color + '1e', color, border: `1px solid ${color}40` }}>
-              {rankObj.label}
-            </div>
-          )}
+          {rankObj && <RankBadge label={rankObj.label} color={color} />}
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[3px] font-display font-black"
             style={{ fontSize: 11, background: color + '12', color: color + 'bb', border: `1px solid ${color}28` }}>
             <span>LV.{client.level ?? 1}</span>
@@ -255,17 +251,17 @@ export function ClientHub({ client, orgId, color, rankObj, onTabChange }) {
                     borderRadius: '50%',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     background: isHovered
-                      ? 'color-mix(in srgb, var(--rx-green) 10%, transparent)'
+                      ? 'color-mix(in srgb, var(--rx-accent) 10%, transparent)'
                       : 'color-mix(in srgb, var(--rx-card-bg) 65%, transparent)',
                     border: `1px solid ${isHovered
-                      ? 'color-mix(in srgb, var(--rx-green) 50%, transparent)'
-                      : 'color-mix(in srgb, var(--rx-green) 16%, transparent)'}`,
+                      ? 'color-mix(in srgb, var(--rx-accent) 50%, transparent)'
+                      : 'color-mix(in srgb, var(--rx-accent) 16%, transparent)'}`,
                     boxShadow: isHovered
-                      ? '0 4px 18px rgba(0,0,0,0.4), 0 0 12px var(--rx-green-glow)'
+                      ? '0 4px 18px rgba(0,0,0,0.4), 0 0 12px var(--rx-accent-glow)'
                       : '0 4px 12px rgba(0,0,0,0.35)',
                     color: isHovered
-                      ? 'color-mix(in srgb, var(--rx-green) 80%, transparent)'
-                      : 'color-mix(in srgb, var(--rx-green) 38%, transparent)',
+                      ? 'color-mix(in srgb, var(--rx-accent) 80%, transparent)'
+                      : 'color-mix(in srgb, var(--rx-accent) 38%, transparent)',
                     transition: 'all 200ms ease',
                   }}
                 >

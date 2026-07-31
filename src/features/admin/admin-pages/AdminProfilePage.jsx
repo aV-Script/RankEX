@@ -1,9 +1,11 @@
 import { useState, useCallback }                        from 'react'
 import { logout, changeTrainerPassword, changeUserEmail } from '../../../firebase/services/auth'
 import { Field }                                         from '../../../components/ui'
+import { IconChevronDown }                               from '../../../components/ui/icons'
 import { ThemePicker }                                   from '../../../components/ui/ThemePicker'
 import { getFirebaseErrorMessage }                       from '../../../utils/firebaseErrors'
 import { validatePassword }                              from '../../../utils/validation'
+import { ADMIN_COLOR }                                   from '../../../config/app.config'
 
 export function AdminProfilePage({ user }) {
   const initials = (user?.email ?? '?').slice(0, 2).toUpperCase()
@@ -103,7 +105,7 @@ export function AdminProfilePage({ user }) {
 
       {/* Theme picker */}
       <div className="rounded-[4px] p-5 mb-5 rx-card">
-        <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-green)' }}>
+        <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-4" style={{ color: ADMIN_COLOR }}>
           ◈ Tema interfaccia
         </div>
         <ThemePicker />
@@ -133,11 +135,9 @@ export function AdminProfilePage({ user }) {
           </div>
           {emailSuccess
             ? <span className="font-display text-[10px] tracking-wider" style={{ color: '#f87171' }}>VERIFICA INVIATA</span>
-            : <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke="rgba(255,255,255,0.2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                style={{ transform: openEmail ? 'rotate(180deg)' : 'none', transition: 'transform 200ms' }}>
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
+            : <span style={{ color: 'rgba(255,255,255,0.2)' }}>
+                <IconChevronDown size={14} rotated={openEmail} />
+              </span>
           }
         </button>
 
@@ -195,11 +195,9 @@ export function AdminProfilePage({ user }) {
           </div>
           {pwSuccess
             ? <span className="font-display text-[10px] tracking-wider" style={{ color: '#f87171' }}>AGGIORNATA</span>
-            : <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke="rgba(255,255,255,0.2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                style={{ transform: openPw ? 'rotate(180deg)' : 'none', transition: 'transform 200ms' }}>
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
+            : <span style={{ color: 'rgba(255,255,255,0.2)' }}>
+                <IconChevronDown size={14} rotated={openPw} />
+              </span>
           }
         </button>
 
@@ -232,7 +230,7 @@ export function AdminProfilePage({ user }) {
                   ['Le password coincidono',        pwForm.password.length > 0  && pwForm.password === pwForm.confirm],
                 ].map(([label, ok]) => (
                   <div key={label} className="flex items-center gap-2 font-body text-[12px]"
-                    style={{ color: ok ? '#f87171' : 'rgba(255,255,255,0.2)' }}>
+                    style={{ color: ok ? 'var(--rx-accent)' : 'rgba(255,255,255,0.2)' }}>
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                       {ok
                         ? <path d="M1.5 5L4 7.5L8.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>

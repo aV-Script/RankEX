@@ -67,52 +67,58 @@ export const TYPE = {
 }
 
 // ── Colori ────────────────────────────────────────────────────────────────────
+// Allineato a src/index.css (lug 2026) dopo aver trovato divergenze silenziose
+// (es. green500/cyan500 qui sotto avevano valori "da logo" diversi da quelli
+// reali a runtime — cyan500 in particolare era stato copiato a mano come
+// letterale in GroupComparison.jsx, creando un secondo "ciano di brand" in
+// produzione). I valori bgRaised/bgOverlay/bgFloat, cyan400, textSecondary/
+// textTertiary e la scala borderSubtle/Default/Strong restano proposti — non
+// hanno un corrispondente diretto in index.css :root (solo un livello base di
+// elevazione/bordo/testo attenuato è implementato oggi).
 export const COLOR = {
-  // Elevazione sfondo (5 livelli)
+  // Elevazione sfondo
   bgBase:    '#07090e',
-  bgSurface: '#0c1219',
+  bgSurface: '#0d1520',
   bgRaised:  '#0f1820',
   bgOverlay: '#131e2a',
   bgFloat:   '#1a2638',
 
-  // Brand verde (dalla R del logo)
-  green400:  '#1dff6b',
-  green500:  '#0ec452',
-  green600:  'var(--rx-green)',
-  greenDark: '#085c28',
+  // Brand verde (dalla R del logo) — allineato a --rx-accent/--rx-accent-bright/--rx-accent-dark
+  green400:  '#1aff6e',
+  green500:  '#0fd65a',
+  greenDark: '#0a8a3a',
 
-  // Brand ciano/blu (dal fulmine)
+  // Brand ciano (dal fulmine) — allineato a --rx-accent-2
   cyan400:   '#5dd4ff',
-  cyan500:   '#2ecfff',
   cyan600:   '#00c8ff',
-  blue500:   '#1a7fd4',
 
   // Testo — opacità calibrate per rispettare WCAG 2.2 AA (4.5:1 body, 3:1 UI/large)
   // su fondi tra bgBase (#07090e) e bgOverlay (#131e2a)
   textPrimary:   '#ffffff',
   textSecondary: 'rgba(255,255,255,0.7)',
   textTertiary:  'rgba(255,255,255,0.62)', // ~5.1:1 su bgSurface — testo body
-  textMuted:     'rgba(255,255,255,0.45)', // ~3.2:1 — solo elementi UI/large, mai body text
+  textMuted:     'rgba(200,212,224,0.62)', // allineato a --rx-text-muted
 
   // Bordi
   borderSubtle:  'rgba(255,255,255,0.04)',
   borderDefault: 'rgba(255,255,255,0.08)',
   borderStrong:  'rgba(255,255,255,0.15)',
-  borderFocus:   'var(--rx-green)',
+  borderFocus:   'var(--rx-accent)',
 
   // Stato
-  success: 'var(--rx-green)',
+  success: 'var(--rx-accent)',
   warning: '#f59e0b',
   error:   '#f87171',
   info:    '#00c8ff',
 }
 
 // ── Gradienti ─────────────────────────────────────────────────────────────────
+// Allineati a --rx-gradient/--rx-gradient-accent/--rx-gradient-accent-2 in index.css.
 export const GRADIENT = {
   primary: 'linear-gradient(135deg, #1aff6e 0%, #0fd65a 30%, #00c8ff 70%, #4db8ff 100%)',
-  green:   'linear-gradient(135deg, #085c28 0%, #0fd65a 50%, #1dff6b 100%)',
-  cyan:    'linear-gradient(135deg, #1a7fd4 0%, #00c8ff 50%, #5dd4ff 100%)',
-  subtle:  'linear-gradient(135deg, color-mix(in srgb, var(--rx-green) 8%, transparent) 0%, rgba(0,200,255,0.08) 100%)',
+  green:   'linear-gradient(135deg, #0a8a3a 0%, #0fd65a 50%, #1aff6e 100%)',
+  cyan:    'linear-gradient(135deg, #0066cc 0%, #00c8ff 50%, #4db8ff 100%)',
+  subtle:  'linear-gradient(135deg, color-mix(in srgb, var(--rx-accent) 8%, transparent) 0%, rgba(0,200,255,0.08) 100%)',
 }
 
 // ── Ombre ─────────────────────────────────────────────────────────────────────
@@ -120,7 +126,7 @@ export const SHADOW = {
   sm:    '0 2px 8px rgba(0,0,0,0.4)',
   md:    '0 4px 16px rgba(0,0,0,0.5)',
   lg:    '0 8px 32px rgba(0,0,0,0.6)',
-  green: '0 0 20px color-mix(in srgb, var(--rx-green) 25%, transparent), 0 4px 16px rgba(0,0,0,0.5)',
+  green: '0 0 20px color-mix(in srgb, var(--rx-accent) 25%, transparent), 0 4px 16px rgba(0,0,0,0.5)',
   cyan:  '0 0 20px rgba(0,200,255,0.25), 0 4px 16px rgba(0,0,0,0.5)',
 }
 

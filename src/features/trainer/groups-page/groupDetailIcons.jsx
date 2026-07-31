@@ -11,24 +11,38 @@ export const ICON_MANAGE = (
     <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
   </svg>
 )
-export const ICON_LEADERBOARD = (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="18 20 18 10"/>
-    <polyline points="12 20 12 4"/>
-    <polyline points="6 20 6 14"/>
-  </svg>
-)
-export const ICON_ANALYSIS = (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-    <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
-  </svg>
-)
-export const ICON_COMPARE = (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-  </svg>
-)
+
+// Parametrizzate su `size` — servono sia nella tab bar (13px, TABS sotto)
+// sia negli EmptyState "servono almeno 2 atleti" di GroupDetailView (20px)
+// e nella classifica standalone di GroupLeaderboard (20px). Prima duplicate
+// a mano in ognuno dei 3 punti.
+export function IconLeaderboard({ size = 13 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="18 20 18 10"/>
+      <polyline points="12 20 12 4"/>
+      <polyline points="6 20 6 14"/>
+    </svg>
+  )
+}
+export function IconAnalysis({ size = 13 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+      <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+    </svg>
+  )
+}
+export function IconCompare({ size = 13 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+  )
+}
+export const ICON_LEADERBOARD = <IconLeaderboard />
+export const ICON_ANALYSIS    = <IconAnalysis />
+export const ICON_COMPARE     = <IconCompare />
 export const ICON_SESSIONS = (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>

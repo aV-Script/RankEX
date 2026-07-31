@@ -1,13 +1,7 @@
 import { useMemo, memo } from 'react'
-import { SLOT_STATUS } from '../../../constants/slotStatus'
+import { SLOT_STATUS, SLOT_STATUS_COLORS as STATUS_COLOR } from '../../../constants/slotStatus'
 
 const DAY_NAMES = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
-
-const STATUS_COLOR = {
-  [SLOT_STATUS.PLANNED]:   '#00c8ff',
-  [SLOT_STATUS.COMPLETED]: '#34d399',
-  [SLOT_STATUS.SKIPPED]:   '#6b7280',
-}
 
 const MonthCell = memo(function MonthCell({ cell, clients, today, onSlotClick, onEmptyClick }) {
   const isToday = cell.dateStr === today
@@ -19,15 +13,15 @@ const MonthCell = memo(function MonthCell({ cell, clients, today, onSlotClick, o
     <div
       className="rounded-[4px] min-h-[90px] flex flex-col border transition-all"
       style={{
-        background:  isToday ? 'color-mix(in srgb, var(--rx-cyan) 5%, transparent)' : 'var(--rx-card-bg)',
-        borderColor: isToday ? 'color-mix(in srgb, var(--rx-cyan) 30%, transparent)'  : 'color-mix(in srgb, var(--rx-green) 6%, transparent)',
+        background:  isToday ? 'color-mix(in srgb, var(--rx-accent-2) 5%, transparent)' : 'var(--rx-card-bg)',
+        borderColor: isToday ? 'color-mix(in srgb, var(--rx-accent-2) 30%, transparent)'  : 'color-mix(in srgb, var(--rx-accent) 6%, transparent)',
       }}
       onClick={() => onEmptyClick(cell.dateStr, '09:00')}
     >
       <div className="px-2 pt-2 pb-1 flex items-center justify-between">
         <span
           className={`font-display text-[13px] w-7 h-7 flex items-center justify-center rounded-full ${isToday ? 'text-white' : 'text-white/60'}`}
-          style={isToday ? { background: 'var(--rx-cyan)' } : {}}
+          style={isToday ? { background: 'var(--rx-accent-2)' } : {}}
         >
           {cell.day}
         </span>

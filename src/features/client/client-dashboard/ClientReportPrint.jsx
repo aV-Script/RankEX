@@ -1,4 +1,3 @@
-import { useEffect, createContext, useContext } from 'react'
 import { createPortal }                        from 'react-dom'
 import { getStatsConfig, getCategoriaById, getRankFromMedia } from '../../../constants'
 import { getProfileCategory }     from '../../../constants/bia'
@@ -6,6 +5,10 @@ import { SOCCER_AGE_GROUPS, PLAYER_ROLES } from '../../../config/modules.config'
 import { calcAge }                from '../../../utils/validation'
 import { Pentagon }               from '../../../components/ui/Pentagon'
 import { useTheme }               from '../../../context/ThemeContext'
+import {
+  PALETTE, usePrintTheme, PrintThemeProvider, usePrintDocument,
+  DarkModeWarning, DeltaBadge, SectionTitle, Th, CircularGauge,
+} from '../../../components/common/reportPrintKit'
 
 const isSoccerCat = (cat) => ['soccer', 'soccer_youth', 'soccer_junior'].includes(cat)
 
@@ -16,38 +19,6 @@ function getMediaDesc(media) {
   if (media >= 55) return 'IN CRESCITA'
   if (media >= 40) return 'BASE SOLIDA'
   return 'DA SVILUPPARE'
-}
-
-const PCtx = createContext(null)
-const useP  = () => useContext(PCtx)
-
-const PALETTE = {
-  dark: {
-    BG:      '#07090e',
-    SURFACE: '#0c1219',
-    RAISED:  '#0f1820',
-    BORDER:  '#1e293b',
-    PRI:     '#f1f5f9',
-    SEC:     '#94a3b8',
-    TER:     '#475569',
-    GREEN:   '#0ec452',
-    DANGER:  '#ef4444',
-    TRACK:   '#1e293b',
-    MARKER:  'rgba(255,255,255,0.45)',
-  },
-  bw: {
-    BG:      '#ffffff',
-    SURFACE: '#f5f7fa',
-    RAISED:  '#eaedf1',
-    BORDER:  '#d0d5dd',
-    PRI:     '#0f1117',
-    SEC:     '#444c5c',
-    TER:     '#7a8394',
-    GREEN:   '#1a202c',
-    DANGER:  '#6b7280',
-    TRACK:   '#d0d5dd',
-    MARKER:  'rgba(0,0,0,0.25)',
-  },
 }
 
 export function ClientReportPrint({ client, _color, rankObj, mode = 'dark', onClose }) {
@@ -62,8 +33,8 @@ export function ClientReportPrint({ client, _color, rankObj, mode = 'dark', onCl
         PRI:     '#f1f5f9',
         SEC:     '#94a3b8',
         TER:     '#475569',
-        GREEN:   theme.vars['--rx-green']   ?? '#0ec452',
-        CYAN:    theme.vars['--rx-cyan']    ?? '#2ecfff',
+        GREEN:   theme.vars['--rx-accent']   ?? '#0ec452',
+        CYAN:    theme.vars['--rx-accent-2']    ?? '#2ecfff',
         DANGER:  '#ef4444',
         TRACK:   theme.vars['--rx-raised']  ?? '#1e293b',
         MARKER:  'rgba(255,255,255,0.45)',
@@ -82,35 +53,7 @@ export function ClientReportPrint({ client, _color, rankObj, mode = 'dark', onCl
     ? PLAYER_ROLES.find(r => r.value === client.ruolo)?.label
     : null
 
-  useEffect(() => {
-    const style = document.createElement('style')
-    style.id = 'rankex-print-style'
-    style.textContent = `
-      @media print {
-        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        html, body { background: ${BG} !important; margin: 0 !important; padding: 0 !important; }
-        body > *:not(#rankex-print-root) { display: none !important; }
-        #rankex-print-root {
-          position: static !important;
-          display: block !important;
-          width: 100% !important;
-          min-height: 297mm !important;
-          overflow: visible !important;
-          background: ${BG} !important;
-        }
-        #rankex-print-controls { display: none !important; }
-        @page { margin: 0; size: A4 portrait; }
-      }
-    `
-    document.head.appendChild(style)
-    const timer = setTimeout(() => window.print(), 350)
-    window.addEventListener('afterprint', onClose)
-    return () => {
-      clearTimeout(timer)
-      window.removeEventListener('afterprint', onClose)
-      document.getElementById('rankex-print-style')?.remove()
-    }
-  }, [onClose, BG])
+  usePrintDocument(BG, onClose)
 
   const stats       = client.stats ?? {}
   // campionamenti[0] = più recente, [1] = precedente per il delta
@@ -132,7 +75,7 @@ export function ClientReportPrint({ client, _color, rankObj, mode = 'dark', onCl
     : null
 
   return createPortal(
-    <PCtx.Provider value={p}>
+    <PrintThemeProvider value={p}>
     <div id="rankex-print-root" style={{ background: BG, position: 'fixed', inset: 0, zIndex: 9999, overflow: 'auto' }}>
 
       {/* Barra controlli — nascosta in stampa */}
@@ -141,11 +84,7 @@ export function ClientReportPrint({ client, _color, rankObj, mode = 'dark', onCl
           <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: 10, letterSpacing: 3, color: SEC, fontWeight: 700 }}>
             ANTEPRIMA PDF — SCHEDA ATLETA
           </span>
-          {mode === 'dark' && (
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, color: '#f59e0b' }}>
-              ⚠ Nel dialogo di stampa attiva <strong>Grafici di sfondo</strong> per preservare lo sfondo scuro
-            </span>
-          )}
+          {mode === 'dark' && <DarkModeWarning />}
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button
@@ -279,7 +218,7 @@ export function ClientReportPrint({ client, _color, rankObj, mode = 'dark', onCl
                   <SectionTitle>Overall Score</SectionTitle>
                   <CircularGauge value={media} color={rankColor} sublabel={rankObj?.label ?? ''} />
                   {getMediaDesc(media) && (
-                    <span style={{ marginTop: 8, fontSize: 8, letterSpacing: 2, fontFamily: 'Montserrat, sans-serif', fontWeight: 700, color: GREEN, background: GREEN + '18', border: `1px solid ${GREEN}44`, borderRadius: 3, padding: '3px 10px', textTransform: 'uppercase' }}>
+                    <span style={{ marginTop: 8, fontSize: 8, letterSpacing: 2, fontFamily: 'Montserrat, sans-serif', fontWeight: 700, color: GREEN, background: `color-mix(in srgb, ${GREEN} 10%, transparent)`, border: `1px solid color-mix(in srgb, ${GREEN} 27%, transparent)`, borderRadius: 3, padding: '3px 10px', textTransform: 'uppercase' }}>
                       {getMediaDesc(media)}
                     </span>
                   )}
@@ -368,90 +307,23 @@ export function ClientReportPrint({ client, _color, rankObj, mode = 'dark', onCl
         </div>
       </div>
     </div>
-    </PCtx.Provider>,
+    </PrintThemeProvider>,
     document.body
   )
 }
 
-// ── SVG Components ─────────────────────────────────────────────────────────────
-
-function AvatarSvg({ color }) {
-  return (
-    <svg width="68" height="86" viewBox="0 0 68 86" fill="none" style={{ flexShrink: 0 }}>
-      <rect width="68" height="86" rx="6" fill={color + '14'} stroke={color + '44'} strokeWidth="1.5" />
-      <circle cx="34" cy="27" r="13" fill={color + '30'} stroke={color + '80'} strokeWidth="1.5" />
-      <path d="M9 83 Q9 57 34 52 Q59 57 59 83" fill={color + '20'} stroke={color + '60'} strokeWidth="1.5" />
-      <text x="34" y="79" textAnchor="middle" fontSize="5.5" fill={color} fontFamily="Montserrat" fontWeight="900" letterSpacing="1">RANKEX</text>
-    </svg>
-  )
-}
-
-function CircularGauge({ value, color, sublabel }) {
-  const { PRI, SEC, BORDER } = useP()
-  const r = 32, cx = 48, cy = 48
-  const circumference = 2 * Math.PI * r
-  const dash = Math.min(1, value / 100) * circumference
-  return (
-    <svg width="96" height="96" viewBox="0 0 96 96">
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke={BORDER} strokeWidth="8" />
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth="8"
-        strokeDasharray={`${dash} ${circumference}`}
-        strokeLinecap="round"
-        transform={`rotate(-90 ${cx} ${cy})`}
-      />
-      <text x={cx} y={cy - 4} textAnchor="middle" fill={PRI} fontSize="18" fontWeight="900" fontFamily="Montserrat">{value}°</text>
-      <text x={cx} y={cy + 11} textAnchor="middle" fill={SEC} fontSize="7" fontFamily="Montserrat" fontWeight="700" letterSpacing="1">{sublabel}</text>
-    </svg>
-  )
-}
-
-// ── UI micro-components ────────────────────────────────────────────────────────
-
-function DeltaBadge({ delta, compact }) {
-  const { SEC, GREEN, DANGER } = useP()
-  if (delta === null) return null
-  if (delta === 0) return (
-    <span style={{ fontSize: compact ? 9 : 10, fontFamily: 'Montserrat, sans-serif', fontWeight: 700, color: SEC }}>—</span>
-  )
-  const positive = delta > 0
-  const c = positive ? GREEN : DANGER
-  return (
-    <span style={{
-      fontSize: compact ? 9 : 10,
-      fontFamily: 'Montserrat, sans-serif', fontWeight: 800,
-      color: c,
-      background: c + '1a',
-      border: `1px solid ${c}44`,
-      borderRadius: 3,
-      padding: compact ? '1px 4px' : '2px 7px',
-      whiteSpace: 'nowrap',
-    }}>
-      {positive ? '↑' : '↓'} {positive ? `+${delta}°` : `${delta}°`}
-    </span>
-  )
-}
-
-function SectionTitle({ children, noMargin }) {
-  const { GREEN, SEC } = useP()
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: noMargin ? 0 : 12 }}>
-      <div style={{ width: 2.5, height: 12, borderRadius: 2, background: GREEN, flexShrink: 0 }} />
-      <span style={{ fontSize: 8, letterSpacing: 3, textTransform: 'uppercase', fontWeight: 800, color: SEC, fontFamily: 'Montserrat, sans-serif' }}>
-        {children}
-      </span>
-    </div>
-  )
-}
+// ── UI micro-components specifici della scheda atleta ───────────────────────────
+// (CircularGauge, SectionTitle, Th, DeltaBadge sono condivisi — vedi reportPrintKit.jsx)
 
 function Chip({ children, accent, color }) {
-  const { GREEN, SEC, RAISED, BORDER } = useP()
+  const { GREEN, SEC, RAISED, BORDER } = usePrintTheme()
   const c = color ?? (accent ? GREEN : null)
   return (
     <span style={{
       fontSize: 10, fontFamily: 'Montserrat, sans-serif', fontWeight: 700,
       color: c ?? SEC,
-      background: c ? c + '18' : RAISED,
-      border: `1px solid ${c ? c + '44' : BORDER}`,
+      background: c ? `color-mix(in srgb, ${c} 10%, transparent)` : RAISED,
+      border: `1px solid ${c ? `color-mix(in srgb, ${c} 27%, transparent)` : BORDER}`,
       borderRadius: 4, padding: '2px 9px',
     }}>
       {children}
@@ -460,7 +332,7 @@ function Chip({ children, accent, color }) {
 }
 
 function AnagrRow({ label, value, isLast }) {
-  const { BORDER, TER, PRI } = useP()
+  const { BORDER, TER, PRI } = usePrintTheme()
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: isLast ? 'none' : `1px solid ${BORDER}` }}>
       <span style={{ fontSize: 8, letterSpacing: 1.5, textTransform: 'uppercase', fontFamily: 'Montserrat, sans-serif', fontWeight: 700, color: TER }}>{label}</span>
@@ -470,7 +342,7 @@ function AnagrRow({ label, value, isLast }) {
 }
 
 function BiaBox({ label, value }) {
-  const { RAISED, BORDER, TER, PRI } = useP()
+  const { RAISED, BORDER, TER, PRI } = usePrintTheme()
   return (
     <div style={{ background: RAISED, border: `1px solid ${BORDER}`, borderRadius: 4, padding: '8px 10px' }}>
       <div style={{ fontSize: 8, letterSpacing: 1.5, textTransform: 'uppercase', color: TER, fontFamily: 'Montserrat, sans-serif', fontWeight: 700, marginBottom: 4 }}>{label}</div>
@@ -479,17 +351,8 @@ function BiaBox({ label, value }) {
   )
 }
 
-function Th({ children, right }) {
-  const { TER, BORDER } = useP()
-  return (
-    <th style={{ textAlign: right ? 'right' : 'left', padding: '6px 8px', color: TER, fontWeight: 700, fontSize: 8, letterSpacing: 1.5, fontFamily: 'Montserrat, sans-serif', textTransform: 'uppercase', borderBottom: `1px solid ${BORDER}` }}>
-      {children}
-    </th>
-  )
-}
-
 function Td({ children, right, bold, style: extraStyle }) {
-  const { SEC } = useP()
+  const { SEC } = usePrintTheme()
   return (
     <td style={{ textAlign: right ? 'right' : 'left', padding: '7px 8px', color: SEC, fontWeight: bold ? 700 : 400, fontSize: 11, ...extraStyle }}>
       {children}

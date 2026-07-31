@@ -5,7 +5,7 @@ import { useFocusTrap } from '../../../hooks/useFocusTrap'
  * Dialog di conferma eliminazione cliente.
  * Modale semplice con due azioni: annulla e conferma.
  */
-export function DeleteDialog({ clientName, onConfirm, onCancel }) {
+export function DeleteDialog({ clientName, clientLabel = 'Cliente', onConfirm, onCancel }) {
   const dialogRef = useRef(null)
   useFocusTrap(dialogRef, true)
 
@@ -31,7 +31,7 @@ export function DeleteDialog({ clientName, onConfirm, onCancel }) {
         onClick={e => e.stopPropagation()}
       >
         <h3 id="delete-dialog-title" className="font-display font-black text-[16px] text-white mb-2">
-          Elimina cliente
+          Elimina {clientLabel.toLowerCase()}
         </h3>
         <p className="font-body text-[13px] text-white/50 mb-6">
           Stai per eliminare <strong className="text-white">{clientName}</strong>.

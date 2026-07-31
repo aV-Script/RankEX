@@ -1,7 +1,7 @@
 import { useMemo }        from 'react'
 import { usePagination }  from '../../../hooks/usePagination'
 import { Pagination }     from '../../../components/common/Pagination'
-import { EmptyState }     from '../../../components/ui'
+import { EmptyState, SectionLabel } from '../../../components/ui'
 import { SLOT_STATUS }    from '../../../constants/slotStatus'
 
 export function GroupSessionsPanel({ slots, loading }) {
@@ -49,10 +49,10 @@ export function GroupSessionsPanel({ slots, loading }) {
 
   if (loading) return (
     <div className="rounded-[4px] p-5 rx-card">
-      <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-green)' }}>◈ Sessioni</div>
+      <SectionLabel className="mb-4">◈ Sessioni</SectionLabel>
       <div className="flex flex-col gap-2">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="skeleton h-10 rounded-[3px]" />
+          <div key={i} className="bg-white/[.06] rounded-[3px] animate-pulse h-10" />
         ))}
       </div>
     </div>
@@ -62,7 +62,7 @@ export function GroupSessionsPanel({ slots, loading }) {
 
   return (
     <div className="rounded-[4px] p-5 rx-card">
-      <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-green)' }}>◈ Sessioni</div>
+      <SectionLabel className="mb-4">◈ Sessioni</SectionLabel>
 
       <div className="grid grid-cols-3 gap-2 mb-5">
         <SessionStat label="COMPLETATE (30GG)" value={stats.completedLast30} />
@@ -76,7 +76,7 @@ export function GroupSessionsPanel({ slots, loading }) {
 
       {isEmpty ? (
         <EmptyState
-          icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>}
+          icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>}
           title="Nessuna sessione"
           description="Le sessioni del gruppo appariranno qui dopo la chiusura dal calendario."
         />
@@ -123,7 +123,7 @@ function SessionStat({ label, value, highlight }) {
       <span className="font-display text-[10px] tracking-[1px] text-white/30">{label}</span>
       <span
         className="font-display font-black text-[17px] leading-tight"
-        style={{ color: highlight ? 'var(--rx-green)' : 'rgba(255,255,255,0.75)' }}
+        style={{ color: highlight ? 'var(--rx-accent)' : 'rgba(255,255,255,0.75)' }}
       >
         {value}
       </span>
@@ -146,14 +146,14 @@ function SlotRow({ slot, upcoming, border }) {
       }}
     >
       <div className="flex items-center gap-3">
-        <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: upcoming ? '#2ecfff' : 'var(--rx-green)' }} />
+        <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: upcoming ? '#2ecfff' : 'var(--rx-accent)' }} />
         <div>
           <div className="font-display text-[12px] text-white/70">{dateLabel}</div>
           {timeLabel && <div className="font-body text-[11px] text-white/30 mt-0.5">{timeLabel}</div>}
         </div>
       </div>
       {!upcoming && invited > 0 && (
-        <div className="font-display text-[11px]" style={{ color: attended === invited ? 'var(--rx-green)' : 'rgba(255,255,255,0.3)' }}>
+        <div className="font-display text-[11px]" style={{ color: attended === invited ? 'var(--rx-accent)' : 'rgba(255,255,255,0.3)' }}>
           {attended}/{invited}
         </div>
       )}

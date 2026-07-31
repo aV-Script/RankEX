@@ -27,14 +27,14 @@ export function AtletaTab({ client, orgId, campCount, rankObj, ruoloObj, categor
             />
             {/* Ring colorato sopra */}
             <div className="absolute inset-0 rounded-full pointer-events-none"
-              style={{ border: '2px solid color-mix(in srgb, var(--rx-green) 33%, transparent)', boxSizing: 'border-box' }} />
+              style={{ border: '2px solid color-mix(in srgb, var(--rx-accent) 33%, transparent)', boxSizing: 'border-box' }} />
           </div>
 
           {/* Info */}
           <div className="flex-1 min-w-0 flex flex-col gap-1">
             {roleLabel && (
               <span className="font-display text-[9px] font-bold tracking-[2px] uppercase"
-                style={{ color: 'var(--rx-green)' }}>{roleLabel}</span>
+                style={{ color: 'var(--rx-accent)' }}>{roleLabel}</span>
             )}
             <div className="font-display font-black text-white text-[17px] uppercase truncate leading-tight">
               {client.name}
@@ -42,7 +42,7 @@ export function AtletaTab({ client, orgId, campCount, rankObj, ruoloObj, categor
             <div className="flex items-end gap-4 mt-1">
               <div>
                 <div className="font-display font-black leading-none"
-                  style={{ fontSize: 38, color: campCount > 0 ? 'var(--rx-green)' : 'rgba(255,255,255,0.15)' }}>
+                  style={{ fontSize: 38, color: campCount > 0 ? 'var(--rx-accent)' : 'rgba(255,255,255,0.15)' }}>
                   {campCount > 0 ? (rankObj?.label ?? 'F') : '—'}
                 </div>
                 <div className="font-display text-[8px] font-bold tracking-[2px] uppercase"
@@ -55,7 +55,7 @@ export function AtletaTab({ client, orgId, campCount, rankObj, ruoloObj, categor
               </div>
               {campCount > 0 && mediaVal != null && (
                 <div className="ml-auto">
-                  <div className="font-display font-black text-[22px] leading-none" style={{ color: 'var(--rx-green)' }}>{mediaVal}°</div>
+                  <div className="font-display font-black text-[22px] leading-none" style={{ color: 'var(--rx-accent)' }}>{mediaVal}°</div>
                   <div className="font-display text-[8px] font-bold tracking-[2px] uppercase"
                     style={{ color: 'rgba(255,255,255,0.6)' }}>MEDIA</div>
                 </div>
@@ -66,7 +66,7 @@ export function AtletaTab({ client, orgId, campCount, rankObj, ruoloObj, categor
 
         {/* XP bar */}
         <div className="px-4 pb-4">
-          <XPBar xp={client.xp} xpNext={client.xpNext} color="var(--rx-green)" size="sm" fullWidth />
+          <XPBar xp={client.xp} xpNext={client.xpNext} color="var(--rx-accent)" size="sm" fullWidth />
         </div>
 
         {/* Stats strip — dentro la stessa card */}

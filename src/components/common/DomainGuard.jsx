@@ -38,7 +38,7 @@ function Blocked({ message, href, label }) {
       <a
         href={href}
         className="px-4 py-2 text-sm text-white/70 border rounded-[3px] hover:opacity-80 transition-opacity"
-        style={{ borderColor: 'color-mix(in srgb, var(--rx-green) 20%, transparent)' }}
+        style={{ borderColor: 'color-mix(in srgb, var(--rx-accent) 20%, transparent)' }}
       >
         {label}
       </a>

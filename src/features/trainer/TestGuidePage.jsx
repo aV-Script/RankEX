@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { getTestsForCategoria, CATEGORIE, ALL_TESTS } from '../../constants'
 import { useTrainerState }  from '../../context/TrainerContext'
 import { getModule, SOCCER_AGE_GROUPS } from '../../config/modules.config'
+import { IconChevronDown } from '../../components/ui/icons'
 
 const CATEGORY_COLORS = { health: '#34d399', active: '#00c8ff', athlete: '#0066cc' }
 const SOCCER_COLOR    = '#00c8ff'
@@ -124,11 +125,9 @@ export function TestGuidePage() {
                     {currentTest?.label}
                   </span>
                 </div>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                  stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                  style={{ transform: menuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
+                <span style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  <IconChevronDown size={16} rotated={menuOpen} />
+                </span>
               </button>
 
               {menuOpen && (
@@ -151,7 +150,7 @@ export function TestGuidePage() {
                       </span>
                       {currentTest?.key === t.key && (
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                          stroke={fasciaColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          stroke={fasciaColor} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                       )}
@@ -284,7 +283,7 @@ export function TestGuidePage() {
               onClick={() => setMenuOpen(o => !o)}
               aria-expanded={menuOpen}
               className="w-full flex items-center justify-between px-4 py-3 rounded-[3px] cursor-pointer border transition-all"
-              style={{ background: 'var(--rx-card-bg)', borderColor: 'color-mix(in srgb, var(--rx-green) 15%, transparent)' }}
+              style={{ background: 'var(--rx-card-bg)', borderColor: 'color-mix(in srgb, var(--rx-accent) 15%, transparent)' }}
             >
               <div className="text-left">
                 <span className="font-display text-[10px] tracking-[2px] block" style={{ color: catColor }}>
@@ -295,16 +294,14 @@ export function TestGuidePage() {
                 </span>
               </div>
 
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                style={{ transform: menuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
+              <span style={{ color: 'rgba(255,255,255,0.4)' }}>
+                <IconChevronDown size={16} rotated={menuOpen} />
+              </span>
             </button>
 
             {menuOpen && (
               <div className="rounded-[3px] overflow-hidden"
-                style={{ background: 'var(--rx-surface)', border: '1px solid color-mix(in srgb, var(--rx-green) 15%, transparent)' }}>
+                style={{ background: 'var(--rx-surface)', border: '1px solid color-mix(in srgb, var(--rx-accent) 15%, transparent)' }}>
                 {tests.map(t => (
                   <button
                     key={t.key}
@@ -326,7 +323,7 @@ export function TestGuidePage() {
 
                     {selectedTest === t.key && (
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                        stroke={catColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        stroke={catColor} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                     )}
@@ -434,7 +431,7 @@ function GuideSection({ title, children }) {
 function Pill({ label, value, color }) {
   return (
     <div className="flex items-center gap-1.5 rounded-[3px] px-3 py-1.5 leading-none"
-      style={{ background: 'var(--rx-card-bg)', border: '1px solid color-mix(in srgb, var(--rx-green) 12%, transparent)' }}>
+      style={{ background: 'var(--rx-card-bg)', border: '1px solid color-mix(in srgb, var(--rx-accent) 12%, transparent)' }}>
       <span className="text-[11px] text-white/30">{label}:</span>
       <span className="text-[11px]" style={{ color }}>{value}</span>
     </div>

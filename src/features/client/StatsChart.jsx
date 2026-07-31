@@ -5,6 +5,7 @@ import {
 } from 'recharts'
 import { Card, SectionLabel } from '../../components/ui'
 import { getStatsConfig }     from '../../constants'
+import { CHART_TICK_STYLE, chartTooltipStyle, lineCursor } from '../../utils/chartTheme'
 
 export function StatsChart({ campionamenti, color, categoria = 'health' }) {
   const config = getStatsConfig(categoria)
@@ -55,31 +56,24 @@ export function StatsChart({ campionamenti, color, categoria = 'health' }) {
       {/* Grafico */}
       <div className="h-40">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
+          <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 0, left: -20 }} accessibilityLayer>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
             <XAxis
               dataKey="name"
-              tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'Inter' }}
+              tick={CHART_TICK_STYLE}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
               domain={[0, 100]}
-              tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'Inter' }}
+              tick={CHART_TICK_STYLE}
               axisLine={false}
               tickLine={false}
             />
             <Tooltip
+              cursor={lineCursor(color)}
               formatter={(v) => [v, stat?.label]}
-              contentStyle={{
-                background: 'var(--rx-surface)',
-                border: '1px solid var(--rx-border)',
-                borderRadius: 4,
-                fontFamily: 'Inter',
-                fontSize: 12,
-              }}
-              labelStyle={{ color: 'rgba(255,255,255,0.4)', fontWeight: 400 }}
-              itemStyle={{ color, fontWeight: 400 }}
+              {...chartTooltipStyle(color)}
             />
             <Line
               type="monotone"

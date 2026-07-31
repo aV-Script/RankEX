@@ -24,7 +24,7 @@ function ThemePreviewCard({ theme, active, previewing, onHover, onLeave, onSelec
       onMouseEnter={() => onHover(theme.id)}
       onMouseLeave={onLeave}
       onClick={() => onSelect(theme.id)}
-      className="cursor-pointer rounded-xl overflow-hidden flex-shrink-0 transition-transform"
+      className="cursor-pointer rounded-[4px] overflow-hidden flex-shrink-0 transition-transform"
       style={{
         width: 140,
         outline: active ? `2px solid ${theme.swatches[0]}` : previewing ? `2px solid ${theme.swatches[0]}80` : '2px solid transparent',
@@ -140,7 +140,7 @@ export function ThemeDevPanel() {
           zIndex: 9999,
           background: 'rgba(8,11,18,0.97)',
           border: '1px solid rgba(255,255,255,0.10)',
-          borderRadius: 16,
+          borderRadius: 4,
           padding: '16px 18px',
           backdropFilter: 'blur(24px)',
           boxShadow: '0 24px 64px rgba(0,0,0,0.8)',

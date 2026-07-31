@@ -8,14 +8,11 @@
   --font-body:    'Inter', sans-serif;
 
   /* Colors — Rank EX palette */
-  --color-rx-bg:           #07090e;
-  --color-rx-surface:      #0d1520;
-  --color-rx-green:        #0fd65a;
-  --color-rx-green-bright: #1aff6e;
-  --color-rx-cyan:         #00c8ff;
-  --color-rx-blue:         #0066cc;
-  --color-rx-metal:        #8a9bb0;
-  --color-rx-metal-dark:   #1e2a38;
+  --color-rx-bg:            #07090e;
+  --color-rx-surface:       #0d1520;
+  --color-rx-accent:        #0fd65a;
+  --color-rx-accent-bright: #1aff6e;
+  --color-rx-accent-2:      #00c8ff;
 
   /* Box shadows */
   --shadow-glow-green:  0 0 20px rgba(15,214,90,0.3);
@@ -41,19 +38,25 @@
   --rx-nav-bg:  rgba(4,9,6,0.95);
 
   /* Verde logo */
-  --rx-green:        #0fd65a;
-  --rx-green-bright: #1aff6e;
-  --rx-green-dark:   #0a8a3a;
-  --rx-green-glow:   rgba(15,214,90,0.15);
+  --rx-accent:        #0fd65a;
+  --rx-accent-bright: #1aff6e;
+  --rx-accent-dark:   #0a8a3a;
+  --rx-accent-glow:   rgba(15,214,90,0.15);
 
   /* Ciano/Blu logo */
-  --rx-cyan:      #00c8ff;
-  --rx-cyan-glow: rgba(0,200,255,0.15);
-  --rx-blue:      #0066cc;
+  --rx-accent-2:      #00c8ff;
+  --rx-accent-2-glow: rgba(0,200,255,0.15);
 
-  /* Metallico */
-  --rx-metal:      #8a9bb0;
-  --rx-metal-dark: #1e2a38;
+  /* Semantici — stato/classifica, non legati al tema (uguali su tutti i 7 temi) */
+  --rx-danger: #f87171;
+  --rx-gold:   #ffd700;
+  --rx-silver: #c0c0c0;
+
+  /* Focus da tastiera — separata da --rx-accent apposta: AdminShell la
+     riassegna ad ADMIN_COLOR (via style inline sul root) senza toccare
+     --rx-accent, che altrove nell'area admin resta verde a ragion veduta
+     (semafori di stato "attivo"/"nel limite" — vedi P1.5) */
+  --rx-focus: var(--rx-accent);
 
   /* Testo */
   --rx-text:       #ffffff;
@@ -63,9 +66,9 @@
   /* Gradienti */
   --rx-gradient:
     linear-gradient(135deg, #1aff6e 0%, #0fd65a 30%, #00c8ff 70%, #4db8ff 100%);
-  --rx-gradient-green:
+  --rx-gradient-accent:
     linear-gradient(135deg, #0a8a3a, #0fd65a, #1aff6e);
-  --rx-gradient-cyan:
+  --rx-gradient-accent-2:
     linear-gradient(135deg, #0066cc, #00c8ff, #4db8ff);
 }
 
@@ -125,17 +128,17 @@ body, #root {
 ::-webkit-scrollbar       { width: 3px; height: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background:    color-mix(in srgb, var(--rx-green) 20%, transparent);
+  background:    color-mix(in srgb, var(--rx-accent) 20%, transparent);
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--rx-green) 40%, transparent);
+  background: color-mix(in srgb, var(--rx-accent) 40%, transparent);
 }
 
 /* ── Input ─────────────────────────────────────────────────── */
 .input-base {
-  background:    color-mix(in srgb, var(--rx-green) 4%, transparent);
-  border:        1px solid color-mix(in srgb, var(--rx-green) 15%, transparent);
+  background:    color-mix(in srgb, var(--rx-accent) 4%, transparent);
+  border:        1px solid color-mix(in srgb, var(--rx-accent) 15%, transparent);
   border-radius: 3px;
   padding:       10px 14px;
   color:         #ffffff;
@@ -146,8 +149,8 @@ body, #root {
   width:         100%;
 }
 .input-base:focus {
-  border-color: color-mix(in srgb, var(--rx-green) 50%, transparent);
-  box-shadow:   0 0 0 2px color-mix(in srgb, var(--rx-green) 8%, transparent);
+  border-color: color-mix(in srgb, var(--rx-accent) 50%, transparent);
+  box-shadow:   0 0 0 2px color-mix(in srgb, var(--rx-accent) 8%, transparent);
 }
 .input-base::placeholder { color: rgba(255,255,255,0.2); }
 
@@ -183,35 +186,9 @@ select.input-base option {
   background-size: 40px 40px;
 }
 
-/* ── Glow utilities ────────────────────────────────────────── */
-.rx-glow-green {
-  box-shadow: 0 0 20px rgba(15,214,90,0.25),
-              0 0 40px rgba(15,214,90,0.1);
-}
-.rx-glow-cyan {
-  box-shadow: 0 0 20px rgba(0,200,255,0.25),
-              0 0 40px rgba(0,200,255,0.1);
-}
-
 /* Testo gradiente logo */
 .rx-glow-text {
   background:              var(--rx-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip:         text;
-}
-
-/* Solo verde */
-.rx-text-green {
-  background:              var(--rx-gradient-green);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip:         text;
-}
-
-/* Solo ciano */
-.rx-text-cyan {
-  background:              var(--rx-gradient-cyan);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip:         text;
@@ -244,16 +221,6 @@ select.input-base option {
   to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
-@keyframes rx-pulse-green {
-  0%, 100% { box-shadow: 0 0 10px rgba(15,214,90,0.2); }
-  50%       { box-shadow: 0 0 25px rgba(15,214,90,0.5); }
-}
-
-@keyframes rx-pulse-cyan {
-  0%, 100% { box-shadow: 0 0 10px rgba(0,200,255,0.2); }
-  50%       { box-shadow: 0 0 25px rgba(0,200,255,0.5); }
-}
-
 @keyframes rx-lightning {
   0%, 90%, 100% { opacity: 0; }
   92%, 96%      { opacity: 1; }
@@ -270,8 +237,6 @@ select.input-base option {
 }
 
 .rx-animate-in  { animation: rx-fadeIn 250ms ease forwards; }
-.rx-pulse-green { animation: rx-pulse-green 2s ease infinite; }
-.rx-pulse-cyan  { animation: rx-pulse-cyan 2s ease infinite; }
 
 /* ── Bordo metallico angolare ──────────────────────────────── */
 .rx-card {
@@ -284,26 +249,26 @@ select.input-base option {
 }
 
 .rx-card:hover {
-  border-color: color-mix(in srgb, var(--rx-green) 25%, transparent);
+  border-color: color-mix(in srgb, var(--rx-accent) 25%, transparent);
   box-shadow:   0 4px 24px rgba(0,0,0,0.5),
-                0 0 20px var(--rx-green-glow);
+                0 0 20px var(--rx-accent-glow);
 }
 
 /* ── Bottone primario ──────────────────────────────────────── */
 .rx-btn-primary {
-  background:     color-mix(in srgb, var(--rx-green) 7%, transparent);
-  border:         1px solid color-mix(in srgb, var(--rx-green) 35%, transparent);
+  background:     color-mix(in srgb, var(--rx-accent) 7%, transparent);
+  border:         1px solid color-mix(in srgb, var(--rx-accent) 35%, transparent);
   border-radius:  3px;
-  color:          var(--rx-green);
+  color:          var(--rx-accent);
   font-family:    'Montserrat', sans-serif;
   font-weight:    700;
   letter-spacing: 0.1em;
   transition:     background 200ms, border-color 200ms, box-shadow 200ms;
 }
 .rx-btn-primary:hover {
-  background:   color-mix(in srgb, var(--rx-green) 13%, transparent);
-  border-color: color-mix(in srgb, var(--rx-green) 55%, transparent);
-  box-shadow:   0 0 12px var(--rx-green-glow);
+  background:   color-mix(in srgb, var(--rx-accent) 13%, transparent);
+  border-color: color-mix(in srgb, var(--rx-accent) 55%, transparent);
+  box-shadow:   0 0 12px var(--rx-accent-glow);
 }
 
 /* ── Badge rank ────────────────────────────────────────────── */
@@ -328,7 +293,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 
 /* Range input */
-input[type=range] { height: 4px; accent-color: var(--rx-green); }
+input[type=range] { height: 4px; accent-color: var(--rx-accent); }
 
 /* Toast slide-in */
 @keyframes toast-in {
@@ -339,9 +304,9 @@ input[type=range] { height: 4px; accent-color: var(--rx-green); }
 
 /* Accessibility: focus ring */
 button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
-  outline:        2px solid var(--rx-green);
+  outline:        2px solid var(--rx-focus);
   outline-offset: 2px;
-  box-shadow:     0 0 0 2px color-mix(in srgb, var(--rx-green) 30%, transparent);
+  box-shadow:     0 0 0 2px color-mix(in srgb, var(--rx-focus) 30%, transparent);
 }
 
 /* Accessibility: Reduced motion */

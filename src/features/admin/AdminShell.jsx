@@ -1,6 +1,5 @@
-import { logout } from '../../firebase/services/auth'
-
-const ADMIN_COLOR = '#f87171'
+import { logout }      from '../../firebase/services/auth'
+import { ADMIN_COLOR } from '../../config/app.config'
 
 const NAV_ITEMS = [
   {
@@ -52,7 +51,7 @@ const LogoutIcon = (
  */
 export function AdminShell({ page, onNavigate, children }) {
   return (
-    <div className="min-h-screen text-white flex flex-col lg:flex-row" style={{ background: 'var(--bg-base, #07090e)' }}>
+    <div className="min-h-screen text-white flex flex-col lg:flex-row" style={{ background: 'var(--bg-base, #07090e)', '--rx-focus': ADMIN_COLOR }}>
       <a href="#main-content" className="skip-to-content">Vai al contenuto</a>
 
       {/* ── Sidebar desktop ─────────────────────────────────────────── */}

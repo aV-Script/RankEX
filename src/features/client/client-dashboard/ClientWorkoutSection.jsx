@@ -1,5 +1,5 @@
 import { useState, useEffect }                from 'react'
-import { SectionLabel, EmptyState }          from '../../../components/ui'
+import { SectionLabel, EmptyState, DayTabs } from '../../../components/ui'
 import { getWorkoutPlanForClient }           from '../../../firebase/services/workoutPlans'
 import { normalizePlanDays }                 from '../../../utils/workoutPlans'
 
@@ -27,7 +27,7 @@ export function ClientWorkoutSection({ orgId, clientId, color }) {
         <SectionLabel className="mb-2">◈ Scheda allenamento</SectionLabel>
         <EmptyState
           color={color}
-          icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4v6a6 6 0 0 0 12 0V4"/><line x1="6" y1="20" x2="18" y2="20"/></svg>}
+          icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4v6a6 6 0 0 0 12 0V4"/><line x1="6" y1="20" x2="18" y2="20"/></svg>}
           title="Nessuna scheda assegnata"
           description="Il tuo trainer non ha ancora assegnato una scheda di allenamento."
         />
@@ -55,20 +55,8 @@ export function ClientWorkoutSection({ orgId, clientId, color }) {
 
         {/* Tab giorni — solo se più di uno */}
         {days.length > 1 && (
-          <div className="flex items-center gap-2 flex-wrap mb-4 mt-2">
-            {days.map((d, i) => (
-              <button
-                key={i}
-                onClick={() => setActiveDay(i)}
-                className="font-display text-[11px] font-bold px-3 py-1 rounded-[3px] cursor-pointer border transition-all"
-                style={safeDay === i
-                  ? { background: color + '18', borderColor: color + '55', color }
-                  : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)' }
-                }
-              >
-                {d.label || `Giorno ${i + 1}`}
-              </button>
-            ))}
+          <div className="mb-4 mt-2">
+            <DayTabs days={days} activeDay={safeDay} onChange={setActiveDay} color={color} />
           </div>
         )}
 

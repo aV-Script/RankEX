@@ -97,17 +97,17 @@ function SubTabBar({ tabs, active, onSelect, stickyClass = 'sticky top-0 lg:top-
               display: 'flex', alignItems: 'center', gap: 5,
               padding: '0 8px', height: 44, flexShrink: 0,
               cursor: 'pointer', background: 'none', border: 'none',
-              borderBottom: `2px solid ${isActive ? 'var(--rx-green)' : 'transparent'}`,
+              borderBottom: `2px solid ${isActive ? 'var(--rx-accent)' : 'transparent'}`,
               transition: 'border-color 150ms',
             }}
           >
-            <span style={{ color: isActive ? 'var(--rx-green)' : 'rgba(255,255,255,0.28)', transition: 'color 150ms' }}>
+            <span style={{ color: isActive ? 'var(--rx-accent)' : 'rgba(255,255,255,0.28)', transition: 'color 150ms' }}>
               {t.icon}
             </span>
             <span className="font-display" style={{
               fontWeight: 700,
               fontSize: 8, letterSpacing: '1px', textTransform: 'uppercase',
-              color: isActive ? 'var(--rx-green)' : 'rgba(255,255,255,0.25)', transition: 'color 150ms',
+              color: isActive ? 'var(--rx-accent)' : 'rgba(255,255,255,0.25)', transition: 'color 150ms',
               whiteSpace: 'nowrap',
             }}>
               {t.label}
@@ -150,7 +150,7 @@ export function ClientDashboardPage({
 
   const displayColor = colorSource === 'rank'
     ? color
-    : getComputedStyle(document.documentElement).getPropertyValue('--rx-green').trim() || color
+    : getComputedStyle(document.documentElement).getPropertyValue('--rx-accent').trim() || color
 
   // Sub-tab Profilo
   const profiloTabs = [
@@ -280,7 +280,7 @@ export function ClientDashboardPage({
           {activeTab === 'calendario' && (
             <section className="px-4 pt-6 pb-10">
               <div className="rounded-[4px] p-5 rx-card">
-                <div className="font-display text-[10px] tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-green)' }}>
+                <div className="font-display text-[10px] tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-accent)' }}>
                   ◈ Calendario allenamenti
                 </div>
                 <ClientCalendar clientId={clientId} orgId={orgId} />
@@ -317,7 +317,9 @@ export function ClientDashboardPage({
 
                 {profiloTab === 'attivita' && (
                   <section className="px-4 pt-6 pb-10 flex flex-col gap-4">
-                    <XPTrendChart log={client.log ?? []} color={displayColor} />
+                    <ErrorBoundary fallback={ChartErrorFallback}>
+                      <XPTrendChart log={client.log ?? []} color={displayColor} />
+                    </ErrorBoundary>
                     <ActivityLog log={client.log} color={displayColor} />
                   </section>
                 )}
@@ -329,7 +331,7 @@ export function ClientDashboardPage({
                 {profiloTab === 'tema' && (
                   <div className="px-4 pt-6 pb-10 max-w-xl mx-auto w-full flex flex-col gap-4">
                     <div className="rounded-[4px] p-5 rx-card">
-                      <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-green)' }}>
+                      <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-accent)' }}>
                         ◈ Tema interfaccia
                       </div>
                       <ThemePicker />
@@ -337,7 +339,7 @@ export function ClientDashboardPage({
 
                     {/* Colore interfaccia */}
                     <div className="rounded-[4px] p-5 rx-card">
-                      <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-1" style={{ color: 'var(--rx-green)' }}>
+                      <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-1" style={{ color: 'var(--rx-accent)' }}>
                         ◈ Colore interfaccia
                       </div>
                       <div className="font-body text-[11px] mb-4" style={{ color: 'rgba(255,255,255,0.30)' }}>
@@ -354,14 +356,14 @@ export function ClientDashboardPage({
                             className="flex-1 flex flex-col items-center gap-0.5 py-3 cursor-pointer border-none transition-colors"
                             style={{
                               background: colorSource === opt.id
-                                ? 'color-mix(in srgb, var(--rx-green) 12%, transparent)'
+                                ? 'color-mix(in srgb, var(--rx-accent) 12%, transparent)'
                                 : 'transparent',
                               borderRight: opt.id === 'rank' ? '1px solid rgba(255,255,255,0.08)' : 'none',
                             }}
                           >
                             <span
                               className="font-display font-bold text-[11px] tracking-[1px]"
-                              style={{ color: colorSource === opt.id ? 'var(--rx-green)' : 'rgba(255,255,255,0.35)' }}
+                              style={{ color: colorSource === opt.id ? 'var(--rx-accent)' : 'rgba(255,255,255,0.35)' }}
                             >
                               {opt.label}
                             </span>
@@ -380,7 +382,7 @@ export function ClientDashboardPage({
                   <div className="px-4 pt-6 pb-10 max-w-xl mx-auto w-full">
                     {/* Card account */}
                     <div className="rounded-[4px] p-5 rx-card mb-4">
-                      <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-green)' }}>
+                      <div className="font-display text-[11px] font-semibold tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-accent)' }}>
                         ◈ Account
                       </div>
                       <div className="flex items-center gap-3 mb-5">

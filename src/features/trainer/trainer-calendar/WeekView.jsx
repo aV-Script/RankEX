@@ -1,5 +1,6 @@
 import { useMemo, useRef, useEffect }              from 'react'
 import { HOUR_HEIGHT_PX as HOUR_H,
+         MIN_EVENT_HEIGHT_PX,
          computeSlotLayout }                       from '../../../utils/calendarUtils'
 import { EventBlock }                              from './EventBlock'
 
@@ -111,7 +112,7 @@ export function WeekView({ currentDate, slots, clients, today, onSlotClick, onEm
               <div
                 key={dateStr}
                 className="flex-1 relative border-l border-white/[.04]"
-                style={{ background: isToday ? 'color-mix(in srgb, var(--rx-cyan) 2%, transparent)' : 'transparent' }}
+                style={{ background: isToday ? 'color-mix(in srgb, var(--rx-accent-2) 2%, transparent)' : 'transparent' }}
                 onClick={(e) => {
                   // Click su area vuota — calcola l'ora dal click. L'accesso da
                   // tastiera passa dal bottone "+" nell'header (vedi sopra) invece
@@ -167,7 +168,7 @@ export function WeekView({ currentDate, slots, clients, today, onSlotClick, onEm
                 {/* Slot */}
                 {daySlots.map(slot => {
                   const top    = timeToY(slot.startTime)
-                  const height = Math.max(30, timeToY(slot.endTime) - top)
+                  const height = Math.max(MIN_EVENT_HEIGHT_PX, timeToY(slot.endTime) - top)
                   const { col, totalCols } = layout[slot.id] ?? { col: 0, totalCols: 1 }
                   const left  = `calc(${(col / totalCols) * 100}% + 4px)`
                   const width = `calc(${(1 / totalCols) * 100}% - 8px)`

@@ -2,17 +2,12 @@ import { useState, useMemo } from 'react'
 import { ALL_TESTS, getRankFromMedia } from '../../../constants/index'
 import { usePagination }               from '../../../hooks/usePagination'
 import { Pagination }                  from '../../../components/common/Pagination'
-import { EmptyState }                  from '../../../components/ui'
-
-const ICON_LEADERBOARD = (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="18 20 18 10"/><polyline points="12 20 12 4"/><polyline points="6 20 6 14"/>
-  </svg>
-)
+import { EmptyState, RankBadge }       from '../../../components/ui'
+import { IconLeaderboard }             from './groupDetailIcons'
 
 const LEADERBOARD_PAGE_SIZE = 10
 
-const POSITION_COLORS = ['#ffd700', '#c0c0c0', '#cd7f32'] // oro, argento, bronzo
+const POSITION_COLORS = ['var(--rx-gold)', 'var(--rx-silver)', '#cd7f32'] // oro, argento, bronzo
 
 // ── Componente principale ─────────────────────────────────────────────────────
 
@@ -52,16 +47,6 @@ export function GroupLeaderboard({ clients }) {
 
   const rankedPagination  = usePagination(sorted,      LEADERBOARD_PAGE_SIZE, sortStat)
   const noDataPagination  = usePagination(sortedNoData, LEADERBOARD_PAGE_SIZE, sortStat)
-
-  if (clients.length === 0) {
-    return (
-      <EmptyState
-        icon={ICON_LEADERBOARD}
-        title="Nessun atleta nel gruppo"
-        description="Aggiungi atleti al gruppo per vedere la classifica."
-      />
-    )
-  }
 
   return (
     <div>
@@ -126,7 +111,7 @@ export function GroupLeaderboard({ clients }) {
       {/* Empty state — nessun dato in nessun cliente */}
       {sorted.length === 0 && (
         <EmptyState
-          icon={ICON_LEADERBOARD}
+          icon={<IconLeaderboard size={20} />}
           title="Nessun campionamento"
           description="Nessun campionamento ancora registrato per questo gruppo."
         />
@@ -143,7 +128,7 @@ function SortPill({ active, onClick, children }) {
       onClick={onClick}
       className="font-display text-[10px] px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all tracking-[1px]"
       style={active
-        ? { background: 'color-mix(in srgb, var(--rx-green) 12%, transparent)', borderColor: 'color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)' }
+        ? { background: 'color-mix(in srgb, var(--rx-accent) 12%, transparent)', borderColor: 'color-mix(in srgb, var(--rx-accent) 35%, transparent)', color: 'var(--rx-accent)' }
         : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)' }
       }
     >
@@ -162,7 +147,7 @@ function LeaderboardRow({ position, client, score, sortStat }) {
       className="flex items-center gap-3 px-4 py-3 rounded-[3px] transition-all"
       style={
         position === 1
-          ? { background: 'rgba(255,215,0,0.05)',  border: '1px solid rgba(255,215,0,0.18)' }
+          ? { background: 'color-mix(in srgb, var(--rx-gold) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-gold) 18%, transparent)' }
           : isTop3
           ? { background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.07)' }
           : { background: 'rgba(255,255,255,0.015)', border: '1px solid rgba(255,255,255,0.04)' }
@@ -179,7 +164,7 @@ function LeaderboardRow({ position, client, score, sortStat }) {
       {/* Avatar iniziale */}
       <div
         className="w-8 h-8 rounded-[3px] flex items-center justify-center shrink-0"
-        style={{ background: posColor ? `${posColor}18` : 'rgba(255,255,255,0.04)' }}
+        style={{ background: posColor ? `color-mix(in srgb, ${posColor} 10%, transparent)` : 'rgba(255,255,255,0.04)' }}
       >
         <span
           className="font-display text-[11px] font-bold"
@@ -196,18 +181,7 @@ function LeaderboardRow({ position, client, score, sortStat }) {
       </div>
 
       {/* Rank badge (sempre dal media complessivo) */}
-      {rankObj && (
-        <div
-          className="font-display font-black text-[11px] px-2 py-0.5 rounded-[3px] shrink-0"
-          style={{
-            color:      rankObj.color,
-            background: `${rankObj.color}18`,
-            border:     `1px solid ${rankObj.color}44`,
-          }}
-        >
-          {rankObj.label}
-        </div>
-      )}
+      {rankObj && <RankBadge label={rankObj.label} color={rankObj.color} size="sm" />}
 
       {/* Score */}
       <div className="text-right shrink-0 min-w-[46px]">

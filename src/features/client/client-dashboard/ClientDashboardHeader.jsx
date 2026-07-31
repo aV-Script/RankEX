@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import {
   ICON_TEST, ICON_BIA, ICON_WORKOUT, ICON_CALENDAR, ICON_NOTES, ICON_ACTIVITY,
   ICON_AVATAR, ICON_WEARABLE, ICON_TROFEI, ICON_MISURE, ICON_BACK, ICON_PDF,
@@ -28,6 +29,15 @@ export function ClientDashboardHeader({
 }) {
   const visibleTabs = TABS.filter(t => !t.requiresTests || hasTests)
 
+  // Chiusura da tastiera per il menu overflow — l'unico modo per chiuderlo
+  // era prima un click esterno su un div non focusabile.
+  useEffect(() => {
+    if (!showActions) return
+    const handler = e => { if (e.key === 'Escape') onToggleActions() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [showActions, onToggleActions])
+
   return (
     <header
       className="border-b border-white/[.05] sticky top-0 z-30 backdrop-blur-md shrink-0 flex items-stretch"
@@ -51,15 +61,15 @@ export function ClientDashboardHeader({
               onClick={() => onSelectTab(t.id)}
               aria-current={tab === t.id ? 'page' : undefined}
               className="flex items-center gap-1.5 px-3 h-full shrink-0 cursor-pointer border-none bg-transparent relative transition-colors"
-              style={{ color: tab === t.id ? 'var(--rx-green)' : 'rgba(200,212,224,0.35)' }}
+              style={{ color: tab === t.id ? 'var(--rx-accent)' : 'rgba(200,212,224,0.35)' }}
             >
               {tab === t.id && (
                 <div
                   className="absolute bottom-0 left-2 right-2 h-[2px] rounded-t-sm"
-                  style={{ background: 'var(--rx-gradient)', boxShadow: '0 0 6px var(--rx-green-glow)' }}
+                  style={{ background: 'var(--rx-gradient)', boxShadow: '0 0 6px var(--rx-accent-glow)' }}
                 />
               )}
-              <span style={{ display: 'flex', filter: tab === t.id ? 'drop-shadow(0 0 4px var(--rx-green-glow))' : 'none' }}>
+              <span style={{ display: 'flex', filter: tab === t.id ? 'drop-shadow(0 0 4px var(--rx-accent-glow))' : 'none' }}>
                 {t.icon}
               </span>
               <span className="font-display text-[9px] tracking-[1px] uppercase whitespace-nowrap">{t.label}</span>

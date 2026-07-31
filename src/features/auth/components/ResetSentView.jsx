@@ -5,10 +5,10 @@ export function ResetSentView({ form }) {
     <div className="text-center">
       <div
         className="w-16 h-16 rounded-full mx-auto mb-6 flex items-center justify-center"
-        style={{ background: 'color-mix(in srgb, var(--rx-green) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-green) 25%, transparent)' }}
+        style={{ background: 'color-mix(in srgb, var(--rx-accent) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-accent) 25%, transparent)' }}
       >
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
-          stroke="var(--rx-green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          stroke="var(--rx-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
           <polyline points="22,6 12,13 2,6"/>
         </svg>
@@ -23,9 +23,9 @@ export function ResetSentView({ form }) {
         type="button"
         onClick={() => goTo('login')}
         className="bg-transparent border-none font-body text-[13px] cursor-pointer transition-colors p-0"
-        style={{ color: 'var(--rx-green)' }}
-        onMouseEnter={e => e.currentTarget.style.color = 'var(--rx-green-bright)'}
-        onMouseLeave={e => e.currentTarget.style.color = 'var(--rx-green)'}
+        style={{ color: 'var(--rx-accent)' }}
+        onMouseEnter={e => e.currentTarget.style.color = 'var(--rx-accent-bright)'}
+        onMouseLeave={e => e.currentTarget.style.color = 'var(--rx-accent)'}
       >
         Torna al login
       </button>

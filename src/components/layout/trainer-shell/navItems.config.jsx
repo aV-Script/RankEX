@@ -1,7 +1,11 @@
-export const NAV_ITEMS = [
+// Funzione (non const statica): le label Clienti/Gruppi variano per modulo/
+// variante terminologica (PT/GYM/Soccer) — vedi config/modules.config.js.
+// Il chiamante (AppNav.jsx) passa `terminology` da useTrainerState().
+export function getNavItems(terminology = {}) {
+  return [
   {
     id:    'clients',
-    label: 'Clienti',
+    label: terminology.clients ?? 'Clienti',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -13,7 +17,7 @@ export const NAV_ITEMS = [
   },
   {
     id:    'groups',
-    label: 'Gruppi',
+    label: terminology.groups ?? 'Gruppi',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="7" height="7" rx="1"/>
@@ -65,7 +69,8 @@ export const NAV_ITEMS = [
       </svg>
     ),
   },
-]
+  ]
+}
 
 // Voci nav aggiuntive visibili solo per org_admin
 export const ORG_ADMIN_NAV_ITEMS = [

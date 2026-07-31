@@ -43,7 +43,7 @@ export function Pagination({ page, totalPages, goTo, next, prev, hasNext, hasPre
         <PageBtn onClick={prev} disabled={!hasPrev}>‹</PageBtn>
 
         {/* Pagine — solo desktop */}
-        <div className="hidden sm:flex items-center gap-1">
+        <div className="hidden lg:flex items-center gap-1">
           {pages.map((p, i) =>
             p === '...' ? (
               <span key={`dots-${i}`} className="font-display text-[12px] text-white/25 px-2">
@@ -58,7 +58,7 @@ export function Pagination({ page, totalPages, goTo, next, prev, hasNext, hasPre
         </div>
 
         {/* Indicatore mobile */}
-        <span className="sm:hidden font-display text-[12px] text-white/40 px-3">
+        <span className="lg:hidden font-display text-[12px] text-white/40 px-3">
           {page} / {totalPages}
         </span>
 
@@ -77,7 +77,7 @@ function PageBtn({ onClick, disabled, active, children }) {
       disabled={disabled}
       className="w-8 h-8 rounded-[3px] font-display text-[12px] cursor-pointer border transition-all disabled:opacity-30 disabled:cursor-not-allowed"
       style={active
-        ? { background: 'color-mix(in srgb, var(--rx-green) 15%, transparent)', borderColor: 'color-mix(in srgb, var(--rx-green) 35%, transparent)', color: 'var(--rx-green)' }
+        ? { background: 'color-mix(in srgb, var(--rx-accent) 15%, transparent)', borderColor: 'color-mix(in srgb, var(--rx-accent) 35%, transparent)', color: 'var(--rx-accent)' }
         : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)' }
       }
     >
