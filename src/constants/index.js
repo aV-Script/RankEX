@@ -94,5 +94,5 @@ export const NEW_CLIENT_DEFAULTS = {
 }
 
 // ── Costanti gamification ─────────────────────────────────────────────────────
-export const LOG_MAX_ENTRIES         = 20
+export const LOG_MAX_ENTRIES         = 200
 export const XP_PER_LEVEL_MULTIPLIER = 1.08

@@ -4,6 +4,7 @@
  */
 
 export const clientsPath       = (orgId) => `organizations/${orgId}/clients`
+export const membersPath       = (orgId) => `organizations/${orgId}/members`
 export const slotsPath         = (orgId) => `organizations/${orgId}/slots`
 export const groupsPath        = (orgId) => `organizations/${orgId}/groups`
 export const recurrencesPath   = (orgId) => `organizations/${orgId}/recurrences`

@@ -48,7 +48,7 @@ export function buildSessionUpdate(client, baseXP, label = 'Sessione') {
   return { update: { xp, xpNext, level, sessionStreak: streak, lastSessionDate: todayDate.toISOString(), log }, xpGain, streak }
 }
 
-export function buildCampionamentoUpdate(client, newStats, testValues) {
+export function buildCampionamentoUpdate(client, newStats, testValues, logAction) {
   const media   = calcStatMedia(newStats)
   const rankObj = getRankFromMedia(media)
   const today   = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
@@ -70,7 +70,10 @@ export function buildCampionamentoUpdate(client, newStats, testValues) {
   const campionamento = { date: today, stats: newStats, tests: testValues, media }
   const campionamenti = [campionamento, ...(client.campionamenti ?? [])].slice(0, MAX_CAMPIONAMENTI)
 
-  const logEntry = { date: today, action: `Campionamento effettuato`, xp: xpGain, ts: Date.now() }
+  // logAction arriva dal client: descrive i test con label/unit (constants/tests.js),
+  // dati che il BE non ha — TESTS_META è volutamente minimale (solo ciò che serve al
+  // calcolo dei percentili). Fallback generico se il client non lo invia.
+  const logEntry = { date: today, action: logAction || 'Campionamento effettuato', xp: xpGain, ts: Date.now() }
   const log = [logEntry, ...(client.log ?? [])].slice(0, LOG_MAX_ENTRIES)
 
   const { xp, xpNext, level } = calcLevelProgression(
@@ -92,7 +95,7 @@ export function buildXPUpdate(client, xpToAdd, note) {
     client.level ?? 1,
   )
   const today = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
-  const entry = { date: today, action: note || `+${xpToAdd} XP`, xp: xpToAdd, ts: Date.now() }
+  const entry = { date: today, action: note || `+${xpToAdd} XP aggiunto dal trainer`, xp: xpToAdd, ts: Date.now() }
   const log   = [entry, ...(client.log ?? [])].slice(0, LOG_MAX_ENTRIES)
   return { update: { xp, xpNext, level, log } }
 }

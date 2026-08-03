@@ -27,7 +27,7 @@ function resolveTestInput(test, testValues) {
 }
 
 export const salvaCampionamento = onCall({ region: REGION }, async (request) => {
-  const { orgId, clientId, testValues = {} } = request.data
+  const { orgId, clientId, testValues = {}, logAction } = request.data
   await requireOrgAccess(request, orgId)
 
   const db = getFirestore()
@@ -50,7 +50,7 @@ export const salvaCampionamento = onCall({ region: REGION }, async (request) => 
     }
   }
 
-  const { update } = buildCampionamentoUpdate(client, newStats, testValues)
+  const { update } = buildCampionamentoUpdate(client, newStats, testValues, logAction)
 
   const batch = db.batch()
   batch.update(clientRef, update)

@@ -3,6 +3,7 @@ import {
   doc, query, orderBy, setDoc,
 } from 'firebase/firestore'
 import { db } from './db'
+import { membersPath } from '../paths'
 
 // ── Organizzazioni ────────────────────────────────────────────────────────────
 
@@ -34,7 +35,7 @@ export const deleteOrganization = (orgId) =>
 
 export const getMembers = async (orgId) => {
   const q    = query(
-    collection(db, `organizations/${orgId}/members`),
+    collection(db, membersPath(orgId)),
     orderBy('joinedAt', 'desc'),
   )
   const snap = await getDocs(q)
@@ -42,14 +43,14 @@ export const getMembers = async (orgId) => {
 }
 
 export const getMember = async (orgId, uid) => {
-  const snap = await getDoc(doc(db, `organizations/${orgId}/members`, uid))
+  const snap = await getDoc(doc(db, membersPath(orgId), uid))
   return snap.exists() ? { id: snap.id, ...snap.data() } : null
 }
 
 // ── Membri — solo super_admin (operazioni dirette senza counter) ──────────────
 
 export const removeMember = (orgId, uid) =>
-  deleteDoc(doc(db, `organizations/${orgId}/members`, uid))
+  deleteDoc(doc(db, membersPath(orgId), uid))
 
 export const updateMember = (orgId, uid, data) =>
-  updateDoc(doc(db, `organizations/${orgId}/members`, uid), data)
+  updateDoc(doc(db, membersPath(orgId), uid), data)
