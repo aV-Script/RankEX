@@ -226,7 +226,11 @@ import { getPlanLimits, isAtTrainerLimit, isAtClientLimit } from 'config/plans.c
 }
 ```
 Pattern thread: `parentId === null` = nota principale; `parentId = noteId` = commento.
-**Regola:** il client può creare solo commenti (`parentId != null`) su thread esistenti.
+**Regola:** il client è sempre in sola lettura sulle note — non può creare né commenti né
+note proprie (`firestore.rules` limita `create`/`delete` a `canWrite(orgId)`, la Cloud
+Function `aggiungiNota` rifiuta esplicitamente `role === 'client'`, e `NotesSection` è
+montata `readonly` in `ClientDashboardPage.jsx`). Solo trainer/org_admin scrivono note e
+commenti; il client li vede e basta.
 Il trainer gestisce la cancellazione a cascata (nota root + suoi commenti) lato app.
 
 ### Scheda Allenamento (`workoutPlans/{planId}`)
@@ -534,17 +538,45 @@ src/
 │       ├── auth.js          ← changeTrainerPassword, changeUserEmail
 │       │                       (verifyBeforeUpdateEmail — link verifica)
 │       ├── calendar.js      ← tutte le fn accettano orgId come primo arg
-│       ├── clients.js       ← addClient/deleteClient usano batch + increment
+│       ├── clients.js       ← solo letture (getClients, getClientById) + updateClient
+│       │                       diretto per campi a basso rischio (peso/altezza, avatarId)
 │       ├── db.js
 │       ├── groups.js        ← tutte le fn accettano orgId come primo arg
 │       ├── groupNotes.js    ← getGroupNotes, addGroupNote, deleteGroupNote (orgId, groupId)
 │       ├── notifications.js ← tutte le fn accettano orgId come primo arg
 │       ├── notes.js         ← getNotes, addNote, deleteNoteItem (orgId, clientId)
-│       ├── org.js           ← addMember/removeMember usano batch + increment; getMember (singolo)
+│       ├── org.js           ← organizations (CRUD) + membri in sola lettura (getMembers,
+│       │                       getMember) + removeMember/updateMember diretti — SOLO
+│       │                       super_admin (OrgDetailView.jsx), senza toccare memberCount.
+│       │                       Creazione membro e rimozione con counter passano da Cloud
+│       │                       Function (creaMembroTeam / rimuoviMembroTeam) — vedi usecases/
 │       ├── workoutPlans.js  ← getWorkoutPlans, getWorkoutPlanForClient, addWorkoutPlan, update, delete (orgId)
 │       ├── badges.js        ← awardBadge, revokeBadge, updateBadgeShowcase (orgId, clientId)
 │       ├── wearable.js      ← enableWearable, disableWearable, fetchAndSaveWearableData (link client rimosso, vedi sezione dedicata)
 │       └── users.js
+│
+├── usecases/                ← wrapper httpsCallable — SCRITTURE sensibili verso le Cloud
+│   │                           Functions in functions/ (vedi sezione dedicata più sotto).
+│   │                           31 file, uno per callable, stesso pattern minimale:
+│   ├── createClientUseCase.js       ← creaCliente
+│   ├── deleteClientUseCase.js       ← eliminaCliente
+│   ├── createMemberUseCase.js       ← creaMembroTeam
+│   ├── removeMemberUseCase.js       ← rimuoviMembroTeam
+│   ├── updateMemberRoleUseCase.js   ← aggiornaRuoloMembro
+│   ├── saveXPUseCase.js             ← salvaXP
+│   ├── saveCampionamentoUseCase.js  ← salvaCampionamento (BE ricalcola i percentili
+│   │                                   server-side dai valori grezzi; il testo del log
+│   │                                   passa dal client perché richiede label/unit test)
+│   ├── saveBiaUseCase.js            ← salvaBia
+│   ├── upgradeProfileUseCase.js     ← aggiornaProfiloCliente
+│   ├── addWorkoutPlanUseCase.js / updateWorkoutPlanUseCase.js / deleteWorkoutPlanUseCase.js
+│   ├── addSlotUseCase.js / updateSlotUseCase.js / deleteSlotUseCase.js / skipSlotUseCase.js / closeSessionUseCase.js
+│   ├── addRecurrenceUseCase.js / cancelRecurrenceUseCase.js / extendRecurrenceUseCase.js /
+│   │   updateRecurrenceDaysUseCase.js / updateRecurrenceTimeUseCase.js /
+│   │   addClientToRecurrenceUseCase.js / removeClientFromRecurrenceUseCase.js
+│   ├── addGroupUseCase.js / updateGroupUseCase.js / deleteGroupUseCase.js
+│   ├── addNoteUseCase.js / deleteNoteUseCase.js
+│   └── markNotificationReadUseCase.js / markAllNotificationsReadUseCase.js
 │
 ├── hooks/
 │   ├── useAsync.js
@@ -568,9 +600,10 @@ src/
     ├── calendarUtils.js     ← utility date/slot helpers
     ├── env.js               ← ENV, isDev, isProduction, isAdminDomain()
     ├── firebaseErrors.js
-    ├── gamification.js      ← calcSessionConfig, buildXPUpdate,
+    ├── gamification.js      ← calcSessionXP, buildXPUpdate, buildSessionUpdate,
     │                           buildCampionamentoUpdate, buildNewClient,
-    │                           buildBiaUpdate, buildProfileUpgrade
+    │                           buildBiaUpdate, buildProfileUpgrade — speculare a
+    │                           functions/src/shared/gamification.js (vedi sezione Backend)
     ├── percentile.js        ← calcPercentileEx(stat, val, sex, age, testKey?) → { value, outOfRange }
     │                           calcPercentile(...)  → number|null  (wrapper backward-compat)
     │                           calcStatMedia
@@ -582,16 +615,89 @@ src/
 
 ---
 
+## Backend — Cloud Functions callable (`functions/`)
+
+Pacchetto Node **separato** alla radice del repo (proprio `package.json`, proprio
+`node_modules`, nessun import da `src/`, deploy indipendente da hosting/rules). Gestisce
+la maggior parte delle scritture sensibili dell'app tramite il layer `usecases/` visto
+sopra — 31 callable, una per operazione.
+
+```
+functions/
+├── src/
+│   ├── index.js         ← esporta tutte le callable (region europe-west1)
+│   ├── callable/        ← 31 funzioni onCall — una per operazione:
+│   │                       creaCliente, eliminaCliente, creaMembroTeam,
+│   │                       rimuoviMembroTeam, aggiornaRuoloMembro, salvaXP,
+│   │                       salvaCampionamento, salvaBia, aggiornaProfiloCliente,
+│   │                       chiudiSessione, saltaSlot, aggiungi/aggiorna/elimina
+│   │                       Slot/Gruppo/Nota/SchedaAllenamento/Ricorrenza, ecc.
+│   ├── shared/           ← copie server-side minimali di logica src/, SENZA
+│   │                        dipendenze browser:
+│   │   ├── auth.js          ← requireAuth / requireRole / requireOrgAccess /
+│   │   │                       requireOrgAdmin / requireOrgMemberOrClient
+│   │   ├── plans.js         ← speculare a src/config/plans.config.js —
+│   │   │                       isAtTrainerLimit/isAtClientLimit. Necessario perché
+│   │   │                       firestore.rules NON protegge le callable: l'Admin
+│   │   │                       SDK le bypassa sempre
+│   │   ├── gamification.js  ← speculare a src/utils/gamification.js (XP, rank,
+│   │   │                       livello — vedi nota divergenze sotto)
+│   │   ├── constants.js     ← speculare a src/constants/index.js (RANKS,
+│   │   │                       LOG_MAX_ENTRIES, XP_PER_LEVEL_MULTIPLIER...)
+│   │   ├── testsMeta.js     ← speculare a src/constants/tests.js MA volutamente
+│   │   │                       minimale: solo key/stat/direction/ageGroup/
+│   │   │                       categories/variables — NIENTE label/unit/guide
+│   │   │                       (non servono al calcolo percentili server-side)
+│   │   └── percentile.js / tables.js / bia.js / formulas.js / calendarUtils.js
+│   └── triggers/         ← Cloud Functions non-callable (trigger su eventi)
+```
+
+### Pattern client ↔ server
+```
+Componente/hook (src/)
+  → usecases/xUseCase.js          httpsCallable wrapper, zero logica
+    → functions/src/callable/x.js onCall — auth/ruolo/org, poi business logic
+      → functions/src/shared/*.js calcolo, con Admin SDK per leggere/scrivere
+```
+`requireOrgAccess`/`requireOrgAdmin` in `shared/auth.js` sono l'equivalente server-side
+delle Firestore rules per le callable — **obbligatorie** in ogni nuova callable che
+tocca dati di un'org, perché l'Admin SDK bypassa sempre `firestore.rules`.
+
+### Copie speculari — rischio di divergenza
+`shared/gamification.js`, `shared/constants.js`, `shared/plans.js`, `shared/testsMeta.js`
+sono duplicati manuali (non importati) delle fonti in `src/`, perché `functions/` non ha
+accesso a `src/`. **Nessun controllo automatico le mantiene sincronizzate** — un valore
+cambiato da un lato e non dall'altro diverge silenziosamente (è già successo:
+`LOG_MAX_ENTRIES` era 20 lato client e 200 lato server fino a lug 2026, poi riallineato a
+200 su entrambi; il testo del log campionamento/XP aveva la stessa divergenza, risolta
+passando la descrizione già calcolata dal client — vedi `saveCampionamentoUseCase.js`).
+**Quando si modifica una di queste costanti/funzioni, aggiornare sempre entrambe le copie
+e ridistribuire le functions** (`cd functions && npm run deploy:dev` poi `npm run deploy`).
+
+### Perché non tutte le scritture passano da qui
+Solo le scritture che toccano contatori piano (`memberCount`/`clientCount`), creano
+account Firebase Auth, o richiedono un calcolo che il client non deve poter falsificare
+(XP, percentili, limiti piano) passano da Cloud Function. Aggiornamenti diretti a basso
+rischio su campi propri del cliente (peso/altezza in `useMisure.js`, avatarId in
+`AvatarPicker.jsx`) restano `updateDoc` diretti da `firebase/services/clients.js`.
+
+---
+
 ## Principi architetturali
 
 ### Separation of concerns
 ```
 Hook        → logica, stato, fetch Firestore
 Componenti  → render, composizione UI
-Services    → I/O Firebase, nessuna logica
+Services    → LETTURE dirette Firestore (+ pochi update diretti a basso rischio)
+Usecases    → SCRITTURE sensibili — wrapper httpsCallable verso Cloud Functions
 Utils       → funzioni pure, nessun side effect
 Config      → dati statici, nessuna logica
 ```
+`Services` e `Usecases` si dividono le responsabilità di I/O: le letture restano dirette
+(veloci, meno overhead), le scritture che toccano contatori piano, validazioni server-side
+o dati sensibili passano dalle Cloud Functions. Vedi sezione "Backend — Cloud Functions
+callable" più sotto.
 
 ### Ottimistic updates — pattern uniforme
 ```js
@@ -610,7 +716,7 @@ constants/tests.js       → direction, ageGroup, guide, categories
 constants/bia.js         → range clinici, XP_BIA
 config/modules.config.js → terminologia, test fissi per modulo
 config/plans.config.js   → limiti piano (trainer, clienti)
-utils/gamification.js    → calcSessionConfig, XP, rank
+utils/gamification.js    → XP, rank, livello (speculare a functions/src/shared/gamification.js)
 design/tokens.js         → spacing, colori, motion, shadow
 ```
 
@@ -719,7 +825,10 @@ La lista attive è paginata (10 per pagina).
   usata la fascia più vicina (via `getAgeGroupClamped`).
 
 `calcPercentile(...)` è un wrapper backward-compat che restituisce solo `.value`.
-Usarlo dove il flag `outOfRange` non serve (es. `useWizard.js`).
+**Verificato (lug 2026): non è più usato da alcun codice applicativo** — sia
+`useWizard.js` che `useCampionamento.js` chiamano `calcPercentileEx` direttamente
+(il primo prende `.value` manualmente). L'unico consumer rimasto è `percentile.test.js`.
+Candidato alla rimozione, o da tenere solo come utility di libreria pubblica del modulo.
 
 `getAgeGroupClamped(testKey, age, sex)` in `utils/tables.js`:
 - Se l'età rientra in una fascia → `{ group, outOfRange: false }`
@@ -740,8 +849,9 @@ Il hook espone `ageWarnings: { [stat]: boolean }` derivato da `liveResults`.
 
 ### testKey — risoluzione ambiguità stat
 Il quinto parametro `testKey` risolve l'ambiguità quando due test
-diversi condividono lo stesso `stat`
-(es. `ymca_step_test` e `yo_yo_ir1` entrambi `stat:'resistenza'`).
+diversi condividono lo stesso `stat`. Il caso più ampio è `stat:'resistenza'`,
+condiviso da **cinque** test: `ymca_step_test`, `yo_yo_ir1`, `shuttle_run_30m`,
+`six_minute_run`, `beep_test` — ciascuno con tabelle percentili proprie.
 Passare sempre `test.key` come quinto argomento in `useCampionamento.js`.
 
 ---
@@ -964,12 +1074,14 @@ WEEKS_PER_MONTH         = 4.33
 XP_PER_LEVEL_MULTIPLIER = 1.08      // era 1.3 — ridotto per curva raggiungibile
 // xpNext partenza = 500 (era 700) — in NEW_CLIENT_DEFAULTS
 
-calcSessionConfig(sessionsPerWeek)
-  → { monthlySessions, xpPerSession }
-
 // Streak sessioni — cap aumentato a streak 10 = ×2.0 (era streak 5 = ×1.5)
 calcSessionXP(baseXP, streak)
   → round(baseXP × (1 + min(streak × 0.1, 1.0)))
+
+// LOG_MAX_ENTRIES = 200 — client (constants/index.js) e server
+// (functions/src/shared/constants.js) allineati lug 2026 (erano 20/200 — il client
+// troncava lo storico locale prima che il refetch lo correggesse). Governa quante
+// entry di client.log[] sopravvivono, usate da ActivityLog e XPTrendChart.
 
 // XP Campionamento — tier per numero di stat percentili migliorate
 // (stesso schema BIA per coerenza)
@@ -1140,7 +1252,7 @@ Magic numbers:    sempre come costante nominata
 
 ### Import — fonte corretta
 ```
-calcSessionConfig      → utils/gamification
+calcSessionXP          → utils/gamification
 calcMonthlyCompletion  → features/calendar/useCalendar
 getProfileCategory     → constants/bia
 getModule              → config/modules.config
@@ -1307,8 +1419,13 @@ features/calendar/useCalendar.js → logica calendario
 hooks/useClients.js          → ottimistic updates, firma: (orgId, userId?)
 firebase/paths.js            → fonte di verità path Firestore
 firebase/services/auth.js    → auth instance + setPersistence + logout con audit
-firebase/services/clients.js → addClient/deleteClient usano batch + counter
-firebase/services/org.js     → addMember/removeMember usano batch + counter
+firebase/services/clients.js → solo letture + updateClient diretto (basso rischio)
+firebase/services/org.js     → membri: letture + removeMember/updateMember diretti
+                                (solo super_admin, senza counter)
+functions/src/callable/*.js  → creaCliente/eliminaCliente/creaMembroTeam/
+                                rimuoviMembroTeam usano batch + counter (Admin SDK)
+usecases/*.js                → wrapper httpsCallable — non contengono logica,
+                                solo il mapping verso la Cloud Function
 utils/percentile.js          → usare calcPercentileEx per ageWarnings; passare sempre testKey come 5° arg
 utils/auditLog.js            → getAuth lazy — non spostare a livello modulo
 utils/env.js                 → fonte di verità ambienti e domini
@@ -1356,6 +1473,11 @@ Permissions-Policy        → camera=(), microphone=(), geolocation=()
 - Nessuna variabile `VITE_RECAPTCHA_SITE_KEY` richiesta — non esiste più in `.env.example`
 - Domini autorizzati Firebase Auth restano configurati manualmente in Console
   (`rankex-app.web.app`, `rankex-admin.web.app`)
+- `isAdminDomain()` in `utils/env.js` riconosce **3** hostname admin, non solo quello di
+  hosting Firebase: `ADMIN_HOSTNAMES = ['admin.rankex.app', 'admin-uat.rankex.app',
+  'rankex-admin.web.app']` — i primi due sono un dominio custom (prod) e uno UAT, oltre
+  al dominio Firebase diretto. In development (`isDev`) `isAdminDomain()` ritorna sempre
+  `false`, nessuna separazione locale.
 
 **Limitazioni note (strutturali — richiedono backend):**
 - Session timeout solo client-side (Firebase puro frontend)
@@ -1439,7 +1561,14 @@ main  → produzione, solo merge da dev   → CI + Deploy automatico Firebase
 ```
 Workflow GitHub Actions:
 - `ci.yml`     → runs on push dev/main + PR to main
-- `deploy.yml` → runs after CI passes on main → hosting + rules
+- `deploy.yml` → si attiva via `workflow_run` su "CI" completata con successo, **su
+  entrambi** i branch `main` e `dev` — due job mutuamente esclusivi filtrati per
+  `head_branch`: `deploy-prod` (→ `fitquest-60a09`) e `deploy-dev` (→ `rankex-dev`),
+  entrambi deployano solo hosting + firestore:rules
+- `e2e.yml`    → stesso trigger di `ci.yml`, workflow indipendente — un fallimento qui
+  non blocca né ritarda `deploy.yml`, che ascolta solo l'esito di "CI"
+- **Le Cloud Functions non fanno parte del deploy automatico** — vanno rilasciate a mano
+  da `functions/` con `npm run deploy:dev` / `npm run deploy` (vedi sotto)
 
 ### npm scripts deploy
 ```
@@ -1454,6 +1583,16 @@ npm run deploy:all:dev       → hosting entrambi          (dev, build --mode de
 ```
 Tutti usano `cross-env NODE_OPTIONS=--dns-result-order=ipv4first`
 (fix DNS IPv6 su Windows — necessario su questa macchina).
+
+**Cloud Functions — script separati, dentro `functions/` (non nella root):**
+```
+cd functions
+npm run deploy:dev   → firebase deploy --only functions --project rankex-dev
+npm run deploy       → firebase deploy --only functions --project fitquest-60a09
+```
+Non ci sono script per singola funzione — `deploy`/`deploy:dev` ridistribuiscono sempre
+tutte le callable in `functions/src/callable/`. Non fanno parte di `deploy.yml` (CI/CD):
+vanno lanciati manualmente, sempre prima su `rankex-dev` per verifica.
 
 ---
 
@@ -1487,7 +1626,11 @@ Sul piano Spark Firebase non può addebitare nulla. Monitorare i limiti per sape
 ### Ottimizzazioni già presenti
 - `memberCount` / `clientCount` come counter atomici → nessuna query count a ogni render
 - Letture Firestore solo su mount, no polling
-- `onSnapshot` solo dove serve il real-time (calendario, notifiche)
+- `onSnapshot` usato in **un solo punto** di tutta l'app: `features/client/useClient.js`
+  (consumato da `ClientView.jsx`, root dell'area cliente) — è l'unico caso dove i dati
+  cambiano sotto un attore diverso da chi guarda (il trainer aggiorna, il cliente osserva
+  in tempo reale). Calendario e notifiche usano `getDocs` one-shot, **non** realtime —
+  costano meno letture e l'utente che li modifica è la stessa persona che li guarda
 
 ### Quando si passa a Blaze (pay-as-you-go)
 Impostare subito un budget alert su Google Cloud Console:
