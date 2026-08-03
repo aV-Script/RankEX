@@ -546,10 +546,15 @@ src/
 │       ├── notifications.js ← tutte le fn accettano orgId come primo arg
 │       ├── notes.js         ← getNotes, addNote, deleteNoteItem (orgId, clientId)
 │       ├── org.js           ← organizations (CRUD) + membri in sola lettura (getMembers,
-│       │                       getMember) + removeMember/updateMember diretti — SOLO
-│       │                       super_admin (OrgDetailView.jsx), senza toccare memberCount.
-│       │                       Creazione membro e rimozione con counter passano da Cloud
-│       │                       Function (creaMembroTeam / rimuoviMembroTeam) — vedi usecases/
+│       │                       getMember) + updateMember diretto (solo cambio ruolo, nessun
+│       │                       counter coinvolto). Creazione e rimozione membro passano
+│       │                       SEMPRE da Cloud Function (creaMembroTeam / rimuoviMembroTeam
+│       │                       via usecases/), anche quando l'attore è super_admin — la
+│       │                       Cloud Function lo autorizza esplicitamente. Necessario per
+│       │                       cancellare anche /users/{uid} + account Auth + memberCount,
+│       │                       non solo il doc in members/ (bug reale fixato lug 2026:
+│       │                       OrgDetailView.jsx faceva un deleteDoc diretto sul solo
+│       │                       membro, lasciando l'account attivo e capace di accedere).
 │       ├── workoutPlans.js  ← getWorkoutPlans, getWorkoutPlanForClient, addWorkoutPlan, update, delete (orgId)
 │       ├── badges.js        ← awardBadge, revokeBadge, updateBadgeShowcase (orgId, clientId)
 │       ├── wearable.js      ← enableWearable, disableWearable, fetchAndSaveWearableData (link client rimosso, vedi sezione dedicata)
@@ -1420,8 +1425,8 @@ hooks/useClients.js          → ottimistic updates, firma: (orgId, userId?)
 firebase/paths.js            → fonte di verità path Firestore
 firebase/services/auth.js    → auth instance + setPersistence + logout con audit
 firebase/services/clients.js → solo letture + updateClient diretto (basso rischio)
-firebase/services/org.js     → membri: letture + removeMember/updateMember diretti
-                                (solo super_admin, senza counter)
+firebase/services/org.js     → membri: letture + updateMember diretto (solo ruolo).
+                                Rimozione SEMPRE via Cloud Function, anche da super_admin.
 functions/src/callable/*.js  → creaCliente/eliminaCliente/creaMembroTeam/
                                 rimuoviMembroTeam usano batch + counter (Admin SDK)
 usecases/*.js                → wrapper httpsCallable — non contengono logica,

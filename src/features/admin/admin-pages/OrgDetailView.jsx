@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback }  from 'react'
-import { getMembers, removeMember, updateMember, updateOrganization } from '../../../firebase/services/org'
+import { getMembers, updateMember, updateOrganization } from '../../../firebase/services/org'
 import { updateUserProfile }    from '../../../firebase/services/users'
 import { getClients }           from '../../../firebase/services/clients'
+import { removeMemberUseCase }  from '../../../usecases/removeMemberUseCase'
 import { CreateMemberForm }     from '../../org/org-pages/CreateMemberForm'
 import { ConfirmDialog }        from '../../../components/common/ConfirmDialog'
 import { usePagination }        from '../../../hooks/usePagination'
@@ -60,7 +61,7 @@ export function OrgDetailView({ org, onBack }) {
     if (removing) return
     setRemoving(true)
     try {
-      await removeMember(org.id, confirmRemove.id)
+      await removeMemberUseCase(org.id, confirmRemove.id)
       setMembers(prev => prev.filter(m => m.id !== confirmRemove.id))
       toast.success('Membro rimosso')
       setConfirmRemove(null)

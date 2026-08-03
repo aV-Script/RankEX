@@ -47,10 +47,12 @@ export const getMember = async (orgId, uid) => {
   return snap.exists() ? { id: snap.id, ...snap.data() } : null
 }
 
-// ── Membri — solo super_admin (operazioni dirette senza counter) ──────────────
-
-export const removeMember = (orgId, uid) =>
-  deleteDoc(doc(db, membersPath(orgId), uid))
+// ── Membri — update diretto (solo cambio ruolo, no counter coinvolto) ─────────
+// La rimozione invece passa da usecases/removeMemberUseCase.js → Cloud Function
+// rimuoviMembroTeam (anche per super_admin, che la Cloud Function autorizza
+// esplicitamente): serve a cancellare /users/{uid}, l'account Auth e a
+// decrementare memberCount — un deleteDoc diretto sul solo membro lasciava
+// l'account attivo e capace di accedere all'org anche dopo la "rimozione".
 
 export const updateMember = (orgId, uid, data) =>
   updateDoc(doc(db, membersPath(orgId), uid), data)
