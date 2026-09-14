@@ -55,6 +55,44 @@ export const salvaCampionamento = onCall({ region: REGION }, async (request) => 
   const batch = db.batch()
   batch.update(clientRef, update)
 
+  // ── Obiettivi: controlla se questo campionamento ne raggiunge qualcuno ─────
+  // Un obiettivo è su un test specifico (testKey), non solo su una stat — con
+  // stat condivise tra più test (es. 'resistenza' su 5 test) va verificato che
+  // il test dell'obiettivo sia effettivamente tra quelli di questa categoria,
+  // non solo che la sua stat compaia in newStats.
+  if (Object.keys(newStats).length) {
+    const goalsSnap = await db
+      .collection(`organizations/${orgId}/clients/${clientId}/goals`)
+      .where('status', '==', 'active')
+      .get()
+
+    for (const goalDoc of goalsSnap.docs) {
+      const goal     = goalDoc.data()
+      const testMeta = TESTS_META.find(t => t.key === goal.testKey)
+      if (!testMeta || !testMeta.categories.includes(categoria)) continue
+
+      const achievedValue = newStats[testMeta.stat]
+      if (achievedValue === undefined || achievedValue < goal.targetPercentile) continue
+
+      batch.update(goalDoc.ref, {
+        status:             'achieved',
+        achievedAt:         new Date().toISOString(),
+        achievedPercentile: achievedValue,
+      })
+
+      if (client.clientAuthUid) {
+        batch.set(db.collection(`organizations/${orgId}/notifications`).doc(), {
+          clientId,
+          message:   `Obiettivo raggiunto: ${goal.testLabel} — ${achievedValue}° percentile!`,
+          date:      new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }),
+          type:      'goal',
+          read:      false,
+          createdAt: new Date().toISOString(),
+        })
+      }
+    }
+  }
+
   if (client.clientAuthUid) {
     const isFirst     = !client.campionamenti?.length
     const rankChanged = !isFirst && update.rank !== client.rank

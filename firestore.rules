@@ -163,6 +163,22 @@ service cloud.firestore {
 
           allow update: if false;
         }
+
+        // ── Obiettivi (target trainer su un test specifico) ─
+        // Trainer: crea, annulla (update di stato), legge. Client: solo lettura dei
+        // propri obiettivi — motivante vederli, ma non può crearli né modificarli.
+        // Lo stato 'achieved' è scritto solo dalla Cloud Function salvaCampionamento
+        // (Admin SDK, bypassa le rules) — qui non serve una rule dedicata per quello.
+
+        match /goals/{goalId} {
+          allow read: if canRead(orgId) || isOwnClient(orgId, clientId);
+
+          allow create: if canWrite(orgId);
+
+          allow update: if canWrite(orgId);
+
+          allow delete: if false;
+        }
       }
 
       // ── Slots ─────────────────────────────────────────────

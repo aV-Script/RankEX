@@ -22,6 +22,7 @@
  *   - aggiungiNota / eliminaNota
  *   - aggiungiSchedaAllenamento / aggiornaSchedaAllenamento / eliminaSchedaAllenamento
  *   - segnaNotificaLetta / segnaAllLette
+ *   - aggiungiObiettivo / annullaObiettivo (achievement controllato in salvaCampionamento)
  */
 
 import { initializeApp } from 'firebase-admin/app'
@@ -61,3 +62,5 @@ export { aggiornaSchedaAllenamento }   from './callable/aggiornaSchedaAllenament
 export { eliminaSchedaAllenamento }    from './callable/eliminaSchedaAllenamento.js'
 export { segnaNotificaLetta }          from './callable/segnaNotificaLetta.js'
 export { segnaAllLette }               from './callable/segnaAllLette.js'
+export { aggiungiObiettivo }           from './callable/aggiungiObiettivo.js'
+export { annullaObiettivo }            from './callable/annullaObiettivo.js'

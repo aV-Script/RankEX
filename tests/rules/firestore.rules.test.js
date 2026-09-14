@@ -73,6 +73,10 @@ beforeEach(async () => {
     await setDoc(doc(db, 'organizations/org1/clients/client1/notes/rootNote'), {
       text: 'Nota trainer', authorId: 'trainer1', authorRole: 'trainer', parentId: null,
     })
+    await setDoc(doc(db, 'organizations/org1/clients/client1/goals/goal1'), {
+      testKey: 'sprint_20m', targetPercentile: 70, deadline: '2099-01-01',
+      status: 'active', createdBy: 'trainer1',
+    })
   })
 })
 
@@ -229,6 +233,50 @@ describe('Note del cliente', () => {
   it('il trainer può eliminare qualsiasi nota del cliente', async () => {
     const db = ctxFor('trainer1').firestore()
     await assertSucceeds(deleteDoc(doc(db, 'organizations/org1/clients/client1/notes/rootNote')))
+  })
+})
+
+// ── Obiettivi — solo trainer/org_admin scrivono, client legge soltanto ───────
+describe('Obiettivi del cliente', () => {
+  it('il client NON può creare un obiettivo', async () => {
+    const db = ctxFor('clientUser1').firestore()
+    await assertFails(addDoc(collection(db, 'organizations/org1/clients/client1/goals'), {
+      testKey: 'sprint_20m', targetPercentile: 80, deadline: '2099-01-01', status: 'active',
+    }))
+  })
+
+  it('il client può leggere i propri obiettivi', async () => {
+    const db = ctxFor('clientUser1').firestore()
+    await assertSucceeds(getDoc(doc(db, 'organizations/org1/clients/client1/goals/goal1')))
+  })
+
+  it('il client NON può annullare un obiettivo (update)', async () => {
+    const db = ctxFor('clientUser1').firestore()
+    await assertFails(updateDoc(doc(db, 'organizations/org1/clients/client1/goals/goal1'), { status: 'cancelled' }))
+  })
+
+  it('il trainer può creare un obiettivo', async () => {
+    const db = ctxFor('trainer1').firestore()
+    await assertSucceeds(addDoc(collection(db, 'organizations/org1/clients/client1/goals'), {
+      testKey: 'sprint_20m', targetPercentile: 80, deadline: '2099-01-01', status: 'active',
+    }))
+  })
+
+  it('il trainer può annullare un obiettivo attivo', async () => {
+    const db = ctxFor('trainer1').firestore()
+    await assertSucceeds(updateDoc(doc(db, 'organizations/org1/clients/client1/goals/goal1'), { status: 'cancelled' }))
+  })
+
+  it('nessuno può eliminare un obiettivo (solo cancel via update)', async () => {
+    const db = ctxFor('trainer1').firestore()
+    await assertFails(deleteDoc(doc(db, 'organizations/org1/clients/client1/goals/goal1')))
+  })
+
+  it('staff_readonly NON può creare un obiettivo', async () => {
+    const db = ctxFor('staff1').firestore()
+    await assertFails(addDoc(collection(db, 'organizations/org1/clients/client1/goals'), {
+      testKey: 'sprint_20m', targetPercentile: 80, deadline: '2099-01-01', status: 'active',
+    }))
   })
 })
 
