@@ -23,7 +23,11 @@ test.describe('TP-006 — Lista clienti', () => {
     await expect(page.locator(CARD).first()).toBeVisible({ timeout: 10_000 })
 
     const totalBefore = await page.locator(CARD).count()
-    await page.getByPlaceholder(/cerca per nome/i).fill('zzzznotexists')
+    // Il placeholder "Cerca per nome..." esiste 2 volte nel DOM (sidebar desktop +
+    // header mobile, quest'ultimo nascosto via CSS lg:hidden) — Playwright non filtra
+    // per visibilità qui, serve disambiguare (TD-002). Progetto "app" gira su
+    // Desktop Chrome quindi è la sidebar (aside) quella davvero visibile.
+    await page.locator('aside').getByPlaceholder(/cerca per nome/i).fill('zzzznotexists')
     await page.waitForTimeout(400)
     const totalAfter = await page.locator(CARD).count()
     expect(totalAfter).toBeLessThan(totalBefore)

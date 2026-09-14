@@ -39,7 +39,11 @@ richiesti nel commit di una feature diversa (Obiettivi).
 `npm run test:rules` vede). Ma è lo stesso pattern di drift doc/codice trovato 3 volte
 in Sprint #1/#2 (percentili, wearable, streak) — qui è drift test/codice invece che
 doc/codice.
-**Status:** OPEN
+**Fix (2026-09-14):** entrambi erano il test sbagliato, non la rule — confermato che
+il comportamento attuale (client mai può scrivere note, campo si chiama `avatarId`) è
+quello voluto, documentato altrove, e coerente col resto del codice. Test aggiornati
+di conseguenza in `tests/rules/firestore.rules.test.js`. **44/44 verdi** su emulatore.
+**Status:** RESOLVED
 
 ---
 
@@ -64,7 +68,26 @@ il deploy (gira indipendente da CI, vedi CLAUDE.md → deploy.yml).
 **Rischio se non risolto:** basso/medio — il bottone probabilmente non porta a nulla di
 scrivibile (le Cloud Function validano il ruolo comunque), ma è un'affordance UI
 sbagliata visibile a un ruolo che non dovrebbe vederla da 6+ settimane in produzione.
-**Status:** OPEN
+**Fix (2026-09-14):**
+1. `ClientsPage.jsx` — i due bottoni "+ NUOVO" (desktop sidebar + header mobile) e
+   l'azione "Aggiungi cliente" nell'EmptyState (stesso leak, non coperto dal test ma
+   stesso principio) ora avvolti in `ReadonlyGuard`/condizionati su `useReadonly()`.
+2. `e2e/tests/clients.spec.js` — la duplicazione dell'input "Cerca per nome..." è
+   **intenzionale** (sidebar desktop `hidden lg:flex` + header mobile `lg:hidden`,
+   entrambi nel DOM sempre, Playwright non filtra per visibilità CSS di default) — non
+   un bug di componente. Test corretto per scegliere esplicitamente `aside` (la sidebar
+   desktop, visibile nel progetto Playwright "app" che gira su Desktop Chrome) invece
+   di affidarsi all'ordine nel DOM.
+
+Verificato in locale (non solo assunto): 44/44 rules verdi, i 2 e2e specifici passano
+isolati e nel giro completo, `npm run build` + `npm run lint` + `vitest run` puliti.
+Nel giro e2e completo (59 test contro rankex-dev reale, non emulatore) emerge ~1
+fallimento isolato diverso a ogni run (`staff-readonly.spec.js:47` la prima volta,
+`plans.spec.js:46` la seconda) — flakiness ambientale sotto carico sequenziale contro
+Firebase reale, non collegata a questo fix (verificato: nessuno dei due tocca codice
+di questo diff, entrambi passano da soli). Non tracciata come nuovo TD — comportamento
+atteso di un giro e2e locale lungo contro un servizio reale, CI non lo mostra.
+**Status:** RESOLVED
 
 ---
 

@@ -2,6 +2,7 @@ import { useState, useCallback }         from 'react'
 import { useGroups }                      from '../../hooks/useGroups'
 import { useTrainerNav }                  from './useTrainerNav'
 import { useTrainerState }                from '../../context/TrainerContext'
+import { useReadonly }                    from '../../context/ReadonlyContext'
 import { getModule }                      from '../../config/modules.config'
 import { PLAYER_ROLES, SOCCER_AGE_GROUPS } from '../../config/modules.config'
 import { useClientFilters }              from './useClientFilters'
@@ -11,6 +12,7 @@ import { Pagination }                    from '../../components/common/Paginatio
 import { NewClientView }                 from './NewClientView'
 import { Skeleton }                      from '../../components/common/Skeleton'
 import { EmptyState }                    from '../../components/ui'
+import { ReadonlyGuard }                 from '../../components/common/ReadonlyGuard'
 import { PAGINATION_PAGE_SIZE }          from '../../config/app.config'
 
 const PAGE_SIZE = PAGINATION_PAGE_SIZE
@@ -32,6 +34,7 @@ const ICON_CLIENTS = (
 
 export function ClientsPage({ orgId, clients = [], clientsLoading: loading = false, clientsError: error = null, onAddClient, onNavigate }) {
   const { moduleType, terminology } = useTrainerState()
+  const readonly       = useReadonly()
   const isSoccer       = getModule(moduleType).isSoccer
   const { groups }     = useGroups(orgId)
   const { selectClient } = useTrainerNav()
@@ -65,12 +68,14 @@ export function ClientsPage({ orgId, clients = [], clientsLoading: loading = fal
 
       {/* ── Sidebar filtri — solo desktop ────────────────────────────────────── */}
       <aside className="hidden lg:flex flex-col w-64 xl:w-72 shrink-0 border-r border-white/[.05] p-6 gap-5 sticky top-0 h-screen overflow-y-auto">
-        <button
-          onClick={() => setView('new')}
-          className="rx-btn-primary font-display text-[11px] tracking-[1.5px] py-2.5 px-4 rounded-[3px] cursor-pointer"
-        >
-          + NUOVO {terminology.client.toUpperCase()}
-        </button>
+        <ReadonlyGuard>
+          <button
+            onClick={() => setView('new')}
+            className="rx-btn-primary font-display text-[11px] tracking-[1.5px] py-2.5 px-4 rounded-[3px] cursor-pointer"
+          >
+            + NUOVO {terminology.client.toUpperCase()}
+          </button>
+        </ReadonlyGuard>
 
         <SidebarSection label="Ricerca">
           <input
@@ -144,12 +149,14 @@ export function ClientsPage({ orgId, clients = [], clientsLoading: loading = fal
               onChange={e => filters.onQueryChange(e.target.value)}
               className="input-base input-compact flex-1"
             />
-            <button
-              onClick={() => setView('new')}
-              className="rx-btn-primary font-display text-[10px] tracking-[1.5px] py-1.5 px-3 rounded-[3px] cursor-pointer shrink-0"
-            >
-              + NUOVO
-            </button>
+            <ReadonlyGuard>
+              <button
+                onClick={() => setView('new')}
+                className="rx-btn-primary font-display text-[10px] tracking-[1.5px] py-1.5 px-3 rounded-[3px] cursor-pointer shrink-0"
+              >
+                + NUOVO
+              </button>
+            </ReadonlyGuard>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -228,7 +235,7 @@ export function ClientsPage({ orgId, clients = [], clientsLoading: loading = fal
                 ? `Aggiungi il primo ${terminology.client.toLowerCase()} per iniziare.`
                 : 'Prova a cambiare i filtri di ricerca.'
               }
-              action={clients.length === 0 ? { label: `Aggiungi ${terminology.client.toLowerCase()}`, onClick: onAddClient } : undefined}
+              action={clients.length === 0 && !readonly ? { label: `Aggiungi ${terminology.client.toLowerCase()}`, onClick: onAddClient } : undefined}
             />
           ) : (
             <div className="rx-animate-in">

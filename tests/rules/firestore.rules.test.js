@@ -211,9 +211,9 @@ describe('Note del cliente', () => {
     }))
   })
 
-  it('il client può creare un commento (parentId != null) a proprio nome', async () => {
+  it('il client NON può creare un commento — le note sono sempre in sola lettura per il client (TD-001, era invertito)', async () => {
     const db = ctxFor('clientUser1').firestore()
-    await assertSucceeds(addDoc(collection(db, 'organizations/org1/clients/client1/notes'), {
+    await assertFails(addDoc(collection(db, 'organizations/org1/clients/client1/notes'), {
       text: 'Risposta cliente', authorId: 'clientUser1', parentId: 'rootNote',
     }))
   })
@@ -314,9 +314,9 @@ describe('Runbook (qa_runs)', () => {
 
 // ── Client — self-update ristretto ───────────────────────────────────────────
 describe('Client self-update', () => {
-  it('il client può aggiornare il proprio campo avatar', async () => {
+  it('il client può aggiornare il proprio campo avatarId (TD-001, era "avatar" — mai rinominato dopo il rename del campo)', async () => {
     const db = ctxFor('clientUser1').firestore()
-    await assertSucceeds(updateDoc(doc(db, 'organizations/org1/clients/client1'), { avatar: { hat: 'red' } }))
+    await assertSucceeds(updateDoc(doc(db, 'organizations/org1/clients/client1'), { avatarId: 'avatar-03' }))
   })
 
   it('il client NON può modificare il proprio xp', async () => {
