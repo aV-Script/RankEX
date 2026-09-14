@@ -658,7 +658,6 @@ src/
     │                           buildBiaUpdate, buildProfileUpgrade — speculare a
     │                           functions/src/shared/gamification.js (vedi sezione Backend)
     ├── percentile.js        ← calcPercentileEx(stat, val, sex, age, testKey?) → { value, outOfRange }
-    │                           calcPercentile(...)  → number|null  (wrapper backward-compat)
     │                           calcStatMedia
     ├── tables.js            ← TABLES (dati grezzi percentili)
     │                           getAgeGroup(testKey, age) → string|null
@@ -882,11 +881,11 @@ La lista attive è paginata (10 per pagina).
 - `outOfRange: true` indica che l'età era fuori dalla fascia normativa e si è
   usata la fascia più vicina (via `getAgeGroupClamped`).
 
-`calcPercentile(...)` è un wrapper backward-compat che restituisce solo `.value`.
-**Verificato (lug 2026): non è più usato da alcun codice applicativo** — sia
-`useWizard.js` che `useCampionamento.js` chiamano `calcPercentileEx` direttamente
-(il primo prende `.value` manualmente). L'unico consumer rimasto è `percentile.test.js`.
-Candidato alla rimozione, o da tenere solo come utility di libreria pubblica del modulo.
+`calcPercentile(...)` — wrapper backward-compat che restituiva solo `.value` —
+**rimosso (set 2026, EPIC-002/STORY-003)**: era candidato alla rimozione da lug 2026
+(verificato senza consumer applicativi, solo `percentile.test.js` lo usava), ora
+eliminato insieme al describe block di test dedicato. Chiamare sempre
+`calcPercentileEx(...).value` se serve solo il numero.
 
 `getAgeGroupClamped(testKey, age, sex)` in `utils/tables.js`:
 - Se l'età rientra in una fascia → `{ group, outOfRange: false }`

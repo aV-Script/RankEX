@@ -102,7 +102,7 @@ export const TABLES = {
   // Adulti: Alnahdi 2015, Plisky 2009, Gribble 2013
   // Youth 10-17: Schwiertz et al. 2020 (PubMed 32505979) — p50 per fascia/sesso, SD≈7 → distribuzione normale
   // F ≠ M: femmine superiori in pre-pubertà (10-11), calo pubertà (12-15), recupero (16-17)
-  // Nessun dato validato < 10 anni → calcPercentile restituisce null per età < 10
+  // Nessun dato validato < 10 anni → calcPercentileEx restituisce value: null per età < 10
   y_balance: {
     M: {
       '10-11': { 0:68, 5:76, 10:79, 20:82, 30:85, 40:87, 50:89, 60:91, 70:93, 80:96, 90:99,  95:102, 100:110 },

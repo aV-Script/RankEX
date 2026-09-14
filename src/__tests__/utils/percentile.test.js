@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calcStatMedia, calcPercentileEx, calcPercentile } from '../../utils/percentile.js'
+import { calcStatMedia, calcPercentileEx } from '../../utils/percentile.js'
 
 // ── calcStatMedia ─────────────────────────────────────────────────────────────
 describe('calcStatMedia', () => {
@@ -78,20 +78,5 @@ describe('calcPercentileEx', () => {
     if (basso.value !== null && alto.value !== null) {
       expect(alto.value).toBeGreaterThan(basso.value)
     }
-  })
-})
-
-// ── calcPercentile (wrapper backward-compat) ──────────────────────────────────
-describe('calcPercentile', () => {
-  it('restituisce solo il valore numerico (no outOfRange)', () => {
-    const result = calcPercentile('resistenza', 10, 'M', 25, 'beep_test')
-    // può essere number o null — mai un oggetto
-    expect(result === null || typeof result === 'number').toBe(true)
-  })
-
-  it('coerente con calcPercentileEx', () => {
-    const ex     = calcPercentileEx('resistenza', 10, 'M', 25, 'beep_test')
-    const simple = calcPercentile('resistenza', 10, 'M', 25, 'beep_test')
-    expect(simple).toBe(ex.value)
   })
 })

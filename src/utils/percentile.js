@@ -62,16 +62,6 @@ export function calcPercentileEx(stat, value, sex, age, testKey) {
   return { value: result ?? 0, outOfRange }
 }
 
-/**
- * Wrapper backward-compat: restituisce solo il valore numerico.
- * Usa il clamping di calcPercentileEx, quindi non restituisce più null
- * per età fuori range (restituisce il percentile stimato dalla fascia più vicina).
- * Restituisce null solo se test o tabella non esistono.
- */
-export function calcPercentile(stat, value, sex, age, testKey) {
-  return calcPercentileEx(stat, value, sex, age, testKey).value
-}
-
 export function calcStatMedia(stats = {}) {
   const vals = Object.values(stats).filter(v => typeof v === 'number' && !isNaN(v))
   if (vals.length === 0) return 0

@@ -75,10 +75,13 @@ ruolo che non dovrebbe vederlo (mancanza di filtro di ruolo in `firestore.rules`
 
 - **Priority:** P3
 - **Acceptance Criteria:**
-  - [ ] Confermato via grep che l'unico consumer rimasto è `percentile.test.js`
-  - [ ] Test riscritto per usare `calcPercentileEx(...).value` direttamente, wrapper rimosso
+  - [x] Confermato via grep che l'unico consumer rimasto è `percentile.test.js`
+  - [x] Test riscritto per usare `calcPercentileEx(...).value` direttamente, wrapper rimosso
 - **Dependencies:** nessuna
-- **Status:** BACKLOG
+- **Status:** DONE — wrapper rimosso, describe block di test dedicato eliminato
+  (i 2 test erano tautologici una volta rimosso il wrapper stesso), commento residuo
+  in `tables.js` corretto, CLAUDE.md aggiornato. 0 riferimenti rimasti (verificato
+  via grep). Build+lint+vitest puliti (211/211).
 
 ### [STORY-004] Decidere il destino di `VITE_GOOGLE_FIT_CLIENT_ID`
 **Come** team **vogliamo** decidere se rimuovere la variabile da `.env.example` o se serve
