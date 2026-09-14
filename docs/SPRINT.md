@@ -30,21 +30,40 @@ una decisione di business: rivedere prima di aprire ciascuno sprint.
 EPIC-003 (Streak presenze) ed EPIC-004 (Obiettivi trainer) erano **già implementate**
 prima di aprire i rispettivi sprint. EPIC-005 (Avatar + Negozio) è stata scoperta
 (Sprint #3, raccomandazione di non procedere) ma l'utente ha scelto comunque uno spike
-tecnico ridotto (Sprint #4, STORY-014, override esplicito — vedi ADR-003). TD-001/
-TD-002 risolti. Deploy prod dello spike ancora in sospeso.
+tecnico ridotto (Sprint #4, STORY-014, override esplicito — vedi ADR-003), deployato
+su prod. TD-001/TD-002 risolti. EPIC-002 chiusa (Sprint #5).
 
 **Candidati aperti:**
-- **Deploy prod dello spike Avatar+Negozio** (Sprint #4), se l'utente conferma.
 - **EPIC-005 completa — Avatar + Negozio**, se/quando le domande aperte in `docs/BACKLOG.md`
   hanno risposta (asset grafici, priorità rispetto alla gamification esistente,
   bilanciamento economia).
-- **EPIC-002** (pulizia debito minore, P3) — unico item rimasto senza dipendenze
-  esterne, potrebbe essere il prossimo sprint eseguibile subito se non si sblocca
-  EPIC-005.
+- Nessun altro item P1/P2 aperto al momento — backlog di manutenzione vuoto.
 
 ---
 
 ## Storico sprint chiusi
+
+### SPRINT #5 — EPIC-002: pulizia debito minore — chiuso il 2026-09-14
+
+**Goal:** chiudere le due ultime story P3 in backlog, nessuna dipendenza esterna.
+
+**Completato:**
+- STORY-003 — rimosso il wrapper `calcPercentile` (0 consumer applicativi già
+  confermato da lug 2026). Test dedicato rimosso (era tautologico senza il wrapper),
+  commento residuo in `tables.js` corretto, CLAUDE.md aggiornato. 211/211 test verdi.
+- STORY-004 — `VITE_GOOGLE_FIT_CLIENT_ID` rimossa da `.env.example`, previa conferma
+  esplicita dell'utente (nessun flusso OAuth diretto pianificato che la usi).
+
+**Non completato:** nessuno.
+
+**Blockers:** nessuno.
+
+**Tech debt emerso:** nessuno.
+
+**Prossimo sprint (candidati):** nessun item P1/P2 aperto — solo EPIC-005 completa,
+bloccata sulle stesse dipendenze esterne di sempre (vedi Sprint #3/#4).
+
+---
 
 ### SPRINT #4 — Avatar + Negozio: spike tecnico (override ADR-002) — chiuso il 2026-09-14
 

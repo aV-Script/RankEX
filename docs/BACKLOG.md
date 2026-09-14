@@ -89,9 +89,12 @@ per un flusso OAuth pianificato **per** non lasciare una var residua ambigua.
 
 - **Priority:** P3
 - **Acceptance Criteria:**
-  - [ ] Domanda esplicita all'utente/PO: rimuovere o tenere in vista di un flusso OAuth diretto futuro?
+  - [x] Domanda esplicita all'utente/PO: rimuovere o tenere in vista di un flusso OAuth diretto futuro?
 - **Dependencies:** richiede una decisione di prodotto, non solo lavoro tecnico
-- **Status:** BACKLOG
+- **Status:** DONE — utente ha confermato rimozione, nessun flusso OAuth diretto
+  pianificato. Rimossa da `.env.example`, CLAUDE.md aggiornato.
+
+**EPIC-002 CHIUSA** — entrambe le story completate.
 
 ---
 

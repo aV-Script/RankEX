@@ -1657,12 +1657,10 @@ fitquest-60a09  → produzione     (npm run build / deploy)
 ```
 Entrambi gitignored. Template: `.env.example`.
 
-`.env.example` elenca anche `VITE_GOOGLE_FIT_CLIENT_ID` — **non è letta da nessun file sorgente**
-(verificato: zero occorrenze in `src/`). La feature Wearable/Google Fit (vedi sotto) autentica
-tramite `GoogleAuthProvider` di Firebase Auth, che usa la configurazione OAuth del progetto
-Firebase stesso, non un client ID separato. La variabile sembra residua di un approccio
-precedente mai completato — non rimuoverla senza conferma, potrebbe servire per un flusso
-OAuth diretto pianificato ma non ancora collegato.
+`VITE_GOOGLE_FIT_CLIENT_ID` — **rimossa da `.env.example` (set 2026, EPIC-002/STORY-004)**:
+non era letta da nessun file sorgente, confermato senza flusso OAuth diretto pianificato
+che la usi. La feature Wearable/Google Fit (vedi sotto) autentica comunque tramite
+`GoogleAuthProvider` di Firebase Auth, non un client ID separato.
 
 ### Hosting Firebase — multisito
 ```
