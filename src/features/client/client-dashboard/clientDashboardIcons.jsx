@@ -53,6 +53,11 @@ export const ICON_TROFEI = (
     <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
   </svg>
 )
+export const ICON_GOALS = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>
+  </svg>
+)
 export const ICON_MISURE = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 3v1M6.2 6.2l.7.7M17.8 6.2l-.7.7M3 13h18M5 13a7 7 0 0 1 14 0"/>

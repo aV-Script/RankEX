@@ -7,6 +7,7 @@ import { ActivityLog }                       from '../../components/ui'
 import { StatsChart }                        from './StatsChart'
 import { DeleteDialog }                      from './client-dashboard/DeleteDialog'
 import { NotesSection }                      from './client-dashboard/NotesSection'
+import { GoalsSection }                      from './client-dashboard/GoalsSection'
 import { WorkoutPlanSection }                from './client-dashboard/WorkoutPlanSection'
 import { ClientCalendar }                    from './ClientCalendar'
 import { CampionamentoView }                 from './CampionamentoView'
@@ -280,6 +281,10 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
 
           {tab === 'allenamento' && (
             <WorkoutPlanSection orgId={orgId} clientId={client.id} color={brandGreen} readonly={readonly} />
+          )}
+
+          {tab === 'obiettivi' && (
+            <GoalsSection client={client} orgId={orgId} color={brandGreen} readonly={readonly} />
           )}
 
           {tab === 'calendario' && (

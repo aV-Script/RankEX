@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import {
   ICON_TEST, ICON_BIA, ICON_WORKOUT, ICON_CALENDAR, ICON_NOTES, ICON_ACTIVITY,
-  ICON_AVATAR, ICON_WEARABLE, ICON_TROFEI, ICON_MISURE, ICON_BACK, ICON_PDF,
+  ICON_AVATAR, ICON_WEARABLE, ICON_TROFEI, ICON_MISURE, ICON_GOALS, ICON_BACK, ICON_PDF,
   ICON_RESET_PW, ICON_DELETE_CLIENT,
 } from './clientDashboardIcons'
 
@@ -10,6 +10,7 @@ const TABS = [
   { id: 'test',        label: 'Test',        icon: ICON_TEST,     requiresTests: true },
   { id: 'bia',         label: 'BIA',         icon: ICON_BIA },
   { id: 'allenamento', label: 'Allenamento', icon: ICON_WORKOUT },
+  { id: 'obiettivi',   label: 'Obiettivi',   icon: ICON_GOALS },
   { id: 'calendario',  label: 'Calendario',  icon: ICON_CALENDAR },
   { id: 'note',        label: 'Note',        icon: ICON_NOTES },
   { id: 'attivita',    label: 'Attività',    icon: ICON_ACTIVITY },
