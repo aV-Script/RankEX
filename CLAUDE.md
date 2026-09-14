@@ -1783,7 +1783,20 @@ Badge / Achievement    → IMPLEMENTATO — lug 2026
                          UI: client-dashboard/TrophiesSection.jsx (tab TROFEI,
                          trainer + client). Rules: assegnazione automatica lato
                          client (system), manuale solo trainer/org_admin.
-Streak presenze        → moltiplicatore XP per settimane consecutive senza assenze
+Streak presenze        → IMPLEMENTATO (verificato set 2026 — sezione corretta, era
+                         rimasta come "da fare" dopo che il lavoro era già stato fatto)
+                         Non a settimane come originariamente descritto qui, ma per
+                         sessione: sessionStreak sale di 1 a ogni sessione chiusa con
+                         presenza, si azzera a qualunque assenza (calcolo server-side
+                         in chiudiSessione, batch atomico — vedi utils/gamification.js
+                         → calcSessionXP/calcStreakPreview, speculare a
+                         functions/src/shared/gamification.js). Moltiplicatore XP
+                         +10%/streak, cap +100% a streak 10 (vedi sezione
+                         Gamification più sotto). Superficie UI: preview
+                         "+XP · streak N" in CloseSessionModal.jsx e ClientCalendar.jsx
+                         prima di chiudere la sessione, badge "Streak N" su
+                         SlotCard.jsx, notifica dedicata su chiusura/assenza. Test:
+                         __tests__/utils/gamification.test.js.
 Groups Analytics Hub   → IMPLEMENTATO — apr 2026
                          GroupDetailView con 6 tab: Gestione (3 col + ricerca + paginazione),
                          Classifica (GroupLeaderboard — sort per media/stat, top 3 podio),

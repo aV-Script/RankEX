@@ -93,20 +93,26 @@ per un flusso OAuth pianificato **per** non lasciare una var residua ambigua.
 ---
 
 ## [EPIC-003] Streak presenze (roadmap — "Gamification avanzata")
-Fonte: CLAUDE.md → Roadmap futura. Moltiplicatore XP per settimane consecutive senza
-assenze.
+**Finding (set 2026): già completamente implementata.** Terza story di fila (dopo
+STORY-001 e STORY-002) costruita da una sezione di CLAUDE.md rimasta indietro rispetto
+al codice — qui non era nemmeno un merge non documentato, era un'altra sezione dello
+**stesso file** (Gamification) che già descriveva `calcSessionXP(baseXP, streak)` e il
+cap "streak 10 = ×2.0", mentre la Roadmap la elencava ancora come "da fare".
+Verificato: `sessionStreak` su ogni client, +1 per sessione presente, azzerato a
+qualunque assenza, calcolato server-side in `chiudiSessione` (batch atomico, non
+falsificabile dal client), superficie UI in 3 punti (CloseSessionModal, ClientCalendar,
+SlotCard) + notifiche + test dedicati. Nessun gap reale trovato — non solo la
+meccanica, anche la UI è già completa. CLAUDE.md → Roadmap futura corretta.
 
-### [STORY-005] Definire la regola di streak
-**Come** PO **voglio** definire cosa rompe uno streak (assenza? skip? quante settimane?)
-**per** dare al Developer una specifica non ambigua.
-- **Priority:** P2 · **Status:** BACKLOG (blocca le due story sotto)
+### ~~[STORY-005] Definire la regola di streak~~
+Non necessaria — la regola esiste già ed è quella sopra. **Status:** DONE (n/a, già
+implementata)
 
-### [STORY-006] Calcolo streak lato server
-Tocca XP → deve passare da Cloud Function per lo stesso motivo di `calcSessionXP`
-(il client non deve poter falsificare lo streak). **Priority:** P2 · **Status:** BACKLOG
+### ~~[STORY-006] Calcolo streak lato server~~
+Già così. **Status:** DONE (n/a, già implementata)
 
-### [STORY-007] UI streak (client + trainer)
-**Priority:** P2 · **Status:** BACKLOG
+### ~~[STORY-007] UI streak (client + trainer)~~
+Già così, in 3 punti. **Status:** DONE (n/a, già implementata)
 
 ---
 
