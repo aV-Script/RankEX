@@ -12,4 +12,115 @@ Stati: BACKLOG · READY · IN PROGRESS · BLOCKED · CODE REVIEW · QA · DONE
 
 ---
 
+## [EPIC-001] Correttezza dati e sicurezza residua
+
+### [STORY-001] Rollback percentili soccer alle correzioni approvate
+**Come** trainer/org_admin soccer_academy **voglio** che i percentili calcolati per
+`y_balance`, `standing_long_jump`, `sprint_20m`, `505_cod_agility` riflettano i valori
+normativi corretti **per** non valutare erroneamente gli atleti (alcuni minorenni) sulla
+base di dati non ancora allineati alla fonte di riferimento.
+
+- **Priority:** P1
+- **Modulo:** soccer_academy
+- **Acceptance Criteria:**
+  - [ ] Valori in `utils/tables.js` per i 4 test aggiornati secondo `rankex-tabelle-percentili-v2.xlsx`
+  - [ ] Copia server `functions/src/shared/tables.js` aggiornata in parallelo (rischio di divergenza già noto — vedi CLAUDE.md → "Copie speculari")
+  - [ ] Cloud Functions ridistribuite: prima `rankex-dev`, poi `fitquest-60a09`
+  - [ ] `beep_test` (già ✓ identico all'Excel) resta invariato — nessuna regressione
+- **Dependencies:** branch `calibrazione-percentili-soccer` già pronto — serve merge + verifica, non nuovo lavoro di calibrazione
+- **Risks:** i campionamenti già salvati con i vecchi percentili non si ricalcolano retroattivamente — valutare se comunicarlo alle org soccer coinvolte
+- **Status:** READY
+
+### [STORY-002] Chiudere RX-63 — accessToken wearable esposto a staff_readonly
+**Come** super_admin **voglio** sapere quanti client hanno ancora un `wearable.accessToken`
+salvato e chiudere l'esposizione **per** non lasciare un dato sensibile leggibile da un
+ruolo che non dovrebbe vederlo (mancanza di filtro di ruolo in `firestore.rules`).
+
+- **Priority:** P1
+- **Modulo:** personal_training (feature Wearable è solo PT)
+- **Acceptance Criteria:**
+  - [ ] `scripts/check-wearable-tokens.mjs` eseguito su `rankex-dev` e `fitquest-60a09`, risultato documentato in questa story
+  - [ ] Se 0 client coinvolti → rimuovere il campo `wearable.accessToken` dallo schema (elimina il rischio alla radice, più semplice di proteggerlo)
+  - [ ] Se >0 client coinvolti → spostare `accessToken` in subcollection con regole dedicate (solo org_admin/trainer, mai staff_readonly)
+- **Dependencies:** nessuna — script diagnostico già pronto e committato
+- **Risks:** nessuno noto, feature già disattivata lato UI
+- **Status:** READY
+
+---
+
+## [EPIC-002] Pulizia debito minore
+
+### [STORY-003] Rimuovere il wrapper `calcPercentile`
+**Come** developer **voglio** rimuovere `calcPercentile` da `utils/percentile.js`
+**per** eliminare un'API ridondante ormai senza consumer applicativi.
+
+- **Priority:** P3
+- **Acceptance Criteria:**
+  - [ ] Confermato via grep che l'unico consumer rimasto è `percentile.test.js`
+  - [ ] Test riscritto per usare `calcPercentileEx(...).value` direttamente, wrapper rimosso
+- **Dependencies:** nessuna
+- **Status:** BACKLOG
+
+### [STORY-004] Decidere il destino di `VITE_GOOGLE_FIT_CLIENT_ID`
+**Come** team **vogliamo** decidere se rimuovere la variabile da `.env.example` o se serve
+per un flusso OAuth pianificato **per** non lasciare una var residua ambigua.
+
+- **Priority:** P3
+- **Acceptance Criteria:**
+  - [ ] Domanda esplicita all'utente/PO: rimuovere o tenere in vista di un flusso OAuth diretto futuro?
+- **Dependencies:** richiede una decisione di prodotto, non solo lavoro tecnico
+- **Status:** BACKLOG
+
+---
+
+## [EPIC-003] Streak presenze (roadmap — "Gamification avanzata")
+Fonte: CLAUDE.md → Roadmap futura. Moltiplicatore XP per settimane consecutive senza
+assenze.
+
+### [STORY-005] Definire la regola di streak
+**Come** PO **voglio** definire cosa rompe uno streak (assenza? skip? quante settimane?)
+**per** dare al Developer una specifica non ambigua.
+- **Priority:** P2 · **Status:** BACKLOG (blocca le due story sotto)
+
+### [STORY-006] Calcolo streak lato server
+Tocca XP → deve passare da Cloud Function per lo stesso motivo di `calcSessionXP`
+(il client non deve poter falsificare lo streak). **Priority:** P2 · **Status:** BACKLOG
+
+### [STORY-007] UI streak (client + trainer)
+**Priority:** P2 · **Status:** BACKLOG
+
+---
+
+## [EPIC-004] Obiettivi trainer (roadmap — "Gamification avanzata")
+Fonte: CLAUDE.md → Roadmap futura. Coach fissa un target su un test specifico per un
+cliente; il sistema monitora e notifica al raggiungimento.
+
+### [STORY-008] Modello dati obiettivo
+**Priority:** P2 · **Status:** BACKLOG
+
+### [STORY-009] UI trainer per fissare/monitorare l'obiettivo
+**Priority:** P2 · **Status:** BACKLOG
+
+### [STORY-010] Notifica al raggiungimento
+Riusa `notifications.js`/`useNotifications` esistenti. **Priority:** P2 · **Status:** BACKLOG
+
+---
+
+## [EPIC-005] Sistema Avatar + Negozio — discovery (roadmap, epic grande)
+Fonte: CLAUDE.md → Roadmap futura, che segnala esplicitamente "allinearsi con il team
+prima di iniziare". Non si parte con codice: prima Product Analyst + Tech Lead.
+
+### [STORY-011] Valutazione di valore/priorità reale
+Product Analyst: la roadmap la elenca ma non è ancora validata su valore/retention.
+**Priority:** P3 finché non validata · **Status:** BACKLOG
+
+### [STORY-012] Modello economico Monete
+Fonti di guadagno (sessioni, rank-up, achievement, streak — quest'ultimo dipende da
+EPIC-003), nessun acquisto con denaro reale (già deciso). **Status:** BACKLOG
+
+### [STORY-013] Scoping tecnico moduli avatar
+Tech Lead: struttura slot/unlockType/`avatar_modules` collection, impatto Firestore.
+**Status:** BACKLOG
+
+---
 <!-- Nuove epic/user story vengono aggiunte qui sotto dal Product Owner -->
