@@ -216,6 +216,9 @@ import { getPlanLimits, isAtTrainerLimit, isAtClientLimit } from 'config/plans.c
   misureHistory:   [],   // { date, peso?, altezza? } — storico tab Misure
   badges:          {},   // { [badgeId]: { awardedAt, awardedBy, note? } } — vedi config/badges.config.js
   badgeShowcase:   [],   // fino a 5 badgeId in evidenza sul profilo
+  coins:           0,    // Monete negozio avatar — spike EPIC-005, guadagnate solo
+                          // per sessione presente (chiudiSessione), vedi Roadmap futura
+  avatarPurchased: [],   // avatarId acquistati nel negozio (unlockType: 'purchase')
 }
 ```
 
@@ -603,7 +606,7 @@ src/
 │
 ├── usecases/                ← wrapper httpsCallable — SCRITTURE sensibili verso le Cloud
 │   │                           Functions in functions/ (vedi sezione dedicata più sotto).
-│   │                           33 file, uno per callable, stesso pattern minimale:
+│   │                           34 file, uno per callable, stesso pattern minimale:
 │   ├── createClientUseCase.js       ← creaCliente
 │   ├── deleteClientUseCase.js       ← eliminaCliente
 │   ├── createMemberUseCase.js       ← creaMembroTeam
@@ -623,6 +626,7 @@ src/
 │   ├── addGroupUseCase.js / updateGroupUseCase.js / deleteGroupUseCase.js
 │   ├── addNoteUseCase.js / deleteNoteUseCase.js
 │   ├── addGoalUseCase.js / cancelGoalUseCase.js   ← aggiungiObiettivo / annullaObiettivo
+│   ├── purchaseAvatarUseCase.js      ← acquistaAvatar (spike EPIC-005, vedi Roadmap futura)
 │   └── markNotificationReadUseCase.js / markAllNotificationsReadUseCase.js
 │
 ├── hooks/
@@ -671,13 +675,13 @@ src/
 Pacchetto Node **separato** alla radice del repo (proprio `package.json`, proprio
 `node_modules`, nessun import da `src/`, deploy indipendente da hosting/rules). Gestisce
 la maggior parte delle scritture sensibili dell'app tramite il layer `usecases/` visto
-sopra — 33 callable, una per operazione.
+sopra — 34 callable, una per operazione.
 
 ```
 functions/
 ├── src/
 │   ├── index.js         ← esporta tutte le callable (region europe-west1)
-│   ├── callable/        ← 33 funzioni onCall — una per operazione:
+│   ├── callable/        ← 34 funzioni onCall — una per operazione:
 │   │                       creaCliente, eliminaCliente, creaMembroTeam,
 │   │                       rimuoviMembroTeam, aggiornaRuoloMembro, salvaXP,
 │   │                       salvaCampionamento, salvaBia, aggiornaProfiloCliente,
@@ -700,7 +704,9 @@ functions/
 │   │   │                       minimale: solo key/stat/direction/ageGroup/
 │   │   │                       categories/variables — NIENTE label/unit/guide
 │   │   │                       (non servono al calcolo percentili server-side)
-│   │   └── percentile.js / tables.js / bia.js / formulas.js / calendarUtils.js
+│   │   ├── percentile.js / tables.js / bia.js / formulas.js / calendarUtils.js
+│   │   └── avatarUnlocks.js  ← speculare a src/config/avatars.config.js (solo le
+│   │                            regole di sblocco — spike EPIC-005)
 │   └── triggers/         ← Cloud Functions non-callable (trigger su eventi)
 ```
 
@@ -1800,6 +1806,32 @@ Evoluzioni pianificate, non ancora implementate.
 Queste feature non esistono nel codebase attuale — allinearsi con il team prima di iniziare.
 
 ### Sistema Avatar + Negozio
+
+**Stato reale (set 2026): SPIKE TECNICO parziale implementato, non la visione completa
+di questa sezione.** Discovery (docs/DECISIONS.md → ADR-002) aveva raccomandato di non
+costruire per 3 dipendenze esterne non risolvibili scrivendo codice (asset grafici,
+bilanciamento economia, flusso B2B) — l'utente ha scelto comunque uno spike tecnico
+per validare la meccanica riusando le immagini già esistenti (`config/avatars.config.js`)
+invece del sistema a 6 slot descritto sotto, che resta non implementato.
+
+**Cosa esiste davvero:**
+- `client.coins` — guadagnato **solo** chiudendo una sessione presente
+  (`COINS_PER_SESSION = 10`, costante provvisoria in `chiudiSessione.js`) — rank-up/
+  achievement/streak **non** accreditano Monete nello spike, solo le sessioni.
+- Regole di sblocco per gli avatar esistenti (non nuovi moduli a slot): applicate per
+  suffisso numerico dell'id in `config/avatars.config.js` → `isAvatarUnlocked()`, copia
+  server in `functions/src/shared/avatarUnlocks.js` (stesso rischio di divergenza delle
+  altre copie speculari — se cambi le soglie, aggiorna entrambe). Dati puramente
+  dimostrativi (`01-03` default, `04-06` a livello, `07-09` acquistabili 30/60/100
+  Monete) — non un'economia bilanciata.
+- Acquisto: `acquistaAvatar` (Cloud Function, transazione Firestore — non batch, per
+  evitare doppia spesa su doppio tap). Solo il client acquista per sé stesso.
+- UI: `AvatarPicker.jsx` (client-view) — overlay lucchetto sugli avatar bloccati,
+  bottone ACQUISTA per quelli a pagamento, saldo Monete visibile.
+- **Non implementato**: sistema a 6 slot (testa/corpo/...), collection
+  `avatar_modules`, moduli org-custom, form richiesta B2B, gestione super_admin,
+  Monete da rank-up/achievement/streak. Tutto il resto di questa sezione descrive
+  ancora la visione futura, non lo stato attuale.
 
 #### Valuta: Monete
 ```

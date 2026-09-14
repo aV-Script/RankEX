@@ -4,7 +4,7 @@
  * Sostituisce closeSessionUseCase.js lato client.
  * Esegue in un unico batch atomico server-side:
  *   - slot.status = 'completed'
- *   - XP + streak per ogni attendee
+ *   - XP + streak + Monete (spike EPIC-005) per ogni attendee
  *   - streak reset per ogni assente
  *   - notifiche per tutti
  *
@@ -19,6 +19,10 @@ import { requireOrgAccess }  from '../shared/auth.js'
 import { buildSessionUpdate } from '../shared/gamification.js'
 
 const REGION = 'europe-west1'
+
+// Spike EPIC-005 (docs/DECISIONS.md → ADR-002) — importo provvisorio, non
+// un'economia bilanciata. Unica fonte di Monete implementata nello spike.
+const COINS_PER_SESSION = 10
 
 export const chiudiSessione = onCall({ region: REGION }, async (request) => {
   const { orgId, slotId, attendeeIds } = request.data
@@ -68,7 +72,14 @@ export const chiudiSessione = onCall({ region: REGION }, async (request) => {
     if (!client) continue
 
     const { update, xpGain } = buildSessionUpdate(client, client.baseXP ?? 50, 'Sessione di allenamento')
-    batch.update(db.collection(`organizations/${orgId}/clients`).doc(clientId), update)
+    // Monete negozio avatar — unica fonte di guadagno implementata nello spike
+    // EPIC-005 (vedi docs/DECISIONS.md → ADR-002). Importo provvisorio, non
+    // un'economia bilanciata — richiede playtesting (STORY-012).
+    const coinsGain = COINS_PER_SESSION
+    batch.update(db.collection(`organizations/${orgId}/clients`).doc(clientId), {
+      ...update,
+      coins: FieldValue.increment(coinsGain),
+    })
 
     if (client.clientAuthUid) {
       batch.set(notifCol.doc(), {

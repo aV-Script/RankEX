@@ -57,10 +57,46 @@ export const AVATAR_CATALOG = [
   { id: 'test_default_09', orgId: 'test-1tevc', name: 'Numero 11',  imageUrl: '/avatars/vdp5_09.png' },
 ]
 
+// ── Negozio avatar — spike tecnico EPIC-005 (vedi docs/DECISIONS.md → ADR-002) ────
+// Riusa le immagini già esistenti sopra invece di inventare un sistema a 6 slot senza
+// arte reale — valida la meccanica (Monete, sblocco, acquisto atomico), non è
+// l'esperienza finale prevista dalla roadmap. Importi/soglie sono dati dimostrativi,
+// NON un'economia bilanciata (richiede playtesting, vedi STORY-012) — non trattarli
+// come valori definitivi. Applicati per suffisso numerico dell'id (01-09), quindi
+// uguali per tutte le org che riusano lo stesso set VDP5.
+// Speculare a functions/src/shared/avatarUnlocks.js — se cambi qui, aggiorna anche lì
+// (stesso rischio di divergenza di tutte le altre copie speculari del progetto).
+const UNLOCK_RULES_BY_SUFFIX = {
+  '01': { unlockType: 'default' },
+  '02': { unlockType: 'default' },
+  '03': { unlockType: 'default' },
+  '04': { unlockType: 'level', unlockValue: 5 },
+  '05': { unlockType: 'level', unlockValue: 10 },
+  '06': { unlockType: 'level', unlockValue: 15 },
+  '07': { unlockType: 'purchase', price: 30 },
+  '08': { unlockType: 'purchase', price: 60 },
+  '09': { unlockType: 'purchase', price: 100 },
+}
+
+function withUnlockRule(avatar) {
+  const suffix = avatar.id.slice(-2)
+  return { ...avatar, ...(UNLOCK_RULES_BY_SUFFIX[suffix] ?? { unlockType: 'default' }) }
+}
+
 export function getAvatarsForOrg(orgId) {
-  return AVATAR_CATALOG.filter(a => a.orgId === orgId)
+  return AVATAR_CATALOG.filter(a => a.orgId === orgId).map(withUnlockRule)
 }
 
 export function getAvatarById(avatarId) {
-  return AVATAR_CATALOG.find(a => a.id === avatarId) ?? null
+  const avatar = AVATAR_CATALOG.find(a => a.id === avatarId) ?? null
+  return avatar ? withUnlockRule(avatar) : null
+}
+
+/** true se il cliente può equipaggiare questo avatar (default, livello raggiunto, o già acquistato). */
+export function isAvatarUnlocked(avatar, client) {
+  switch (avatar.unlockType) {
+    case 'level':    return (client.level ?? 1) >= avatar.unlockValue
+    case 'purchase': return (client.avatarPurchased ?? []).includes(avatar.id)
+    default:         return true
+  }
 }

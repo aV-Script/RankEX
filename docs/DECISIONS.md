@@ -80,4 +80,35 @@ Non blocca gli sprint successivi — sono indipendenti.
 
 ---
 
+## [ADR-003] Avatar + Negozio — spike tecnico, override esplicito di ADR-002
+**Data:** 2026-09-14
+**Contesto:** dopo ADR-002 (raccomandazione di non procedere), presentate 3 opzioni
+all'utente via domanda esplicita — parcheggiare, rispondere alle domande aperte, o
+spike tecnico senza arte reale. L'utente ha scelto lo spike, **con il rischio
+esplicitamente segnalato** ("rischia di restare codice mai davvero raggiunto come già
+successo a Wearable/ContextNav") visibile nell'opzione scelta.
+**Decisione:** costruito uno spike che valida la meccanica economica (la parte
+davvero incerta tecnicamente, per la mia stessa analisi in STORY-012) **senza**
+inventare il sistema a 6 slot della visione completa, per cui non esiste arte — si
+riusano le 9 immagini avatar già esistenti (`config/avatars.config.js`), con regole
+di sblocco demo (livello/acquisto) applicate per suffisso id.
+**Scope deliberatamente ridotto rispetto alla visione completa:**
+- Monete guadagnate **solo** da sessione presente (`chiudiSessione`) — non da
+  rank-up/achievement/streak come nella visione completa, per limitare la superficie
+  di modifica a una sola Cloud Function invece di quattro nello spike.
+- Nessuna collection `avatar_modules` — regole di sblocco in config (client +
+  copia server minimale `avatarUnlocks.js`), non un catalogo gestibile da super_admin.
+- Nessun flusso B2B org-custom — resta genuinamente bloccato su una org cliente
+  reale, lo spike non lo risolve né tenta di farlo.
+**Verificato dal vivo, non solo per lettura di codice:** script one-off contro
+rankex-dev (auth REST + invocazione diretta della callable) — rifiuto corretto per
+avatar non acquistabile, rifiuto corretto per Monete insufficienti, acquisto riuscito
+con decremento Monete e inventario aggiornato, doppio acquisto bloccato
+(`already-exists`). Dati di test ripuliti dopo la verifica.
+**Conseguenze:** se questo spike non porta a validazione reale (playtest, feedback,
+decisione su arte/B2B), è candidato esplicito a rimozione come codice morto in un
+futuro audit — esattamente il rischio segnalato in fase di scelta, non nascosto.
+
+---
+
 <!-- Nuove decisioni aggiunte qui dal Tech Lead -->

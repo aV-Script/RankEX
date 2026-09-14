@@ -24,6 +24,8 @@ const NEW_CLIENT_DEFAULTS = {
   profileType:        'tests_only',
   biaHistory:         [],
   lastBia:            null,
+  coins:              0,   // valuta negozio avatar — spike EPIC-005, vedi ADR-002
+  avatarPurchased:    [],
 }
 
 export const creaCliente = onCall({ region: REGION }, async (request) => {

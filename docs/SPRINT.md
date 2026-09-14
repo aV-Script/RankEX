@@ -29,11 +29,13 @@ una decisione di business: rivedere prima di aprire ciascuno sprint.
 
 EPIC-003 (Streak presenze) ed EPIC-004 (Obiettivi trainer) erano **già implementate**
 prima di aprire i rispettivi sprint. EPIC-005 (Avatar + Negozio) è stata scoperta
-(Sprint #3) ma **non è pronta per l'implementazione** — bloccata su risposte
-dell'utente, non su lavoro di ingegneria (vedi Storico sotto). TD-001/TD-002 risolti.
+(Sprint #3, raccomandazione di non procedere) ma l'utente ha scelto comunque uno spike
+tecnico ridotto (Sprint #4, STORY-014, override esplicito — vedi ADR-003). TD-001/
+TD-002 risolti. Deploy prod dello spike ancora in sospeso.
 
 **Candidati aperti:**
-- **EPIC-005 — Avatar + Negozio**, se/quando le domande aperte in `docs/BACKLOG.md`
+- **Deploy prod dello spike Avatar+Negozio** (Sprint #4), se l'utente conferma.
+- **EPIC-005 completa — Avatar + Negozio**, se/quando le domande aperte in `docs/BACKLOG.md`
   hanno risposta (asset grafici, priorità rispetto alla gamification esistente,
   bilanciamento economia).
 - **EPIC-002** (pulizia debito minore, P3) — unico item rimasto senza dipendenze
@@ -43,6 +45,38 @@ dell'utente, non su lavoro di ingegneria (vedi Storico sotto). TD-001/TD-002 ris
 ---
 
 ## Storico sprint chiusi
+
+### SPRINT #4 — Avatar + Negozio: spike tecnico (override ADR-002) — chiuso il 2026-09-14
+
+**Goal:** dopo la raccomandazione di non procedere (Sprint #3), l'utente ha scelto
+esplicitamente — tra 3 opzioni presentate, rischio incluso nella descrizione — uno
+spike tecnico senza arte reale. Non un nuovo sprint pianificato, una continuazione
+diretta della stessa conversazione/decisione.
+
+**Completato:**
+- STORY-014 — meccanica Monete + negozio riusando le 9 immagini avatar esistenti
+  (nessuna arte nuova, nessun sistema a 6 slot, nessun flusso B2B — scope ridotto
+  rispetto alla visione completa, per scelta esplicita, vedi ADR-003).
+- Guadagno Monete solo da sessione presente (`chiudiSessione`), acquisto via nuova
+  Cloud Function `acquistaAvatar` con transazione Firestore (non batch).
+- **Verificato dal vivo contro rankex-dev**, non solo per lettura di codice: script
+  one-off con auth REST + invocazione diretta della callable — rifiuti corretti
+  (avatar non acquistabile, Monete insufficienti, doppio acquisto), acquisto riuscito
+  con decremento Monete e inventario aggiornato. Dati di test ripuliti dopo la verifica.
+- 5 nuovi test unitari (`isAvatarUnlocked`), build+lint+vitest puliti.
+
+**Non completato:** deploy su prod — resta su rankex-dev in attesa di conferma.
+
+**Blockers:** nessuno tecnico.
+
+**Tech debt emerso:** nessuno nuovo. Rischio già dichiarato in ADR-003: se questo
+spike non porta a validazione reale, è candidato esplicito a rimozione come codice
+morto in un futuro audit (stesso destino di Wearable/ContextNav documentato altrove).
+
+**Prossimo sprint (candidati):** EPIC-002 (pulizia minore) resta l'unico item senza
+dipendenze esterne. Deploy prod dello spike, se l'utente lo conferma.
+
+---
 
 ### SPRINT #3 — Avatar + Negozio: discovery — chiuso il 2026-09-14
 

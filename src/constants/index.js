@@ -91,6 +91,8 @@ export const NEW_CLIENT_DEFAULTS = {
   lastBia:            null,
   wearableEnabled:    false,
   wearable:           null,
+  coins:              0,   // valuta negozio avatar — spike EPIC-005, vedi ADR-002
+  avatarPurchased:    [],  // avatarId acquistati (unlockType: 'purchase')
 }
 
 // ── Costanti gamification ─────────────────────────────────────────────────────

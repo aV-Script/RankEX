@@ -206,7 +206,9 @@ principio di XP/percentili — il client non deve poter assegnarsi Monete da sol
 Superficie di modifica più larga di qualunque epic fatta finora in questo processo.
 
 ### [STORY-013] Scoping tecnico moduli avatar
-**Status:** DONE (scoping) — pronto da riprendere quando/se STORY-011 sblocca
+**Status:** DONE (scoping) — **+ STORY-014 aggiunta sotto**: l'utente ha scelto di
+procedere comunque con uno spike tecnico (override esplicito della raccomandazione di
+STORY-011, vedi `docs/DECISIONS.md` → ADR-003), invece di parcheggiare l'epic.
 
 Modello dati raffinato rispetto allo schizzo in Roadmap:
 ```js
@@ -231,6 +233,23 @@ clients/{clientId}
 - Flusso B2B: 3 superfici UI nuove (form richiesta org_admin, gestione/upload
   super_admin, negozio client) — dimensione paragonabile a Obiettivi+Runbook insieme,
   **più grande** di qualunque epic completata finora in questo processo.
+
+### [STORY-014] Spike tecnico negozio avatar (override ADR-002)
+**Status:** DONE — implementato, verificato dal vivo contro rankex-dev, non solo
+letto. Vedi `docs/DECISIONS.md` → ADR-003 per il dettaglio completo.
+
+Scope volutamente ridotto rispetto allo schizzo di STORY-013: riusa le 9 immagini
+avatar esistenti invece del sistema a 6 slot (nessuna arte reale disponibile), Monete
+guadagnate solo da sessione presente (non rank-up/achievement/streak), nessuna
+collection `avatar_modules` (regole di sblocco in config, non un catalogo gestibile),
+nessun flusso B2B.
+
+**File:** `config/avatars.config.js` (+ `isAvatarUnlocked`), `functions/src/shared/
+avatarUnlocks.js` (copia server), `functions/src/callable/acquistaAvatar.js`
+(transazione Firestore), `chiudiSessione.js` (+ Monete per sessione),
+`AvatarPicker.jsx` (UI lucchetto/acquisto), `purchaseAvatarUseCase.js`.
+
+**Deploy:** Cloud Functions su rankex-dev. Non ancora su prod.
 
 ---
 
