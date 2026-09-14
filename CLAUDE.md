@@ -109,6 +109,10 @@ audit_logs/{logId}
   action, uid, email, timestamp,
   userAgent, details, env
   // append-only — solo super_admin legge, mai modificabile
+
+qa_runs/{runId}
+  suiteIds, results, counts, runBy, runByEmail, finishedAt
+  // storico esecuzioni del runbook manuale — solo super_admin legge/scrive
 ```
 
 ### Path helpers
@@ -400,7 +404,10 @@ src/
 │   ├── badges.config.js     ← BADGES, BADGE_TIERS, MANUAL_BADGES — fonte di verità trofei
 │   ├── avatars.config.js    ← catalogo avatar fissi per org (sostituisce builder DiceBear)
 │   ├── themes.config.js     ← 7 temi client (RankEX, Midnight, Carbon, Violet, Steel, Phantom, Mint)
-│   └── app.config.js        ← PAGINATION_PAGE_SIZE e altre costanti app-wide
+│   ├── app.config.js        ← PAGINATION_PAGE_SIZE e altre costanti app-wide
+│   └── runbook.config.js    ← RUNBOOK_SUITES, SEVERITY, TOTAL_CASES — fonte di
+│                               verità dei casi di test manuali (sostituisce
+│                               docs/test-plan.md, superseded — vedi sezione dedicata)
 │
 ├── constants/
 │   ├── index.js             ← RANKS, CATEGORIE, NEW_CLIENT_DEFAULTS,
@@ -433,7 +440,8 @@ src/
 │   │       ├── AdminProfilePage.jsx ← modifica email e password
 │   │       ├── OrgsPage.jsx
 │   │       ├── OrgDetailView.jsx   ← utilizzo piano (barre progresso)
-│   │       └── CreateOrgForm.jsx   ← ownerId popolato con uid super_admin
+│   │       ├── CreateOrgForm.jsx   ← ownerId popolato con uid super_admin
+│   │       └── RunbookPage.jsx     ← runbook manuale: nuovo giro + storico esecuzioni (vedi sezione dedicata)
 │   │
 │   ├── auth/
 │   │   ├── LoginPage.jsx
@@ -576,6 +584,8 @@ src/
 │       ├── notifications.js ← tutte le fn accettano orgId come primo arg
 │       ├── notes.js         ← getNotes, addNote, deleteNoteItem (orgId, clientId)
 │       ├── goals.js         ← getGoals (orgId, clientId) — solo lettura, scrittura via usecases
+│       ├── runbook.js       ← getRuns, saveRun — collection top-level qa_runs, scrittura
+│       │                       diretta (unico ruolo ammesso è già super_admin, niente da cui difendersi)
 │       ├── org.js           ← organizations (CRUD) + membri in sola lettura (getMembers,
 │       │                       getMember) + updateMember diretto (solo cambio ruolo, nessun
 │       │                       counter coinvolto). Creazione e rimozione membro passano
@@ -623,6 +633,7 @@ src/
 │   ├── useNotifications.js     ← useNotifications(orgId, clientId)
 │   ├── useNotes.js             ← useNotes(orgId, clientId, author) → threads
 │   ├── useGoals.js             ← useGoals(orgId, clientId) → { goals, handleAddGoal, handleCancelGoal }
+│   ├── useRunbook.js           ← useRunbook() → { runs, handleSaveRun } (super_admin)
 │   ├── useBadges.js            ← useBadges(orgId, clientId, client, { readonly }) — auto-award + manuale
 │   ├── useWearable.js          ← useWearable (trainer, solo enable/disable/sync) — link client rimosso, vedi sezione dedicata
 │   ├── useVersionCheck.js      ← rileva nuova build disponibile, mostra banner ricarica
@@ -1245,6 +1256,34 @@ Sync via Google Fitness REST API (`fitness.googleapis.com/.../dataset:aggregate`
 `firebase/services/wearable.js`), 30 giorni di storico, aggregati anche a 7 giorni —
 la funzione resta per eventuale riattivazione ma non è più raggiungibile da nessun
 flusso UI dato che nessun nuovo `accessToken` può più essere generato.
+
+---
+
+## Runbook manuale (QA)
+
+Sostituisce `docs/test-plan.md` (superseded, set 2026 — vedi nota in cima al file).
+I casi manuali che nessun unit test copre (flussi UI, Auth/Firestore, ruoli, PDF)
+vivono ora in `config/runbook.config.js` — `RUNBOOK_SUITES`: array di suite, ognuna
+con `cases[]` (id TP-XXX, severità `blocker`/`important`/`nice`, precondizioni, passi,
+risultato atteso). È **config**, non un database — nessuna scrittura, coerente col
+principio "Config → dati statici, nessuna logica".
+
+**Esecuzione tracciata in Firestore**, non più una tabella markdown mai compilata:
+`qa_runs/{runId}` (top-level, come `audit_logs` — non è dato di un'org). Un "giro"
+copre una o più suite scelte al momento, con un risultato (`pass`/`fail`/`skip` +
+nota opzionale) per ogni caso coperto. Solo `super_admin` legge/scrive — a differenza
+di note/obiettivi non passa da una Cloud Function: è l'unico ruolo già più fidato
+dell'app, non c'è nessuno da cui difendersi con l'ulteriore livello.
+
+UI: `admin-pages/RunbookPage.jsx` (nav "Runbook" in `AdminShell`) — scegli le suite,
+compila la checklist caso per caso, salva il giro; sotto, lo storico dei giri passati
+con contatori pass/fail/skip ed espansione per vedere note sui fallimenti.
+
+**Quando aggiungere un test case:** ogni nuova feature che tocca UI/Auth/Firestore in
+un modo non coperto da unit test dovrebbe aggiungere un caso in `runbook.config.js`
+nella suite pertinente (o crearne una nuova) — stessa disciplina di aggiungere un test
+Vitest per la logica pura. Non lasciare che il runbook derivi di nuovo dal codice reale
+com'è successo a `test-plan.md`.
 
 ---
 

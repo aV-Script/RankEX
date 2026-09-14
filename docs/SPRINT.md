@@ -34,6 +34,12 @@ utente + deploy prod come passo esplicito prima di chiudere.
 collegati a Obiettivi) — loggato in `docs/TECH-DEBT.md`, non risolto qui per non
 mischiare fix non richiesti nel commit della feature.
 
+**Aggiunta fuori piano:** EPIC-006 (Runbook manuale) — richiesta dall'utente durante
+la verifica di STORY-009/010, non nel piano originale dello sprint. Completata nella
+stessa finestra invece di rimandarla a un nuovo sprint, dato che è indipendente da
+Obiettivi (nessuna dipendenza tra i due epic) e piccola abbastanza da non giustificare
+l'overhead di aprire/chiudere un sprint a parte. Vedi `docs/BACKLOG.md` → EPIC-006.
+
 ---
 
 ## Piano sprint successivi (proposta Scrum Master, da confermare)

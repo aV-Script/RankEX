@@ -173,4 +173,35 @@ Tech Lead: struttura slot/unlockType/`avatar_modules` collection, impatto Firest
 **Status:** BACKLOG
 
 ---
+
+## [EPIC-006] Runbook manuale — tracking test QA da super_admin
+**Status: IMPLEMENTATA — set 2026.** Nata da una richiesta diretta dell'utente durante
+la verifica manuale di EPIC-004 ("dovremmo tracciare questi test da qualche parte"),
+non dal backlog pre-esistente — aggiunta qui retroattivamente per coerenza col
+processo.
+
+**Finding all'apertura:** `docs/test-plan.md` esisteva già — 36 casi ben strutturati,
+mai una volta segnati come superati (tabella "Registro esecuzione" completamente
+vuota) — e descriveva feature già rimosse (layout dashboard 2 colonne, flusso Google
+Fit client). Confermato che valeva la pena costruire lo strumento invece di continuare
+a fidarsi di un markdown che nessuno aggiornava.
+
+### [STORY-011] Migrazione + refresh contenuto test-plan.md → config
+Portati i 36 casi in `config/runbook.config.js`, corretti i 3 che descrivevano feature
+rimosse/cambiate (dashboard trainer, Wearable, dashboard client → Pentagon Nav),
+aggiunti 7 nuovi casi per feature senza copertura (Misure, Streak, Trofei/Badge,
+Obiettivi, Pentagon Nav, Temi, Avatar). Scope scelto esplicitamente dall'utente
+(alternativa: solo il meccanismo, refresh dopo) — 43 casi totali.
+**Priority:** P2 · **Status:** DONE
+
+### [STORY-012] Storico esecuzioni + UI super_admin
+`qa_runs/{runId}` (top-level, no Cloud Function — super_admin è già il ruolo più
+fidato) + `RunbookPage.jsx`: scegli suite → checklist pass/fail/skip con nota → salva
+→ storico con contatori. 4 nuovi test rules ("Runbook (qa_runs)"), tutti verdi.
+**Priority:** P2 · **Status:** DONE
+
+**Deploy:** firestore.rules (qa_runs) già su rankex-dev. Nessuna Cloud Function
+coinvolta in questo epic.
+
+---
 <!-- Nuove epic/user story vengono aggiunte qui sotto dal Product Owner -->

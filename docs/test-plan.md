@@ -1,5 +1,13 @@
 # RankEX — Test Plan Manuale
 
+> ⚠️ **SUPERSEDED (set 2026)** — questo file non è più la fonte di verità. I casi sono
+> stati migrati (e corretti — descrivevano un layout dashboard trainer 2 colonne e un
+> flusso "Collega Google Fit" client entrambi rimossi da tempo) in
+> `src/config/runbook.config.js`, con esecuzione tracciata in Firestore (`qa_runs`,
+> super_admin only) invece della tabella "Registro esecuzione" qui sotto, mai
+> effettivamente compilata. Usa la pagina **Runbook** nell'area super_admin.
+> Questo file resta solo come riferimento storico — non aggiornarlo più.
+
 > Versione maggio 2026  
 > Copre le US non verificabili con unit test: flussi UI, Firebase Auth/Firestore, OAuth, ruoli, PDF.  
 > I test unitari (Vitest) coprono separatamente la logica di business pura.
