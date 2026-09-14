@@ -160,17 +160,77 @@ prima del deploy in produzione (disciplina Release Manager: dev prima di prod).
 Fonte: CLAUDE.md → Roadmap futura, che segnala esplicitamente "allinearsi con il team
 prima di iniziare". Non si parte con codice: prima Product Analyst + Tech Lead.
 
+**Discovery completata (set 2026) — nessun codice scritto, come da vincolo.** Confermato
+via grep: zero codice esistente (`coins`/`avatarEquipped`/`avatarInventory`/
+`avatar_modules` non compaiono in `src/`), è davvero da zero.
+
 ### [STORY-011] Valutazione di valore/priorità reale
-Product Analyst: la roadmap la elenca ma non è ancora validata su valore/retention.
-**Priority:** P3 finché non validata · **Status:** BACKLOG
+**Status:** DONE (valutazione) — **raccomandazione: NON pronta per essere costruita ora**
+
+Chi beneficia: il client (engagement/retention via personalizzazione) e la piattaforma
+(il flusso B2B moduli org-custom è potenzialmente una **nuova fonte di ricavo**, non
+solo una feature di engagement — questa è la parte davvero nuova rispetto a XP/rank/
+badge/streak/obiettivi già esistenti).
+
+**Rischio di sovrapposizione:** RankEX ha già Badge/Trofei (achievement collezionabili
+con showcase), Streak, e ora Obiettivi — tutti meccaniche di progressione/collezione.
+Un negozio cosmetico è complementare in teoria, ma senza dati d'uso su quanto le
+meccaniche già esistenti stiano già trattenendo i client, costruire una quarta
+meccanica di gamification è una scommessa, non una certezza.
+
+**Blocchi reali, non risolvibili scrivendo codice:**
+1. **Asset grafici** — ogni modulo avatar (slot × rarità × tipo sblocco) richiede
+   un'immagine reale. Non esiste oggi un artista/budget noto per produrle — senza
+   asset, non c'è negozio cosmetico da mostrare, solo uno scheletro dati.
+2. **Bilanciamento economia** — quante Monete per sessione/rank-up/achievement/streak,
+   quanto costa un pezzo — richiede playtesting reale, non un numero indovinato al
+   primo giro.
+3. **Flusso B2B moduli org-custom** — esplicitamente richiede "contratto, design,
+   produzione moduli" **fuori dall'app** (CLAUDE.md, testuale) — l'ingegneria da sola
+   non può consegnare valore su questa parte finché non esiste almeno un'org cliente
+   interessata a comprarli.
 
 ### [STORY-012] Modello economico Monete
-Fonti di guadagno (sessioni, rank-up, achievement, streak — quest'ultimo dipende da
-EPIC-003), nessun acquisto con denaro reale (già deciso). **Status:** BACKLOG
+**Status:** DONE (scoping) — bloccata su STORY-011
+
+Fonti di guadagno confermate dalla roadmap: sessioni, rank-up, achievement, streak
+(quest'ultimo già implementato, EPIC-003) — nessun acquisto con denaro reale (già
+deciso, non negoziabile). **Non definibili qui:** gli importi esatti per fonte e i
+prezzi in negozio — richiedono playtesting, non stimabili a tavolino.
+
+**Superficie di integrazione tecnica** (per quando/se si procede): assegnare Monete
+tocca **più Cloud Function esistenti coordinate**, non una sola nuova — `chiudiSessione`
+(sessioni+streak), `salvaCampionamento` (achievement test), `salvaBia` (se si include),
+`awardBadge`/`checkAutoBadges` (achievement badge). Va sempre server-side, stesso
+principio di XP/percentili — il client non deve poter assegnarsi Monete da solo.
+Superficie di modifica più larga di qualunque epic fatta finora in questo processo.
 
 ### [STORY-013] Scoping tecnico moduli avatar
-Tech Lead: struttura slot/unlockType/`avatar_modules` collection, impatto Firestore.
-**Status:** BACKLOG
+**Status:** DONE (scoping) — pronto da riprendere quando/se STORY-011 sblocca
+
+Modello dati raffinato rispetto allo schizzo in Roadmap:
+```js
+avatar_modules/{moduleId}   // top-level, non sotto un'org — catalogo condiviso + esclusivi
+  slot, name, rarity, unlockType: 'default'|'level'|'rank'|'purchase'|'org_custom',
+  unlockValue,  // livello | rank label | prezzo Monete
+  orgId,        // null = globale, altrimenti esclusivo per quell'org
+  price, imageUrl, createdAt
+
+clients/{clientId}
+  coins            // saldo
+  avatarEquipped   // { testa, corpo, capelli, occhi, bocca, accessorio } → moduleId
+  avatarInventory  // [moduleId, ...] — pezzi sbloccati (default+level+rank+acquistati)
+```
+
+**Punti tecnici che serviranno, se si procede:**
+- Acquisto negozio → nuova Cloud Function con **transazione Firestore** (non batch) —
+  scala/spendi Monete è un'operazione a rischio race-condition su doppio tap, serve
+  atomicità reale, non "abbastanza atomico".
+- Sblocco automatico per livello/rank → hook analogo a `useBadges` → `checkAutoBadges`,
+  stesso pattern già rodato.
+- Flusso B2B: 3 superfici UI nuove (form richiesta org_admin, gestione/upload
+  super_admin, negozio client) — dimensione paragonabile a Obiettivi+Runbook insieme,
+  **più grande** di qualunque epic completata finora in questo processo.
 
 ---
 

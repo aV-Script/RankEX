@@ -54,4 +54,30 @@ attuale (lista per singolo cliente, calcolata client-side).
 
 ---
 
+## [ADR-002] Avatar + Negozio — discovery senza implementazione
+**Data:** 2026-09-14
+**Contesto:** EPIC-005 (Sprint #3), il pezzo più grande della Roadmap futura. La
+roadmap stessa impone "allinearsi con il team prima di iniziare" — vincolo esplicito
+contro il partire diretti con codice, a differenza di EPIC-004/EPIC-006 dove la
+specifica era già abbastanza chiara da poter procedere.
+**Decisione:** fare solo discovery (valutazione Product Analyst + scoping tecnico
+Tech Lead), zero codice scritto, indipendentemente dallo slancio delle sessioni
+precedenti in questo stesso processo (Obiettivi, Runbook, TD-001/TD-002 erano tutti
+scope chiaro e action-able da subito — questo non lo è).
+**Perché non si procede comunque con un MVP ridotto:** a differenza di feature
+precedenti dove "MVP più piccolo" era una scelta tecnica (es. Runbook: meccanismo
+prima, contenuto dopo — poi il team ha scelto di fare entrambi insieme), qui il
+blocco non è di complessità tecnica ma di **dipendenze esterne reali**: asset
+grafici (nessun artista/budget noto), bilanciamento economia (richiede playtesting,
+non stimabile), flusso B2B (richiede clienti org interessati, fuori dal controllo
+dell'ingegneria). Costruire comunque uno scheletro tecnico senza queste risposte
+produrrebbe codice che non si sa se verrà mai usato con contenuti reali — lo stesso
+rischio di "costruita e mai raggiunta" che CLAUDE.md documenta già per Wearable/
+ContextNav/ClientHUD (roadmap → Product Analyst, criterio esplicito).
+**Conseguenze:** EPIC-005 resta in backlog, scoping pronto (`docs/BACKLOG.md` →
+STORY-011/012/013) per essere ripreso non appena le domande aperte hanno risposta.
+Non blocca gli sprint successivi — sono indipendenti.
+
+---
+
 <!-- Nuove decisioni aggiunte qui dal Tech Lead -->

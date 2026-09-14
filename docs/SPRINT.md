@@ -27,21 +27,51 @@ Sequenza indicativa, non calendarizzata — un solo sviluppatore, quindi ogni sp
 solo a chiusura del precedente. Priorità e ordine sono una proposta di ingegneria, non
 una decisione di business: rivedere prima di aprire ciascuno sprint.
 
-EPIC-003 (Streak presenze) ed EPIC-004 (Obiettivi trainer) sono **entrambe già
-implementate** (vedi Storico sotto) — il piano originale che le indicava come prossimi
-sprint è superato.
+EPIC-003 (Streak presenze) ed EPIC-004 (Obiettivi trainer) erano **già implementate**
+prima di aprire i rispettivi sprint. EPIC-005 (Avatar + Negozio) è stata scoperta
+(Sprint #3) ma **non è pronta per l'implementazione** — bloccata su risposte
+dell'utente, non su lavoro di ingegneria (vedi Storico sotto). TD-001/TD-002 risolti.
 
-- **SPRINT #3 — Avatar + Negozio: discovery** (EPIC-005): solo scoping (Product
-  Analyst + Tech Lead), niente codice — è l'epic più grande della roadmap e richiede
-  validazione di valore/modello economico prima di iniziare l'implementazione.
-- **Candidati minori** (filler, non meritano uno sprint dedicato da soli): EPIC-002
-  (pulizia debito minore, P3), TD-001 (2 test rules preesistenti falliti), TD-002 (2
-  test e2e preesistenti falliti, incluso un bug comportamentale reale — bottone
-  "+ NUOVO CLIENTE" visibile a staff_readonly).
+**Candidati aperti:**
+- **EPIC-005 — Avatar + Negozio**, se/quando le domande aperte in `docs/BACKLOG.md`
+  hanno risposta (asset grafici, priorità rispetto alla gamification esistente,
+  bilanciamento economia).
+- **EPIC-002** (pulizia debito minore, P3) — unico item rimasto senza dipendenze
+  esterne, potrebbe essere il prossimo sprint eseguibile subito se non si sblocca
+  EPIC-005.
 
 ---
 
 ## Storico sprint chiusi
+
+### SPRINT #3 — Avatar + Negozio: discovery — chiuso il 2026-09-14
+
+**Goal:** valutare EPIC-005 (Product Analyst + Tech Lead), zero codice, come richiesto
+esplicitamente dalla Roadmap futura ("allinearsi con il team prima di iniziare").
+
+**Completato:**
+- STORY-011 — valutazione valore: **raccomandazione di non procedere ora**. Non un
+  giudizio tecnico, tre dipendenze esterne reali (asset grafici, bilanciamento
+  economia via playtesting, flusso B2B che richiede org clienti interessate) che il
+  codice da solo non risolve.
+- STORY-012 — modello economico: fonti di Monete confermate dalla roadmap, importi
+  non definibili senza playtesting. Superficie di integrazione tecnica identificata:
+  tocca più Cloud Function esistenti coordinate (chiudiSessione, salvaCampionamento,
+  salvaBia, sistema badge), non una sola nuova.
+- STORY-013 — scoping tecnico: modello dati raffinato, pronto da riprendere. Stimato
+  più grande di Obiettivi+Runbook insieme se/quando si procede.
+
+**Non completato:** l'implementazione — per scelta, non per blocco tecnico (vedi ADR-002).
+
+**Blockers:** risposte dell'utente su priorità/budget arte/validazione economia — non
+risposte che il processo può dare da solo.
+
+**Tech debt emerso:** nessuno — discovery pura, zero codice toccato.
+
+**Prossimo sprint (candidati):** EPIC-002 (pulizia minore, eseguibile subito) se
+EPIC-005 resta bloccata; EPIC-005 stessa se le domande aperte si sbloccano.
+
+---
 
 ### SPRINT #2 — Obiettivi trainer (+ Runbook manuale fuori piano) — chiuso il 2026-09-14
 
