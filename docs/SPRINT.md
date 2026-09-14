@@ -20,9 +20,9 @@ documentati in CLAUDE.md, prima di aprire qualunque nuova feature.
 | Task | Status | Note |
 |------|--------|------|
 | STORY-001 — rollback percentili soccer (4 test) | READY | branch `calibrazione-percentili-soccer` già pronto, serve merge + verifica + redeploy Cloud Functions |
-| STORY-002 — chiudere RX-63 (accessToken wearable) | READY | eseguire `scripts/check-wearable-tokens.mjs` per primo, decide il resto della story |
+| STORY-002 — chiudere RX-63 (accessToken wearable) | DONE | 0 client su dev+prod, nessun codice scrive più il campo — nessuna azione richiesta oltre la verifica, nota aggiunta in CLAUDE.md |
 
-**Blockers:** nessuno — entrambe le story sono sbloccate e partono da lavoro già fatto (branch pronto / script pronto).
+**Blockers:** nessuno — STORY-001 resta sbloccata, parte da lavoro già fatto (branch pronto).
 
 ---
 

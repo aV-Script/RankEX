@@ -39,12 +39,22 @@ ruolo che non dovrebbe vederlo (mancanza di filtro di ruolo in `firestore.rules`
 - **Priority:** P1
 - **Modulo:** personal_training (feature Wearable è solo PT)
 - **Acceptance Criteria:**
-  - [ ] `scripts/check-wearable-tokens.mjs` eseguito su `rankex-dev` e `fitquest-60a09`, risultato documentato in questa story
-  - [ ] Se 0 client coinvolti → rimuovere il campo `wearable.accessToken` dallo schema (elimina il rischio alla radice, più semplice di proteggerlo)
-  - [ ] Se >0 client coinvolti → spostare `accessToken` in subcollection con regole dedicate (solo org_admin/trainer, mai staff_readonly)
+  - [x] `scripts/check-wearable-tokens.mjs` eseguito su `rankex-dev` e `fitquest-60a09`, risultato documentato in questa story
+  - [x] Se 0 client coinvolti → rimuovere il campo `wearable.accessToken` dallo schema (elimina il rischio alla radice, più semplice di proteggerlo)
+  - [ ] ~~Se >0 client coinvolti → spostare `accessToken` in subcollection...~~ — non applicabile, 0 client coinvolti
 - **Dependencies:** nessuna — script diagnostico già pronto e committato
 - **Risks:** nessuno noto, feature già disattivata lato UI
-- **Status:** READY
+- **Finding (set 2026):** 0 client con `accessToken` su entrambi gli ambienti (32/4 org
+  su rankex-dev, 16/2 org su fitquest-60a09). Nessun codice attuale scrive più il campo
+  (`linkGoogleFit` già rimosso in un audit precedente) → nessuna esposizione live.
+  **Revisione della AC originale:** rimuovere il campo dallo schema ora sarebbe
+  scorretto — `client.wearable` resta intenzionalmente nello schema per l'eventuale
+  riattivazione futura (vedi CLAUDE.md → Wearable), e la remediation corretta (RX-63,
+  spostare `accessToken` in subcollection) è già documentata per quel momento, non per
+  ora. Nessuna azione di codice necessaria oggi — solo verifica + nota di conferma in
+  CLAUDE.md.
+- **Status:** DONE — script diagnostico e strumentazione firebase-admin restano
+  disponibili per verifiche future (es. prima di riattivare la feature)
 
 ---
 

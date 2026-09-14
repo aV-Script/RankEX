@@ -1177,6 +1177,14 @@ campo `client.wearable.accessToken` è leggibile da qualunque membro dell'org, i
 spostare il token in una subcollection con regole più strette prima di tornare a
 scriverlo).
 
+**Verifica dati legacy (set 2026, `scripts/check-wearable-tokens.mjs`):** 0 client con
+`accessToken` residuo su **entrambi** gli ambienti (32 client/4 org su `rankex-dev`, 16
+client/2 org su `fitquest-60a09`) — coerente col fatto che `linkGoogleFit` (l'unica
+funzione che scriveva il token) è già stata rimossa: nessun codice attuale può popolare
+`accessToken`, quindi nessuna esposizione live oggi. RX-63 resta comunque da risolvere
+**prima** di tornare a scrivere il campo, non prima di adesso — nessuna azione urgente
+richiesta finché la feature resta disattivata.
+
 **Dati sincronizzati** (`client.wearable`, solo per client abilitati prima della rimozione):
 ```js
 {
