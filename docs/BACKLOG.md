@@ -23,13 +23,22 @@ base di dati non ancora allineati alla fonte di riferimento.
 - **Priority:** P1
 - **Modulo:** soccer_academy
 - **Acceptance Criteria:**
-  - [ ] Valori in `utils/tables.js` per i 4 test aggiornati secondo `rankex-tabelle-percentili-v2.xlsx`
-  - [ ] Copia server `functions/src/shared/tables.js` aggiornata in parallelo (rischio di divergenza già noto — vedi CLAUDE.md → "Copie speculari")
-  - [ ] Cloud Functions ridistribuite: prima `rankex-dev`, poi `fitquest-60a09`
-  - [ ] `beep_test` (già ✓ identico all'Excel) resta invariato — nessuna regressione
+  - [x] Valori in `utils/tables.js` per i 4 test aggiornati secondo `rankex-tabelle-percentili-v2.xlsx`
+  - [x] Copia server `functions/src/shared/tables.js` aggiornata in parallelo (rischio di divergenza già noto — vedi CLAUDE.md → "Copie speculari")
+  - [x] ~~Cloud Functions ridistribuite...~~ — non necessario, nessun codice da ridistribuire (vedi finding)
+  - [x] `beep_test` resta invariato — confermato, nessuna regressione
 - **Dependencies:** branch `calibrazione-percentili-soccer` già pronto — serve merge + verifica, non nuovo lavoro di calibrazione
-- **Risks:** i campionamenti già salvati con i vecchi percentili non si ricalcolano retroattivamente — valutare se comunicarlo alle org soccer coinvolte
-- **Status:** READY
+- **Risks:** nessuno nuovo — vedi finding
+- **Finding (set 2026):** la story era **già completamente risolta** prima di aprire lo
+  sprint. Il branch citato nella dependency era già stato mergiato in `dev` il 09/05
+  (commit `aa1c371`), con una calibrazione ulteriore il 01/07 (`0de30a6`) — CLAUDE.md
+  non era mai stato aggiornato dopo il merge e continuava a segnalare i 4 test come "da
+  rollback, in attesa di approvazione". Verificato con un confronto testuale diretto
+  (non solo storia commit) che `functions/src/shared/tables.js` è identico a
+  `utils/tables.js` per tutti e 4 i test — creato il 04/07, dopo l'ultima calibrazione,
+  quindi mai stato disallineato. Nessun codice modificato, nessun deploy necessario.
+  Solo CLAUDE.md corretto per riflettere lo stato reale.
+- **Status:** DONE (verifica soltanto — nessun lavoro di implementazione richiesto)
 
 ### [STORY-002] Chiudere RX-63 — accessToken wearable esposto a staff_readonly
 **Come** super_admin **voglio** sapere quanti client hanno ancora un `wearable.accessToken`

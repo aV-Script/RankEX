@@ -1005,20 +1005,26 @@ Il campo `categories` in `constants/tests.js` specifica a quali fasce appartiene
 - `standing_long_jump` condiviso tra tutte e 3 → `categories: ['soccer_youth', 'soccer_junior', 'soccer']`
 - test condivisi con PT     → aggiungere anche `'active'` / `'athlete'` ecc.
 
-### Tabelle percentili soccer — stato e fonti (aggiornato mag 2026)
+### Tabelle percentili soccer — stato e fonti (verificato set 2026)
 
-#### Test Senior (14+) e condivisi — da fonte normativa, candidati rollback
-Tabelle aggiunte in `utils/tables.js`. I valori attuali differiscono dall'Excel di
-riferimento (`rankex-tabelle-percentili.xlsx`) — il branch `calibrazione-percentili-soccer`
-contiene le correzioni, in attesa di approvazione.
+#### Test Senior (14+) e condivisi — da fonte normativa
+Tabelle in `utils/tables.js`. **Rollback già applicato** (era segnalato "in attesa di
+approvazione" fino a mag 2026 — sezione non aggiornata dopo il merge, corretta ora):
+tre passate di calibrazione contro `rankex-tabelle-percentili-v2.xlsx` —
+`5273967` (25/04, sprint_20m + standing_long_jump + 505_cod_agility), `2fa9f4b` (10/05,
+sprint_20m + y_balance + 505_cod_agility), `0de30a6` (01/07, standing_long_jump +
+sprint_20m + t_test_mini) — tutte già in `dev`. Copia server
+`functions/src/shared/tables.js` **verificata identica** ai 4 test (creata il 04/07,
+dopo l'ultima calibrazione, quindi mai stata disallineata — a differenza del rischio
+generico descritto in "Copie speculari").
 
 | Test               | Min età | Fasce                           | Fonte dati                                         | Stato in tables.js     |
 |--------------------|---------|----------------------------------|----------------------------------------------------|------------------------|
-| `y_balance`        | 10      | 10-11, 12-13, 14-15, 16-17, adulti | Zwicker et al. 2020                             | ⚠ da rollback (fasce giovani) |
-| `standing_long_jump`| 9      | 7-9 stima + 10-11 → 36-50       | Thomas et al. 2020 youth; adulti: stime            | ⚠ da rollback (10-11+) |
-| `sprint_20m`       | 8       | 8-9 → 36-50                     | Nikolaidis et al. 2016                             | ⚠ da rollback          |
-| `505_cod_agility`  | 10      | 10-11 → 36-50                   | Haff & Triplett 2015                               | ⚠ da rollback          |
-| `beep_test`        | 8       | 8-9 → 36-50                     | LeBlanc & Tomkinson 2016                           | ✓ identico all'Excel   |
+| `y_balance`        | 10      | 10-11, 12-13, 14-15, 16-17, adulti | Excel di riferimento (calibrato 10/05)          | ✓ allineato, client=server |
+| `standing_long_jump`| 9      | 7-17 annuali + 18-35/36-50 adulti | Excel di riferimento (calibrato 25/04 + 01/07)    | ✓ allineato, client=server |
+| `sprint_20m`       | 8       | per-year youth + 18-35/36-50    | Excel di riferimento (calibrato 3 volte, ultima 01/07) | ✓ allineato, client=server |
+| `505_cod_agility`  | 10      | 10-11 → 36-50                   | Excel di riferimento (calibrato 10/05)             | ✓ allineato, client=server |
+| `beep_test`        | 8       | 8-9 → 36-50                     | LeBlanc & Tomkinson 2016 (mai serviva calibrazione) | ✓ identico all'Excel   |
 
 #### Test Pulcini (7-9) e Esordienti (10-13) — stime interne
 Nessuna norma pubblicata disponibile per queste fasce/test.
