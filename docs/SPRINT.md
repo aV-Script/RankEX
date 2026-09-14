@@ -7,38 +7,17 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-## SPRINT #2 — Obiettivi trainer
+**Goal:** _(non ancora aperto)_
 
-**Goal:** implementare EPIC-004 (target percentile su un test, con scadenza,
-achievement rilevato server-side) — deviazione dal piano originale, che puntava su
-EPIC-003 (Streak presenze), risultata già implementata prima di aprire lo sprint.
-
-**Story selezionate:** STORY-008, STORY-009, STORY-010 (EPIC-004, tutte P2)
+**Story selezionate:** _—_
 
 **Status board:**
 
 | Task | Status | Note |
 |------|--------|------|
-| STORY-008 — modello dati + rules | DONE | 7 nuovi test rules verdi su emulatore |
-| STORY-009 — UI trainer | DONE | solo vista trainer — client-side è fast-follow, non in questo sprint |
-| STORY-010 — notifica achievement | DONE | rilevamento server-side in salvaCampionamento |
+| _—_  | _—_    | _—_  |
 
-**Deploy:** Cloud Functions + firestore.rules già su **rankex-dev**. **Non ancora su
-prod** — in attesa di verifica funzionale dell'utente prima del deploy su
-fitquest-60a09 (disciplina Release Manager).
-
-**Blockers:** nessuno per il codice — sprint tecnicamente completo, resta la verifica
-utente + deploy prod come passo esplicito prima di chiudere.
-
-**Nota:** durante questo sprint trovato TD-001 (2 test rules preesistenti falliti, non
-collegati a Obiettivi) — loggato in `docs/TECH-DEBT.md`, non risolto qui per non
-mischiare fix non richiesti nel commit della feature.
-
-**Aggiunta fuori piano:** EPIC-006 (Runbook manuale) — richiesta dall'utente durante
-la verifica di STORY-009/010, non nel piano originale dello sprint. Completata nella
-stessa finestra invece di rimandarla a un nuovo sprint, dato che è indipendente da
-Obiettivi (nessuna dipendenza tra i due epic) e piccola abbastanza da non giustificare
-l'overhead di aprire/chiudere un sprint a parte. Vedi `docs/BACKLOG.md` → EPIC-006.
+**Blockers:** _—_
 
 ---
 
@@ -48,21 +27,61 @@ Sequenza indicativa, non calendarizzata — un solo sviluppatore, quindi ogni sp
 solo a chiusura del precedente. Priorità e ordine sono una proposta di ingegneria, non
 una decisione di business: rivedere prima di aprire ciascuno sprint.
 
-- **SPRINT #2 — Streak presenze** (EPIC-003): prima feature nuova della roadmap
-  "Gamification avanzata". Parte da STORY-005 (definizione regola) perché sblocca le
-  altre due.
-- **SPRINT #3 — Obiettivi trainer** (EPIC-004): coach fissa target su test specifico,
-  notifica al raggiungimento.
-- **SPRINT #4 — Avatar + Negozio: discovery** (EPIC-005): solo scoping (Product
+EPIC-003 (Streak presenze) ed EPIC-004 (Obiettivi trainer) sono **entrambe già
+implementate** (vedi Storico sotto) — il piano originale che le indicava come prossimi
+sprint è superato.
+
+- **SPRINT #3 — Avatar + Negozio: discovery** (EPIC-005): solo scoping (Product
   Analyst + Tech Lead), niente codice — è l'epic più grande della roadmap e richiede
   validazione di valore/modello economico prima di iniziare l'implementazione.
-
-EPIC-002 (pulizia debito minore, P3) resta in backlog libero, da assorbire come filler
-in uno qualsiasi degli sprint sopra se avanza tempo — non merita uno sprint dedicato.
+- **Candidati minori** (filler, non meritano uno sprint dedicato da soli): EPIC-002
+  (pulizia debito minore, P3), TD-001 (2 test rules preesistenti falliti), TD-002 (2
+  test e2e preesistenti falliti, incluso un bug comportamentale reale — bottone
+  "+ NUOVO CLIENTE" visibile a staff_readonly).
 
 ---
 
 ## Storico sprint chiusi
+
+### SPRINT #2 — Obiettivi trainer (+ Runbook manuale fuori piano) — chiuso il 2026-09-14
+
+**Goal:** implementare EPIC-004 (target percentile su un test, con scadenza,
+achievement rilevato server-side) — deviazione dal piano originale, che puntava su
+EPIC-003 (Streak presenze), risultata già implementata prima di aprire lo sprint.
+
+**Completato:**
+- STORY-008 — modello dati + rules (7 nuovi test rules verdi su emulatore)
+- STORY-009 — UI trainer (solo vista trainer — client-side è fast-follow)
+- STORY-010 — notifica achievement (rilevamento server-side in salvaCampionamento)
+- EPIC-006 (Runbook manuale) — aggiunta fuori piano, richiesta dall'utente durante la
+  verifica di STORY-009/010. Completata nella stessa finestra invece di rimandarla a
+  un nuovo sprint: indipendente da Obiettivi, piccola abbastanza da non giustificare
+  l'overhead di un sprint a parte.
+
+**Deploy prod — 2026-09-14:**
+Cloud Functions + rules lanciate a mano da terminale (bloccate dal classificatore auto
+sul comando diretto `npm run deploy` — girate poi dall'utente), poi `dev` → `main` (mai
+pushato su origin prima d'ora in questa sessione, 15 commit) → push accettato → CI +
+deploy.yml automatico → hosting + rules su fitquest-60a09. Verificato via
+`firebase functions:list` (funzioni presenti) e `gh run view` (CI success, Deploy to
+Firebase success).
+
+**E2E fallito sullo stesso push, ma confermato preesistente:** stessi 2 test falliti
+già su `main` dal 3 agosto 2026 (stesso file, stessa riga, stesso errore — confrontato
+run per run) — non una regressione di questo sprint. Loggato come TD-002, uno dei due
+è un bug comportamentale reale (non solo test fragile): `staff_readonly` vede il
+bottone "+ NUOVO CLIENTE" che dovrebbe essere nascosto.
+
+**Non completato:** nessuno.
+
+**Blockers:** nessuno.
+
+**Tech debt emerso:** TD-002 (vedi sopra). TD-001 (2 test rules preesistenti, trovati
+durante STORY-008) resta OPEN, non collegato a questo sprint.
+
+**Prossimo sprint (candidati):** vedi "Piano sprint successivi" in cima al file.
+
+---
 
 ### SPRINT #1 — Correttezza dati e sicurezza residua — chiuso il 2026-09-14
 
@@ -98,6 +117,9 @@ coerenza CLAUDE.md↔codice, invece di scoprirlo story per story.
 **Prossimo sprint (candidati):** SPRINT #2 — Streak presenze (EPIC-003), come da piano
 originale — nessuna revisione necessaria, EPIC-003/004/005 non toccate da quanto emerso
 qui.
+
+_(Nota a posteriori: anche EPIC-003 si è rivelata già implementata all'apertura dello
+Sprint #2 — vedi sopra. Stesso pattern, seconda volta di fila.)_
 
 ---
 

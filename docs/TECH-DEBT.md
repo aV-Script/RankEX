@@ -43,4 +43,29 @@ doc/codice.
 
 ---
 
+## [TD-002] 2 test e2e falliscono su main da almeno il 3 agosto 2026
+**Data trovato:** 2026-09-14 (verifica post-deploy prod di Obiettivi/Runbook)
+**Non è una regressione di oggi** — confrontato l'errore del run E2E su questo push
+(commit 708bf77) con l'ultimo E2E fallito su `main` prima di questa sessione (3 agosto,
+commit c273002): stessi due test, stessa riga, stesso identico messaggio d'errore.
+Girano rotti da 6+ settimane su ogni push a `main`, mai notato perché E2E non blocca
+il deploy (gira indipendente da CI, vedi CLAUDE.md → deploy.yml).
+
+**Dettaglio:**
+1. `e2e/tests/clients.spec.js:20` — "ricerca testuale filtra i risultati": fallisce con
+   `strict mode violation: getByPlaceholder(/cerca per nome/i) resolved to 2 elements`.
+   Probabile causa: due input con lo stesso placeholder "Cerca per nome..." renderizzati
+   contemporaneamente nel viewport di test (versione desktop + mobile del filtro?).
+2. `e2e/tests/staff-readonly.spec.js:19` — "nessun bottone di modifica nella lista
+   clienti": fallisce con `expect(addBtn).not.toBeVisible()` — il bottone
+   "+ NUOVO CLIENTE" **è visibile** per `staff_readonly` su ClientsPage. Questo è un
+   bug comportamentale reale, non solo un test fragile — `staff_readonly` non dovrebbe
+   vedere controlli di modifica (principio ReadonlyGuard, CLAUDE.md → "Readonly mode").
+**Rischio se non risolto:** basso/medio — il bottone probabilmente non porta a nulla di
+scrivibile (le Cloud Function validano il ruolo comunque), ma è un'affordance UI
+sbagliata visibile a un ruolo che non dovrebbe vederla da 6+ settimane in produzione.
+**Status:** OPEN
+
+---
+
 <!-- Nuove voci aggiunte qui dal Tech Lead o dalla Retrospective -->
