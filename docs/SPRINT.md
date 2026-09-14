@@ -7,17 +7,32 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-**Goal:** _(non ancora aperto)_
+## SPRINT #2 — Obiettivi trainer
 
-**Story selezionate:** _—_
+**Goal:** implementare EPIC-004 (target percentile su un test, con scadenza,
+achievement rilevato server-side) — deviazione dal piano originale, che puntava su
+EPIC-003 (Streak presenze), risultata già implementata prima di aprire lo sprint.
+
+**Story selezionate:** STORY-008, STORY-009, STORY-010 (EPIC-004, tutte P2)
 
 **Status board:**
 
 | Task | Status | Note |
 |------|--------|------|
-| _—_  | _—_    | _—_  |
+| STORY-008 — modello dati + rules | DONE | 7 nuovi test rules verdi su emulatore |
+| STORY-009 — UI trainer | DONE | solo vista trainer — client-side è fast-follow, non in questo sprint |
+| STORY-010 — notifica achievement | DONE | rilevamento server-side in salvaCampionamento |
 
-**Blockers:** _—_
+**Deploy:** Cloud Functions + firestore.rules già su **rankex-dev**. **Non ancora su
+prod** — in attesa di verifica funzionale dell'utente prima del deploy su
+fitquest-60a09 (disciplina Release Manager).
+
+**Blockers:** nessuno per il codice — sprint tecnicamente completo, resta la verifica
+utente + deploy prod come passo esplicito prima di chiudere.
+
+**Nota:** durante questo sprint trovato TD-001 (2 test rules preesistenti falliti, non
+collegati a Obiettivi) — loggato in `docs/TECH-DEBT.md`, non risolto qui per non
+mischiare fix non richiesti nel commit della feature.
 
 ---
 

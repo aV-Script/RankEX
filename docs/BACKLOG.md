@@ -119,15 +119,40 @@ Già così, in 3 punti. **Status:** DONE (n/a, già implementata)
 ## [EPIC-004] Obiettivi trainer (roadmap — "Gamification avanzata")
 Fonte: CLAUDE.md → Roadmap futura. Coach fissa un target su un test specifico per un
 cliente; il sistema monitora e notifica al raggiungimento.
+**Status: IMPLEMENTATA — set 2026 (Sprint #2).** Verificata assente prima di iniziare
+(a differenza di EPIC-003) — qui il lavoro era reale, non solo verifica.
 
 ### [STORY-008] Modello dati obiettivo
-**Priority:** P2 · **Status:** BACKLOG
+`clients/{clientId}/goals/{goalId}` + `firestore.rules` (mirror del pattern notes:
+create/update solo trainer/org_admin, read anche client, delete sempre false — si
+annulla via update di stato per mantenere lo storico) + `paths.js` → `goalsPath`.
+7 nuovi test in `tests/rules/firestore.rules.test.js` → describe "Obiettivi del
+cliente", tutti verdi contro l'emulatore.
+**Priority:** P2 · **Status:** DONE
 
 ### [STORY-009] UI trainer per fissare/monitorare l'obiettivo
-**Priority:** P2 · **Status:** BACKLOG
+`GoalsSection.jsx` (tab OBIETTIVI in `ClientDashboard`) — form crea obiettivo (test da
+`getTestsForCategoria(client.categoria)`, percentile, scadenza, nota) + lista con
+badge di stato (in corso/raggiunto/scaduto/annullato) + annulla. `status: 'missed'`
+calcolato al volo (`utils/goals.js`), non salvato — nessun cron necessario.
+**Non incluso in questo sprint:** visibilità lato client (Pentagon Nav) — il client
+riceve solo la notifica di achievement, non vede la lista obiettivi. Segnato come
+fast-follow non bloccante in CLAUDE.md → Roadmap futura.
+**Priority:** P2 · **Status:** DONE (scope trainer-only, client-side fast-follow aperto)
 
 ### [STORY-010] Notifica al raggiungimento
-Riusa `notifications.js`/`useNotifications` esistenti. **Priority:** P2 · **Status:** BACKLOG
+Achievement rilevato **server-side** in `functions/src/callable/salvaCampionamento.js`
+(mai lato client, stesso principio di XP/percentili) — dopo il calcolo percentili,
+controlla gli obiettivi `active` del cliente, verifica che il test dell'obiettivo sia
+tra quelli appena valutati (per l'ambiguità stat condivise tra test, vedi CLAUDE.md →
+percentili), marca `achieved` se `percentile >= target` e invia una notifica
+`type: 'goal'` riusando `notifications` esistente.
+**Priority:** P2 · **Status:** DONE
+
+**Deploy:** Cloud Functions (`aggiungiObiettivo`, `annullaObiettivo`,
+`salvaCampionamento` aggiornata) + `firestore.rules` → **rankex-dev** (set 2026).
+**Non ancora su prod (fitquest-60a09)** — in attesa di verifica funzionale su dev
+prima del deploy in produzione (disciplina Release Manager: dev prima di prod).
 
 ---
 

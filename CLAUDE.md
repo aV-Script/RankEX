@@ -120,6 +120,7 @@ groupsPath(orgId)             → organizations/{orgId}/groups
 recurrencesPath(orgId)        → organizations/{orgId}/recurrences
 notificationsPath(orgId)      → organizations/{orgId}/notifications
 notesPath(orgId, clientId)    → organizations/{orgId}/clients/{clientId}/notes
+goalsPath(orgId, clientId)    → organizations/{orgId}/clients/{clientId}/goals
 workoutPlansPath(orgId)       → organizations/{orgId}/workoutPlans
 ```
 
@@ -252,6 +253,34 @@ Il trainer gestisce la cancellazione a cascata (nota root + suoi commenti) lato 
 Backward compat: vecchi documenti con `exercises[]` flat vengono normalizzati
 a `[{ label: 'Giorno 1', exercises }]` lato client.
 Il client vede la scheda `active` assegnata a sé in read-only nella propria dashboard.
+
+### Obiettivo (`clients/{clientId}/goals/{goalId}`)
+```js
+{
+  testKey,             // riferimento a un test in ALL_TESTS/TESTS_META
+  testLabel,           // denormalizzato dal client al momento della creazione —
+                        // il BE non ha label/unit dei test (vedi testsMeta.js),
+                        // stesso motivo del log text in saveCampionamentoUseCase
+  targetPercentile,    // 1-100
+  deadline,            // 'YYYY-MM-DD'
+  note,                // opzionale, libero
+  status,              // 'active' | 'achieved' | 'cancelled'
+  createdAt, createdBy,
+  achievedAt,          // null finché non raggiunto
+  achievedPercentile,  // percentile che ha fatto scattare l'achievement
+}
+```
+`status: 'missed'` **non esiste in Firestore** — un obiettivo attivo con `deadline`
+superata è calcolato al volo lato client (`utils/goals.js` → `isGoalMissed`/
+`getGoalDisplayStatus`), per non richiedere un cron/trigger dedicato solo a marcare
+la scadenza. L'achievement è invece scritto server-side dentro
+`functions/src/callable/salvaCampionamento.js`: dopo aver calcolato i percentili del
+campionamento, controlla gli obiettivi `active` del cliente e — se il test
+dell'obiettivo è tra quelli appena valutati (`testMeta.categories.includes(categoria)`,
+non solo la stat in comune, per l'ambiguità stat condivise già nota) e il percentile
+raggiunto è `>= targetPercentile` — marca `achieved` e invia una notifica. Mai
+calcolato o scritto dal client. Il client legge i propri obiettivi in sola lettura
+(motivante vederli), non può crearli né annullarli — stesso pattern delle note.
 
 ### Slot (`slots/{slotId}`)
 ```js
@@ -455,6 +484,7 @@ src/
 │   │       ├── clientDashboardIcons.jsx  ← icone tab/azioni estratte (RX-07)
 │   │       ├── DeleteDialog.jsx
 │   │       ├── NotesSection.jsx          ← thread note + commenti (trainer+client)
+│   │       ├── GoalsSection.jsx          ← obiettivi (target percentile+scadenza): CRUD (solo vista trainer, vedi Roadmap)
 │   │       ├── WorkoutPlanSection.jsx    ← schede allenamento (trainer): CRUD + storico
 │   │       ├── ClientWorkoutSection.jsx  ← scheda allenamento read-only (client)
 │   │       ├── MisureSection.jsx         ← tab Misure: storico peso+altezza con trend inline
@@ -545,6 +575,7 @@ src/
 │       ├── groupNotes.js    ← getGroupNotes, addGroupNote, deleteGroupNote (orgId, groupId)
 │       ├── notifications.js ← tutte le fn accettano orgId come primo arg
 │       ├── notes.js         ← getNotes, addNote, deleteNoteItem (orgId, clientId)
+│       ├── goals.js         ← getGoals (orgId, clientId) — solo lettura, scrittura via usecases
 │       ├── org.js           ← organizations (CRUD) + membri in sola lettura (getMembers,
 │       │                       getMember) + updateMember diretto (solo cambio ruolo, nessun
 │       │                       counter coinvolto). Creazione e rimozione membro passano
@@ -562,7 +593,7 @@ src/
 │
 ├── usecases/                ← wrapper httpsCallable — SCRITTURE sensibili verso le Cloud
 │   │                           Functions in functions/ (vedi sezione dedicata più sotto).
-│   │                           31 file, uno per callable, stesso pattern minimale:
+│   │                           33 file, uno per callable, stesso pattern minimale:
 │   ├── createClientUseCase.js       ← creaCliente
 │   ├── deleteClientUseCase.js       ← eliminaCliente
 │   ├── createMemberUseCase.js       ← creaMembroTeam
@@ -581,6 +612,7 @@ src/
 │   │   addClientToRecurrenceUseCase.js / removeClientFromRecurrenceUseCase.js
 │   ├── addGroupUseCase.js / updateGroupUseCase.js / deleteGroupUseCase.js
 │   ├── addNoteUseCase.js / deleteNoteUseCase.js
+│   ├── addGoalUseCase.js / cancelGoalUseCase.js   ← aggiungiObiettivo / annullaObiettivo
 │   └── markNotificationReadUseCase.js / markAllNotificationsReadUseCase.js
 │
 ├── hooks/
@@ -590,6 +622,7 @@ src/
 │   ├── useGroups.js            ← useGroups(orgId)
 │   ├── useNotifications.js     ← useNotifications(orgId, clientId)
 │   ├── useNotes.js             ← useNotes(orgId, clientId, author) → threads
+│   ├── useGoals.js             ← useGoals(orgId, clientId) → { goals, handleAddGoal, handleCancelGoal }
 │   ├── useBadges.js            ← useBadges(orgId, clientId, client, { readonly }) — auto-award + manuale
 │   ├── useWearable.js          ← useWearable (trainer, solo enable/disable/sync) — link client rimosso, vedi sezione dedicata
 │   ├── useVersionCheck.js      ← rileva nuova build disponibile, mostra banner ricarica
@@ -615,6 +648,8 @@ src/
     ├── tables.js            ← TABLES (dati grezzi percentili)
     │                           getAgeGroup(testKey, age) → string|null
     │                           getAgeGroupClamped(testKey, age, sex) → { group, outOfRange }
+    ├── goals.js             ← isGoalMissed, getGoalDisplayStatus — 'missed' calcolato
+    │                           al volo, non salvato (vedi sezione "Obiettivo")
     └── validation.js
 ```
 
@@ -625,18 +660,19 @@ src/
 Pacchetto Node **separato** alla radice del repo (proprio `package.json`, proprio
 `node_modules`, nessun import da `src/`, deploy indipendente da hosting/rules). Gestisce
 la maggior parte delle scritture sensibili dell'app tramite il layer `usecases/` visto
-sopra — 31 callable, una per operazione.
+sopra — 33 callable, una per operazione.
 
 ```
 functions/
 ├── src/
 │   ├── index.js         ← esporta tutte le callable (region europe-west1)
-│   ├── callable/        ← 31 funzioni onCall — una per operazione:
+│   ├── callable/        ← 33 funzioni onCall — una per operazione:
 │   │                       creaCliente, eliminaCliente, creaMembroTeam,
 │   │                       rimuoviMembroTeam, aggiornaRuoloMembro, salvaXP,
 │   │                       salvaCampionamento, salvaBia, aggiornaProfiloCliente,
 │   │                       chiudiSessione, saltaSlot, aggiungi/aggiorna/elimina
-│   │                       Slot/Gruppo/Nota/SchedaAllenamento/Ricorrenza, ecc.
+│   │                       Slot/Gruppo/Nota/SchedaAllenamento/Ricorrenza,
+│   │                       aggiungiObiettivo/annullaObiettivo, ecc.
 │   ├── shared/           ← copie server-side minimali di logica src/, SENZA
 │   │                        dipendenze browser:
 │   │   ├── auth.js          ← requireAuth / requireRole / requireOrgAccess /
@@ -1372,6 +1408,19 @@ Struttura: `clients/{clientId}/notes/{noteId}` (subcollection del cliente).
 - UI client: `NotesSection` già integrata in `ClientDashboardPage`
 - Rules: già presenti in `firestore.rules` (client crea solo commenti)
 
+### Obiettivo
+Struttura: `clients/{clientId}/goals/{goalId}` (subcollection del cliente).
+- Service: `firebase/services/goals.js` (`getGoals`, sola lettura)
+- Usecases: `addGoalUseCase.js` (→ `aggiungiObiettivo`), `cancelGoalUseCase.js` (→ `annullaObiettivo`)
+- Hook: `useGoals(orgId, clientId)` in `hooks/useGoals.js`
+- UI trainer: `GoalsSection` integrata in `ClientDashboard` (tab OBIETTIVI)
+- UI client: non ancora — vedi nota fast-follow in Roadmap futura → "Obiettivi trainer"
+- Achievement: mai lato client — rilevato server-side in `salvaCampionamento.js`
+  confrontando il percentile appena calcolato con `targetPercentile`
+- Rules: `firestore.rules` — create/update solo `canWrite(orgId)` (trainer/org_admin),
+  read anche `isOwnClient`, delete sempre `false` (si annulla via update di stato,
+  mai si cancella — mantiene lo storico)
+
 ### Scheda allenamento
 Struttura: `organizations/{orgId}/workoutPlans/{planId}`.
 - Service: `firebase/services/workoutPlans.js`
@@ -1804,9 +1853,22 @@ Groups Analytics Hub   → IMPLEMENTATO — apr 2026
                          Confronto (GroupComparison — selettore paginato, radar SVG multi-overlay, tabella),
                          Sessioni (slot del gruppo), Note (GroupNotes — publish/delete, paginazione).
                          Export PDF: GroupReportPrint.jsx via window.print().
-Obiettivi trainer      → coach fissa target su test specifico per un cliente
-                         (es. "70° percentile sprint entro fine mese")
-                         sistema monitora e notifica al raggiungimento
+Obiettivi trainer      → IMPLEMENTATO — set 2026 (Sprint #2)
+                         Coach fissa target percentile su un test specifico per un
+                         cliente entro una scadenza (es. "70° percentile sprint entro
+                         fine mese"). Achievement rilevato server-side al prossimo
+                         campionamento (salvaCampionamento), mai dal client. Notifica
+                         al cliente al raggiungimento. 'missed' calcolato al volo
+                         (nessun cron). UI: client-dashboard/GoalsSection.jsx (tab
+                         OBIETTIVI, solo vista trainer per ora — vedi nota sotto).
+                         Modello dati: vedi sezione "Obiettivo" più sopra.
+                         Callable: aggiungiObiettivo / annullaObiettivo.
+                         Non ancora fatto (fast-follow, non bloccante): visibilità
+                         dell'obiettivo nella dashboard client stessa (oggi il client
+                         riceve solo la notifica di achievement, non vede la lista
+                         obiettivi attivi/scaduti come fa il trainer) — richiede un
+                         punto di ingresso nel Pentagon Nav client, non nella tab bar
+                         trainer-style già usata per il resto di questa feature.
 ```
 
 ### Gestione allenamento
