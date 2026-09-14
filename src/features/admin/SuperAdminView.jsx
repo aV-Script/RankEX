@@ -4,6 +4,7 @@ import { AdminDashboard }        from './admin-pages/AdminDashboard'
 import { OrgsPage }              from './admin-pages/OrgsPage'
 import { OrgDetailView }         from './admin-pages/OrgDetailView'
 import { AdminProfilePage }      from './admin-pages/AdminProfilePage'
+import { RunbookPage }           from './admin-pages/RunbookPage'
 
 export default function SuperAdminView({ user }) {
   const [page,        setPage]        = useState('dashboard')
@@ -26,6 +27,7 @@ export default function SuperAdminView({ user }) {
       {page === 'dashboard' && <AdminDashboard onSelectOrg={(org) => { setSelectedOrg(org) }} />}
       {page === 'orgs'      && <OrgsPage onSelectOrg={setSelectedOrg} currentUserUid={user?.uid} />}
       {page === 'profile'   && <AdminProfilePage user={user} />}
+      {page === 'runbook'   && <RunbookPage />}
     </AdminShell>
   )
 }

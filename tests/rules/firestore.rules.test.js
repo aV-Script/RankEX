@@ -280,6 +280,38 @@ describe('Obiettivi del cliente', () => {
   })
 })
 
+// ── Runbook manuale (qa_runs) — solo super_admin ─────────────────────────────
+describe('Runbook (qa_runs)', () => {
+  it('super_admin può creare un giro', async () => {
+    const db = ctxFor('superadmin1').firestore()
+    await assertSucceeds(addDoc(collection(db, 'qa_runs'), {
+      suiteIds: ['auth'], results: {}, counts: { pass: 1, fail: 0, skip: 0, total: 1 },
+    }))
+  })
+
+  it('super_admin può leggere lo storico', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'qa_runs/run1'), { suiteIds: ['auth'] })
+    })
+    const db = ctxFor('superadmin1').firestore()
+    await assertSucceeds(getDoc(doc(db, 'qa_runs/run1')))
+  })
+
+  it('org_admin NON può leggere né scrivere qa_runs', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'qa_runs/run1'), { suiteIds: ['auth'] })
+    })
+    const db = ctxFor('admin1').firestore()
+    await assertFails(getDoc(doc(db, 'qa_runs/run1')))
+    await assertFails(addDoc(collection(db, 'qa_runs'), { suiteIds: [] }))
+  })
+
+  it('trainer NON può scrivere qa_runs', async () => {
+    const db = ctxFor('trainer1').firestore()
+    await assertFails(addDoc(collection(db, 'qa_runs'), { suiteIds: [] }))
+  })
+})
+
 // ── Client — self-update ristretto ───────────────────────────────────────────
 describe('Client self-update', () => {
   it('il client può aggiornare il proprio campo avatar', async () => {

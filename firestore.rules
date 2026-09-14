@@ -246,5 +246,13 @@ service cloud.firestore {
       allow update: if false;
       allow delete: if false;
     }
+
+    // ── Runbook manuale — solo super_admin ───────────────────────
+    // Esecuzioni dei casi in config/runbook.config.js (che resta la fonte di
+    // verità dei casi stessi — qui vive solo lo storico di chi ha passato cosa).
+
+    match /qa_runs/{runId} {
+      allow read, write: if isSuperAdmin();
+    }
   }
 }
