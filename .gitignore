@@ -16,8 +16,10 @@ dist-ssr/
 .env.uat
 env
 
-# Claude Code — impostazioni locali
-.claude/
+# Claude Code — impostazioni locali (settings, worktree, lock di sessione)
+# ma non gli agent di processo: sono config di progetto condivisa, come CLAUDE.md
+.claude/*
+!.claude/agents/
 
 # Firebase cache locale
 .firebase/

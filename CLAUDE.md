@@ -1287,6 +1287,51 @@ getWorkoutPlanForClient → firebase/services/workoutPlans (client: scheda attiv
 
 ---
 
+## Processo di sviluppo — team AI
+
+RankEX ha un set di subagent dedicati in `.claude/agents/*.md`, uno per ruolo, pensati per
+richieste non banali — non per ogni piccolo fix. Documenti di processo in `docs/`:
+`BACKLOG.md`, `SPRINT.md`, `DECISIONS.md`, `BUGS.md`, `TECH-DEBT.md`, `CHANGELOG.md`.
+**Questi file tracciano solo lo stato del lavoro** (cosa è pianificato, in corso, deciso,
+rotto) — non duplicano MAI la documentazione di prodotto/architettura/design, che resta
+esclusivamente in questo file (single source of truth, stesso principio già applicato a
+`utils/gamification.js` vs la sua copia server).
+
+### Pipeline
+
+```
+richiesta
+  → product-analyst   (solo se il valore non è ovvio — vale la pena costruirla?)
+  → product-owner       → docs/BACKLOG.md  (Epic → Story → Task, acceptance criteria, priorità)
+  → scrum-master         → docs/SPRINT.md   (cosa entra nello sprint, status board)
+  → ux-ui-designer + tech-lead                (design coerente + approccio tecnico;
+                                                 tech-lead logga su docs/DECISIONS.md)
+  → developer                                  (implementa SOLO quanto è READY nello sprint)
+  → code-reviewer        → invoca /code-review (qualità del codice, non del comportamento)
+  → qa-engineer            → docs/BUGS.md se trova problemi (verifica il comportamento
+                              reale, es. via /run — non fidarsi del self-report)
+  → (fix → code-reviewer → qa-engineer di nuovo, se serve)
+  → release-manager        → docs/CHANGELOG.md (prima di merge dev→main o deploy manuale)
+  → retrospective            (a fine sprint, non ad ogni task)
+```
+
+Si invoca un ruolo con l'`Agent` tool passando `subagent_type: <nome>` (es. `tech-lead`,
+`qa-engineer`). Non serve un agente "orchestratore" separato: la sessione principale
+dispatcha nell'ordine sopra.
+
+### Quando saltare la pipeline
+
+RankEX è mantenuto da un solo sviluppatore — il processo serve a disambiguare, non a
+burocratizzare l'ovvio. Per un fix di una riga, un typo, o un bug con causa e soluzione già
+chiare, si implementa direttamente, senza passare da tutti i ruoli. La pipeline completa
+vale per feature nuove o cambi che toccano permessi, piani, o dati sensibili.
+
+**Principio guida:** *"Non costruire quello che non è stato capito."* — non far partire il
+Developer se manca un backlog approvato o un'analisi tecnica del Tech Lead per un cambio
+non banale.
+
+---
+
 ## Checklist: aggiungere funzionalità
 
 ### Nuovo test atletico
