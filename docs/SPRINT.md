@@ -7,42 +7,17 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-**Goal:** eseguire in sequenza gli sprint #6-#9 del piano proposto (Privacy →
-Mobile signing → UX/UI debito residuo → verifica manuale/Data Safety), su richiesta
-esplicita dell'utente ("procedi con gli sprint fino a termine token") — sessione unica,
-senza chiusura formale tra uno sprint e l'altro.
+**Goal:** _(non ancora aperto)_
 
-**Story selezionate:** STORY-020, STORY-021 (Sprint #6) · STORY-015 (Sprint #7) ·
-STORY-023, STORY-024 (Sprint #8) · STORY-025 parziale (Sprint #9, code-level)
+**Story selezionate:** _—_
 
 **Status board:**
 
 | Task | Status | Note |
 |------|--------|------|
-| STORY-020 — bozza Privacy Policy | DONE | `docs/PRIVACY-POLICY-DRAFT.md` scritto |
-| STORY-021 — scoping cancellazione dati | DONE | ADR-004; BUG-001 trovato e fixato (non deployato) |
-| STORY-015 — Android signing scaffold | DONE (scaffold) | `build.gradle` condizionale su keystore reale; verificato `assembleDebug` ancora BUILD SUCCESSFUL |
-| STORY-023 — sweep `color+'NN'` (35 file) | DONE | 34 file, 127 occorrenze, lint/build/test verdi. Trovato+loggato TD-003 (SlotCard/CalendarSidebar duplicati) |
-| TD-003 — SlotCard/CalendarSidebar/GroupsSidebar dead code | RESOLVED | 3 file rimossi (zero import confermato), CLAUDE.md corretto (incl. claim errata badge Streak) |
-| STORY-025 fix P1 (doppio tap PDF) + P2 (bottone RIPROVA) | DONE | eseguiti direttamente, non delegati — nessuna collisione file con gli agenti |
-| Verifica consolidata (lint+build+test, tutto il lavoro Sprint #8+#9) | DONE | 0 errori lint, build ok, 211/211 test |
-| STORY-026 — back button non chiude modal (wave 1) | DONE | `useModalStack.js` nuovo, wired in `Modal`/`ConfirmDialog`; dialog bespoke (CloseSessionModal/RecurrenceModal/SlotPopup) restano fuori scope, wave 2 da pianificare |
-| Code review sessione completa (59 file) | DONE | verdetto CHANGES REQUESTED — 1 CRITICAL + 1 HIGH, entrambi fixati (vedi sotto) |
-| Fix CRITICAL — doppio decremento clientCount su retry parziale | DONE | `eliminaCliente.js`: `recursiveDelete` spostato prima del batch invece che dopo |
-| Fix HIGH — claim STORY-026 sul wizard era falsa | DONE | claim corretta, causa profonda (navigazione trainer senza history reale) promossa a STORY-028 |
-| Fix raccomandati (non bloccanti) | DONE | try/finally su `usePrintTrigger`, stack modal ref-based, doc obsolete corrette (runbook.config.js, MOBILE-APP.md), nit copy GroupLeaderboard |
-| Verifica finale (lint+build+test+node --check functions) | DONE | 0 errori, build ok, 211/211 test, sintassi functions OK |
-| STORY-024 — terminologia wave 2 groups-page | DONE | 10 file, lint/build/test verdi (211/211). Trovato+loggato STORY-027 (bug genere in GroupsPage.jsx, fuori scope) |
-| STORY-025 — audit UX superfici mobile-native | IN PROGRESS | delegato a subagent ux-ui-designer in background (solo code-level, nessun device disponibile) |
-| STORY-016 — verifica manuale device | BLOCKED | nessun device/emulatore disponibile in questo ambiente — non tentato |
-| STORY-022 — Data Safety / Nutrition Label | NOT STARTED | dipende dall'esito di STORY-021 (fatto) — da compilare |
+| _—_  | _—_    | _—_  |
 
-**Blockers:**
-- STORY-016 bloccata strutturalmente (RAM insufficiente per un AVD in questo ambiente,
-  nessun device fisico collegato)
-- STORY-021/BUG-001: fix scritto ma **non verificato** contro emulatore/rankex-dev —
-  nessun harness di test esiste oggi per le callable (`functions/` non ha script di
-  test, solo `test:rules` per le sole Firestore rules) — verifica rimandata
+**Blockers:** _—_
 
 ---
 
@@ -56,7 +31,10 @@ EPIC-003 (Streak presenze) ed EPIC-004 (Obiettivi trainer) erano **già implemen
 prima di aprire i rispettivi sprint. EPIC-005 (Avatar + Negozio) è stata scoperta
 (Sprint #3, raccomandazione di non procedere) ma l'utente ha scelto comunque uno spike
 tecnico ridotto (Sprint #4, STORY-014, override esplicito — vedi ADR-003), deployato
-su prod. TD-001/TD-002 risolti. EPIC-002 chiusa (Sprint #5).
+su prod. TD-001/TD-002 risolti. EPIC-002 chiusa (Sprint #5). EPIC-007/008/009
+(Mobile Store Readiness, Privacy & Compliance, UX/UI debito residuo) eseguite in un
+unico sprint reale (Sprint #6, chiuso 2026-09-15) — commit `852d917` pushato su
+`feature/mobile-app`, non ancora in `main`/deploy.
 
 **2026-09-15 — verifica preliminare fatta prima di proporre questo piano:** la memoria
 di sessione sull'audit Art Direction (lug 2026) segnalava "nessun commit fatto" — prima
@@ -65,62 +43,22 @@ codice (`--rx-accent` presente in `src/index.css`, `--rx-green` assente, commit
 `fd8f5f8` + 2 fix successivi `1ac76a4`/`e5d2a33`) — non un rischio di lavoro perso,
 solo la memoria di sessione non aggiornata dopo il commit.
 
-**Candidati aperti — 3 nuove epic da `docs/BACKLOG.md`, sequenza proposta sotto:**
-- **EPIC-007 — Mobile App: Store Readiness** (STORY-015→019)
-- **EPIC-008 — Privacy & Compliance** (STORY-020→022)
-- **EPIC-009 — UX/UI: debito residuo audit + superfici mobile-native** (STORY-023→025)
+**Candidati aperti (dopo la chiusura di Sprint #6, vedi storico sotto):**
+- **SPRINT #7 (sotto) — Mobile: iOS + push end-to-end** — bloccato su risorse esterne
+  (macOS/Xcode, iscrizione Apple Developer Program)
+- **STORY-016** — verifica manuale su device Android reale, tuttora bloccata (nessun
+  device/emulatore disponibile in questo ambiente)
+- **STORY-022 (parte residua)** — trascrizione effettiva nei Console Play/App Store
+  (la bozza contenuti è pronta, manca solo l'azione nei rispettivi portali)
+- **STORY-027** — fix concordanza di genere in `GroupsPage.jsx` (P3, cosmetico)
+- **STORY-028** — investigare la navigazione trainer senza `history.pushState` reale
+  (P1, richiede Tech Lead review prima di essere presa — vedi `docs/BACKLOG.md`)
+- **STORY-026 wave 2** — estendere la protezione back-button ai dialog "bespoke"
+  (`CloseSessionModal`, `RecurrenceModal`, `SlotPopup`, `GroupToggleDialog`)
 - EPIC-005 completa — Avatar + Negozio, resta bloccata sulle stesse dipendenze esterne
-  di sempre (asset grafici, bilanciamento economia, flusso B2B) — non tocca né è
-  toccata dalle 3 epic sopra, può essere ripresa in qualunque momento se le domande
-  aperte trovano risposta.
+  di sempre (asset grafici, bilanciamento economia, flusso B2B).
 
-### Perché questo ordine (non solo priorità dichiarata nel backlog)
-La sequenza non segue la numerazione delle epic ma **cosa è eseguibile subito senza
-bloccarsi su una risorsa esterna** (device fisico, macOS, artwork, decisione legale) —
-stesso criterio già usato negli sprint passati. Diversi item P1/P2 nel backlog sono
-**bloccati strutturalmente** (STORY-018/019, parte di STORY-017) e vengono deliberatamente
-posticipati agli ultimi sprint invece di bloccare l'intero piano.
-
-### SPRINT #6 (proposto) — Privacy: bozza + scoping (nessuna dipendenza esterna)
-**Goal:** sbloccare i due item che oggi impediscono qualunque submission store,
-portandoli al punto massimo raggiungibile senza input legale/aziendale esterno.
-- STORY-020 — bozza tecnica Privacy Policy (contenuto derivabile dai dati già
-  verificati nel codice) + lista esplicita delle decisioni non tecniche da chiedere
-  all'utente (titolare trattamento, DPO, retention)
-- STORY-021 — scoping processo di cancellazione dati: valutare se il processo manuale
-  (supporto → super_admin, strumenti già esistenti) basta, o serve un flusso
-  self-service nuovo
-- **Non incluso:** revisione legale finale della Privacy Policy — non delegabile al
-  developer, resta un blocker esterno per la pubblicazione effettiva
-
-### SPRINT #7 (proposto) — Mobile: signing Android + appId (nessuna dipendenza esterna)
-**Goal:** portare la build Android da "compila in debug" a "pronta per essere firmata",
-azione tecnica pura con solo 2 decisioni rapide richieste all'utente.
-- STORY-015 — conferma `appId`, generazione keystore, `signingConfigs` in
-  `build.gradle`, verifica `./gradlew bundleRelease`
-- **Dependency inversa:** STORY-022 (Data Safety form) userà l'output di STORY-021 dello
-  sprint precedente — ordine Privacy prima di Mobile signing non è casuale
-
-### SPRINT #8 (proposto) — UX/UI: debito residuo (nessuna dipendenza esterna)
-**Goal:** chiudere i due item lasciati esplicitamente parziali nell'audit Art Direction
-di lug 2026, prima che il codice attorno si sposti ulteriormente.
-- STORY-023 — sweep completo pattern `color+'NN'` (31 file)
-- STORY-024 — terminologia multi-modulo wave 2 su `groups-page/` (11 file)
-- **Non incluso:** STORY-025 (audit superfici mobile-native) — dipende da poter vedere
-  le schermate dal vivo, quindi rimandato a dopo Sprint #9 (verifica manuale device)
-
-### SPRINT #9 (proposto) — Mobile: verifica manuale + submission Android
-**Goal:** primo giro di verifica reale su device, mai fatto finora, e compilazione dei
-form privacy che ne dipendono.
-- STORY-016 — checklist manuale completa su device/emulatore Android reale
-  (**blocker potenziale**: l'ambiente di sviluppo attuale non riesce ad avviare un AVD
-  per RAM insufficiente — serve un device fisico o un ambiente diverso)
-- STORY-022 — Data Safety form (Play), usando l'output di STORY-021
-- STORY-025 — audit UX delle superfici mobile-native, ora visibili dal vivo
-- Build AAB firmata finale (output tecnico di STORY-015, eseguito qui a valle della
-  verifica manuale, non prima)
-
-### SPRINT #10 (proposto) — Mobile: iOS + push end-to-end — bloccato su risorse esterne
+### SPRINT #7 (proposto) — Mobile: iOS + push end-to-end — bloccato su risorse esterne
 **Goal:** solo se/quando è disponibile un Mac con Xcode 15+ e una decisione
 sull'iscrizione Apple Developer Program ($99/anno, dell'utente).
 - STORY-018 — build/verifica iOS su Xcode reale
@@ -139,6 +77,90 @@ sull'iscrizione Apple Developer Program ($99/anno, dell'utente).
 ---
 
 ## Storico sprint chiusi
+
+### SPRINT #6 — Privacy + Mobile signing + UX/UI debito residuo — chiuso il 2026-09-15
+
+**Goal:** eseguire in sequenza gli sprint #6-#9 del piano proposto (Privacy → Mobile
+signing → UX/UI debito residuo → verifica manuale/Data Safety), su richiesta esplicita
+dell'utente ("procedi con gli sprint fino a termine token") — sessione unica, senza
+chiusura formale tra un sotto-sprint e l'altro. Numerato #6 nello storico (i sotto-sprint
+proposti #6-#9 sono confluiti in un solo sprint reale).
+
+**Completato:**
+- STORY-020 — bozza tecnica Privacy Policy (`docs/PRIVACY-POLICY-DRAFT.md`), incluso il
+  punto non ovvio che RankEX B2B multi-tenant implica un modello Titolare(org)/
+  Responsabile(RankEX), non solo una policy generica
+- STORY-021 — scoping processo di cancellazione dati (ADR-004, manuale via supporto).
+  **Finding non previsto**: verificando se gli strumenti esistenti bastassero è emerso
+  che `eliminaCliente` lasciava orfane le subcollection `notes`/`goals` in Firestore —
+  loggato BUG-001, fixato (`db.recursiveDelete`)
+- STORY-015 — scaffolding signing Android in `build.gradle`, condizionale sul keystore
+  reale, nessuna password hardcoded; `assembleDebug` verificato ancora BUILD SUCCESSFUL
+- STORY-022 — contenuto Data Safety (Play) + Nutrition Label (Apple) aggiornato in
+  `mobile-app/docs/MOBILE-APP.md`; trascrizione nei Console resta un'azione utente
+- STORY-023 — sweep completo pattern `color+'NN'` → `color-mix()`: 34 file, 127
+  occorrenze, eseguito da subagent developer in background
+- STORY-024 — terminologia multi-modulo wave 2 su `groups-page/`: 10 file, eseguito da
+  un secondo subagent developer in parallelo. Trovato+loggato STORY-027 (bug di
+  concordanza di genere in `GroupsPage.jsx`, fuori scope, non corretto)
+- STORY-025 — audit UX code-level delle superfici mobile-native (subagent
+  ux-ui-designer): 4 finding, 3 fixati nella stessa sessione (doppio tap su export PDF,
+  stile bottone RIPROVA Android+iOS, back button che non chiudeva i modal), 1 rimandato
+  per bassa urgenza (font nativi non Montserrat/Inter, già TODO su artwork STORY-019)
+- STORY-026 (wave 1) — nuovo `useModalStack.js`, wired in `Modal`/`ConfirmDialog`, per
+  far chiudere il dialog aperto al back button Android invece di navigare/minimizzare
+- TD-003 — rimosso codice morto trovato durante il lavoro sopra: `SlotCard.jsx`,
+  `CalendarSidebar.jsx` (conteneva una copia di SlotCard, non una sidebar),
+  `GroupsSidebar.jsx` — zero importer confermato per tutti e tre. Corretto anche un
+  riferimento in CLAUDE.md a un badge "Streak N" mai realmente raggiungibile
+- **Code review finale su tutto il diff (59 file)** prima di committare — verdetto
+  CHANGES REQUESTED, risolto nella stessa sessione:
+  - CRITICAL: il fix di BUG-001 aveva l'ordine sbagliato (`recursiveDelete` dopo il
+    batch) — un retry manuale dopo un fallimento parziale avrebbe decrementato
+    `clientCount` due volte, aggirando silenziosamente il limite piano. Riordinato
+    (recursiveDelete prima del batch — fail-safe invece di fail-unsafe, non è comunque
+    atomico al 100%, va ripensato con un marker di stato se serve garanzia più forte)
+  - HIGH: la claim che STORY-026 coprisse "il wizard nuovo cliente" era falsa
+    (`NewClientView.jsx` è una pagina intera, non un modal) — verificandolo è emerso un
+    problema più ampio, **la navigazione interna trainer non usa `history.pushState`
+    reale**, promosso a STORY-028 (Tech Lead review, non tentato alla cieca)
+  - 5 fix minori (try/finally su `usePrintTrigger`, stack modal ref-based invece che
+    per-render, 2 righe di doc obsolete, un nit di formulazione italiana)
+- Verificato ripetutamente lint/build/`vitest run` dopo ogni fase (211/211 test) +
+  `node --check` sulla Cloud Function toccata
+- **Commit** `852d917` (63 file) e **push** — primo push di questo branch
+  (`feature/mobile-app`) su `origin`, upstream impostato, PR apribile su GitHub (non
+  aperta in questa sessione)
+
+**Non completato:**
+- STORY-016 — verifica manuale su device reale: bloccata strutturalmente (nessun
+  device/emulatore disponibile, RAM insufficiente per un AVD in questo ambiente)
+- STORY-018/STORY-017 (iOS) — bloccate su accesso a un Mac con Xcode 15+
+- STORY-019 — artwork icona/splash definitivo: bloccato su un asset grafico inesistente
+- STORY-022 — trascrizione effettiva nei Console Play/App Store: azione utente, non
+  lavoro di sviluppo residuo
+- STORY-027 (bug genere `GroupsPage.jsx`) e STORY-026 wave 2 (dialog bespoke): loggati,
+  non presi in questo sprint
+- Deploy della Cloud Function `eliminaCliente` corretta: **non fatto** — resta da
+  verificare contro l'emulatore/rankex-dev prima di qualunque deploy (nessun harness di
+  test esiste oggi per le callable)
+
+**Blockers:**
+- Nessun device Android/iOS fisico, nessun macOS/Xcode, nessun artwork ufficiale,
+  nessuna decisione legale sulla privacy policy — tutti esterni al processo di sviluppo
+
+**Tech debt emerso:**
+- TD-003 risolto nella stessa sessione (vedi sopra)
+- STORY-027 (P3, cosmetico) e STORY-028 (P1, architetturale — richiede scoping Tech
+  Lead) aggiunti a `docs/BACKLOG.md`, non risolti
+- Fix di BUG-001 (`eliminaCliente`) non ancora verificato contro un ambiente reale —
+  rischio noto e documentato, non nascosto
+
+**Prossimo sprint (candidati):** vedi "Piano sprint successivi" in cima al file —
+STORY-028 (Tech Lead review) e STORY-016 (appena un device sarà disponibile) sono i
+candidati con priorità più alta; Sprint iOS resta bloccato su macOS.
+
+---
 
 ### SPRINT #5 — EPIC-002: pulizia debito minore — chiuso il 2026-09-14
 
