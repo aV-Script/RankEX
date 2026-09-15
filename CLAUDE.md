@@ -1264,6 +1264,69 @@ flusso UI dato che nessun nuovo `accessToken` può più essere generato.
 
 ---
 
+## Mobile app (contenitore nativo)
+
+Progetto **Capacitor** separato in `mobile-app/` (proprio `package.json`, proprio
+git-tracked `android/`+`ios/`, nessun import da `src/`) — mostra
+`https://rankex-app.web.app` fullscreen su Android/iOS. Non è una riscrittura:
+carica sempre il sito online, mai una copia locale. Configurazione centralizzata
+in `mobile-app/capacitor.config.ts` → `WEB_APP_URL`. Documentazione completa
+(setup, build AAB/IPA, store compliance, privacy checklist, stato test) in
+`mobile-app/docs/MOBILE-APP.md`.
+
+**Customizzazioni native oltre al wrapper Capacitor di base** (entrambe
+implementano la stessa logica, una per piattaforma):
+```
+Android → android/app/src/main/java/com/rankex/app/MainActivity.java
+iOS     → ios/App/App/RankexBridgeViewController.swift (sostituisce
+          CAPBridgeViewController come root in Main.storyboard)
+```
+- Overlay nativo offline/errore con "Riprova" (Android: ConnectivityManager +
+  `BridgeWebViewClient.onReceivedError`; iOS: `NWPathMonitor` + `WKNavigationDelegate`)
+- Bridge per `window.print()` — né Android WebView né iOS WKWebView lo
+  implementano nativamente, e RankEX lo usa per l'export PDF
+  (`ClientReportPrint.jsx`/`GroupReportPrint.jsx`): Android espone un
+  `@JavascriptInterface` che chiama `PrintManager`, iOS un
+  `WKScriptMessageHandler` che chiama `UIPrintInteractionController`
+- Back button Android: gestito **lato JS** (non nativo) da
+  `hooks/useNativeBackButton.js`, montato in `App.jsx` per tutti i ruoli —
+  `history.back()` se c'è cronologia, altrimenti `App.minimizeApp()` (mai
+  chiude l'app)
+
+**Push notifications** — collega il sistema di notifiche in-app già esistente
+(`organizations/{orgId}/notifications`) a push reali via FCM/APNs:
+```
+Client (solo, via hooks/useNativePush.js — montato in ClientView.jsx)
+  → richiede permesso, registra il device (@capacitor/push-notifications
+    per il permesso/ciclo di vita, @capacitor-community/fcm per il token
+    unificato Android/iOS — su iOS il token APNs grezzo non è utilizzabile
+    da Firebase Admin Messaging, il plugin fa lo scambio APNs→FCM internamente)
+  → salva il token in clients/{clientId}.fcmTokens[] (array, multi-device)
+    via firebase/services/clients.js → addFcmToken/removeFcmToken
+    (self-update a basso rischio, stesso livello di wearable/avatarId/badgeShowcase)
+
+functions/src/triggers/onNotificationCreated.js (primo trigger non-callable
+del progetto — la cartella triggers/ era vuota)
+  → onDocumentCreated su organizations/{orgId}/notifications/{notificationId}
+  → legge fcmTokens del client, invia via admin.messaging().sendEachForMulticast()
+  → self-healing: rimuove i token che FCM segnala come non più validi
+```
+Rules: `fcmTokens` è nella stessa allowlist self-update del client di
+`wearable`/`avatarId`/`badgeShowcase` (`firestore.rules` → `match /clients/{clientId}`).
+
+**Rischio di rifiuto store (Apple Guideline 4.2, Minimum Functionality):** una
+WebView nuda rischia il rifiuto come "sito incapsulato senza valore nativo".
+Push notifications + bridge print + gestione offline nativa sono le mitigazioni
+già implementate — dettagli e rischi residui in `mobile-app/docs/MOBILE-APP.md`.
+
+**Stato:** scaffolding completo, build Android debug verificata
+(`gradlew assembleDebug` → BUILD SUCCESSFUL). iOS scritto ma non
+compilato/verificato (nessun Xcode/macOS disponibile in ambiente di sviluppo
+Windows). Nessun test manuale su device/emulatore reale eseguito ancora — vedi
+"Test" in `mobile-app/docs/MOBILE-APP.md` per lo stato esatto.
+
+---
+
 ## Runbook manuale (QA)
 
 Sostituisce `docs/test-plan.md` (superseded, set 2026 — vedi nota in cima al file).
