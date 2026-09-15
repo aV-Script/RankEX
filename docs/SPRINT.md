@@ -45,21 +45,28 @@ scrive codice.
 
 | Task | Status | Note |
 |------|--------|------|
-| STORY-018 — messaggio di errore login generico | **QA PASSED** | Implementato + 2 giri code review (1 fix MEDIUM: messaggio generico spostato in `getLoginErrorMessage()` dedicata, non nella mappa condivisa con cambio password) + verificato dal vivo con Playwright contro rankex-dev. Manca solo il deploy rules/functions dello sprint per poter chiudere DONE. |
-| STORY-015 — hardening regola `create` su `audit_logs` | **QA PASSED** | Implementato, 47/47 test rules verdi su emulatore (incl. 4 nuovi "Audit log"). Nessun fix richiesto in review. In attesa di `deploy:rules:dev`/`deploy:rules` per chiudere DONE. |
-| STORY-016 — cascade delete completo in `eliminaCliente` | **QA PASSED (verifica statica)** | Implementato + 2 giri code review (1 fix HIGH: batch "core" cliente/users/clientCount spostato per primo, atomico, prima di recursiveDelete/pulizia referenziale — evita lo scenario "cliente cancellato a metà con storico già sparito"). Logica di dedup verificata con script standalone. **Verifica end-to-end con fixture reale resta bloccata sul deploy** — non ancora DONE. |
-| STORY-017 — log reale dei login falliti | **QA PASSED (verifica statica)** | Sbloccata da ADR-004, implementata (`registraLoginFallito`) + 2 giri code review (1 fix HIGH: query di throttle senza `limit` → costo di lettura illimitato su endpoint pubblico non autenticato, corretto con `.orderBy().limit()` + nuovo indice composito in `firestore.index.json`). Confermato dal vivo che la funzione non è ancora raggiungibile (attesa, nessun deploy). **Deploy richiede anche `firebase deploy --only firestore:indexes`**, non solo `functions`. |
+| STORY-018 — messaggio di errore login generico | **DEPLOYED (rankex-dev)** | Codice mergiato in `dev` (`ddef4a0`) e deployato: rules+functions live su rankex-dev. **Hosting rankex-dev non ancora ridistribuito** (dipende dal push su origin, bloccato — vedi Blockers) — il fix è verificabile solo in locale (`npm run dev`) finché l'hosting non si aggiorna. |
+| STORY-015 — hardening regola `create` su `audit_logs` | **DONE (rankex-dev)** | `firestore.rules` deployata su rankex-dev (2026-09-15, worktree isolato `epic-007-privacy-remediation` → merge in `dev`). 47/47 test rules verdi pre-deploy. Non ancora su `fitquest-60a09` (prod). |
+| STORY-016 — cascade delete completo in `eliminaCliente` | **DEPLOYED (rankex-dev), verifica fixture live ANCORA DA FARE** | Cloud Function aggiornata deployata con successo ("Successful update operation"). La verifica end-to-end con un cliente reale (note+goal+slot+ricorrenza+notifica+scheda) su rankex-dev non è ancora stata eseguita — resta l'unico passo prima di DONE. |
+| STORY-017 — log reale dei login falliti | **DONE (rankex-dev)** | `registraLoginFallito` deployata ("Successful create operation") + indice composito deployato. **Smoke test live eseguito con successo**: chiamata diretta all'endpoint HTTPS (`curl` verso `europe-west1-rankex-dev.cloudfunctions.net/registraLoginFallito`) → `{"result":{"ok":true}}`, HTTP 200 — la funzione scrive senza errori (un fallimento della write via Admin SDK avrebbe fatto fallire la callable con 500). Non ancora su prod. |
 | STORY-019 — Privacy Policy + Cookie Policy in-app | BLOCKED (fuori capacità developer) | Track parallelo aperto: "raccogliere contenuto legale" — proprietario utente/consulente esterno. Non impegna il developer, non condiziona la chiusura di questo sprint. |
 | STORY-020 — consenso genitoriale minori | BLOCKED (fuori capacità developer) | Track parallelo aperto: "raccogliere decisione Titolare del trattamento + modalità di raccolta consenso" — proprietario utente. Non impegna il developer, non condiziona la chiusura di questo sprint. |
 
 **Blockers:**
-- Nessuno tecnico residuo sulle 4 story in capacità developer — tutte implementate,
-  revisionate (2 giri code review, tutti i finding HIGH/MEDIUM risolti e
-  riverificati) e passate in QA. **Unico step rimasto: il deploy** (rules su
-  entrambi i progetti Firebase + Cloud Functions + nuovo indice composito) —
-  dominio del Release Manager, non ancora eseguito. Nessuna story può passare a
-  DONE prima della verifica dal vivo post-deploy (STORY-016/017 in particolare,
-  che richiedono la Cloud Function raggiungibile per la verifica one-off).
+- Deploy su rankex-dev completato il 2026-09-15: `firestore.rules`, indice
+  composito `audit_logs`, e tutte le 34 Cloud Functions (incl. `eliminaCliente`
+  aggiornata e `registraLoginFallito` nuova). Eseguito da un worktree isolato
+  (`epic-007-privacy-remediation`, poi fast-forward in `dev` in locale) per non
+  interferire con una sessione concorrente attiva su `feature/mobile-app` nella
+  cartella di lavoro condivisa.
+- Il branch `dev` locale è avanzato a `ddef4a0` ma non è stato ancora inviato a
+  origin — resta da fare manualmente. Finché non arriva su origin: nessun
+  aggiornamento automatico dell'hosting rankex-dev, e chi lavora su altre copie
+  del repository non vede questi commit.
+- Resta da fare: verifica fixture live per STORY-016 (cliente di test con
+  note/goal/slot/ricorrenza/notifica/scheda → `eliminaCliente` → conferma zero
+  residui), poi ripetere l'intera sequenza di deploy su `fitquest-60a09` (prod)
+  prima di segnare le story DONE definitivamente.
 - STORY-019 e STORY-020 restano bloccate su input non tecnico (contenuto legale
   approvato + decisione dell'utente su Titolare del trattamento/raccolta consenso
   minori) — nessuna stima di sviluppo possibile finché non arrivano. Vedi nota
