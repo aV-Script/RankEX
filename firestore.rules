@@ -242,7 +242,16 @@ service cloud.firestore {
 
     match /audit_logs/{logId} {
       allow read:   if isSuperAdmin();
-      allow create: if isAuth();
+      // Anti-spoofing (STORY-015/EPIC-007): uid ed email devono corrispondere
+      // all'identità autenticata, e nessun campo extra oltre a quelli scritti
+      // da utils/auditLog.js — impedisce di iniettare campi come `role` per
+      // falsificare il log come "prova" in caso di incidente.
+      allow create: if isAuth()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.keys().hasOnly(
+             ['action', 'uid', 'email', 'timestamp', 'userAgent', 'details', 'env']
+           );
       allow update: if false;
       allow delete: if false;
     }

@@ -80,7 +80,12 @@ beforeEach(async () => {
   })
 })
 
-function ctxFor(uid) { return testEnv.authenticatedContext(uid) }
+// email di default deterministica per uid — usata dalla regola create di
+// /audit_logs/{logId} (STORY-015/EPIC-007), che confronta
+// request.resource.data.email con request.auth.token.email.
+function ctxFor(uid, email = `${uid}@test.local`) {
+  return testEnv.authenticatedContext(uid, { email })
+}
 
 // ── Isolamento multi-tenant ──────────────────────────────────────────────────
 describe('Isolamento multi-tenant', () => {
@@ -327,14 +332,43 @@ describe('Client self-update', () => {
 
 // ── Audit log — append-only ───────────────────────────────────────────────────
 describe('Audit log', () => {
-  it('un utente autenticato qualsiasi può creare un audit log', async () => {
+  it('un utente autenticato può creare un audit log con uid/email coerenti con il proprio auth context (flusso di utils/auditLog.js)', async () => {
     const db = ctxFor('trainer1').firestore()
-    await assertSucceeds(addDoc(collection(db, 'audit_logs'), { action: 'LOGIN', uid: 'trainer1' }))
+    await assertSucceeds(addDoc(collection(db, 'audit_logs'), {
+      action:    'LOGIN',
+      uid:       'trainer1',
+      email:     'trainer1@test.local',
+      timestamp: new Date(),
+      userAgent: 'vitest',
+      details:   {},
+      env:       'test',
+    }))
   })
 
   it('un utente non autenticato non può creare un audit log', async () => {
     const db = testEnv.unauthenticatedContext().firestore()
     await assertFails(addDoc(collection(db, 'audit_logs'), { action: 'LOGIN' }))
+  })
+
+  it('un utente non può creare un audit log con uid diverso dal proprio (anti-spoofing identità)', async () => {
+    const db = ctxFor('clientUser1').firestore()
+    await assertFails(addDoc(collection(db, 'audit_logs'), {
+      action: 'LOGIN', uid: 'trainer1', email: 'clientUser1@test.local',
+    }))
+  })
+
+  it('un utente non può creare un audit log con email diversa dalla propria (anti-spoofing email)', async () => {
+    const db = ctxFor('trainer1').firestore()
+    await assertFails(addDoc(collection(db, 'audit_logs'), {
+      action: 'LOGIN', uid: 'trainer1', email: 'qualcun-altro@test.local',
+    }))
+  })
+
+  it('un utente non può iniettare campi extra in un audit log (es. role: super_admin)', async () => {
+    const db = ctxFor('trainer1').firestore()
+    await assertFails(addDoc(collection(db, 'audit_logs'), {
+      action: 'LOGIN', uid: 'trainer1', email: 'trainer1@test.local', role: 'super_admin',
+    }))
   })
 
   it('un trainer non può leggere gli audit log', async () => {

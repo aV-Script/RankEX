@@ -7,17 +7,92 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-**Goal:** _(non ancora aperto)_
+### SPRINT #6 — EPIC-007: Privacy & Data Protection, remediation P0 — aperto il 2026-09-14
 
-**Story selezionate:** _—_
+**Perché ora, fuori sequenza:** l'utente ha richiesto esplicitamente priorità massima sui
+risultati del Privacy & Data Protection Audit appena consegnato dal Product Owner
+(EPIC-007). Questo sprint scavalca il piano precedente (che vedeva solo EPIC-005 completa
+come candidato) e si dedica **esclusivamente** a EPIC-007.
+
+**Goal:** chiudere le story P0 di EPIC-007 risolvibili con solo lavoro tecnico in questo
+sprint — STORY-015 (hardening regole `audit_logs`), STORY-016 (cascade delete completo in
+`eliminaCliente`), STORY-017 (log reale dei login falliti, previa decisione Tech Lead) e
+STORY-018 (messaggio di errore login generico) — mentre si avvia in parallelo, **fuori
+capacità developer**, la raccolta di contenuti/decisioni per le altre due P0 dell'epic,
+STORY-019 e STORY-020, oggi bloccate su input legale/di prodotto non producibile da chi
+scrive codice.
+
+**Story selezionate (P0 di EPIC-007 — STORY-015..020):**
+- STORY-015 — hardening regola `create` su `/audit_logs/{logId}` (anti-spoofing uid/email/campi extra)
+- STORY-016 — cascade delete completo in `eliminaCliente` (note, goal, slot, ricorrenze, notifiche, schede)
+- STORY-017 — log reale dei login falliti (oggi silenzioso, nessuna entry scritta) — richiede prima una scelta di design Tech Lead tra 3 opzioni
+- STORY-018 — messaggio di errore login generico (anti account-enumeration)
+- STORY-019 — Privacy Policy + Cookie Policy in-app — **tracciata nello sprint per visibilità, non nella capacità developer** (vedi nota "Scorporo" sotto)
+- STORY-020 — consenso genitoriale per minori soccer_academy — **tracciata nello sprint per visibilità, non nella capacità developer** (vedi nota "Scorporo" sotto)
+
+**Sequenziamento (aggiornato dopo ADR-004 del Tech Lead — vedi `docs/DECISIONS.md`):**
+1. STORY-018 parte subito — fix isolato di una riga, nessuna dipendenza.
+2. STORY-015 e STORY-016 in parallelo — indipendenti tra loro (015 tocca solo
+   `firestore.rules`, 016 tocca solo `eliminaCliente`).
+3. STORY-017 è stata sbloccata dal Tech Lead (ADR-004): opzione (b), nuova Cloud
+   Function callable `registraLoginFallito` (Admin SDK, invocabile senza auth, con
+   throttle anti-spam) — **non tocca `firestore.rules`**, quindi non ha più alcun
+   coordinamento di deploy con STORY-015. Procede indipendente in parallelo alle altre tre.
+4. In parallelo, **fuori dallo sprint di sviluppo**: track "raccolta input" per
+   STORY-019 e STORY-020 (vedi sotto).
 
 **Status board:**
 
 | Task | Status | Note |
 |------|--------|------|
-| _—_  | _—_    | _—_  |
+| STORY-018 — messaggio di errore login generico | **QA PASSED** | Implementato + 2 giri code review (1 fix MEDIUM: messaggio generico spostato in `getLoginErrorMessage()` dedicata, non nella mappa condivisa con cambio password) + verificato dal vivo con Playwright contro rankex-dev. Manca solo il deploy rules/functions dello sprint per poter chiudere DONE. |
+| STORY-015 — hardening regola `create` su `audit_logs` | **QA PASSED** | Implementato, 47/47 test rules verdi su emulatore (incl. 4 nuovi "Audit log"). Nessun fix richiesto in review. In attesa di `deploy:rules:dev`/`deploy:rules` per chiudere DONE. |
+| STORY-016 — cascade delete completo in `eliminaCliente` | **QA PASSED (verifica statica)** | Implementato + 2 giri code review (1 fix HIGH: batch "core" cliente/users/clientCount spostato per primo, atomico, prima di recursiveDelete/pulizia referenziale — evita lo scenario "cliente cancellato a metà con storico già sparito"). Logica di dedup verificata con script standalone. **Verifica end-to-end con fixture reale resta bloccata sul deploy** — non ancora DONE. |
+| STORY-017 — log reale dei login falliti | **QA PASSED (verifica statica)** | Sbloccata da ADR-004, implementata (`registraLoginFallito`) + 2 giri code review (1 fix HIGH: query di throttle senza `limit` → costo di lettura illimitato su endpoint pubblico non autenticato, corretto con `.orderBy().limit()` + nuovo indice composito in `firestore.index.json`). Confermato dal vivo che la funzione non è ancora raggiungibile (attesa, nessun deploy). **Deploy richiede anche `firebase deploy --only firestore:indexes`**, non solo `functions`. |
+| STORY-019 — Privacy Policy + Cookie Policy in-app | BLOCKED (fuori capacità developer) | Track parallelo aperto: "raccogliere contenuto legale" — proprietario utente/consulente esterno. Non impegna il developer, non condiziona la chiusura di questo sprint. |
+| STORY-020 — consenso genitoriale minori | BLOCKED (fuori capacità developer) | Track parallelo aperto: "raccogliere decisione Titolare del trattamento + modalità di raccolta consenso" — proprietario utente. Non impegna il developer, non condiziona la chiusura di questo sprint. |
 
-**Blockers:** _—_
+**Blockers:**
+- Nessuno tecnico residuo sulle 4 story in capacità developer — tutte implementate,
+  revisionate (2 giri code review, tutti i finding HIGH/MEDIUM risolti e
+  riverificati) e passate in QA. **Unico step rimasto: il deploy** (rules su
+  entrambi i progetti Firebase + Cloud Functions + nuovo indice composito) —
+  dominio del Release Manager, non ancora eseguito. Nessuna story può passare a
+  DONE prima della verifica dal vivo post-deploy (STORY-016/017 in particolare,
+  che richiedono la Cloud Function raggiungibile per la verifica one-off).
+- STORY-019 e STORY-020 restano bloccate su input non tecnico (contenuto legale
+  approvato + decisione dell'utente su Titolare del trattamento/raccolta consenso
+  minori) — nessuna stima di sviluppo possibile finché non arrivano. Vedi nota
+  "Scorporo" sotto per come vengono gestite senza tenere in ostaggio lo sprint.
+
+**Tech debt di processo emerso in questo sprint (per la Retrospective):** il primo
+giro di implementazione delle 4 story ha introdotto, oltre allo scope approvato,
+un'intera feature non richiesta e non passata da product-owner/tech-lead (scaffold
+app mobile nativa Capacitor/Android, hook `useNativeBackButton`/`useNativePush`,
+wiring FCM in `firestore.rules`/`clients.js`, trigger push notification) — inclusi
+build artifact Android/Gradle binari nel working tree. Rilevato e rimosso
+interamente prima della code review (nessuna traccia arrivata a quello stadio).
+Causa non accertata (non è possibile determinare dal solo working tree se sia stato
+un errore di scope del Developer o un'interferenza esterna). Azione da valutare in
+Retrospective: verificare lo scope effettivo di ogni implementazione (`git status`
+completo, non solo i file attesi) subito dopo ogni sessione di sviluppo, prima di
+passare a code review — non solo per gli sprint sensibili come questo.
+
+**Nota Scrum Master — scorporo delle story bloccate dallo sprint tecnico:**
+STORY-019 e STORY-020 restano nell'epic e sono elencate sopra per tracciabilità (priorità
+P0, richiesta esplicita dell'utente), ma **non fanno parte della capacità di sviluppo di
+questo sprint** e non ne condizionano la chiusura. Motivo: un lead time legale/di
+decisione (contenuto Privacy Policy approvato, scelta Titolare del trattamento) non è
+stimabile né accelerabile da lavoro tecnico, e tenerle "IN PROGRESS" nello sprint
+tecnico per un tempo indefinito violerebbe il principio FINIRE > INIZIARE — lo sprint
+rischierebbe di non chiudere mai in attesa di un input che non dipende dal developer.
+Al posto di bloccare l'intero sprint, apro subito un **task parallelo non-developer**
+("raccogliere contenuto/decisione") con proprietario l'utente, che può procedere in
+qualunque momento senza aspettare la chiusura di questo sprint. Quando input e decisione
+arrivano, STORY-019/020 (insieme a STORY-021 e STORY-026, bloccate per lo stesso motivo
+ma priorità P1/P2) diventano un candidato naturale per un prossimo sprint — non serve
+uno sprint "parallelo" formale con la sua status board: basta non far dipendere la
+chiusura di *questo* sprint dal loro esito.
 
 ---
 
@@ -33,11 +108,31 @@ prima di aprire i rispettivi sprint. EPIC-005 (Avatar + Negozio) è stata scoper
 tecnico ridotto (Sprint #4, STORY-014, override esplicito — vedi ADR-003), deployato
 su prod. TD-001/TD-002 risolti. EPIC-002 chiusa (Sprint #5).
 
-**Candidati aperti:**
-- **EPIC-005 completa — Avatar + Negozio**, se/quando le domande aperte in `docs/BACKLOG.md`
-  hanno risposta (asset grafici, priorità rispetto alla gamification esistente,
-  bilanciamento economia).
-- Nessun altro item P1/P2 aperto al momento — backlog di manutenzione vuoto.
+**EPIC-007 (Privacy & Data Protection) ha ora priorità massima — richiesta esplicita
+dell'utente sui risultati del Privacy & Data Protection Audit — e precede EPIC-005
+completa nella coda.** Sprint #6 (sopra) copre le sole P0 tecniche. Candidati per gli
+sprint successivi, in ordine:
+
+**Candidati aperti (in ordine di priorità):**
+1. **Resto di EPIC-007, P0 rimaste bloccate** — STORY-019 (Privacy Policy/Cookie Policy)
+   e STORY-020 (consenso genitoriale minori), non appena il contenuto legale/la
+   decisione dell'utente arrivano dal track parallelo aperto in Sprint #6. Priorità
+   massima non appena sbloccate, a prescindere da cos'altro è in coda in quel momento.
+2. **EPIC-007, P1** — STORY-021 (verifica regione Firestore, bloccata sull'utente ma
+   verifica leggera), STORY-022 (self-hosting font, READY, nessun blocco), STORY-023
+   (script di backup interim, READY per la parte tecnica). Candidati naturali per
+   **Sprint #7**, dimensionati per stare insieme in un solo sprint senza ripetere il
+   pattern "troppe story a metà".
+3. **EPIC-007, P2** — STORY-024 (minimizzazione dati sensibili per `staff_readonly`),
+   STORY-025 (rimuovere/correggere `deleteOrganization`, READY), STORY-026 (policy di
+   retention, BLOCKED su decisione utente — stesso track parallelo di STORY-019/020).
+4. **EPIC-007, P3** — STORY-027 (rimuovere `VITE_FIREBASE_MEASUREMENT_ID`, READY),
+   STORY-028 (export dati strutturato per il cliente, READY ma richiede una scelta di
+   flusso UX minima prima di stimare).
+5. **EPIC-005 completa — Avatar + Negozio**, dopo EPIC-007, se/quando le domande aperte
+   in `docs/BACKLOG.md` hanno risposta (asset grafici, priorità rispetto alla
+   gamification esistente, bilanciamento economia). Non riconsiderare prima che
+   EPIC-007 sia sostanzialmente chiusa, salvo diversa istruzione esplicita dell'utente.
 
 ---
 

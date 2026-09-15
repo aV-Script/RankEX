@@ -96,6 +96,22 @@ export const RUNBOOK_SUITES = [
         ],
         expected: ['Sessione terminata', 'Record di audit con timestamp/uid/userAgent'],
       },
+      {
+        id: 'TP-044', usId: null, severity: 'important', title: 'Log dei tentativi di login falliti (STORY-017/EPIC-007)',
+        preconditions: 'Account esistente. Accesso super_admin per verificare /audit_logs.',
+        steps: [
+          'Dal form di login, tentare l\'accesso con un\'email esistente e password errata',
+          'Verificare che il messaggio di errore sia generico ("Credenziali non valide"), non specifico',
+          'Come super_admin: verificare entro pochi secondi un nuovo doc in /audit_logs con action: "auth.login_failed", uid: null, email corrispondente',
+          'Ripetere lo stesso tentativo più di 5 volte in meno di 5 minuti',
+          'Verificare che oltre la soglia di throttle non vengano scritte nuove entry, ma il messaggio d\'errore mostrato al client resti identico (nessuna differenza osservabile)',
+        ],
+        expected: [
+          'Messaggio di errore identico a quello di STORY-018 (anti account-enumeration)',
+          'Entry auth.login_failed scritta via Cloud Function registraLoginFallito (Admin SDK), non dal client',
+          'Throttle per email applicato silenziosamente, nessun errore visibile all\'utente',
+        ],
+      },
     ],
   },
   {
