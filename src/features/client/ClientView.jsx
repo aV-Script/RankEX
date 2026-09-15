@@ -3,6 +3,7 @@ import { useClient }                      from './useClient'
 import { Skeleton }                       from '../../components/common/Skeleton'
 import { useClientRank }                  from '../../hooks/useClientRank'
 import { useNotifications }               from '../../hooks/useNotifications'
+import { useNativePush }                  from '../../hooks/useNativePush'
 import { ClientShell }                    from './client-view/ClientShell'
 import { ClientDashboardPage }            from './client-view/ClientDashboardPage'
 import { NotificationsPanel }             from '../notification/NotificationsPanel'
@@ -16,6 +17,8 @@ import { calcAge }                           from '../../utils/validation'
 export default function ClientView({ clientId, orgId }) {
   const { client, loading } = useClient(orgId, clientId)
   const { rankObj: testRankObj, color: testColor } = useClientRank(client)
+
+  useNativePush(orgId, clientId)
 
   const profileType = client?.profileType ?? 'tests_only'
   const biaScore    = calcBiaScore(client?.lastBia, client?.sesso, calcAge(client?.dataNascita))

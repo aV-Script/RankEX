@@ -319,6 +319,11 @@ describe('Client self-update', () => {
     await assertSucceeds(updateDoc(doc(db, 'organizations/org1/clients/client1'), { avatarId: 'avatar-03' }))
   })
 
+  it('il client può registrare il proprio token push (fcmTokens — mobile-app/)', async () => {
+    const db = ctxFor('clientUser1').firestore()
+    await assertSucceeds(updateDoc(doc(db, 'organizations/org1/clients/client1'), { fcmTokens: ['token-abc'] }))
+  })
+
   it('il client NON può modificare il proprio xp', async () => {
     const db = ctxFor('clientUser1').firestore()
     await assertFails(updateDoc(doc(db, 'organizations/org1/clients/client1'), { xp: 999999 }))

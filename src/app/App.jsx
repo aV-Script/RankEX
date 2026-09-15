@@ -6,6 +6,7 @@ import { ErrorBoundary }         from '../components/common/ErrorBoundary'
 import { SessionWarningDialog }  from '../components/common/SessionWarningDialog'
 import { useSessionTimeout }     from '../hooks/useSessionTimeout'
 import { useVersionCheck }       from '../hooks/useVersionCheck'
+import { useNativeBackButton }   from '../hooks/useNativeBackButton'
 import { DomainGuard }           from '../components/common/DomainGuard'
 import { ThemeProvider }         from '../context/ThemeContext'
 import { ThemeDevPanel }         from '../components/dev/ThemeDevPanel'
@@ -18,6 +19,7 @@ export default function App() {
 
   const { showWarning: showSessionWarning, extendSession } = useSessionTimeout(profile?.role)
   const hasUpdate = useVersionCheck()
+  useNativeBackButton() // no-op fuori dall'app nativa — vedi mobile-app/
 
   // true finché l'SDK auth non risponde, o finché l'utente loggato aspetta il profilo+org
   const isLoading = user === undefined || (user !== null && (profile === undefined || org === undefined))

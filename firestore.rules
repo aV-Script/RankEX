@@ -147,7 +147,7 @@ service cloud.firestore {
           (isOrgMember(orgId) && memberRole(orgId) in ['org_admin', 'trainer'] && withinClientLimit(orgId));
         allow update: if canWrite(orgId) ||
           (isOwnClient(orgId, clientId) &&
-           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wearable', 'avatarId', 'badgeShowcase']));
+           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wearable', 'avatarId', 'badgeShowcase', 'fcmTokens']));
         allow delete: if canWrite(orgId);
 
         // ── Notes (thread + commenti del cliente) ──────────

@@ -1,6 +1,6 @@
 import {
   collection, getDocs, getDoc, updateDoc,
-  doc, query,
+  doc, query, arrayUnion, arrayRemove,
 } from 'firebase/firestore'
 import { db }          from './db'
 import { clientsPath } from '../paths'
@@ -20,3 +20,13 @@ export const getClientById = async (orgId, clientId) => {
 // in useMisure.js, avatarId in AvatarPicker.jsx). BIA e campionamenti passano invece da
 // Cloud Functions callable (saveBiaUseCase → salvaBia, ecc.) — vedi usecases/.
 export const updateClient = (orgId, id, data) => updateDoc(doc(db, clientsPath(orgId), id), data)
+
+// fcmTokens — token push (FCM) registrati dai device dell'app nativa del client.
+// Stesso basso rischio di wearable/avatarId/badgeShowcase: il client scrive solo
+// sul proprio documento, mai un dato di altri (vedi firestore.rules → isOwnClient).
+// Array (non singolo valore) perché un client può avere più device collegati.
+export const addFcmToken = (orgId, clientId, token) =>
+  updateDoc(doc(db, clientsPath(orgId), clientId), { fcmTokens: arrayUnion(token) })
+
+export const removeFcmToken = (orgId, clientId, token) =>
+  updateDoc(doc(db, clientsPath(orgId), clientId), { fcmTokens: arrayRemove(token) })
