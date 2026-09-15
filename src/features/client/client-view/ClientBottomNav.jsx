@@ -4,6 +4,7 @@
 import { useState }       from 'react'
 import { AvatarDisplay }  from './avatar/AvatarDisplay'
 import { logout }         from '../../../firebase/services/auth'
+import { unregisterNativePush } from '../../../hooks/useNativePush'
 import { BellIcon, LogoutIcon } from './client.config'
 import { ConfirmDialog }  from '../../../components/common/ConfirmDialog'
 import {
@@ -36,6 +37,11 @@ export function ClientBottomNav({
   onOpenNotifs,
 }) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+
+  const handleLogout = async () => {
+    await unregisterNativePush(orgId, client?.id) // PRIMA di logout(), vedi useNativePush.js
+    await logout()
+  }
 
   const isHome     = activeTab === 'home'
   const isActive   = (id) => activeTab === id || activeTab.startsWith(id + '/')
@@ -236,7 +242,7 @@ export function ClientBottomNav({
           confirmLabel="ESCI"
           cancelLabel="ANNULLA"
           variant="danger"
-          onConfirm={logout}
+          onConfirm={handleLogout}
           onCancel={() => setShowLogoutConfirm(false)}
         />
       )}

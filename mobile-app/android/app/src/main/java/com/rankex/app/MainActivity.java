@@ -30,6 +30,12 @@ public class MainActivity extends BridgeActivity {
 
   private android.view.View errorOverlay;
 
+  // WebView chiama SEMPRE onPageFinished dopo un errore (comportamento
+  // documentato di WebViewClient — "pagina finita" non significa "riuscita"),
+  // quindi onPageFinished non può fare dismiss incondizionato dell'overlay:
+  // deve sapere se l'ultima navigazione è la stessa che ha fallito.
+  private boolean lastNavigationFailed = false;
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -44,26 +50,44 @@ public class MainActivity extends BridgeActivity {
 
     webView.setWebViewClient(new BridgeWebViewClient(this.bridge) {
       @Override
+      public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
+        super.onPageStarted(view, url, favicon);
+        lastNavigationFailed = false; // nuova navigazione: azzera lo stato della precedente
+      }
+
+      @Override
       public void onPageFinished(WebView view, String url) {
         super.onPageFinished(view, url);
-        // Il sito carica correttamente: rimuovi un eventuale overlay di errore residuo.
-        dismissErrorOverlay();
-        view.evaluateJavascript(
-          "window.print = function () { window.AndroidPrintBridge.print(); };",
-          null
-        );
+        // WebView chiama questo metodo anche quando la stessa navigazione è
+        // appena fallita (onReceivedError/onReceivedHttpError arrivano PRIMA
+        // di onPageFinished, non al suo posto) — se dismettessimo sempre,
+        // l'overlay lampeggerebbe e scomparirebbe subito. Lo togliamo solo
+        // se l'ultima navigazione non ha effettivamente fallito.
+        if (!lastNavigationFailed) {
+          dismissErrorOverlay();
+          view.evaluateJavascript(
+            "window.print = function () { window.AndroidPrintBridge.print(); };",
+            null
+          );
+        }
       }
 
       @Override
       public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
         super.onReceivedError(view, request, error);
-        if (request.isForMainFrame()) showErrorOverlay();
+        if (request.isForMainFrame()) {
+          lastNavigationFailed = true;
+          showErrorOverlay();
+        }
       }
 
       @Override
       public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
         super.onReceivedHttpError(view, request, errorResponse);
-        if (request.isForMainFrame() && errorResponse.getStatusCode() >= 400) showErrorOverlay();
+        if (request.isForMainFrame() && errorResponse.getStatusCode() >= 400) {
+          lastNavigationFailed = true;
+          showErrorOverlay();
+        }
       }
     });
   }
@@ -111,8 +135,7 @@ public class MainActivity extends BridgeActivity {
 
   /**
    * Superficie nativa esposta alla pagina — SOLO window.print(). Nessuna API
-   * sensibile (storage, auth, filesystem) è raggiungibile da qui: vedi
-   * CLAUDE.md → Sicurezza → "nessuna API sensibile esposta inutilmente".
+   * sensibile (storage, auth, filesystem) è raggiungibile da qui.
    */
   public class PrintBridge {
     @JavascriptInterface

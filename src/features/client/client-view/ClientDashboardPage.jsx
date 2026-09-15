@@ -17,6 +17,7 @@ import { XPTrendChart }               from '../client-dashboard/XPTrendChart'
 import { useBadges }                  from '../../../hooks/useBadges'
 import { ThemePicker }                from '../../../components/ui/ThemePicker'
 import { logout }                     from '../../../firebase/services/auth'
+import { unregisterNativePush }       from '../../../hooks/useNativePush'
 import { IconDocument }               from '../../../components/ui/icons'
 import { ErrorBoundary }              from '../../../components/common/ErrorBoundary'
 import { ChartErrorFallback }         from '../../../components/common/ChartErrorFallback'
@@ -138,6 +139,11 @@ export function ClientDashboardPage({
   const profileType = client.profileType ?? 'tests_only'
   const profile     = getProfileCategory(profileType)
   const age         = calcAge(client.dataNascita)
+
+  const handleLogout = async () => {
+    await unregisterNativePush(orgId, clientId) // PRIMA di logout(), vedi useNativePush.js
+    await logout()
+  }
 
   const { earnedBadges, allBadges, rawBadges, badgeProgress, handleUpdateShowcase } =
     useBadges(orgId, clientId, client, { readonly: true })
@@ -359,7 +365,7 @@ export function ClientDashboardPage({
                       </div>
                       <div className="h-px mb-4" style={{ background: 'rgba(255,255,255,0.05)' }} />
                       <button
-                        onClick={logout}
+                        onClick={handleLogout}
                         className="font-display flex items-center gap-2.5 w-full cursor-pointer rounded-[4px] transition-colors"
                         style={{
                           padding: '10px 12px', background: 'rgba(248,113,113,0.06)',

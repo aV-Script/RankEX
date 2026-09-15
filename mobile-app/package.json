@@ -15,11 +15,9 @@
     "@capacitor-community/fcm": "6.0.1",
     "@capacitor/android": "^6.2.0",
     "@capacitor/app": "^6.0.2",
-    "@capacitor/browser": "^6.0.3",
     "@capacitor/core": "^6.2.0",
     "@capacitor/ios": "^6.2.0",
     "@capacitor/keyboard": "^6.0.3",
-    "@capacitor/network": "^6.0.3",
     "@capacitor/push-notifications": "^6.0.3",
     "@capacitor/splash-screen": "^6.0.3",
     "@capacitor/status-bar": "^6.0.2"

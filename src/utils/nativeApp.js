@@ -11,7 +11,3 @@
 export function isNativeApp() {
   return typeof window !== 'undefined' && !!window.Capacitor?.isNativePlatform?.()
 }
-
-export function nativePlatform() {
-  return isNativeApp() ? window.Capacitor.getPlatform() : null // 'android' | 'ios'
-}

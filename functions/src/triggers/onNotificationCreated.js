@@ -32,26 +32,33 @@ export const onNotificationCreated = onDocumentCreated(
 
     if (!Array.isArray(tokens) || tokens.length === 0) return // nessun device registrato
 
-    const response = await getMessaging().sendEachForMulticast({
-      tokens,
-      notification: {
-        title: 'RankEX',
-        body: notification.message ?? 'Hai una nuova notifica',
-      },
-      data: {
-        type: notification.type ?? '',
-        notificationId,
-      },
-    })
+    // Best-effort: la notifica in-app resta la fonte di verità (già scritta prima
+    // che questo trigger parta), quindi un errore qui va solo loggato per debug
+    // operativo — non deve propagare come funzione fallita.
+    try {
+      const response = await getMessaging().sendEachForMulticast({
+        tokens,
+        notification: {
+          title: 'RankEX',
+          body: notification.message ?? 'Hai una nuova notifica',
+        },
+        data: {
+          type: notification.type ?? '',
+          notificationId,
+        },
+      })
 
-    // Self-healing: un token non più valido (app disinstallata, permesso revocato)
-    // non deve restare per sempre in fcmTokens — lo rimuoviamo alla prima consegna fallita.
-    const staleTokens = response.responses
-      .map((r, i) => (!r.success && isStaleTokenError(r.error) ? tokens[i] : null))
-      .filter(Boolean)
+      // Self-healing: un token non più valido (app disinstallata, permesso revocato)
+      // non deve restare per sempre in fcmTokens — lo rimuoviamo alla prima consegna fallita.
+      const staleTokens = response.responses
+        .map((r, i) => (!r.success && isStaleTokenError(r.error) ? tokens[i] : null))
+        .filter(Boolean)
 
-    if (staleTokens.length > 0) {
-      await clientRef.update({ fcmTokens: FieldValue.arrayRemove(...staleTokens) })
+      if (staleTokens.length > 0) {
+        await clientRef.update({ fcmTokens: FieldValue.arrayRemove(...staleTokens) })
+      }
+    } catch (err) {
+      console.error('onNotificationCreated: invio push fallito', { orgId, notificationId, err })
     }
   }
 )

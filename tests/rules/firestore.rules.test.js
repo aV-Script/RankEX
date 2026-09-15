@@ -324,6 +324,19 @@ describe('Client self-update', () => {
     await assertSucceeds(updateDoc(doc(db, 'organizations/org1/clients/client1'), { fcmTokens: ['token-abc'] }))
   })
 
+  it('il client NON può aggiornare fcmTokens insieme a un altro campo nello stesso update', async () => {
+    const db = ctxFor('clientUser1').firestore()
+    await assertFails(updateDoc(doc(db, 'organizations/org1/clients/client1'), { fcmTokens: ['token-abc'], xp: 999999 }))
+  })
+
+  it('il client NON può scrivere fcmTokens sul documento di un altro cliente', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'organizations/org1/clients/client2'), { name: 'Cliente Due' })
+    })
+    const db = ctxFor('clientUser1').firestore()
+    await assertFails(updateDoc(doc(db, 'organizations/org1/clients/client2'), { fcmTokens: ['token-abc'] }))
+  })
+
   it('il client NON può modificare il proprio xp', async () => {
     const db = ctxFor('clientUser1').firestore()
     await assertFails(updateDoc(doc(db, 'organizations/org1/clients/client1'), { xp: 999999 }))

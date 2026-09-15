@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { isNativeApp } from '../utils/nativeApp'
-import { addFcmToken } from '../firebase/services/clients'
+import { addFcmToken, removeFcmToken } from '../firebase/services/clients'
 
 /**
  * Registra il device per le push notification SOLO quando l'app gira dentro
@@ -45,10 +45,32 @@ export function useNativePush(orgId, clientId) {
     })
 
     // Smontaggio componente (cambio tab) ≠ logout: il token resta valido, non
-    // va rimosso qui. Un token stantio dopo un logout reale viene comunque
-    // auto-pulito dal trigger server-side alla prima push fallita (vedi
-    // functions/src/triggers/onNotificationCreated.js) — nessun cleanup
-    // aggiuntivo necessario per restare entro lo scope di questa feature.
+    // va rimosso qui — solo al logout vero (vedi unregisterNativePush sotto,
+    // chiamata PRIMA di firebase/services/auth.js → logout(), non nel cleanup
+    // di questo effect: dopo signOut() le firestore.rules non permetterebbero
+    // più la scrittura su isOwnClient).
     return () => PushNotifications.removeAllListeners()
   }, [orgId, clientId])
+}
+
+/**
+ * Rimuove il token push del device corrente — da chiamare PRIMA di
+ * firebase/services/auth.js → logout(), mai dopo: a sessione chiusa
+ * firestore.rules nega la scrittura (isOwnClient richiede un utente
+ * autenticato). Senza questo, su un device condiviso tra più client
+ * (es. tablet della palestra) il token resta associato al client che ha
+ * fatto logout finché FCM non lo segnala come stantio da solo — nel
+ * frattempo le sue notifiche push arriverebbero al client che usa il
+ * device dopo di lui.
+ */
+export async function unregisterNativePush(orgId, clientId) {
+  if (!isNativeApp() || !orgId || !clientId) return
+  const { FCM } = window.Capacitor.Plugins ?? {}
+  if (!FCM) return
+  try {
+    const { token } = await FCM.getToken()
+    if (token) await removeFcmToken(orgId, clientId, token)
+  } catch {
+    // best-effort — un fallimento qui non deve bloccare il logout
+  }
 }
