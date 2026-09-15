@@ -1,0 +1,26 @@
+node_modules/
+
+# Config Firebase specifici del progetto — vanno scaricati dalla Firebase Console
+# per ogni ambiente (rankex-dev / fitquest-60a09), non generati/committati da qui.
+android/app/google-services.json
+ios/App/App/GoogleService-Info.plist
+
+# Firma release Android — MAI in git: la sua perdita rende impossibile aggiornare
+# l'app pubblicata su Play Store (vedi docs/MOBILE-APP.md → "Firma release").
+*.keystore
+*.jks
+key.properties
+
+# Output build
+android/app/build/
+android/.gradle/
+android/local.properties
+ios/App/Pods/
+ios/App/build/
+ios/DerivedData/
+ios/App/App.xcworkspace/xcuserdata/
+ios/App/App.xcodeproj/xcuserdata/
+
+# Generati da `npx cap sync` — ricreati automaticamente, non serve versionarli
+android/app/src/main/assets/public/
+ios/App/App/public/

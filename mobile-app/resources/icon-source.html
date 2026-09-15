@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<!--
+  Sorgente icona PLACEHOLDER — vedi mobile-app/docs/MOBILE-APP.md → "Icone e splash".
+  TODO: DA DEFINIRE — sostituire con l'artwork ufficiale RankEX prima della submission,
+  poi rilanciare `node resources/generate.mjs` (o incollare il file direttamente).
+-->
+<html>
+<head>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1024px; height: 1024px;
+    background: #07090e;
+  }
+  .wrap {
+    position: relative;
+    width: 1024px; height: 1024px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .glow-green {
+    position: absolute; left: -180px; top: 50%; transform: translateY(-50%);
+    width: 620px; height: 620px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(15,214,90,0.35), transparent 70%);
+  }
+  .glow-cyan {
+    position: absolute; right: -160px; top: -160px;
+    width: 560px; height: 560px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(46,207,255,0.22), transparent 70%);
+  }
+  svg { position: relative; z-index: 2; }
+  .wordmark {
+    position: absolute; bottom: 150px; left: 0; right: 0;
+    text-align: center; z-index: 2;
+    font-family: system-ui, Arial, sans-serif;
+    font-weight: 900;
+    font-size: 96px;
+    letter-spacing: 6px;
+    color: #ffffff;
+  }
+  .wordmark .accent { color: #1dff6b; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="glow-green"></div>
+    <div class="glow-cyan"></div>
+    <!-- Pentagono (richiama Pentagon Nav) come mark grafico -->
+    <svg width="440" height="440" viewBox="0 0 100 100">
+      <polygon points="50,6 92,38 76,90 24,90 8,38"
+        fill="none" stroke="#2ecfff" stroke-width="2.4" opacity="0.55" />
+      <polygon points="50,22 78,42 67,78 33,78 22,42"
+        fill="none" stroke="#1dff6b" stroke-width="3.4" />
+    </svg>
+  </div>
+  <div class="wordmark">R<span class="accent">X</span></div>
+</body>
+</html>
