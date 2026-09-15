@@ -152,4 +152,143 @@ risposta (GDPR art. 12(3) suggerisce 30 giorni) resta `[DA DEFINIRE]` — è una
 decisione di servizio, non tecnica.
 
 ---
+
+## [ADR-005] Back button Android — stack di "azioni indietro" generico invece di history reale
+**Data:** 2026-09-15
+**Contesto:** STORY-028 (trovata da code-reviewer durante STORY-026). Verificato che
+`useTrainerNav.js` gestisce la navigazione trainer con puro `useState`, zero
+`history.pushState`/`popstate`, e che quindi il fallback `window.history.back()` in
+`useNativeBackButton.js` non può affidabilmente tornare "indietro di una pagina"
+nell'app. Scoping richiesto prima di implementare (nessun device disponibile in
+questo ambiente per verifica dal vivo).
+
+**Blast radius — verificato file per file, non assunto:** il pattern è sistemico, non
+isolato al trainer. Grep su tutto `src/` per `useNavigate`/`useLocation`/
+`history.pushState`/`popstate` non trova **nessun** risultato fuori da
+`useModalStack.js`/`useNativeBackButton.js` (solo commenti). `react-router-dom` è
+usato esclusivamente per i 4 route dichiarativi di primo livello in
+`routes.config.jsx` (`/admin`, `/org`, `/trainer`, `/client`), tutti raggiunti via
+`<Navigate replace />` (mai `push`) — sia da `AppRouter.jsx` sia da
+`ProtectedRoute.jsx`. Ogni ruolo gestisce la propria navigazione interna con
+`useState` locale, confermato leggendo il codice di ciascuno:
+- **trainer + org_admin**: condividono lo stesso hook `useTrainerNav.js` (`page` +
+  `selectedClient` via `TrainerContext`) — `OrgAdminView.jsx` lo importa
+  direttamente da `features/trainer/`.
+- **super_admin**: `SuperAdminView.jsx` — `useState` locale per `page` e
+  `selectedOrg`, hook dedicato assente.
+- **client**: `ClientDashboardPage.jsx` — `useState` locale per `activeTab`/
+  `testTab`/`profiloTab` (Pentagon Hub).
+Nessuna asimmetria tra ruoli: stesso gap ovunque.
+
+**Il bug reale è più specifico di quanto ipotizzato in STORY-028 — non "va su una
+schermata stale", ma "back minimizza sempre l'app":** `canGoBack` (passato da
+`@capacitor/app`) riflette la history reale della WebView. Dato che l'unica
+navigazione a URL reale dell'app sono i 4 redirect di `routes.config.jsx`, tutti
+`replace` (mai un secondo entry reale), e che non esiste alcun `navigate()`
+push/deep-link/`appUrlOpen` nel codice (verificato via grep, zero risultati),
+`canGoBack` è nella pratica **sempre `false`** in uso normale. Il ramo pericoloso
+`window.history.back()` (quello che potrebbe atterrare su una schermata
+pre-inizializzazione SPA) è quindi probabilmente **dead code** oggi; il sintomo
+dominante e concretamente riproducibile è invece che **ogni pressione di back senza
+un modal aperto esegue `App.minimizeApp()`** — anche dentro al wizard nuovo cliente,
+dentro a `ClientDashboard`/`GroupDetailView`/`RecurrenceDetailView`/`OrgDetailView`,
+dove l'utente si aspetta di tornare al livello superiore, non di uscire dall'app.
+
+**Web non ha lo stesso problema attivo, per un motivo diverso da "nessuno usa il
+back fisico":** `useNativeBackButton()` è no-op fuori da Capacitor
+(`isNativeApp()` controlla `window.Capacitor?.isNativePlatform?.()`, `undefined` in
+browser) — su web questo codice non gira affatto, il back del browser resta gestito
+nativamente da Chrome/Firefox/ecc. Lo stesso gap architetturale (nessuna history SPA
+reale) esiste anche lì in teoria, ma nessun codice fa una promessa esplicita di
+"back = torna alla pagina precedente dell'app" sul web — è il comportamento
+implicito, generico, di qualunque SPA a URL singolo, non una feature costruita e
+rotta. Su mobile invece il codice *tenta* esplicitamente questa semantica e fallisce
+silenziosamente. La priorità è quindi legittimamente mobile-only.
+
+**Decisione:** opzione (b) — generalizzare lo stack già esistente e già in
+produzione (`hooks/useModalStack.js`, STORY-026) da "stack di modal aperti" a
+"stack di azioni indietro", invece di introdurre `history.pushState`/`popstate`
+reale (opzione a).
+- Rinominare le API generiche (`pushModalClose`→`pushBackAction`,
+  `closeTopModal`→`triggerTopBackAction`, `hasOpenModal`→`hasBackAction`) — la
+  logica interna non cambia, è già agnostica rispetto al contenuto (un semplice
+  LIFO di callback), solo il nome oggi implica erroneamente "solo modal". Il
+  wrapper `useModalBackButton(onClose)` resta invariato per `Modal`/`ConfirmDialog`.
+  Nuovo wrapper `useViewBackButton(onBack)` per viste/step non-modali, stessa forma.
+- `useNativeBackButton.js` consulta un solo stack invece di due concetti separati,
+  ed **elimina completamente `canGoBack`/`window.history.back()`**: se lo stack ha
+  un'azione, la esegue; altrimenti `App.minimizeApp()` sempre — mai più un salto
+  verso una WebView history che l'app non controlla. Questo fallback è per
+  costruzione **uguale o migliore** del comportamento attuale in ogni caso (oggi
+  `canGoBack` è quasi sempre `false` → già minimizza; nel raro caso fosse `true`,
+  oggi rischia di atterrare altrove, con la modifica minimizza in modo prevedibile
+  invece) — verificabile per lettura di codice, senza device.
+- **Principio guida per cosa registrare sullo stack (wave 2):** il back fisico
+  replica **esattamente** l'azione del back-affordance già visibile a schermo,
+  dove esiste — non si inventa una nuova semantica. Verificato che questi
+  affordance esistono già, con handler già isolati e riusabili senza ambiguità:
+  - `useTrainerNav.js`: quando `selectedClient` è impostato, registra
+    `deselectClient` — copre sia `TrainerView.jsx` sia `OrgAdminView.jsx` con
+    un'unica modifica, essendo l'hook condiviso.
+  - `GroupDetailView.jsx` / `RecurrenceDetailView.jsx`: registrano il prop
+    `onBack` già ricevuto (già usato dal chevron-back nell'header, RX-42).
+  - `SuperAdminView.jsx`: quando `selectedOrg` è impostato, registra
+    `() => setSelectedOrg(null)` (stessa azione del prop `onBack` già passato a
+    `OrgDetailView`).
+  - `NewClientView.jsx`/`useWizard.js`: registra lo stesso handler già cablato sul
+    chevron-back dell'header (`onBack`, che oggi esce sempre dal wizard verso la
+    lista clienti indipendentemente dallo step — non un nuovo comportamento "step
+    indietro", solo mirror di quello che il bottone visibile già fa oggi).
+  - `ClientDashboardPage.jsx`: quando `activeTab !== 'home'`, registra
+    `() => setActiveTab('home')` — stessa azione già eseguita ritoccando la stessa
+    icona attiva nella bottom nav.
+  Nessuna di queste è una nuova decisione UX: sono tutte il mirror di un
+  comportamento già shippato e (presumibilmente) già rivisto per lo schermo
+  interessato. Stima: ~8 file toccati, ognuno con un'aggiunta isolata di poche
+  righe (stesso hook `useEffect`-based già validato da STORY-026), zero modifiche
+  al modello di stato esistente.
+- **Esplicitamente fuori scope, richiede input Product/UX prima di essere chiuso**:
+  il back tra pagine di primo livello dello stesso ruolo che sono "sorelle", non
+  "genitore/figlio" (es. trainer: Dashboard↔Clienti↔Gruppi↔Calendario tramite la
+  nav principale; client: le sezioni del Pentagon Hub) — qui non esiste un
+  back-affordance visibile da imitare, perché non c'è una gerarchia. Due semantiche
+  ragionevoli in competizione: "minimizza sempre" (comportamento odierno di fatto,
+  e convenzione comune nelle app Android con bottom-nav — es. Gmail/Instagram) vs
+  "torna all'ultima pagina di primo livello visitata" (richiederebbe comunque un
+  mini-stack, ma con una domanda di prodotto vera: quante voci ricordare, se
+  ricordarle tra sessioni, ecc.). Raccomandazione tecnica: default a "minimizza"
+  (= non registrare nulla per i cambi tab di primo livello, lasciando il fallback
+  fare il suo lavoro) finché Product/UX non chiede esplicitamente il contrario — è
+  il comportamento a costo zero, coerente con l'unica convenzione Android già
+  citata in CLAUDE.md, e non blocca la wave 2 sopra.
+**Alternative scartate:**
+- **(a) `history.pushState`/`popstate` reale**: la soluzione "corretta" in teoria,
+  ma sproporzionata qui — richiederebbe instrumentare ogni pezzo di stato
+  "pagina/tab" nell'app (almeno `useTrainerNav`, `SuperAdminView`, `useWizard`,
+  `ClientDashboardPage`, `GroupDetailView`, `RecurrenceDetailView`, verosimilmente
+  altri non ancora auditati come `TrainerCalendar` month/week/day) per tenerlo
+  sincronizzato manualmente con la URL — doppio stato che può divergere, in
+  competizione con i 4 `<Routes>` dichiarativi già esistenti e con `ProtectedRoute`
+  (che fa `replace` assumendo di essere l'unico a toccare la history). Cambierebbe
+  anche il comportamento del back del **browser desktop** per ogni tab-switch
+  interno, un cambio di UX per tutta l'utenza web non richiesto da questa story.
+  Scartata per lo stesso principio già applicato altrove nel backlog ("non
+  costruire quello che non è stato capito") — qui in più non sarebbe nemmeno
+  verificabile dal vivo in questa sessione (nessun device).
+- **Wrapper di sola compatibilità (mantenere `canGoBack`/`history.back()` come
+  ulteriore fallback dopo lo stack)**: scartata — è la fonte del bug originale
+  (WebView history che l'app non controlla né può prevedere), e si è verificato
+  che `canGoBack` è quasi sempre `false` comunque: tenerlo non aggiunge copertura
+  reale, solo il rischio residuo che si voleva eliminare.
+**Conseguenze:** la wave 1 (rimozione di `window.history.back()`, fallback sempre a
+`minimizeApp`) è sicura da spedire senza device — per costruzione non peggiora
+nessun caso odierno, verificabile leggendo il codice. La wave 2 (registrazione dei
+back-affordance già esistenti) resta comunque raccomandata per QA su device reale
+prima del rilascio in produzione (nessun modo di simulare l'evento `backButton` di
+Capacitor fuori da una WebView Android vera) — stessa cautela già presa per STORY-026
+("non verificato su device reale"). La semantica del back tra pagine di primo
+livello resta esplicitamente aperta e non bloccante: va posta a Product/UX come
+domanda separata, non decisa unilateralmente qui.
+
+---
 <!-- Nuove decisioni aggiunte qui dal Tech Lead -->

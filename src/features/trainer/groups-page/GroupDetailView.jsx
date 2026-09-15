@@ -26,6 +26,7 @@ import { ErrorBoundary } from '../../../components/common/ErrorBoundary'
 import { ChartErrorFallback } from '../../../components/common/ChartErrorFallback'
 import { useToast }           from '../../../hooks/useToast'
 import { PrintPickerModal }   from '../../../components/common/PrintPickerModal'
+import { useViewBackButton }  from '../../../hooks/useModalStack'
 
 const CLIENTS_PAGE_SIZE = 8
 const SOCCER_CATS = ['soccer_youth', 'soccer_junior', 'soccer']
@@ -34,6 +35,8 @@ const SOCCER_CATS = ['soccer_youth', 'soccer_junior', 'soccer']
 
 export function GroupDetailView({ group, clients, orgId, onToggleClient, onRename, onDelete, onBack, terminology }) {
   const toast = useToast()
+  // Back button nativo: mirror del chevron-back già in header (STORY-028/ADR-005)
+  useViewBackButton(onBack)
   const [subView,      setSubView]      = useState('manage')
   const [clientSearch, setClientSearch] = useState('')
   const [isEditing,    setIsEditing]    = useState(false)

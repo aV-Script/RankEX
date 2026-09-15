@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useTrainerState, useTrainerDispatch, ACTIONS } from '../../context/TrainerContext'
+import { useViewBackButton } from '../../hooks/useModalStack'
 
 /**
  * Gestisce la navigazione dell'area trainer.
@@ -32,6 +33,11 @@ export function useTrainerNav() {
   const deselectClient = useCallback(() => {
     dispatch({ type: ACTIONS.DESELECT_CLIENT })
   }, [dispatch])
+
+  // Back button nativo: con un cliente selezionato, torna alla lista invece di
+  // minimizzare l'app — mirror dell'azione già eseguita dal back-affordance in
+  // header di ClientDashboard (STORY-028/ADR-005, wave 2)
+  useViewBackButton(selectedClient ? deselectClient : null)
 
   return { page, navKey, navParams, selectedClient, navigateTo, selectClient, deselectClient }
 }

@@ -13,9 +13,13 @@ import { StepRuolo }              from '../../components/modals/new-client-wizar
 import { StepAccount }            from '../../components/modals/new-client-wizard/steps/StepAccount'
 import { StepProfileType }        from '../../components/modals/new-client-wizard/steps/StepProfileType'
 import { TOTAL_STEPS_MAP }        from '../../components/modals/new-client-wizard/wizard.config'
+import { useViewBackButton }      from '../../hooks/useModalStack'
 
 export function NewClientView({ orgId, onAdd, onBack, clients = [], onNavigate }) {
   const { moduleType, orgPlan, terminology }        = useTrainerState()
+  // Back button nativo: mirror del chevron-back già in header — esce sempre dal
+  // wizard verso la lista, indipendentemente dallo step (STORY-028/ADR-005)
+  useViewBackButton(onBack)
   const isSoccer                                    = getModule(moduleType).isSoccer
   const planLimits                                  = getPlanLimits(orgPlan)
   const atClientLimit                               = clients.length >= planLimits.clients

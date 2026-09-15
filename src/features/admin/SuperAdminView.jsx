@@ -5,10 +5,16 @@ import { OrgsPage }              from './admin-pages/OrgsPage'
 import { OrgDetailView }         from './admin-pages/OrgDetailView'
 import { AdminProfilePage }      from './admin-pages/AdminProfilePage'
 import { RunbookPage }           from './admin-pages/RunbookPage'
+import { useViewBackButton }     from '../../hooks/useModalStack'
 
 export default function SuperAdminView({ user }) {
   const [page,        setPage]        = useState('dashboard')
   const [selectedOrg, setSelectedOrg] = useState(null)
+
+  // Back button nativo: con un'org selezionata, torna alla lista invece di
+  // minimizzare l'app — mirror del prop onBack già passato a OrgDetailView
+  // (STORY-028/ADR-005, wave 2)
+  useViewBackButton(selectedOrg ? () => setSelectedOrg(null) : null)
 
   // OrgDetailView sostituisce il contenuto corrente (non usa AdminShell per via del back)
   if (selectedOrg) {

@@ -576,14 +576,72 @@ non ritrovarmi fuori dall'app o su una schermata inaspettata.
   **impossibile da verificare dal vivo** in questo momento (STORY-016 bloccata, nessun
   device). Serve uno scoping Tech Lead prima di procedere, per lo stesso principio già
   applicato altrove in questo backlog ("non costruire quello che non è stato capito").
-- **Status:** BACKLOG — richiede Tech Lead review prima di essere presa
+- **Tech Lead review (2026-09-15) — vedi `docs/DECISIONS.md` → ADR-005:** confermato
+  che il gap è sistemico su tutti e 4 i ruoli (nessuna asimmetria — trainer/org_admin
+  condividono `useTrainerNav.js`, `SuperAdminView.jsx` e `ClientDashboardPage.jsx`
+  hanno lo stesso pattern `useState`-only), ed è invisibile su web perché
+  `useNativeBackButton()` è no-op fuori da Capacitor. Affinamento importante: il
+  sintomo dominante non è "atterra su una schermata stale" (richiede `canGoBack ===
+  true`, verificato quasi sempre `false` in pratica, dato che l'app naviga solo via
+  4 redirect `replace`) ma "**il back minimizza sempre l'app**", anche dentro al
+  wizard nuovo cliente o dentro alle viste di dettaglio (Client/Gruppo/Ricorrenza/Org)
+  dove esiste già un back-affordance visibile nell'header.
+  **Decisione:** generalizzare lo stack già in produzione (`hooks/useModalStack.js`,
+  STORY-026) da "modal aperti" a "azioni indietro" generiche, eliminare del tutto
+  `canGoBack`/`window.history.back()` (fallback sempre `App.minimizeApp()` quando lo
+  stack è vuoto — sicuro da spedire senza device, per costruzione mai peggiore di
+  oggi), poi registrare sullo stack i back-affordance **già esistenti e già
+  shippati** (`useTrainerNav` → `deselectClient`, `GroupDetailView`/
+  `RecurrenceDetailView` → prop `onBack`, `SuperAdminView` → `setSelectedOrg(null)`,
+  `NewClientView`/`useWizard` → `onBack` dell'header, `ClientDashboardPage` →
+  `setActiveTab('home')`) — nessuna nuova semantica UX inventata, solo mirror di
+  bottoni già a schermo. Stima ~8 file, modifiche isolate e additive.
+  **Esplicitamente fuori scope, serve Product/UX**: il back tra pagine di primo
+  livello "sorelle" (senza gerarchia, es. trainer Dashboard↔Clienti↔Gruppi, o le
+  sezioni del Pentagon Hub client) — nessun affordance visibile da imitare lì.
+  Raccomandazione tecnica di default ("minimizza", zero-cost, coerente con
+  convenzione Android bottom-nav) ma non è una decisione unilaterale valida per
+  chiudere la story del tutto.
+- **Implementato (2026-09-15), stesso giorno dello scoping:** entrambe le wave fatte
+  in un'unica sessione, esattamente lo scope stimato (8 file):
+  - `hooks/useModalStack.js` — API rinominate (`pushBackAction`/
+    `triggerTopBackAction`/`hasBackAction`), nuovo `useViewBackButton(onBack)` per
+    viste non modali (onBack condizionale: `null` disattiva la registrazione senza
+    smontare il componente — usato per i 4 casi condizionali sotto)
+  - `hooks/useNativeBackButton.js` — `canGoBack`/`window.history.back()` rimossi del
+    tutto, fallback sempre `App.minimizeApp()`
+  - `useTrainerNav.js` → registra `deselectClient` quando `selectedClient` è settato
+    (copre sia trainer che org_admin, hook condiviso)
+  - `GroupDetailView.jsx` / `RecurrenceDetailView.jsx` → registrano il prop `onBack`
+    già ricevuto (sempre attivo, mirror del chevron-back in header)
+  - `SuperAdminView.jsx` → registra `() => setSelectedOrg(null)` quando `selectedOrg`
+    è settato
+  - `NewClientView.jsx` → registra `onBack` (sempre attivo, stesso handler del
+    chevron-back — corretto anche il gap che lo stesso `onBack` viene già usato da un
+    `ConfirmDialog` step finale: essendo lo stack LIFO, il `ConfirmDialog` (montato
+    dopo) prende correttamente precedenza se aperto)
+  - `ClientDashboardPage.jsx` → registra `() => setActiveTab('home')` quando
+    `activeTab !== 'home'` (Pentagon Hub)
+  - Verificato lint/build/`vitest run` dopo l'implementazione (211/211 test, 9
+    warning preesistenti invariati — un warning `exhaustive-deps` temporaneo emerso
+    e risolto estraendo `isActive` come variabile nominata, non con un
+    eslint-disable)
+- **Status:** DONE (wave 1 + wave 2 di codice) — **non verificato su device reale**,
+  stesso limite già noto per STORY-026 (nessun modo di simulare l'evento `backButton`
+  di Capacitor fuori da una WebView Android vera). La domanda su Product/UX per la
+  semantica top-level "sorelle" resta esplicitamente aperta e non bloccante (default
+  tecnico: minimizza, zero-cost) — non una decisione presa a priori da questo
+  processo.
 
 ### [STORY-026] Fix — back button nativo può chiudere modal senza conferma
 **Come** utente mobile **voglio** che il tasto back Android non distrugga silenziosamente
 un modal aperto (es. `ConfirmDialog` "elimina cliente" in attesa) **per** non perdere
-stato/dati senza preavviso. **Nota:** il wizard nuovo cliente citato nella versione
-originale di questa story NON è coperto dal fix — è una pagina intera, non un modal,
-vedi STORY-028 per il problema architetturale più ampio scoperto verificandolo.
+stato/dati senza preavviso. **Nota storica:** il wizard nuovo cliente citato nella
+versione originale di questa story non era coperto dal fix di questa story (è una
+pagina intera, non un modal) — il problema architetturale più ampio scoperto
+verificandolo è stato promosso a STORY-028, **poi risolto** nella stessa sessione
+(vedi sotto): il wizard è ora coperto tramite `useViewBackButton`, non tramite lo
+stack modal di questa story.
 - **Priority:** P0
 - **Trovato da:** STORY-025 (audit UX superfici mobile-native, code-level, Sprint #9,
   2026-09-15)

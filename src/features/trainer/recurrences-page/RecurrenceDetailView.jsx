@@ -7,6 +7,7 @@ import { RecurrenceScheduleSection }      from './RecurrenceScheduleSection'
 import { RecurrencePeriodSection }        from './RecurrencePeriodSection'
 import { RecurrenceClientsSection }       from './RecurrenceClientsSection'
 import { STATUS_INFO, weeksBetween }      from './recurrenceDetailShared'
+import { useViewBackButton }              from '../../../hooks/useModalStack'
 
 export function RecurrenceDetailView({
   recurrence, clients,
@@ -14,6 +15,8 @@ export function RecurrenceDetailView({
   onExtendPeriod, onAddClient, onRemoveClient, onCancel,
 }) {
   const toast = useToast()
+  // Back button nativo: mirror del chevron-back già in header (STORY-028/ADR-005)
+  useViewBackButton(onBack)
   const [editingTime, setEditingTime] = useState(false)
   const [editingDays, setEditingDays] = useState(false)
   const [editingEnd,  setEditingEnd]  = useState(false)

@@ -43,22 +43,25 @@ codice (`--rx-accent` presente in `src/index.css`, `--rx-green` assente, commit
 `fd8f5f8` + 2 fix successivi `1ac76a4`/`e5d2a33`) — non un rischio di lavoro perso,
 solo la memoria di sessione non aggiornata dopo il commit.
 
-**Candidati aperti (dopo la chiusura di Sprint #6, vedi storico sotto):**
-- **SPRINT #7 (sotto) — Mobile: iOS + push end-to-end** — bloccato su risorse esterne
+**Candidati aperti (dopo la chiusura di Sprint #6 e #7, vedi storico sotto):**
+- **SPRINT #8 (sotto) — Mobile: iOS + push end-to-end** — bloccato su risorse esterne
   (macOS/Xcode, iscrizione Apple Developer Program)
 - **STORY-016** — verifica manuale su device Android reale, tuttora bloccata (nessun
-  device/emulatore disponibile in questo ambiente)
+  device/emulatore disponibile in questo ambiente) — ora ancora più prioritaria: sia
+  STORY-026 che STORY-028 hanno modifiche al back button mai verificate dal vivo
 - **STORY-022 (parte residua)** — trascrizione effettiva nei Console Play/App Store
   (la bozza contenuti è pronta, manca solo l'azione nei rispettivi portali)
 - **STORY-027** — fix concordanza di genere in `GroupsPage.jsx` (P3, cosmetico)
-- **STORY-028** — investigare la navigazione trainer senza `history.pushState` reale
-  (P1, richiede Tech Lead review prima di essere presa — vedi `docs/BACKLOG.md`)
 - **STORY-026 wave 2** — estendere la protezione back-button ai dialog "bespoke"
-  (`CloseSessionModal`, `RecurrenceModal`, `SlotPopup`, `GroupToggleDialog`)
+  (`CloseSessionModal`, `RecurrenceModal`, `SlotPopup`, `GroupToggleDialog`) — non
+  toccata da STORY-028, resta uno scope separato
+- **Domanda Product/UX aperta (da ADR-005)** — semantica del back button tra pagine di
+  primo livello "sorelle" senza gerarchia (nav principale trainer, sezioni Pentagon
+  Hub client) — nessun default tecnico imposto, solo raccomandato ("minimizza")
 - EPIC-005 completa — Avatar + Negozio, resta bloccata sulle stesse dipendenze esterne
   di sempre (asset grafici, bilanciamento economia, flusso B2B).
 
-### SPRINT #7 (proposto) — Mobile: iOS + push end-to-end — bloccato su risorse esterne
+### SPRINT #8 (proposto) — Mobile: iOS + push end-to-end — bloccato su risorse esterne
 **Goal:** solo se/quando è disponibile un Mac con Xcode 15+ e una decisione
 sull'iscrizione Apple Developer Program ($99/anno, dell'utente).
 - STORY-018 — build/verifica iOS su Xcode reale
@@ -77,6 +80,54 @@ sull'iscrizione Apple Developer Program ($99/anno, dell'utente).
 ---
 
 ## Storico sprint chiusi
+
+### SPRINT #7 — Back button: navigazione senza history reale (STORY-028) — chiuso il 2026-09-15
+
+**Goal:** scoping tecnico + implementazione di STORY-028, unico candidato azionabile
+dopo la chiusura di Sprint #6 (STORY-016 resta bloccata su device). Continuazione
+diretta della stessa sessione, su indicazione dell'utente ("vai").
+
+**Completato:**
+- Scoping (Tech Lead, subagent in background) → **ADR-005** in `docs/DECISIONS.md`.
+  Verificato file per file (non assunto): gap sistemico su tutti e 4 i ruoli, stesso
+  pattern `useState`-only ovunque. Affinamento importante: il ramo pericoloso
+  `window.history.back()` è quasi certamente dead code (`canGoBack` sempre `false` in
+  pratica) — il sintomo reale è "il back minimizza sempre l'app", anche dentro wizard
+  o viste di dettaglio con un back-affordance già visibile in header.
+- Implementazione (stessa sessione, subito dopo lo scoping): generalizzato
+  `hooks/useModalStack.js` da "modal aperti" a "azioni indietro" generiche
+  (`pushBackAction`/`triggerTopBackAction`/`hasBackAction` + nuovo
+  `useViewBackButton`), rimosso del tutto `canGoBack`/`window.history.back()` da
+  `useNativeBackButton.js` (fallback sempre `minimizeApp`), registrati i 6
+  back-affordance già esistenti (`useTrainerNav`, `GroupDetailView`,
+  `RecurrenceDetailView`, `SuperAdminView`, `NewClientView`, `ClientDashboardPage`) —
+  esattamente gli 8 file stimati dall'ADR. Corretta la nota in STORY-026 che dichiarava
+  il wizard "non coperto" (ora lo è, tramite `useViewBackButton`, non tramite lo stack
+  modal).
+- Verificato lint/build/`vitest run` (211/211 test, 0 errori, 9 warning preesistenti
+  invariati — un warning `exhaustive-deps` temporaneo risolto estraendo una variabile
+  nominata invece di un eslint-disable).
+
+**Non completato:**
+- Verifica su device reale — stesso limite di STORY-026, nessun modo di simulare
+  l'evento `backButton` di Capacitor fuori da una WebView Android vera
+- Wave 2 di STORY-026 (dialog bespoke: CloseSessionModal/RecurrenceModal/SlotPopup/
+  GroupToggleDialog) — scope separato, non toccato qui
+- Domanda Product/UX sulla semantica back tra pagine "sorelle" di primo livello —
+  esplicitamente lasciata aperta dall'ADR-005, non decisa unilateralmente
+
+**Blockers:** nessuno per lo scoping/implementazione (solo lettura/analisi + modifiche
+isolate); la verifica dal vivo resta bloccata su STORY-016 (nessun device)
+
+**Tech debt emerso:** nessuno nuovo — ADR-005 documenta esplicitamente 2 alternative
+scartate (history reale, wrapper di compatibilità) con le ragioni, non lasciate come
+domande aperte
+
+**Prossimo sprint (candidati):** vedi "Piano sprint successivi" in cima al file —
+nessun altro item azionabile senza risorse esterne (device, macOS, artwork, legale) al
+momento della chiusura di questo sprint.
+
+---
 
 ### SPRINT #6 — Privacy + Mobile signing + UX/UI debito residuo — chiuso il 2026-09-15
 

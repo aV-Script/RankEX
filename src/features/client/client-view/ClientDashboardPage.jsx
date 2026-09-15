@@ -21,6 +21,7 @@ import { unregisterNativePush }       from '../../../hooks/useNativePush'
 import { IconDocument }               from '../../../components/ui/icons'
 import { ErrorBoundary }              from '../../../components/common/ErrorBoundary'
 import { ChartErrorFallback }         from '../../../components/common/ChartErrorFallback'
+import { useViewBackButton }          from '../../../hooks/useModalStack'
 
 // ── Icone sub-tab ─────────────────────────────────────────────────────────────
 
@@ -179,6 +180,11 @@ export function ClientDashboardPage({
   }
 
   const isHome = activeTab === 'home'
+
+  // Back button nativo: fuori dalla home del Pentagon Hub, torna alla home
+  // invece di minimizzare l'app — mirror del tap sulla stessa icona attiva in
+  // bottom nav (STORY-028/ADR-005, wave 2)
+  useViewBackButton(isHome ? null : () => setActiveTab('home'))
 
   return (
     <div className="min-h-screen flex flex-col" style={{ paddingBottom: isHome ? 0 : 62 }}>
