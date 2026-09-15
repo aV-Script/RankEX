@@ -144,13 +144,13 @@ export function AdminDashboard({ onSelectOrg }) {
                   <div className="flex items-center gap-2 shrink-0 ml-4">
                     <span
                       className="font-display text-[9px] px-2 py-0.5 rounded-[2px]"
-                      style={{ background: planColor + '18', color: planColor }}
+                      style={{ background: `color-mix(in srgb, ${planColor} 9%, transparent)`, color: planColor }}
                     >
                       {(org.plan ?? 'free').toUpperCase()}
                     </span>
                     <span
                       className="font-display text-[9px] px-2 py-0.5 rounded-[2px]"
-                      style={{ background: statusColor + '18', color: statusColor }}
+                      style={{ background: `color-mix(in srgb, ${statusColor} 9%, transparent)`, color: statusColor }}
                     >
                       {(org.status ?? 'active').toUpperCase()}
                     </span>
@@ -262,7 +262,7 @@ function PlanCard({ label, value, color }) {
   return (
     <div
       className="px-4 py-3 rounded-[4px] flex items-center justify-between"
-      style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${color}22` }}
+      style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid color-mix(in srgb, ${color} 13%, transparent)` }}
     >
       <span className="font-body text-[12px] text-white/40">{label}</span>
       <span className="font-display font-black text-[22px]" style={{ color }}>{value}</span>

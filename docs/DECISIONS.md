@@ -111,4 +111,45 @@ futuro audit — esattamente il rischio segnalato in fase di scelta, non nascost
 
 ---
 
+## [ADR-004] Processo di cancellazione dati (diritto all'oblio GDPR) — manuale, non self-service
+**Data:** 2026-09-15
+**Contesto:** STORY-021 (EPIC-008, Privacy & Compliance). RankEX oggi non ha un
+flusso self-service "cancella il mio account/i miei dati" né un processo documentato
+per rispondere a una richiesta di cancellazione — bloccante per compilare il Google
+Play Data Safety form e per una Privacy Policy completa (vedi `docs/
+PRIVACY-POLICY-DRAFT.md`).
+**Decisione:** processo **manuale, mediato dal supporto**, non un flusso self-service
+nuovo:
+1. La richiesta arriva a RankEX o all'organizzazione (canale di supporto, non ancora
+   formalizzato — `[DA DEFINIRE]` l'indirizzo/modulo esatto)
+2. Verifica identità del richiedente (email registrata coincidente)
+3. Esecuzione da parte di org_admin (per un proprio membro/cliente) o super_admin (per
+   qualunque org) usando gli strumenti amministrativi **già esistenti**:
+   `eliminaCliente` (cliente) o `rimuoviMembroTeam` (membro team) — entrambi già
+   cancellano account Firebase Auth + documento `/users/{uid}` + counter piano
+**Perché non un flusso self-service:** RankEX è B2B con un numero contenuto di
+organizzazioni/utenti — costruire un flusso self-service (UI + callable + conferma
+email + gestione edge case tipo "cliente con schede/note ancora attive") è una
+superficie di lavoro non piccola per un volume di richieste atteso basso. Stesso
+principio già applicato ad altre decisioni di questo processo (non costruire per
+scenari ipotetici, vedi CLAUDE.md).
+**Scoperta durante questa story, non prevista all'apertura:** verificando se
+`eliminaCliente` fosse davvero sufficiente per una cancellazione GDPR-completa, è
+emerso che **non lo era** — cancellava il documento cliente ma lasciava orfane le
+subcollection `notes`/`goals` in Firestore (BUG-001, `docs/BUGS.md`). Fixato nella
+stessa sessione: `eliminaCliente.js` ora usa `db.recursiveDelete(clientRef)` invece di
+`batch.delete(clientRef)`. Senza questo fix, la decisione "il processo manuale con gli
+strumenti esistenti basta" sarebbe stata presa su una premessa falsa.
+**Non ancora verificato:** il fix non è stato testato contro l'emulatore o
+`rankex-dev` (solo `node --check` sintattico) — da fare prima di considerare questa
+ADR pienamente chiusa e prima di qualunque deploy prod.
+**Alternative scartate:** flusso self-service con conferma email + Cloud Function
+dedicata — rimandato, non scartato in assoluto: se il volume di richieste cresce o se
+un'organizzazione enterprise lo richiede contrattualmente, va riconsiderato.
+**Conseguenze:** `docs/PRIVACY-POLICY-DRAFT.md` §7 e il Google Play Data Safety form
+(STORY-022) possono ora descrivere un processo reale, non un placeholder. Il SLA di
+risposta (GDPR art. 12(3) suggerisce 30 giorni) resta `[DA DEFINIRE]` — è una
+decisione di servizio, non tecnica.
+
+---
 <!-- Nuove decisioni aggiunte qui dal Tech Lead -->

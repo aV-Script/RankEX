@@ -17,7 +17,7 @@ export function RankPreview({ client, statsForPreview, newRankObj, newMedia, old
       {/* Rank proiettato */}
       <div
         className="rounded-[4px] p-5 text-center"
-        style={{ background: newRankObj.color + '11', border: `1px solid ${newRankObj.color}33` }}
+        style={{ background: `color-mix(in srgb, ${newRankObj.color} 7%, transparent)`, border: `1px solid color-mix(in srgb, ${newRankObj.color} 20%, transparent)` }}
       >
         <div className="font-display text-[10px] text-white/30 tracking-[3px] mb-2">
           RANK PROIETTATO

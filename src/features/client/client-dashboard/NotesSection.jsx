@@ -141,7 +141,7 @@ export function NotesSection({ orgId, clientId, color, author, readonly = false 
                 onClick={handleSubmitThread}
                 disabled={!newText.trim() || submitting}
                 className="font-display text-[11px] px-4 py-1.5 rounded-[3px] cursor-pointer border transition-all disabled:opacity-30"
-                style={{ color, borderColor: color + '55', background: color + '11' }}
+                style={{ color, borderColor: `color-mix(in srgb, ${color} 33%, transparent)`, background: `color-mix(in srgb, ${color} 7%, transparent)` }}
               >
                 {submitting ? '…' : 'AGGIUNGI NOTA'}
               </button>
@@ -204,7 +204,7 @@ function ThreadCard({
 
       {/* Commenti inline */}
       {expanded && (
-        <div className="mt-3 pl-4 border-l flex flex-col gap-2" style={{ borderColor: color + '30' }}>
+        <div className="mt-3 pl-4 border-l flex flex-col gap-2" style={{ borderColor: `color-mix(in srgb, ${color} 19%, transparent)` }}>
           {thread.comments.map(comment => (
             <div key={comment.id} className="flex flex-col gap-0.5">
               <div className="flex items-center gap-2 flex-wrap">
@@ -237,7 +237,7 @@ function ThreadCard({
                 onClick={onReplySubmit}
                 disabled={!replyText.trim() || replyLoading}
                 className="font-display text-[10px] px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all disabled:opacity-30 shrink-0"
-                style={{ color, borderColor: color + '55', background: color + '11' }}
+                style={{ color, borderColor: `color-mix(in srgb, ${color} 33%, transparent)`, background: `color-mix(in srgb, ${color} 7%, transparent)` }}
               >
                 {replyLoading ? '…' : 'INVIA'}
               </button>
@@ -255,7 +255,7 @@ function RoleBadge({ role, color, small = false }) {
   return (
     <span
       className={`rounded-full font-display font-bold ${size}`}
-      style={{ background: color + '18', color: color + 'cc', border: `1px solid ${color}33` }}
+      style={{ background: `color-mix(in srgb, ${color} 9%, transparent)`, color: `color-mix(in srgb, ${color} 80%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 20%, transparent)` }}
     >
       {label}
     </span>

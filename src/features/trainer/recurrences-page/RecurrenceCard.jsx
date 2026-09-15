@@ -36,7 +36,7 @@ export function RecurrenceCard({ recurrence, clients, onClick }) {
             <span
               key={d}
               className="font-display text-[10px] px-2 py-0.5 rounded-[3px]"
-              style={{ background: statusColor + '18', color: statusColor }}
+              style={{ background: `color-mix(in srgb, ${statusColor} 9%, transparent)`, color: statusColor }}
             >
               {d}
             </span>

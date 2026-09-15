@@ -16,6 +16,7 @@ export function GroupToggleDialog({
   isRemoving,
   onConfirm,
   onCancel,
+  terminology,
 }) {
   const [preview, setPreview] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -67,7 +68,7 @@ export function GroupToggleDialog({
       >
         {/* Titolo */}
         <h3 id="group-toggle-title" className="font-display font-black text-[16px] text-white mb-1">
-          {isRemoving ? 'Rimuovi dal gruppo' : 'Aggiungi al gruppo'}
+          {isRemoving ? 'Rimuovi atleta' : 'Aggiungi atleta'}
         </h3>
         <p className="font-body text-[12px] text-white/40 mb-5">
           Rivedi l'operazione prima di confermare
@@ -79,11 +80,11 @@ export function GroupToggleDialog({
           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '3px' }}
         >
           <div className="flex items-center justify-between">
-            <span className="font-display text-[11px] font-semibold text-white/40">Allievo</span>
+            <span className="font-display text-[11px] font-semibold text-white/40">{terminology.client}</span>
             <span className="font-display text-[13px] text-white">{client.name}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="font-display text-[11px] font-semibold text-white/40">Gruppo</span>
+            <span className="font-display text-[11px] font-semibold text-white/40">{terminology.group}</span>
             <span className="font-display text-[13px] text-white">{group.name}</span>
           </div>
           <div className="flex items-center justify-between">

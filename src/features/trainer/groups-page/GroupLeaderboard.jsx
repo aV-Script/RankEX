@@ -11,7 +11,7 @@ const POSITION_COLORS = ['var(--rx-gold)', 'var(--rx-silver)', '#cd7f32'] // oro
 
 // ── Componente principale ─────────────────────────────────────────────────────
 
-export function GroupLeaderboard({ clients }) {
+export function GroupLeaderboard({ clients, terminology }) {
   const [sortStat, setSortStat] = useState('media')
 
   // Opzioni ordinamento: "MEDIA" + una pill per ogni stat disponibile nel gruppo
@@ -113,7 +113,7 @@ export function GroupLeaderboard({ clients }) {
         <EmptyState
           icon={<IconLeaderboard size={20} />}
           title="Nessun campionamento"
-          description="Nessun campionamento ancora registrato per questo gruppo."
+          description={`Nessun campionamento ancora registrato di ${terminology.group.toLowerCase()}.`}
         />
       )}
     </div>

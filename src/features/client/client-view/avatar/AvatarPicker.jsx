@@ -86,7 +86,7 @@ export function AvatarPicker({ client, clientId, orgId, color }) {
           return (
             <div key={a.id} className="relative flex flex-col items-center overflow-hidden rounded-[4px]"
               style={{
-                background: active ? color + '12' : 'color-mix(in srgb, var(--rx-accent) 4%, transparent)',
+                background: active ? `color-mix(in srgb, ${color} 7%, transparent)` : 'color-mix(in srgb, var(--rx-accent) 4%, transparent)',
                 border:     active ? `2px solid ${color}` : '2px solid var(--rx-border)',
               }}
             >
@@ -116,7 +116,7 @@ export function AvatarPicker({ client, clientId, orgId, color }) {
                       onClick={() => handlePurchase(a)}
                       disabled={purchasing || coins < a.price}
                       className="pointer-events-auto font-display text-[7px] tracking-[1px] px-2 py-1 rounded-[3px] cursor-pointer border disabled:opacity-40 disabled:cursor-not-allowed"
-                      style={{ color, borderColor: color + '66', background: color + '22' }}
+                      style={{ color, borderColor: `color-mix(in srgb, ${color} 40%, transparent)`, background: `color-mix(in srgb, ${color} 13%, transparent)` }}
                     >
                       {purchasing ? '…' : 'ACQUISTA'}
                     </button>

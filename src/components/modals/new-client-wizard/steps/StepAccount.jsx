@@ -14,11 +14,11 @@ export function StepAccount({ account, setAccount, errors, anagrafica, categoria
       {/* Riepilogo rank */}
       <div
         className="rounded-[4px] p-4 flex items-center gap-4"
-        style={{ background: rankObj.color + '11', border: `1px solid ${rankObj.color}33` }}
+        style={{ background: `color-mix(in srgb, ${rankObj.color} 7%, transparent)`, border: `1px solid color-mix(in srgb, ${rankObj.color} 20%, transparent)` }}
       >
         <div
           className="w-12 h-12 rounded-[4px] flex items-center justify-center shrink-0"
-          style={{ background: rankObj.color + '22' }}
+          style={{ background: `color-mix(in srgb, ${rankObj.color} 13%, transparent)` }}
         >
           <span className="font-display font-black text-[18px]" style={{ color: rankObj.color }}>
             {rankObj.label}

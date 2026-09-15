@@ -400,7 +400,7 @@ export const RUNBOOK_SUITES = [
         steps: [
           'Chiudere una sessione col cliente presente → verificare sessionStreak: 1, XP con moltiplicatore +10%',
           'Chiudere una seconda sessione presente → sessionStreak: 2, moltiplicatore +20%',
-          'Verificare anteprima "streak N" in CloseSessionModal, ClientCalendar e badge su SlotCard prima di confermare',
+          'Verificare anteprima "streak N" in CloseSessionModal e ClientCalendar prima di confermare',
           'Chiudere una sessione col cliente assente → verificare sessionStreak azzerato a 0',
           'Ripetere fino a streak 10+ → verificare che il moltiplicatore resti fermo a +100% (cap)',
         ],

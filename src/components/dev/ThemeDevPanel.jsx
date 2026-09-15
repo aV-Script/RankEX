@@ -27,9 +27,9 @@ function ThemePreviewCard({ theme, active, previewing, onHover, onLeave, onSelec
       className="cursor-pointer rounded-[4px] overflow-hidden flex-shrink-0 transition-transform"
       style={{
         width: 140,
-        outline: active ? `2px solid ${theme.swatches[0]}` : previewing ? `2px solid ${theme.swatches[0]}80` : '2px solid transparent',
+        outline: active ? `2px solid ${theme.swatches[0]}` : previewing ? `2px solid color-mix(in srgb, ${theme.swatches[0]} 50%, transparent)` : '2px solid transparent',
         transform: previewing ? 'scale(1.03)' : 'scale(1)',
-        boxShadow: active ? `0 0 20px ${theme.swatches[0]}40` : 'none',
+        boxShadow: active ? `0 0 20px color-mix(in srgb, ${theme.swatches[0]} 25%, transparent)` : 'none',
       }}
     >
       {/* Mini "app" preview */}

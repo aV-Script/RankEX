@@ -4,7 +4,7 @@ import { Pagination }     from '../../../components/common/Pagination'
 import { EmptyState, SectionLabel } from '../../../components/ui'
 import { SLOT_STATUS }    from '../../../constants/slotStatus'
 
-export function GroupSessionsPanel({ slots, loading }) {
+export function GroupSessionsPanel({ slots, loading, terminology }) {
   const today = new Date().toISOString().slice(0, 10)
 
   const upcoming = useMemo(() =>
@@ -78,7 +78,7 @@ export function GroupSessionsPanel({ slots, loading }) {
         <EmptyState
           icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>}
           title="Nessuna sessione"
-          description="Le sessioni del gruppo appariranno qui dopo la chiusura dal calendario."
+          description={`Le sessioni di ${terminology.group.toLowerCase()} appariranno qui dopo la chiusura dal calendario.`}
         />
       ) : (
         <div className="flex flex-col lg:flex-row gap-4">

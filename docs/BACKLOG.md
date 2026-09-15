@@ -289,4 +289,393 @@ fidato) + `RunbookPage.jsx`: scegli suite → checklist pass/fail/skip con nota 
 coinvolta in questo epic.
 
 ---
+
+## [EPIC-007] Mobile App — Store Readiness
+Fonte: `mobile-app/docs/MOBILE-APP.md` → sezione "Known issues / TODO" (branch
+`feature/mobile-app`, scaffolding Capacitor completo, build Android debug verificata
+lug 2026, mai portata oltre). Obiettivo: portare l'app dallo stato "compila" allo stato
+"pubblicabile" su almeno uno store.
+
+### [STORY-015] Android — signing release + appId definitivo
+**Come** developer **voglio** una build release firmata e un `appId` confermato **per**
+poter generare un AAB caricabile su Play Console.
+- **Priority:** P1
+- **Acceptance Criteria:**
+  - [ ] `appId` (`com.rankex.app`, oggi provvisorio) confermato con l'utente — non
+        cambiabile dopo la prima pubblicazione senza perdere utenti/recensioni
+  - [x] `signingConfigs`/`buildTypes.release` aggiunti a `android/app/build.gradle`
+  - [ ] Keystore generato (`keytool -genkeypair`), password scelta dall'utente e
+        salvata in password manager — MAI committata in git
+  - [ ] `./gradlew bundleRelease` produce un `.aab` valido (firmato)
+- **Dependencies:** nessuna tecnica per lo scaffolding — la firma reale richiede 2
+  decisioni dell'utente (conferma appId, scelta password keystore), non bloccata su
+  risorse esterne ma **non eseguibile da un agente automatico**: generare un keystore
+  di produzione con una password scelta arbitrariamente sarebbe un'azione irreversibile
+  e ad alto rischio (perderlo rende l'app non aggiornabile per sempre) presa senza il
+  controllo del proprietario reale delle credenziali
+- **Risks:** perdita del keystore dopo la prima pubblicazione rende l'app
+  non-aggiornabile per sempre — conservazione va trattata come un asset critico
+- **Sprint #7 (2026-09-15):** aggiunto lo scaffolding `signingConfigs`/`buildTypes` a
+  `android/app/build.gradle` — **condizionale**: si attiva solo se
+  `mobile-app/rankex-release.keystore` esiste realmente (verificato via `file(...)
+  .exists()` in Gradle), altrimenti la build resta unsigned come oggi. Nessuna password
+  hardcoded — lette da `RANKEX_KEYSTORE_PASSWORD`/`RANKEX_KEY_PASSWORD` (env var).
+  Scelto deliberatamente per non rompere `assembleDebug`/CI finché il keystore reale
+  non esiste. **Status:** DONE (scaffolding) — generazione keystore reale e conferma
+  `appId` restano un'azione dell'utente, non del developer/agente.
+
+### [STORY-016] Verifica manuale su device/emulatore reale
+**Come** QA **voglio** eseguire la checklist manuale completa (apertura, login/logout,
+back button, offline, tastiera, safe area, rotazione) **per** validare che il
+contenitore nativo si comporti correttamente prima di qualunque submission.
+- **Priority:** P1
+- **Acceptance Criteria:**
+  - [ ] `npx cap run android` eseguito su device fisico o emulatore con RAM sufficiente
+        (l'ambiente di sviluppo Windows attuale non è riuscito ad avviare un AVD)
+  - [ ] Checklist di `MOBILE-APP.md` → "Test" eseguita e risultato documentato
+  - [ ] Bridge `window.print()` verificato dal vivo (oggi solo compilazione verificata,
+        mai un dialogo di stampa reale)
+- **Dependencies:** un device Android fisico o un ambiente con più RAM — se non
+  disponibile, è un blocker reale, non aggirabile da codice
+- **Risks:** nessun test manuale è mai stato eseguito finora — possibile che emergano
+  bug di comportamento non visibili da una build che "solo compila"
+
+### [STORY-017] Push notifications — verifica end-to-end
+**Come** client **voglio** ricevere davvero una push quando viene creata una notifica
+in-app **per** non dover tenere l'app aperta per essere avvisato.
+- **Priority:** P2
+- **Acceptance Criteria:**
+  - [ ] `google-services.json` (Android) scaricato da Firebase Console e collocato
+  - [ ] Trigger `onNotificationCreated.js` verificato contro un device reale
+        (registrazione token `fcmTokens[]`, ricezione push, self-healing su token invalidi)
+  - [ ] iOS: APNs Auth Key — bloccato su Apple Developer Program (vedi STORY-018)
+- **Dependencies:** STORY-016 (serve un device funzionante); lato iOS dipende da
+  STORY-018
+- **Risks:** nessuno tecnico lato Android — il codice esiste già, solo mai verificato
+  contro credenziali reali
+
+### [STORY-018] iOS — build e verifica su Xcode
+**Come** developer **voglio** compilare e verificare il progetto iOS **per** sapere se
+`RankexBridgeViewController` è davvero risolta correttamente da Xcode prima di tentare
+un Archive.
+- **Priority:** P2
+- **Acceptance Criteria:**
+  - [ ] `pod install` + apertura `App.xcworkspace` su macOS
+  - [ ] Verifica che `RankexBridgeViewController` sia riconosciuta come custom class in
+        `Main.storyboard` (il `.pbxproj` è stato modificato a mano, non da Xcode)
+  - [ ] Build su device fisico o simulatore
+  - [ ] Capability Push Notifications aggiunta (richiede Apple Developer Program attivo)
+- **Dependencies:** **bloccata su accesso a un Mac con Xcode 15+** — non eseguibile
+  nell'ambiente Windows attuale, non risolvibile scrivendo codice; Apple Developer
+  Program ($99/anno) è una decisione/spesa dell'utente
+- **Risks:** rischio concreto che emergano problemi di build mai visti finché non gira
+  su Xcode reale — il codice è scritto ma "compila su carta"
+
+### [STORY-019] Artwork icona/splash definitivo
+**Come** utente finale **voglio** vedere il vero logo RankEX sull'icona dell'app **per**
+un'esperienza professionale, non un placeholder generato via screenshot.
+- **Priority:** P2
+- **Acceptance Criteria:**
+  - [ ] Logo RankEX come file immagine sorgente (oggi non esiste nel repo —
+        `BrandingPanel.jsx` usa solo testo con gradiente CSS, nessun asset)
+  - [ ] `resources/icon.png` (1024×1024) e `resources/splash.png` (2732×2732)
+        sostituiti con l'artwork reale
+  - [ ] `npx capacitor-assets generate` rieseguito per entrambe le piattaforme
+- **Dependencies:** **bloccata su un asset grafico che non esiste** — non risolvibile
+  da lavoro di sviluppo, serve una decisione su chi produce il logo (designer/budget)
+- **Risks:** nessuno tecnico — puro blocco di contenuto
+
+---
+
+## [EPIC-008] Privacy & Compliance
+Fonte: `mobile-app/docs/MOBILE-APP.md` → sezione "Privacy — checklist", l'unica analisi
+privacy esistente nel progetto ad oggi (nessuna sessione dedicata separata trovata).
+RankEX tratta dati sanitari (BIA — categoria speciale ex art. 9 GDPR se ci sono utenti
+UE), quindi lo scope reale è più ampio della sola submission store: riguarda l'intera
+piattaforma, non solo il contenitore mobile.
+
+### [STORY-020] Privacy Policy pubblica
+**Come** utente (client o org) **voglio** poter leggere una privacy policy pubblica
+**per** sapere quali dati RankEX raccoglie e come li tratta, requisito bloccante per la
+submission su entrambi gli store.
+- **Priority:** P0 (blocca la pubblicazione su store, non solo "nice to have")
+- **Acceptance Criteria:**
+  - [x] Bozza tecnica del contenuto basata sui dati già verificati nel codice (vedi
+        "Dati raccolti" in `MOBILE-APP.md`: anagrafica, dati sportivi, BIA, Firebase
+        come sub-processor, nessun social login, nessun analytics attivo)
+  - [x] Decisioni non tecniche esplicitate come domande aperte per l'utente: titolare
+        del trattamento, contatti/DPO se applicabile, retention policy, giurisdizione
+  - [ ] Documento pubblicato a un URL stabile, linkato da login/registrazione app +
+        listing store
+  - [ ] Revisione legale finale — **non delegabile al developer**
+- **Dependencies:** nessuna tecnica per la bozza; la pubblicazione finale dipende da
+  decisioni legali/aziendali dell'utente
+- **Risks:** bloccante hard per la submission — senza questo, niente Play Store/App Store
+- **Sprint #6 (2026-09-15):** bozza scritta in `docs/PRIVACY-POLICY-DRAFT.md` — 10
+  sezioni, ogni dato dichiarato verificato sul codice reale (non ipotizzato), incluso
+  un punto non banale scoperto scrivendo la bozza: RankEX è B2B multi-tenant, quindi il
+  modello corretto è **organizzazione = Titolare, RankEX = Responsabile del
+  trattamento**, con implicazione che serve un DPA per organizzazione (oggi non
+  risulta esistere) — non solo una policy pubblica generica. Include anche una nota
+  esplicita sui dati di minori (moduli soccer `soccer_youth`/`soccer_junior`, 7-13
+  anni) e su chi deve ottenere il consenso del genitore/tutore (l'organizzazione, non
+  RankEX). **Status:** DONE (bozza) — pubblicazione e revisione legale restano aperte,
+  fuori dallo scope che un developer può chiudere da solo.
+
+### [STORY-021] Processo di cancellazione dati (diritto all'oblio)
+**Come** utente **voglio** un modo per richiedere la cancellazione dei miei dati **per**
+esercitare un diritto GDPR oggi non documentato né implementato come flusso self-service.
+- **Priority:** P1
+- **Acceptance Criteria:**
+  - [x] Scoping: valutare se basta un processo manuale documentato (richiesta via
+        supporto → super_admin esegue cancellazione con gli strumenti già esistenti,
+        `eliminaCliente`/rimozione membro) oppure serve un flusso self-service nuovo
+  - [x] Se manuale: documentare il processo (chi riceve la richiesta, SLA, come si
+        verifica l'identità del richiedente) — necessario comunque per compilare il
+        Data Safety form di Play (oggi "TODO: DA DEFINIRE")
+  - [ ] Se self-service: nuova callable + UI — **non necessario**, vedi decisione sotto
+- **Dependencies:** nessuna
+- **Risks:** senza un processo documentato, il Data Safety form di Play resta incompleto
+  (blocca la submission Android)
+- **Sprint #6 (2026-09-15):** decisione presa — processo manuale, vedi
+  `docs/DECISIONS.md` → ADR-004. **Finding non previsto nello scoping originale:**
+  verificando se gli strumenti amministrativi esistenti (`eliminaCliente`) fossero
+  davvero sufficienti per una cancellazione completa, è emerso che **non lo erano** —
+  `batch.delete()` sul documento cliente lasciava orfane le subcollection
+  `notes`/`goals` in Firestore (dati personali non effettivamente cancellati, solo
+  irraggiungibili dall'app). Loggato come BUG-001 (`docs/BUGS.md`) e fixato nella
+  stessa sessione (`functions/src/callable/eliminaCliente.js` → `db.recursiveDelete()`
+  invece di `batch.delete()` sul solo doc padre). **Non ancora deployato** — verificato
+  solo con `node --check`, non contro l'emulatore o `rankex-dev`. **Status:** DONE
+  (scoping + decisione + fix del gap trovato) — deploy e verifica contro l'emulatore
+  restano da fare prima di chiudere definitivamente.
+
+### [STORY-022] Compilazione Data Safety (Play) + Privacy Nutrition Label (Apple)
+**Come** developer **voglio** compilare i form privacy richiesti da entrambi gli store
+**per** poter sottomettere l'app.
+- **Priority:** P1
+- **Acceptance Criteria:**
+  - [x] Google Play Data Safety form — contenuto compilato in bozza usando i dati già
+        verificati in `MOBILE-APP.md` + il processo di cancellazione da STORY-021
+  - [x] Apple Privacy Nutrition Label — bozza contenuti già presente in `MOBILE-APP.md`
+  - [ ] Trascrizione effettiva nei rispettivi form (Play Console / App Store Connect —
+        **non un'operazione sul repo**, richiede accesso agli account developer)
+  - [ ] Verificare la definizione aggiornata Play di "terze parti" per la voce
+        "Condivisi con terze parti" (oggi segnata NO, solo Firebase come infrastruttura
+        — da confermare al momento della compilazione, non assumere invariata)
+- **Dependencies:** STORY-021 (fatto — serviva il processo di cancellazione definito
+  prima di poter rispondere alla relativa voce del form)
+- **Risks:** nessuno tecnico — solo compilazione, ma bloccante per la submission
+- **Sprint #9 (2026-09-15):** contenuto di entrambi i form aggiornato/verificato in
+  `mobile-app/docs/MOBILE-APP.md` — la voce "Cancellazione dati" del Data Safety form
+  ora descrive il processo reale deciso in ADR-004 invece di "TODO: DA DEFINIRE".
+  **Status:** DONE (bozza contenuti) — la trascrizione nei Console è un'azione
+  dell'utente al momento della submission, non lavoro di sviluppo residuo.
+
+---
+
+## [EPIC-009] UX/UI — Debito residuo audit + superfici mobile-native
+Fonte: memoria sessione `project_art_direction_audit_jul2026` — 2 item lasciati
+esplicitamente parziali all'epoca (non dimenticati, scelta consapevole di scope) più
+una superficie UI mai esistita al momento dell'audit (contenitore mobile-native).
+
+### [STORY-023] Sweep completo pattern `color+'NN'`
+**Come** developer **voglio** eliminare la tecnica di opacità per concatenazione stringa
+hex ovunque, non solo nella root cause già fixata **per** evitare la stessa classe di
+bug (si rompe silenziosamente quando riceve `"var(--rx-accent)"` invece di un hex).
+- **Priority:** P2
+- **Acceptance Criteria:**
+  - [ ] Grep completo del pattern `color + '` / template string equivalenti sui 31 file
+        identificati nell'audit (P1.3 originale ne aveva fixati solo 2)
+  - [ ] Sostituzione con `color-mix()` (pattern già usato per il fix originale e per
+        `EmptyState`/`StatCard`)
+  - [ ] Verifica visiva che nessun bordo/sfondo tinto "si spenga" per client/admin
+- **Dependencies:** nessuna
+- **Risks:** basso — stesso fix già applicato con successo in più punti, solo scala
+- **Sprint #8 (2026-09-15):** eseguita da subagent developer in background. 34 dei 35
+  file avevano occorrenze reali (127 totali) — `ClientDashboard.jsx` scartato, l'unico
+  match era dentro un commento di documentazione, non codice vivo. Tutte convertite a
+  `color-mix(in srgb, ${color} P%, transparent)`, uniformemente, indipendentemente dal
+  fatto che la variabile fosse oggi sempre hex o potesse diventare `var(--rx-*)`.
+  `npm run lint`/`build`/`test:run` tutti verdi (211/211 test, 0 errori, 9 warning
+  preesistenti non collegati). **Trovato ma non corretto** (fuori scope — sweep colori,
+  non refactor struttura): possibile componente `SlotCard` duplicato quasi identico tra
+  `trainer-calendar/CalendarSidebar.jsx` e `trainer-calendar/SlotCard.jsx` — da
+  verificare con Tech Lead, potrebbe essere dead code o drift copy-paste. **Status:** DONE
+
+### [STORY-027] Fix — concordanza di genere rotta in `GroupsPage.jsx` (già migrato P2.9)
+**Come** trainer di un'org GYM/soccer_academy **voglio** leggere "Nessuna classe"/"la
+prima squadra" invece di "Nessun classe"/"il primo squadra" **per** non avere
+un'incoerenza grammaticale visibile nella pagina più trafficata del modulo gruppi.
+- **Priority:** P3
+- **Trovato da:** STORY-024 (durante la lettura di riferimento del file già migrato in
+  P2.9, non nel proprio scope — segnalato, non corretto, per non uscire dai 10 file
+  assegnati)
+- **Dettaglio:** `` `Nessun ${terminology.group.toLowerCase()}` `` → "Nessun classe"
+  (GYM), dovrebbe essere "Nessuna classe"; `` `Crea il primo
+  ${terminology.group.toLowerCase()}...` `` → "il primo classe/squadra", dovrebbe
+  essere "la prima". Stesso problema di concordanza già risolto altrove in P2.9/questa
+  sessione (vedi STORY-024) con costruzioni senza articolo — qui va applicata la
+  stessa disciplina.
+- **Status:** BACKLOG — non bloccante, cosmetico
+
+### [STORY-024] Terminologia multi-modulo — wave 2 su `groups-page/`
+**Come** trainer di un'org GYM o soccer_academy **voglio** vedere la terminologia
+corretta (Membro/Allievo invece di "Cliente", Classe/Squadra invece di "Gruppo") anche
+nelle 11 viste sotto `groups-page/` **per** coerenza con il resto dell'app (già
+applicata al resto in P2.9, deliberatamente non estesa lì per scope).
+- **Priority:** P3
+- **Acceptance Criteria:**
+  - [ ] `terminology` propagata lungo l'albero tab-figli di `GroupDetailView`
+        (`GroupAnalysis`, `GroupComparison`, `GroupLeaderboard`, `GroupManageTab`,
+        `GroupNotes`, `GroupSessionsPanel`, `GroupToggleDialog`, `GroupsSidebar`)
+  - [ ] Attenzione all'accordo di genere già gestito in P2.9 (es. "il gruppo" non regge
+        per Classe/Squadra, femminili) — riusare le costruzioni senza articolo già
+        adottate
+  - [x] "Atleta/i" lasciato invariato (lessico da performance-testing, non lessico
+        cliente — stessa decisione presa in P2.9)
+- **Dependencies:** nessuna
+- **Risks:** basso — pattern già rodato, solo più file
+- **Sprint #8 (2026-09-15):** eseguita da subagent developer in background. 8 dei 10
+  file avevano stringhe hardcoded da correggere (`GroupCard`, `GroupToggleDialog`,
+  `GroupManageTab`, `GroupSessionsPanel`, `GroupNotes`, `GroupLeaderboard`,
+  `GroupAnalysis`, `GroupsSidebar`) + 2 call-site aggiornati per passare `terminology`
+  (`GroupDetailView.jsx`, `GroupsPage.jsx`). `GroupChampions.jsx`/`GroupComparison.jsx`
+  non necessitavano modifiche (solo lessico "atleta", verificato via grep). Concordanza
+  di genere gestita con costruzioni invarianti ("in gruppo/classe/squadra" invece di
+  "nel/nella") seguendo la disciplina già stabilita in P2.9. `npm run lint`/`build`/
+  `vitest run` tutti verdi (211/211 test, 0 errori lint). **Trovato ma non corretto**
+  (fuori scope, promosso a STORY-027): bug di concordanza di genere preesistente in
+  `GroupsPage.jsx` (file già migrato in P2.9). **Nota**: `GroupsSidebar.jsx` risulta
+  codice morto (zero importer in `src/`, verificato via grep) — fix comunque applicato
+  per coerenza interna, ma candidato a rimozione in un futuro audit, stesso pattern di
+  altri file morti già documentati in CLAUDE.md. **Status:** DONE
+
+### [STORY-028] Investigare — navigazione interna trainer non usa history reale
+**Come** utente mobile **voglio** che il tasto back Android si comporti in modo
+prevedibile su qualunque pagina trainer (dashboard, clienti, wizard, gruppi...) **per**
+non ritrovarmi fuori dall'app o su una schermata inaspettata.
+- **Priority:** P1 — architetturale, non un fix di una riga
+- **Trovato da:** code-reviewer durante la verifica di STORY-026 (2026-09-15) — la
+  correzione del claim "wizard coperto" ha portato a verificare `useTrainerNav.js`,
+  che gestisce `page`/navigazione tra le viste trainer con puro `useState`, **zero
+  `history.pushState`/`popstate`**.
+- **Dettaglio:** `useNativeBackButton.js` usa `window.history.back()` come fallback
+  quando nessun modal è aperto (`canGoBack` true). Ma se la navigazione interna non ha
+  mai creato voci di history reali, questo non torna "indietro di una pagina" nell'app
+  (es. dal wizard nuovo cliente alla lista clienti) — torna a qualunque pagina reale
+  fosse caricata nel browser/WebView prima dell'inizializzazione della SPA, probabile
+  comportamento inatteso (schermata vuota, fuori dall'app, o redirect a login).
+  Riguarda **tutta** la navigazione trainer (non solo il wizard), e va verificato se lo
+  stesso vale per le altre viste per ruolo (client/org_admin/super_admin — ciascuna ha
+  probabilmente un proprio hook di navigazione da controllare separatamente).
+- **Perché non tentato ora:** sincronizzare stato di navigazione React con
+  `history.pushState`/`popstate` è un cambio strutturale che tocca più hook di
+  navigazione per ruolo, non un singolo file — rischio di regressioni su un
+  comportamento (navigazione interna) usato costantemente da ogni ruolo, e
+  **impossibile da verificare dal vivo** in questo momento (STORY-016 bloccata, nessun
+  device). Serve uno scoping Tech Lead prima di procedere, per lo stesso principio già
+  applicato altrove in questo backlog ("non costruire quello che non è stato capito").
+- **Status:** BACKLOG — richiede Tech Lead review prima di essere presa
+
+### [STORY-026] Fix — back button nativo può chiudere modal senza conferma
+**Come** utente mobile **voglio** che il tasto back Android non distrugga silenziosamente
+un modal aperto (es. `ConfirmDialog` "elimina cliente" in attesa) **per** non perdere
+stato/dati senza preavviso. **Nota:** il wizard nuovo cliente citato nella versione
+originale di questa story NON è coperto dal fix — è una pagina intera, non un modal,
+vedi STORY-028 per il problema architetturale più ampio scoperto verificandolo.
+- **Priority:** P0
+- **Trovato da:** STORY-025 (audit UX superfici mobile-native, code-level, Sprint #9,
+  2026-09-15)
+- **Dettaglio:** `src/hooks/useNativeBackButton.js` chiama sempre `history.back()` o
+  `App.minimizeApp()`, senza mai controllare se un `Modal`/`ConfirmDialog` è aperto
+  sopra la pagina corrente — `Modal`/`ConfirmDialog` sono puro stato React, zero
+  `history.pushState` in `components/ui`/`components/common` (verificato via grep).
+  Se esiste history SPA precedente, il back button naviga via la pagina sottostante
+  portando con sé qualunque modal aperto — perdita silenziosa dello stato, nessun
+  avviso. Se non c'è history, l'app va in background lasciando il modal orfano al
+  rientro.
+- **Fix proposto:** l'hook deve poter sapere se un modal è aperto (es. contatore/ref
+  globale incrementato al mount da `Modal`, in `components/ui/index.jsx`) e in quel
+  caso chiamare l'`onClose` del modal invece di `history.back()`/`minimizeApp()`.
+- **Acceptance Criteria:**
+  - [ ] Meccanismo di tracking "modal aperto" in `Modal` (componente condiviso)
+  - [ ] `useNativeBackButton.js` consulta il tracking prima di navigare/minimizzare
+  - [ ] Verificato che `ConfirmDialog`/wizard multi-step si chiudano correttamente col
+        back button invece di navigare via la pagina sottostante
+- **Dependencies:** nessuna — implementata più tardi nella stessa sessione, dopo che
+  l'agente concorrente (STORY-023) ha rilasciato `components/ui/index.jsx`
+- **Sprint #9 (2026-09-15):** implementato un piccolo stack condiviso
+  (`hooks/useModalStack.js` — `pushModalClose`/`closeTopModal`/`hasOpenModal`),
+  registrato da `Modal` (components/ui) e `ConfirmDialog` (components/common) al
+  mount/unmount; `useNativeBackButton.js` consulta lo stack prima di
+  navigare/minimizzare. **Scope volutamente parziale (wave 1)**: solo i dialog che
+  passano dai due primitivi condivisi sono coperti. Verificando l'estensione reale è
+  emerso che diversi dialog "bespoke" più vecchi — `CloseSessionModal.jsx`,
+  `RecurrenceModal.jsx`, `SlotPopup.jsx`, `GroupToggleDialog.jsx` — reimplementano il
+  proprio overlay+Escape invece di usare `Modal`/`ConfirmDialog` (stesso debito già
+  noto: CLAUDE.md P2.1/P2.2 documentano che solo `AddSlotModal`/`CreateOrgForm`/
+  `CreateMemberForm` sono stati migrati al primitivo condiviso, non tutti) — questi
+  restano **fuori dalla protezione** del back button. Non estesa in questa sessione per
+  rischio/tempo (richiederebbe toccare 4+ file bespoke senza possibilità di test dal
+  vivo, STORY-016 resta bloccata). **Non verificato su device reale** — solo lettura di
+  codice + `npm run lint`/`build`/`test:run` (211/211 verdi, nessuna regressione).
+  **Correzione post-code-review (2026-09-15):** la claim iniziale copriva anche "wizard
+  nuovo cliente" (l'esempio motivante del finding originale) — **falso, verificato**:
+  `NewClientView.jsx` è una pagina intera (`min-h-screen`), non un `Modal`/
+  `ConfirmDialog` — mostra un `ConfirmDialog` solo nell'ultimo step (conferma submit),
+  gli step di raccolta dati non sono avvolti in nulla che registri sullo stack. Il
+  wizard resta scoperto dal fix. Causa più profonda trovata verificando questo:
+  `useTrainerNav.js` gestisce la navigazione tra pagine trainer (dashboard↔clienti↔
+  wizard↔gruppi↔...) con puro `useState`, **zero `history.pushState`** — quindi
+  `window.history.back()` nel fallback dell'hook back-button non torna "indietro di
+  una pagina" nell'app, ma alla pagina reale precedente al caricamento della SPA
+  (probabilmente fuori dall'app, es. login o schermata vuota) — un problema
+  architetturale più ampio di questa story, che riguarda TUTTA la navigazione interna
+  trainer, non solo il wizard. Promosso a STORY-028 (Tech Lead review, non tentato alla
+  cieca senza device per verificarlo). **Status:** DONE (wave 1, solo dialog
+  Modal/ConfirmDialog) — la claim "copre il wizard" è stata rimossa, non era vera
+
+### [STORY-025] Audit UX delle superfici mobile-native
+**Come** utente dell'app mobile **voglio** che le schermate aggiunte dal contenitore
+nativo (offline/errore, back button, banner stampa) siano coerenti con il design system
+RankEX **per** non avere un'esperienza visivamente scollegata dal resto dell'app —
+superficie mai esistita durante l'audit Art Direction, quindi mai rivista.
+- **Priority:** P2
+- **Acceptance Criteria:**
+  - [ ] Overlay offline/errore nativo (Android `BridgeWebViewClient`, iOS
+        `NWPathMonitor`) rivisto contro palette/tipografia (`#07090e`, Montserrat/Inter,
+        elevation L0-L4) — oggi scritto senza passare da `ux-ui-designer`
+  - [ ] Comportamento back button (`useNativeBackButton.js`) verificato per non creare
+        stati UI inattesi (es. modal aperti, wizard multi-step)
+  - [ ] Bridge print: nessuna UI propria da rivedere (delega al dialogo nativo di stampa
+        del sistema operativo), ma verificare che il trigger `onExport` non lasci stati
+        di caricamento orfani se l'utente annulla
+- **Dependencies:** STORY-016 (serve poter vedere le schermate dal vivo, non solo
+  leggere il codice, per un giudizio Art Direction reale)
+- **Risks:** basso — è un audit, non un cambio di comportamento
+- **Sprint #9 (2026-09-15):** audit code-level completato (nessun device disponibile,
+  come da rischio noto). 4 finding:
+  - **CRITICA** — back button nativo può chiudere modal/wizard senza conferma →
+    promossa a STORY-026 (fix rimandato, collisione file con agente concorrente)
+  - **ALTA** — bottone "ESPORTA PDF" senza stato pending, rischio doppio tap sul
+    bridge nativo asincrono → **fixato**: nuovo hook condiviso `usePrintTrigger()` in
+    `components/common/reportPrintKit.jsx` (disabilita il bottone ~1s dopo il click,
+    label "IN CORSO…"), adottato da `ClientReportPrint.jsx` e `GroupReportPrint.jsx`
+  - **MEDIA** — bottone RIPROVA nativo (schermata offline) non rispetta lo stile
+    `.rx-btn-primary` reale (fill pieno nero-su-verde invece di outline/tinta) →
+    **fixato**: Android, nuovo drawable `res/drawable/bg_retry_button.xml` (tinta 7% +
+    bordo 35% sull'accent, non più `backgroundTint` pieno) applicato in
+    `view_connection_error.xml`; iOS, stessa tinta/bordo via `layer.borderWidth`/
+    `borderColor` in `RankexBridgeViewController.swift`. **iOS non verificato** (nessun
+    macOS in questo ambiente, stesso limite già noto per l'intero progetto iOS)
+  - **MEDIA** (bassa urgenza) — nessuna superficie nativa usa Montserrat/Inter (overlay
+    offline, icon/splash placeholder) → non fixato, già marcato TODO in
+    `mobile-app/docs/MOBILE-APP.md` per l'artwork definitivo (STORY-019)
+  - **Verifica positiva**: palette icon/splash placeholder confermata corretta
+    (`#07090e`/`#1dff6b`/`#2ecfff`, glow verde coincidente col vero
+    `--rx-gradient-accent`) — la claim di `MOBILE-APP.md` era vera, non solo dichiarata.
+  **Status:** DONE (audit + 2 dei 4 fix applicati)
+
+---
 <!-- Nuove epic/user story vengono aggiunte qui sotto dal Product Owner -->

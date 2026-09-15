@@ -32,10 +32,24 @@ export const eliminaCliente = onCall({ region: REGION }, async (request) => {
     return ids.includes(clientId)
   })
 
-  const batch = db.batch()
+  // Elimina il documento cliente + tutte le subcollection (notes, goals) — PRIMA
+  // del batch di counter/gruppi/users, non dopo. batch.delete() sul solo doc padre
+  // lasciava le subcollection orfane in Firestore (bug reale trovato in
+  // STORY-021/EPIC-008); mettere recursiveDelete DOPO il batch (come nel fix
+  // originale) creava un problema più serio in caso di fallimento parziale:
+  // se recursiveDelete falliva a batch già commesso, un retry manuale ri-eseguiva
+  // l'intera funzione da capo — clientDoc.exists era ancora true, quindi
+  // clientCount veniva decrementato una seconda volta, bypassando silenziosamente
+  // il limite piano. Con recursiveDelete per primo, un suo fallimento non tocca
+  // nient'altro (retry pulito); se invece fallisce il batch successivo, l'org
+  // resta con contatore/gruppi/users leggermente stale ma MAI un limite piano
+  // aggirato — fail-safe invece di fail-unsafe. Non è comunque atomico al 100%
+  // (recursiveDelete e un batch non possono condividere una transazione) — se
+  // serve garanzia più forte, va ripensato con un marker di stato, non fatto qui
+  // senza poterlo verificare contro l'emulatore.
+  await db.recursiveDelete(clientRef)
 
-  // Delete cliente
-  batch.delete(clientRef)
+  const batch = db.batch()
 
   // Delete users/{clientAuthUid} se esiste
   if (clientAuthUid) {

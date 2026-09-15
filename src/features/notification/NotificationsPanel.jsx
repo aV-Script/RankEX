@@ -94,12 +94,12 @@ export function NotificationsPanel({ notifications, color, onClose, onDelete }) 
         <div className="flex items-center gap-3 px-5 py-4 shrink-0"
           style={{ borderBottom: '1px solid var(--rx-border)' }}>
           <div className="flex items-center justify-center rounded-[6px] shrink-0"
-            style={{ width: 34, height: 34, background: color + '15', border: `1px solid ${color}30`, color }}>
+            style={{ width: 34, height: 34, background: `color-mix(in srgb, ${color} 8%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 19%, transparent)`, color }}>
             {ICON_BELL}
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-display text-[9px] tracking-[3px] uppercase"
-              style={{ color: color + '65' }}>
+              style={{ color: `color-mix(in srgb, ${color} 40%, transparent)` }}>
               {unreadCount > 0
                 ? `${unreadCount} non ${unreadCount === 1 ? 'letta' : 'lette'}`
                 : 'Tutte lette'}
@@ -141,8 +141,8 @@ export function NotificationsPanel({ notifications, color, onClose, onDelete }) 
                     style={{
                       borderRadius: 8,
                       padding:      '11px 12px',
-                      background:   isUnread ? color + '09' : 'color-mix(in srgb, var(--rx-accent) 3%, transparent)',
-                      border:       isUnread ? `1px solid ${color}25` : '1px solid var(--rx-border)',
+                      background:   isUnread ? `color-mix(in srgb, ${color} 4%, transparent)` : 'color-mix(in srgb, var(--rx-accent) 3%, transparent)',
+                      border:       isUnread ? `1px solid color-mix(in srgb, ${color} 15%, transparent)` : '1px solid var(--rx-border)',
                       borderLeft:   isUnread ? `3px solid ${color}` : `3px solid var(--rx-border)`,
                     }}
                   >
@@ -152,7 +152,7 @@ export function NotificationsPanel({ notifications, color, onClose, onDelete }) 
                       <div className="flex items-center justify-center rounded-[5px] shrink-0 mt-0.5"
                         style={{
                           width: 28, height: 28,
-                          background: isUnread ? color + '18' : 'color-mix(in srgb, var(--rx-accent) 6%, transparent)',
+                          background: isUnread ? `color-mix(in srgb, ${color} 9%, transparent)` : 'color-mix(in srgb, var(--rx-accent) 6%, transparent)',
                           color:      isUnread ? color        : 'color-mix(in srgb, var(--rx-accent) 45%, transparent)',
                         }}>
                         {icon}

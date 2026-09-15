@@ -45,7 +45,7 @@ const MonthCell = memo(function MonthCell({ cell, clients, today, onSlotClick, o
               key={slot.id}
               onClick={(e) => { e.stopPropagation(); onSlotClick(slot, e) }}
               className="w-full text-left rounded-[3px] px-1.5 py-0.5 font-body text-[10px] truncate cursor-pointer transition-all hover:opacity-80 border-none"
-              style={{ background: statusColor + '22', color: statusColor }}
+              style={{ background: `color-mix(in srgb, ${statusColor} 13%, transparent)`, color: statusColor }}
             >
               {slot.startTime} {label}
             </button>

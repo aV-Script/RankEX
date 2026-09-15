@@ -160,12 +160,16 @@ class RankexBridgeViewController: CAPBridgeViewController, WKNavigationDelegate,
         label.font = .systemFont(ofSize: 16)
         label.translatesAutoresizingMaskIntoConstraints = false
 
+        // Stile allineato a .rx-btn-primary (tinta+bordo, non fill pieno) —
+        // finding P2, STORY-025, audit UX superfici mobile-native
         let retry = UIButton(type: .system)
         retry.setTitle("RIPROVA", for: .normal)
-        retry.setTitleColor(.black, for: .normal)
+        retry.setTitleColor(UIColor(red: 0x1d/255, green: 0xff/255, blue: 0x6b/255, alpha: 1), for: .normal)
         retry.titleLabel?.font = .boldSystemFont(ofSize: 14)
-        retry.backgroundColor = UIColor(red: 0x1d/255, green: 0xff/255, blue: 0x6b/255, alpha: 1)
+        retry.backgroundColor = UIColor(red: 0x1d/255, green: 0xff/255, blue: 0x6b/255, alpha: 0.07)
         retry.layer.cornerRadius = 4
+        retry.layer.borderWidth = 1
+        retry.layer.borderColor = UIColor(red: 0x1d/255, green: 0xff/255, blue: 0x6b/255, alpha: 0.35).cgColor
         retry.translatesAutoresizingMaskIntoConstraints = false
         retry.contentEdgeInsets = UIEdgeInsets(top: 12, left: 28, bottom: 12, right: 28)
         retry.addTarget(self, action: #selector(retryTapped), for: .touchUpInside)

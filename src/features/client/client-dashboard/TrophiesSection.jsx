@@ -140,7 +140,7 @@ export function TrophiesSection({
             className="font-display flex items-center gap-1.5 cursor-pointer"
             style={{
               padding: '6px 12px', borderRadius: 6,
-              background: color + '15', border: `1px solid ${color}35`, color,
+              background: `color-mix(in srgb, ${color} 8%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 21%, transparent)`, color,
               fontSize: 10, fontWeight: 700,
               letterSpacing: '1.5px', textTransform: 'uppercase',
             }}
@@ -153,7 +153,7 @@ export function TrophiesSection({
       {/* ── Showcase preview ─────────────────────────────────────────────── */}
       {earnedList.length > 0 && (
         <div className="mb-6 rounded-[4px] p-4">
-          <div className="font-display text-[8px] tracking-[2.5px] uppercase mb-3 flex items-center gap-2" style={{ color: color + '80' }}>
+          <div className="font-display text-[8px] tracking-[2.5px] uppercase mb-3 flex items-center gap-2" style={{ color: `color-mix(in srgb, ${color} 50%, transparent)` }}>
             {ICON_PIN}
             Profilo ({currentShowcase.length}/{MAX_SHOWCASE})
             {!!onUpdateShowcase && (
@@ -233,7 +233,7 @@ export function TrophiesSection({
                       {b.description}
                     </div>
                     {meta.note && (
-                      <div className="font-body mt-1 leading-snug italic" style={{ fontSize: 10, color: color + '90' }}>
+                      <div className="font-body mt-1 leading-snug italic" style={{ fontSize: 10, color: `color-mix(in srgb, ${color} 56%, transparent)` }}>
                         "{meta.note}"
                       </div>
                     )}
@@ -345,7 +345,7 @@ export function TrophiesSection({
                       <div style={{ width: '100%', height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginTop: 6 }}>
                         <div style={{
                           height: '100%', width: `${pct}%`,
-                          background: pct > 0 ? color + '60' : 'transparent',
+                          background: pct > 0 ? `color-mix(in srgb, ${color} 38%, transparent)` : 'transparent',
                           borderRadius: 2, transition: 'width 600ms ease',
                         }} />
                       </div>
@@ -402,8 +402,8 @@ export function TrophiesSection({
                     className="flex items-center gap-3 cursor-pointer text-left rounded-[3px] transition-all"
                     style={{
                       padding:    '10px 12px',
-                      background: alreadyEarned ? 'rgba(255,255,255,0.03)' : color + '09',
-                      border:     `1px solid ${alreadyEarned ? 'rgba(255,255,255,0.06)' : color + '25'}`,
+                      background: alreadyEarned ? 'rgba(255,255,255,0.03)' : `color-mix(in srgb, ${color} 4%, transparent)`,
+                      border:     `1px solid ${alreadyEarned ? 'rgba(255,255,255,0.06)' : `color-mix(in srgb, ${color} 15%, transparent)`}`,
                       opacity:    alreadyEarned ? 0.4 : 1,
                     }}
                   >

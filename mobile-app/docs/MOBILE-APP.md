@@ -258,8 +258,15 @@ Condivisi con terze parti: NO (solo Firebase, infrastruttura, non "terze parti"
                            nel senso della policy — verificare la definizione
                            Play aggiornata al momento della compilazione)
 Crittografia in transito:  SÌ (HTTPS/Firestore)
-Cancellazione dati:        TODO: DA DEFINIRE — verificare/documentare il
-                           processo di richiesta cancellazione account
+Cancellazione dati:        processo manuale (richiesta → verifica identità →
+                           super_admin/org_admin esegue con eliminaCliente/
+                           rimuoviMembroTeam) — vedi docs/DECISIONS.md → ADR-004.
+                           SLA e canale di richiesta esatto: DA DEFINIRE (non
+                           tecnico). NOTA: eliminaCliente aveva un bug (orfane
+                           le subcollection notes/goals) fixato in questa
+                           sessione (BUG-001) ma non ancora deployato — non
+                           spuntare questa voce del form come "risolto" finché
+                           il fix non è verificato e in produzione.
 ```
 
 ### Apple App Privacy (Nutrition Label)
@@ -271,13 +278,13 @@ Usati per tracciarti:      NO
 Usati per il funzionamento dell'app: SÌ
 ```
 
-### Privacy Policy — TODO: DA DEFINIRE
-Serve un documento pubblico (URL) prima della submission su entrambi gli
-store — non generabile qui perché richiede decisioni legali/aziendali
-(titolare del trattamento, contatti DPO se applicabile, retention policy)
-che non posso inventare. Contenuti minimi da coprire, basati sui dati sopra:
-raccolta anagrafica/sportiva/sanitaria, uso Firebase come sub-processor,
-diritti GDPR (accesso/cancellazione/portabilità) se ci sono utenti UE.
+### Privacy Policy — bozza pronta, pubblicazione TODO: DA DEFINIRE
+Bozza tecnica completa in `docs/PRIVACY-POLICY-DRAFT.md` (Sprint #6, EPIC-008) — ogni
+dato dichiarato è verificato sul codice, non ipotizzato. Resta da fare, non delegabile
+a questo processo: revisione legale, compilazione delle sezioni `[DA DEFINIRE]`
+(titolare del trattamento, DPO, retention, eventuale DPA per organizzazione — RankEX è
+B2B multi-tenant, quindi il modello Titolare/Responsabile riguarda ogni org cliente,
+non solo RankEX stessa), pubblicazione a un URL stabile linkato da login/store listing.
 
 ---
 
@@ -320,7 +327,10 @@ device fisico, e le push non funzionano affatto sul simulatore).
 - **`appId` provvisorio** (`com.rankex.app`) — confermare prima della prima submission
 - **Icone/splash placeholder** — sostituire con artwork ufficiale (non esiste
   ancora come file immagine nel repo RankEX)
-- **Firma release Android** non configurata (serve una password scelta da te)
+- **Firma release Android** — plumbing pronto in `build.gradle` (Sprint #7,
+  condizionale sull'esistenza del keystore), ma il keystore reale e le env var
+  `RANKEX_KEYSTORE_PASSWORD`/`RANKEX_KEY_PASSWORD` restano da generare/scegliere (serve
+  una password scelta da te, vedi "Firma release" più sopra)
 - **iOS non compilato/verificato** in questo ambiente — verificare su macOS
   prima di procedere ad Archive/TestFlight, in particolare che
   `RankexBridgeViewController` sia risolta correttamente da Xcode come
@@ -332,4 +342,12 @@ device fisico, e le push non funzionano affatto sul simulatore).
   un device fisico
 - **Privacy Policy** da scrivere e pubblicare (TODO: DA DEFINIRE, decisione
   aziendale/legale, non tecnica)
-- **Bridge `window.print()`** implementato ma non testato su device reale
+- **Bridge `window.print()`** implementato ma non testato su device reale — bottone
+  "STAMPA / SALVA PDF" ora protetto da doppio tap (`usePrintTrigger()` in
+  `reportPrintKit.jsx`, Sprint #9/STORY-025), ma resta da verificare dal vivo che il
+  bridge nativo stesso si comporti bene con tap ravvicinati, non solo che il bottone
+  web si disabiliti
+- **Schermata offline** — bottone RIPROVA ora in stile outline/tinta coerente col
+  design system invece del fill pieno nero-su-verde precedente (Sprint #9/STORY-025).
+  Fix Android verificato con `assembleDebug` (BUILD SUCCESSFUL); fix iOS scritto ma
+  **non compilato** — stesso limite generale del progetto iOS in questo ambiente

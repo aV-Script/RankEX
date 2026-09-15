@@ -1,4 +1,4 @@
-export function GroupCard({ group, clients, onClick }) {
+export function GroupCard({ group, clients, onClick, terminology }) {
   const groupClients = clients.filter(c => group.clientIds.includes(c.id)).slice(0, 3)
   const remaining    = Math.max(0, group.clientIds.length - 3)
 
@@ -13,7 +13,7 @@ export function GroupCard({ group, clients, onClick }) {
             {group.name}
           </div>
           <div className="font-display text-[12px] text-white/30 mt-0.5">
-            {group.clientIds.length} {group.clientIds.length === 1 ? 'cliente' : 'clienti'}
+            {group.clientIds.length} {group.clientIds.length === 1 ? terminology.client.toLowerCase() : terminology.clients.toLowerCase()}
           </div>
 
           {/* Avatars iniziali membri */}

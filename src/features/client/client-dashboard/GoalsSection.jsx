@@ -80,7 +80,7 @@ export function GoalsSection({ client, orgId, color, readonly = false }) {
             <button
               onClick={() => setFormOpen(true)}
               className="font-display text-[10px] tracking-[1.5px] uppercase px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all"
-              style={{ color, borderColor: color + '55', background: color + '11' }}
+              style={{ color, borderColor: `color-mix(in srgb, ${color} 33%, transparent)`, background: `color-mix(in srgb, ${color} 7%, transparent)` }}
             >
               + Nuovo
             </button>
@@ -204,7 +204,7 @@ function GoalCard({ goal, readonly, cancelling, onCancel }) {
           <span className="font-display font-bold text-[12px] text-white/80">{goal.testLabel}</span>
           <span
             className="rounded-full font-display font-bold text-[9px] px-2 py-0.5"
-            style={{ background: meta.color + '18', color: meta.color, border: `1px solid ${meta.color}33` }}
+            style={{ background: `color-mix(in srgb, ${meta.color} 9%, transparent)`, color: meta.color, border: `1px solid color-mix(in srgb, ${meta.color} 20%, transparent)` }}
           >
             {meta.label}
           </span>

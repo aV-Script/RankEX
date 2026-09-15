@@ -19,7 +19,7 @@ const ROLE_LABELS = {
   staff_readonly: 'Staff',
 }
 
-export function GroupNotes({ orgId, groupId }) {
+export function GroupNotes({ orgId, groupId, terminology }) {
   const { userRole } = useTrainerState()
   const toast = useToast()
   const [notes,       setNotes]       = useState([])
@@ -94,7 +94,7 @@ export function GroupNotes({ orgId, groupId }) {
 
   return (
     <div className="rounded-[4px] p-5 rx-card">
-      <SectionLabel className="mb-5">◈ Note di gruppo</SectionLabel>
+      <SectionLabel className="mb-5">◈ Note di {terminology.group.toLowerCase()}</SectionLabel>
 
       {/* Composer */}
       <div className="mb-5">
@@ -102,7 +102,7 @@ export function GroupNotes({ orgId, groupId }) {
           value={text}
           onChange={e => setText(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSubmit() }}
-          placeholder="Scrivi un annuncio o una nota per il gruppo… (Ctrl+↵ per inviare)"
+          placeholder={`Scrivi un annuncio o una nota di ${terminology.group.toLowerCase()}… (Ctrl+↵ per inviare)`}
           rows={3}
           className="input-base w-full resize-none font-body text-[13px]"
           style={{ lineHeight: 1.6 }}
@@ -123,7 +123,7 @@ export function GroupNotes({ orgId, groupId }) {
         <EmptyState
           icon={ICON_NOTES}
           title="Nessuna nota"
-          description="Pubblica la prima nota o annuncio per questo gruppo."
+          description={`Pubblica la prima nota o il primo annuncio di ${terminology.group.toLowerCase()}.`}
         />
       ) : (
         <>
@@ -146,7 +146,7 @@ export function GroupNotes({ orgId, groupId }) {
       {confirmDelete && (
         <ConfirmDialog
           title="Eliminare la nota?"
-          description="La nota verrà rimossa definitivamente dal gruppo."
+          description={`La nota di ${terminology.group.toLowerCase()} verrà rimossa definitivamente.`}
           confirmLabel="ELIMINA"
           variant="danger"
           loading={deletingId === confirmDelete.id}

@@ -146,7 +146,7 @@ export function GroupDetailHeader({
 function actionBtnStyle(danger, muted, color) {
   if (danger) return { color: '#f87171',                  borderColor: 'rgba(248,113,113,0.2)', background: 'transparent' }
   if (muted)  return { color: 'rgba(255,255,255,0.3)',    borderColor: 'rgba(255,255,255,0.1)', background: 'transparent' }
-  if (color)  return { color,                             borderColor: color + '44',            background: color + '11'  }
+  if (color)  return { color,                             borderColor: `color-mix(in srgb, ${color} 27%, transparent)`, background: `color-mix(in srgb, ${color} 7%, transparent)` }
   return              { color: 'rgba(255,255,255,0.4)',   borderColor: 'rgba(255,255,255,0.1)', background: 'transparent' }
 }
 

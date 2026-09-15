@@ -17,7 +17,7 @@ export function BiaSummary({ bia, prevBia, sex, age, color, rank }) {
         <SectionLabel className="mb-0">◈ Composizione corporea</SectionLabel>
         <div
           className="flex items-center gap-2 px-3 py-1 rounded-[3px]"
-          style={{ background: color + '11', border: `1px solid ${color}33` }}
+          style={{ background: `color-mix(in srgb, ${color} 7%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 20%, transparent)` }}
         >
           <span className="font-display font-black text-[15px]" style={{ color }}>
             {rank}

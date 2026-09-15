@@ -91,4 +91,35 @@ atteso di un giro e2e locale lungo contro un servizio reale, CI non lo mostra.
 
 ---
 
+## [TD-003] Possibile componente `SlotCard` duplicato nel calendario trainer
+**Data:** 2026-09-15 (trovato durante STORY-023, sweep `color+'NN'`, Sprint #8)
+**Cosa si è scelto di rimandare:** non investigato a fondo — segnalato dall'agente
+mentre fixava un'occorrenza del pattern in entrambi i file, fuori dallo scope di quel
+task (sweep colori, non refactor struttura).
+**Dettaglio:** `src/features/trainer/trainer-calendar/CalendarSidebar.jsx` e
+`src/features/trainer/trainer-calendar/SlotCard.jsx` sembrano contenere una
+definizione di componente `SlotCard` praticamente identica (stessa JSX, stesse prop,
+stessa logica) in due file diversi — non verificato se sia dead code (uno dei due mai
+importato) o drift copy-paste reale con entrambi in uso.
+**Rischio se non risolto:** basso/medio — se è drift reale, un fix futuro al comportamento
+delle slot card rischia di essere applicato a una sola delle due copie, riproducendo lo
+stesso pattern di inconsistenza già documentato altrove nel progetto (vedi CLAUDE.md →
+audit passati, file/feature duplicati).
+**Verifica (2026-09-15, stessa sessione):** non era drift tra due copie live — era
+codice morto su entrambi i lati. `TrainerCalendar.jsx` (l'unico consumer possibile di
+un componente di rendering slot) importa solo `CalendarHeader`/`MonthView`/`WeekView`/
+`DayView`/`SlotPopup`/i modal — mai `SlotCard` né `CalendarSidebar`. Grep su tutto
+`src/` per entrambi gli identificatori: zero import in nessun file. `CalendarSidebar.jsx`
+conteneva, nonostante il nome, una copia esatta del componente `SlotCard` (stessa
+funzione `SlotCard({ slot, clients, onClick })`, stessa logica) — probabile corruzione
+da un refactor passato, non un duplicato intenzionale. **Conseguenza scoperta insieme**:
+la sezione Roadmap di CLAUDE.md descriveva un badge "Streak N" su `SlotCard.jsx` come
+superficie UI reale — non lo era mai stata, quel file non è mai stato raggiungibile.
+**Fix:** entrambi i file rimossi, insieme a `groups-page/GroupsSidebar.jsx` (stesso
+controllo, stesso esito: zero import — trovato durante STORY-024). CLAUDE.md aggiornato
+(albero cartelle + correzione sezione Streak). Verificato `npm run lint`/`build`/
+`test:run` dopo la rimozione — nessuna regressione.
+**Status:** RESOLVED
+
+---
 <!-- Nuove voci aggiunte qui dal Tech Lead o dalla Retrospective -->

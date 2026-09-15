@@ -13,7 +13,7 @@ export function GroupManageTab({
   clientsInGroup, totalClients, clientsNotInGroupCount,
   clientSearch, onSearchChange,
   inGroupPagination, notInGroupPagination,
-  toggling, onRequestToggle,
+  toggling, onRequestToggle, terminology,
 }) {
   return (
     <div className="px-4 sm:px-6 pt-4 pb-12 flex flex-col gap-4">
@@ -24,12 +24,12 @@ export function GroupManageTab({
         {/* Col 1: Nel gruppo */}
         <div className="rounded-[4px] p-5 rx-card">
           <SectionLabel className="mb-5">
-            ◈ Nel gruppo <span className="text-white/60 ml-1">({clientsInGroup.length})</span>
+            ◈ In {terminology.group.toLowerCase()} <span className="text-white/60 ml-1">({clientsInGroup.length})</span>
           </SectionLabel>
           {inGroupPagination.paginatedItems.length === 0 ? (
             <EmptyState
               icon={ICON_EMPTY_CLIENTS}
-              title={clientSearch ? 'Nessun risultato' : 'Nessun atleta nel gruppo'}
+              title={clientSearch ? 'Nessun risultato' : `Nessun atleta in ${terminology.group.toLowerCase()}`}
               description={clientSearch ? undefined : 'Aggiungi atleti dalla colonna destra.'}
             />
           ) : (
@@ -48,7 +48,7 @@ export function GroupManageTab({
         <div className="rounded-[4px] p-5 rx-card">
           <SectionLabel className="mb-5">◈ Riepilogo</SectionLabel>
           <div className="flex flex-col gap-2 mb-4">
-            <ManageStat label="Nel gruppo"    value={clientsInGroup.length}                 color="var(--rx-accent)" />
+            <ManageStat label={`In ${terminology.group.toLowerCase()}`} value={clientsInGroup.length}                 color="var(--rx-accent)" />
             <ManageStat label="Disponibili"   value={totalClients - clientsInGroup.length}  />
             <ManageStat label="Totale atleti" value={totalClients}                          />
           </div>
@@ -79,8 +79,8 @@ export function GroupManageTab({
           {notInGroupPagination.paginatedItems.length === 0 ? (
             <EmptyState
               icon={ICON_EMPTY_CLIENTS}
-              title={clientSearch ? 'Nessun risultato' : 'Tutti nel gruppo'}
-              description={clientSearch ? undefined : 'Tutti gli atleti sono già in questo gruppo.'}
+              title={clientSearch ? 'Nessun risultato' : `Tutti in ${terminology.group.toLowerCase()}`}
+              description={clientSearch ? undefined : `Tutti gli atleti sono già in ${terminology.group.toLowerCase()}.`}
             />
           ) : (
             <>

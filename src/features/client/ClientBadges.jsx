@@ -20,7 +20,7 @@ export function ClientBadges({ categoriaObj, ruoloObj, color, categoria, hasTest
       {categoriaObj && (
         <span
           className="font-display text-[11px] px-3 py-1 rounded-[3px]"
-          style={{ background: categoriaObj.color + '18', color: categoriaObj.color, border: `1px solid ${categoriaObj.color}44` }}
+          style={{ background: `color-mix(in srgb, ${categoriaObj.color} 9%, transparent)`, color: categoriaObj.color, border: `1px solid color-mix(in srgb, ${categoriaObj.color} 27%, transparent)` }}
         >
           {categoriaObj.label.toUpperCase()}
         </span>
@@ -28,7 +28,7 @@ export function ClientBadges({ categoriaObj, ruoloObj, color, categoria, hasTest
       {ruoloObj && (
         <span
           className="font-display text-[11px] px-3 py-1 rounded-[3px]"
-          style={{ background: color + '18', color, border: `1px solid ${color}44` }}
+          style={{ background: `color-mix(in srgb, ${color} 9%, transparent)`, color, border: `1px solid color-mix(in srgb, ${color} 27%, transparent)` }}
         >
           {ruoloObj.label.toUpperCase()}
         </span>
@@ -36,7 +36,7 @@ export function ClientBadges({ categoriaObj, ruoloObj, color, categoria, hasTest
       {fasciaGroup && (
         <span
           className="font-display text-[11px] px-3 py-1 rounded-[3px]"
-          style={{ background: fasciaColor + '20', color: fasciaColor, border: `1px solid ${fasciaColor}40` }}
+          style={{ background: `color-mix(in srgb, ${fasciaColor} 13%, transparent)`, color: fasciaColor, border: `1px solid color-mix(in srgb, ${fasciaColor} 25%, transparent)` }}
         >
           {fasciaGroup.label.toUpperCase()}
         </span>
@@ -44,7 +44,7 @@ export function ClientBadges({ categoriaObj, ruoloObj, color, categoria, hasTest
       {hasTests && rankObj && (
         <span
           className="font-display font-bold text-[11px] px-3 py-1 rounded-[3px]"
-          style={{ background: rankObj.color + '20', color: rankObj.color, border: `1px solid ${rankObj.color}50` }}
+          style={{ background: `color-mix(in srgb, ${rankObj.color} 13%, transparent)`, color: rankObj.color, border: `1px solid color-mix(in srgb, ${rankObj.color} 31%, transparent)` }}
         >
           {rankObj.label}
         </span>
@@ -52,7 +52,7 @@ export function ClientBadges({ categoriaObj, ruoloObj, color, categoria, hasTest
       {hasBia && biaRankObj && (
         <span
           className="font-display text-[11px] px-3 py-1 rounded-[3px]"
-          style={{ background: biaRankObj.color + '20', color: biaRankObj.color, border: `1px solid ${biaRankObj.color}50` }}
+          style={{ background: `color-mix(in srgb, ${biaRankObj.color} 13%, transparent)`, color: biaRankObj.color, border: `1px solid color-mix(in srgb, ${biaRankObj.color} 31%, transparent)` }}
         >
           BIA {biaRankObj.label}
         </span>

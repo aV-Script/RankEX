@@ -71,7 +71,7 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
         <div className="flex items-center gap-2">
           <span
             className="font-display text-[10px] px-2 py-0.5 rounded-[3px]"
-            style={{ background: statusLabel.color + '22', color: statusLabel.color }}
+            style={{ background: `color-mix(in srgb, ${statusLabel.color} 13%, transparent)`, color: statusLabel.color }}
           >
             {statusLabel.text}
           </span>

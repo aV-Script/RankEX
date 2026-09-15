@@ -191,7 +191,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
               <GroupChampions clients={allClientsInGroup} />
               <div className="rounded-[4px] p-5 rx-card">
                 <SectionLabel className="mb-5">◈ Classifica</SectionLabel>
-                <GroupLeaderboard clients={allClientsInGroup} />
+                <GroupLeaderboard clients={allClientsInGroup} terminology={terminology} />
               </div>
             </div>
           )
@@ -207,7 +207,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
           ) : (
             <div className="px-4 sm:px-6 pt-4 pb-12">
               <ErrorBoundary fallback={ChartErrorFallback}>
-                <GroupAnalysis clients={allClientsInGroup} />
+                <GroupAnalysis clients={allClientsInGroup} terminology={terminology} />
               </ErrorBoundary>
             </div>
           )
@@ -240,18 +240,19 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
             notInGroupPagination={notInGroupPagination}
             toggling={toggling}
             onRequestToggle={handleRequestToggle}
+            terminology={terminology}
           />
         )}
 
         {subView === 'sessions' && (
           <div className="px-4 sm:px-6 pt-4 pb-12">
-            <GroupSessionsPanel slots={slots} loading={slotsLoading} />
+            <GroupSessionsPanel slots={slots} loading={slotsLoading} terminology={terminology} />
           </div>
         )}
 
         {subView === 'notes' && (
           <div className="px-4 sm:px-6 pt-4 pb-12">
-            <GroupNotes orgId={orgId} groupId={group.id} />
+            <GroupNotes orgId={orgId} groupId={group.id} terminology={terminology} />
           </div>
         )}
 
@@ -284,6 +285,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
           isRemoving={toggleDialog.isRemoving}
           onConfirm={handleConfirmToggle}
           onCancel={() => setToggleDialog(null)}
+          terminology={terminology}
         />
       )}
 

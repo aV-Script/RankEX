@@ -46,7 +46,7 @@ export function BiaHistoryChart({ biaHistory, color }) {
             onClick={() => setSelectedParam(p.key)}
             className="px-3 py-1 rounded-[3px] font-display text-[11px] border cursor-pointer transition-all"
             style={selectedParam === p.key
-              ? { background: color + '33', borderColor: color + '55', color }
+              ? { background: `color-mix(in srgb, ${color} 20%, transparent)`, borderColor: `color-mix(in srgb, ${color} 33%, transparent)`, color }
               : { background: 'transparent', borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.3)' }
             }
           >

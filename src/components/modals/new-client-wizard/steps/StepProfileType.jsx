@@ -14,7 +14,7 @@ export function StepProfileType({ profileType, setProfileType }) {
           onClick={() => setProfileType(cat.id)}
           className="flex items-start gap-4 p-4 rounded-[4px] cursor-pointer border transition-all text-left"
           style={profileType === cat.id
-            ? { background: cat.color + '12', borderColor: cat.color + '44' }
+            ? { background: `color-mix(in srgb, ${cat.color} 7%, transparent)`, borderColor: `color-mix(in srgb, ${cat.color} 27%, transparent)` }
             : { background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.07)' }
           }
         >
@@ -37,7 +37,7 @@ export function StepProfileType({ profileType, setProfileType }) {
               {cat.hasTests && (
                 <span
                   className="font-display text-[9px] px-2 py-0.5 rounded-[2px]"
-                  style={{ background: cat.color + '18', color: cat.color + 'cc' }}
+                  style={{ background: `color-mix(in srgb, ${cat.color} 9%, transparent)`, color: `color-mix(in srgb, ${cat.color} 80%, transparent)` }}
                 >
                   TEST ATLETICI
                 </span>
@@ -45,7 +45,7 @@ export function StepProfileType({ profileType, setProfileType }) {
               {cat.hasBia && (
                 <span
                   className="font-display text-[9px] px-2 py-0.5 rounded-[2px]"
-                  style={{ background: cat.color + '18', color: cat.color + 'cc' }}
+                  style={{ background: `color-mix(in srgb, ${cat.color} 9%, transparent)`, color: `color-mix(in srgb, ${cat.color} 80%, transparent)` }}
                 >
                   BIOIMPEDENZIOMETRIA
                 </span>

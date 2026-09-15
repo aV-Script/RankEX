@@ -55,7 +55,7 @@ export function TestGuidePage() {
                       <div
                         aria-hidden="true"
                         className="absolute bottom-0 left-1 right-1 h-[2px] rounded-t-sm"
-                        style={{ background: `linear-gradient(90deg,${fc},${fc}88)`, boxShadow: `0 0 6px ${fc}44` }}
+                        style={{ background: `linear-gradient(90deg,${fc},color-mix(in srgb, ${fc} 53%, transparent))`, boxShadow: `0 0 6px color-mix(in srgb, ${fc} 27%, transparent)` }}
                       />
                     )}
                     {g.label.toUpperCase()}
@@ -81,7 +81,7 @@ export function TestGuidePage() {
                       {!active && <span className="w-1 h-1 rounded-full shrink-0 opacity-0" />}
                       {t.label.charAt(0) + t.label.slice(1).toLowerCase()}
                     </span>
-                    <span className="block font-display text-[10px] mt-0.5 pl-3" style={{ color: active ? fasciaColor + 'aa' : 'rgba(255,255,255,0.2)' }}>{t.test}</span>
+                    <span className="block font-display text-[10px] mt-0.5 pl-3" style={{ color: active ? `color-mix(in srgb, ${fasciaColor} 67%, transparent)` : 'rgba(255,255,255,0.2)' }}>{t.test}</span>
                   </button>
                 )
               })}
@@ -102,7 +102,7 @@ export function TestGuidePage() {
                       aria-pressed={soccerFascia === g.value}
                       className="flex-1 py-1.5 rounded-[3px] font-display text-[10px] tracking-wide cursor-pointer border transition-all"
                       style={soccerFascia === g.value
-                        ? { background: fc + '22', borderColor: fc + '66', color: fc }
+                        ? { background: `color-mix(in srgb, ${fc} 13%, transparent)`, borderColor: `color-mix(in srgb, ${fc} 40%, transparent)`, color: fc }
                         : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)' }
                       }
                     >
@@ -115,7 +115,7 @@ export function TestGuidePage() {
                 onClick={() => setMenuOpen(o => !o)}
                 aria-expanded={menuOpen}
                 className="w-full flex items-center justify-between px-4 py-3 rounded-[3px] cursor-pointer border transition-all"
-                style={{ background: 'var(--rx-card-bg)', borderColor: fasciaColor + '33' }}
+                style={{ background: 'var(--rx-card-bg)', borderColor: `color-mix(in srgb, ${fasciaColor} 20%, transparent)` }}
               >
                 <div className="text-left">
                   <span className="font-display text-[10px] tracking-[2px] block" style={{ color: fasciaColor }}>
@@ -132,7 +132,7 @@ export function TestGuidePage() {
 
               {menuOpen && (
                 <div className="rounded-[3px] overflow-hidden mt-2"
-                  style={{ background: 'var(--rx-surface)', border: `1px solid ${fasciaColor}33` }}>
+                  style={{ background: 'var(--rx-surface)', border: `1px solid color-mix(in srgb, ${fasciaColor} 20%, transparent)` }}>
                   {soccerTests.map(t => (
                     <button
                       key={t.key}
@@ -140,7 +140,7 @@ export function TestGuidePage() {
                       aria-pressed={currentTest?.key === t.key}
                       className="w-full text-left px-4 py-3 flex items-center justify-between cursor-pointer transition-all border-none"
                       style={{
-                        background:   currentTest?.key === t.key ? fasciaColor + '18' : 'transparent',
+                        background:   currentTest?.key === t.key ? `color-mix(in srgb, ${fasciaColor} 9%, transparent)` : 'transparent',
                         borderBottom: '1px solid rgba(255,255,255,0.05)',
                       }}
                     >
@@ -220,7 +220,7 @@ export function TestGuidePage() {
                     <div
                       aria-hidden="true"
                       className="absolute bottom-0 left-1 right-1 h-[2px] rounded-t-sm"
-                      style={{ background: `linear-gradient(90deg,${cat.color},${cat.color}88)`, boxShadow: `0 0 6px ${cat.color}44` }}
+                      style={{ background: `linear-gradient(90deg,${cat.color},color-mix(in srgb, ${cat.color} 53%, transparent))`, boxShadow: `0 0 6px color-mix(in srgb, ${cat.color} 27%, transparent)` }}
                     />
                   )}
                   {cat.label.toUpperCase()}
@@ -248,7 +248,7 @@ export function TestGuidePage() {
                     {!active && <span className="w-1 h-1 rounded-full shrink-0 opacity-0" />}
                     {t.label.charAt(0) + t.label.slice(1).toLowerCase()}
                   </span>
-                  <span className="block font-display text-[10px] mt-0.5 pl-3" style={{ color: active ? catColor + 'aa' : 'rgba(255,255,255,0.2)' }}>{t.test}</span>
+                  <span className="block font-display text-[10px] mt-0.5 pl-3" style={{ color: active ? `color-mix(in srgb, ${catColor} 67%, transparent)` : 'rgba(255,255,255,0.2)' }}>{t.test}</span>
                 </button>
               )
             })}
@@ -269,7 +269,7 @@ export function TestGuidePage() {
                   aria-pressed={selectedCat === cat.id}
                   className="shrink-0 px-3 py-2 rounded-[3px] font-display text-[10px] tracking-widest cursor-pointer border transition-all"
                   style={selectedCat === cat.id
-                    ? { background: cat.color + '22', borderColor: cat.color + '55', color: cat.color }
+                    ? { background: `color-mix(in srgb, ${cat.color} 13%, transparent)`, borderColor: `color-mix(in srgb, ${cat.color} 33%, transparent)`, color: cat.color }
                     : { background: 'transparent', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)' }
                   }
                 >
@@ -309,7 +309,7 @@ export function TestGuidePage() {
                     aria-pressed={selectedTest === t.key}
                     className="w-full text-left px-4 py-3 flex items-center justify-between cursor-pointer transition-all border-none"
                     style={{
-                      background: selectedTest === t.key ? catColor + '18' : 'transparent',
+                      background: selectedTest === t.key ? `color-mix(in srgb, ${catColor} 9%, transparent)` : 'transparent',
                       borderBottom: '1px solid rgba(255,255,255,0.05)',
                     }}
                   >
@@ -370,7 +370,7 @@ function GuideContent({ test, guide, color }) {
         <ul className="flex flex-col gap-2">
           {guide.equipment.map((item, i) => (
             <li key={i} className="flex gap-2.5 items-start rounded-[3px] px-3 py-2.5"
-              style={{ background: 'var(--rx-card-bg)', border: `1px solid ${color}14` }}>
+              style={{ background: 'var(--rx-card-bg)', border: `1px solid color-mix(in srgb, ${color} 8%, transparent)` }}>
               <span className="mt-0.5 text-[12px] shrink-0" style={{ color }}>{i + 1}</span>
               <span className="text-[13px] text-white/60">{item}</span>
             </li>
@@ -382,7 +382,7 @@ function GuideContent({ test, guide, color }) {
         <ol className="flex flex-col gap-2">
           {guide.warmup.map((step, i) => (
             <li key={i} className="flex gap-2.5 items-start rounded-[3px] px-3 py-2.5"
-              style={{ background: 'var(--rx-card-bg)', border: `1px solid ${color}14` }}>
+              style={{ background: 'var(--rx-card-bg)', border: `1px solid color-mix(in srgb, ${color} 8%, transparent)` }}>
               <span className="mt-0.5 text-[12px] shrink-0" style={{ color }}>{i + 1}</span>
               <span className="text-[13px] text-white/60">{step}</span>
             </li>
@@ -394,7 +394,7 @@ function GuideContent({ test, guide, color }) {
         <ol className="flex flex-col gap-2">
           {guide.protocol.map((step, i) => (
             <li key={i} className="flex gap-2.5 items-start rounded-[3px] px-3 py-2.5"
-              style={{ background: 'var(--rx-card-bg)', border: `1px solid ${color}14` }}>
+              style={{ background: 'var(--rx-card-bg)', border: `1px solid color-mix(in srgb, ${color} 8%, transparent)` }}>
               <span className="mt-0.5 text-[12px] shrink-0" style={{ color }}>{i + 1}</span>
               <span className="text-[13px] text-white/60">{step}</span>
             </li>
@@ -406,7 +406,7 @@ function GuideContent({ test, guide, color }) {
         <ul className="flex flex-col gap-2">
           {guide.notes.map((note, i) => (
             <li key={i} className="flex gap-2.5 items-start rounded-[3px] px-3 py-2.5"
-              style={{ background: 'var(--rx-card-bg)', border: `1px solid ${color}14` }}>
+              style={{ background: 'var(--rx-card-bg)', border: `1px solid color-mix(in srgb, ${color} 8%, transparent)` }}>
               <span className="mt-0.5 text-[12px] shrink-0" style={{ color }}>{i + 1}</span>
               <span className="text-[13px] text-white/60">{note}</span>
             </li>

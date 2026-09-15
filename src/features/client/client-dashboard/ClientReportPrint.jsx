@@ -6,7 +6,7 @@ import { calcAge }                from '../../../utils/validation'
 import { Pentagon }               from '../../../components/ui/Pentagon'
 import { useTheme }               from '../../../context/ThemeContext'
 import {
-  PALETTE, usePrintTheme, PrintThemeProvider, usePrintDocument,
+  PALETTE, usePrintTheme, PrintThemeProvider, usePrintDocument, usePrintTrigger,
   DarkModeWarning, DeltaBadge, SectionTitle, Th, CircularGauge,
 } from '../../../components/common/reportPrintKit'
 
@@ -54,6 +54,7 @@ export function ClientReportPrint({ client, _color, rankObj, mode = 'dark', onCl
     : null
 
   usePrintDocument(BG, onClose)
+  const { printing, handlePrint } = usePrintTrigger()
 
   const stats       = client.stats ?? {}
   // campionamenti[0] = più recente, [1] = precedente per il delta
@@ -88,10 +89,11 @@ export function ClientReportPrint({ client, _color, rankObj, mode = 'dark', onCl
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button
-            onClick={() => window.print()}
-            style={{ background: GREEN, color: '#fff', border: 'none', borderRadius: 3, padding: '7px 18px', fontSize: 11, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', letterSpacing: 1, cursor: 'pointer' }}
+            onClick={handlePrint}
+            disabled={printing}
+            style={{ background: GREEN, color: '#fff', border: 'none', borderRadius: 3, padding: '7px 18px', fontSize: 11, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', letterSpacing: 1, cursor: printing ? 'default' : 'pointer', opacity: printing ? 0.6 : 1 }}
           >
-            STAMPA / SALVA PDF
+            {printing ? 'IN CORSO…' : 'STAMPA / SALVA PDF'}
           </button>
           <button
             onClick={onClose}

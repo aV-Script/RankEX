@@ -76,7 +76,7 @@ export function AdminShell({ page, onNavigate, children }) {
           </span>
           <span
             className="font-display text-[7px] px-1.5 py-0.5 rounded-[2px] tracking-widest"
-            style={{ background: `${ADMIN_COLOR}18`, color: ADMIN_COLOR }}
+            style={{ background: `color-mix(in srgb, ${ADMIN_COLOR} 9%, transparent)`, color: ADMIN_COLOR }}
           >
             SA
           </span>
@@ -116,7 +116,7 @@ export function AdminShell({ page, onNavigate, children }) {
             </span>
             <span
               className="font-display text-[8px] px-1.5 py-0.5 rounded-[2px]"
-              style={{ background: `${ADMIN_COLOR}18`, color: ADMIN_COLOR }}
+              style={{ background: `color-mix(in srgb, ${ADMIN_COLOR} 9%, transparent)`, color: ADMIN_COLOR }}
             >
               SUPER ADMIN
             </span>
@@ -166,11 +166,11 @@ function AdminSidebarIcon({ item, active, onClick, color }) {
         aria-current={active ? 'page' : undefined}
         className="w-10 h-10 flex items-center justify-center cursor-pointer transition-all"
         style={active ? {
-          background:   `${color}18`,
-          border:       `1px solid ${color}55`,
+          background:   `color-mix(in srgb, ${color} 9%, transparent)`,
+          border:       `1px solid color-mix(in srgb, ${color} 33%, transparent)`,
           borderRadius: '4px',
           color,
-          boxShadow:    `0 0 12px ${color}25`,
+          boxShadow:    `0 0 12px color-mix(in srgb, ${color} 15%, transparent)`,
         } : {
           background:   'transparent',
           border:       '1px solid transparent',
@@ -179,8 +179,8 @@ function AdminSidebarIcon({ item, active, onClick, color }) {
         }}
         onMouseEnter={e => {
           if (!active) {
-            e.currentTarget.style.borderColor = `${color}33`
-            e.currentTarget.style.color       = `${color}cc`
+            e.currentTarget.style.borderColor = `color-mix(in srgb, ${color} 20%, transparent)`
+            e.currentTarget.style.color       = `color-mix(in srgb, ${color} 80%, transparent)`
           }
         }}
         onMouseLeave={e => {
@@ -197,7 +197,7 @@ function AdminSidebarIcon({ item, active, onClick, color }) {
       <div className="absolute left-[52px] top-1/2 -translate-y-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 px-2.5 py-1.5 whitespace-nowrap"
         style={{
           background:   'rgba(8,12,18,0.97)',
-          border:       `1px solid ${color}33`,
+          border:       `1px solid color-mix(in srgb, ${color} 20%, transparent)`,
           borderRadius: '3px',
           boxShadow:    '0 4px 12px rgba(0,0,0,0.5)',
         }}

@@ -351,7 +351,7 @@ export function ClientDashboardPage({
                       </div>
                       <div className="flex items-center gap-3 mb-5">
                         <div className="w-12 h-12 rounded-[4px] flex items-center justify-center flex-shrink-0"
-                          style={{ background: displayColor + '20', border: `1px solid ${displayColor}40` }}>
+                          style={{ background: `color-mix(in srgb, ${displayColor} 13%, transparent)`, border: `1px solid color-mix(in srgb, ${displayColor} 25%, transparent)` }}>
                           <span className="font-display font-black text-xl" style={{ color: displayColor }}>
                             {client.name?.[0]?.toUpperCase()}
                           </span>

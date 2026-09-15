@@ -67,7 +67,7 @@ export function ClientWorkoutSection({ orgId, clientId, color }) {
               className="rounded-[3px] p-3 flex items-start gap-3"
               style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
             >
-              <span className="font-display text-[12px] font-bold shrink-0 w-5 pt-0.5" style={{ color: color + '88' }}>
+              <span className="font-display text-[12px] font-bold shrink-0 w-5 pt-0.5" style={{ color: `color-mix(in srgb, ${color} 53%, transparent)` }}>
                 {index + 1}.
               </span>
               <div className="flex-1 min-w-0">

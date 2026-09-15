@@ -360,6 +360,20 @@ ha scoperto due bug funzionali reali nascosti dietro il sistema morto — vedi
 `NewClientView.jsx` (nessun bottone indietro) — entrambi fixati con un'affordance reale
 nell'header, non più un menu contestuale invisibile.
 
+Rimossi anche (Sprint #9, set 2026, durante STORY-023/024/025 — trovati per caso mentre
+si toccavano quei file, non da un audit dedicato): `trainer-calendar/SlotCard.jsx` e
+`trainer-calendar/CalendarSidebar.jsx` — quest'ultimo, nonostante il nome, conteneva una
+copia esatta del componente `SlotCard` (stessa funzione, stessa logica), non una vera
+sidebar — probabile corruzione da un refactor passato mai notata. Nessuno dei due era
+importato da `TrainerCalendar.jsx` (che usa solo `CalendarHeader`/`MonthView`/
+`WeekView`/`DayView`/`SlotPopup`/i modal) né da nessun altro file (verificato via grep
+su tutto `src/`). **Conseguenza scoperta insieme**: il badge "Streak N" descritto più
+sotto (sezione Roadmap → Gamification avanzata) come superficie UI su `SlotCard.jsx`
+non è mai stato raggiungibile per il trainer — il testo lì è stato corretto. Rimosso
+anche `groups-page/GroupsSidebar.jsx` (stesso identico controllo: zero import in
+`src/`, `GroupsPage.jsx` usa il proprio pattern inline, coerente con la nota già sopra
+su `FiltersSidebar.jsx`/`MobileControls.jsx`).
+
 ```
 src/
 ├── app/
@@ -544,15 +558,12 @@ src/
 │       │   ├── GroupNotes.jsx             ← note di gruppo: publish/delete, paginazione
 │       │   ├── GroupSessionsPanel.jsx     ← tab Sessioni: slot del gruppo
 │       │   ├── GroupReportPrint.jsx       ← export PDF gruppo via window.print()
-│       │   ├── GroupsSidebar.jsx
 │       │   └── GroupToggleDialog.jsx
 │       ├── trainer-calendar/
 │       │   ├── CalendarHeader.jsx    ← bottoni uniformati (entrambi filled)
-│       │   ├── CalendarSidebar.jsx
 │       │   ├── WeekView.jsx          ← bottone + dedicato per cella (RX-34, niente role="button" sulla cella)
 │       │   ├── MonthView.jsx         ← idem
 │       │   ├── DayView.jsx           ← idem
-│       │   ├── SlotCard.jsx
 │       │   ├── EventBlock.jsx
 │       │   ├── SlotPopup.jsx
 │       │   ├── CloseSessionModal.jsx
@@ -1974,9 +1985,15 @@ Streak presenze        → IMPLEMENTATO (verificato set 2026 — sezione corrett
                          +10%/streak, cap +100% a streak 10 (vedi sezione
                          Gamification più sotto). Superficie UI: preview
                          "+XP · streak N" in CloseSessionModal.jsx e ClientCalendar.jsx
-                         prima di chiudere la sessione, badge "Streak N" su
-                         SlotCard.jsx, notifica dedicata su chiusura/assenza. Test:
-                         __tests__/utils/gamification.test.js.
+                         prima di chiudere la sessione, notifica dedicata su
+                         chiusura/assenza. **Corretto (set 2026, Sprint #9)**: non
+                         esiste un badge "Streak N" visibile al trainer sulla card
+                         dello slot in calendario — il file che lo conteneva
+                         (`SlotCard.jsx`) era codice morto, mai importato da
+                         `TrainerCalendar.jsx`, rimosso insieme al resto (vedi nota
+                         dead-code in "Struttura cartelle"). Il trainer vede lo streak
+                         solo nella preview di `CloseSessionModal.jsx`, il client anche
+                         nel proprio calendario. Test: __tests__/utils/gamification.test.js.
 Groups Analytics Hub   → IMPLEMENTATO — apr 2026
                          GroupDetailView con 6 tab: Gestione (3 col + ricerca + paginazione),
                          Classifica (GroupLeaderboard — sort per media/stat, top 3 podio),

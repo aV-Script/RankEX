@@ -152,6 +152,7 @@ export function GroupsPage({ orgId }) {
                   group={group}
                   clients={clients}
                   onClick={() => handleSelectGroup(group)}
+                  terminology={terminology}
                 />
               ))}
             </div>

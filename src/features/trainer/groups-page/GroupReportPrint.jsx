@@ -4,7 +4,7 @@ import { Pentagon }                            from '../../../components/ui/Pent
 import { useTrainerState }                     from '../../../context/TrainerContext'
 import { getModule }                           from '../../../config/modules.config'
 import {
-  PALETTE, usePrintTheme, PrintThemeProvider, usePrintDocument,
+  PALETTE, usePrintTheme, PrintThemeProvider, usePrintDocument, usePrintTrigger,
   DarkModeWarning, DeltaBadge, SectionTitle, Th, CircularGauge,
 } from '../../../components/common/reportPrintKit'
 
@@ -25,6 +25,7 @@ export function GroupReportPrint({ group, clients, mode = 'dark', onClose }) {
   const today = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' })
 
   usePrintDocument(BG, onClose)
+  const { printing, handlePrint } = usePrintTrigger()
 
   // Classifica
   const sorted = [...clients]
@@ -77,10 +78,11 @@ export function GroupReportPrint({ group, clients, mode = 'dark', onClose }) {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button
-            onClick={() => window.print()}
-            style={{ background: GREEN, color: mode === 'bw' ? '#fff' : '#fff', border: 'none', borderRadius: 3, padding: '7px 18px', fontSize: 11, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', letterSpacing: 1, cursor: 'pointer' }}
+            onClick={handlePrint}
+            disabled={printing}
+            style={{ background: GREEN, color: '#fff', border: 'none', borderRadius: 3, padding: '7px 18px', fontSize: 11, fontWeight: 700, fontFamily: 'Montserrat, sans-serif', letterSpacing: 1, cursor: printing ? 'default' : 'pointer', opacity: printing ? 0.6 : 1 }}
           >
-            STAMPA / SALVA PDF
+            {printing ? 'IN CORSO…' : 'STAMPA / SALVA PDF'}
           </button>
           <button
             onClick={onClose}

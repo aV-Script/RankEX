@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useFocusTrap } from '../../hooks/useFocusTrap'
+import { useModalBackButton } from '../../hooks/useModalStack'
 import { Button } from '../ui'
 
 /**
@@ -17,6 +18,8 @@ export function ConfirmDialog({ title, description, confirmLabel = 'CONFERMA', c
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [onCancel])
+
+  useModalBackButton(onCancel)
 
   return (
     <div

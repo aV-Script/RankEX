@@ -20,7 +20,7 @@ export function ActivityDot({ wearable, size = 8 }) {
       style={{
         display: 'inline-block', width: size, height: size,
         borderRadius: '50%', background: bg, flexShrink: 0,
-        boxShadow: level ? `0 0 6px ${bg}88` : 'none',
+        boxShadow: level ? `0 0 6px color-mix(in srgb, ${bg} 53%, transparent)` : 'none',
       }}
     />
   )
@@ -71,7 +71,7 @@ function StepsChart({ chartData, color, barSize }) {
         />
         <Bar dataKey="steps" radius={[2, 2, 0, 0]}>
           {chartData.map((entry, i) => (
-            <Cell key={i} fill={entry.steps === maxSteps ? color : color + '44'} />
+            <Cell key={i} fill={entry.steps === maxSteps ? color : `color-mix(in srgb, ${color} 27%, transparent)`} />
           ))}
           <LabelList
             dataKey="steps" position="top"
@@ -150,11 +150,11 @@ export function WearableSection({ client, orgId, color }) {
         {client.wearable && level && (
           <div
             className="flex items-center gap-3 px-4 py-3 rounded-[4px]"
-            style={{ background: level.color + '10', border: `1px solid ${level.color}25` }}
+            style={{ background: `color-mix(in srgb, ${level.color} 6%, transparent)`, border: `1px solid color-mix(in srgb, ${level.color} 15%, transparent)` }}
           >
             <span style={{
               width: 10, height: 10, borderRadius: '50%',
-              background: level.color, boxShadow: `0 0 8px ${level.color}88`,
+              background: level.color, boxShadow: `0 0 8px color-mix(in srgb, ${level.color} 53%, transparent)`,
               flexShrink: 0, display: 'inline-block',
             }} />
             <span className="font-display text-[13px] font-bold" style={{ color: level.color }}>

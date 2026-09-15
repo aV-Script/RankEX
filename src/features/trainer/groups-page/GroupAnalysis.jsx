@@ -10,7 +10,7 @@ import {
 import { CHART_TICK_STYLE, chartTooltipStyle, lineCursor } from '../../../utils/chartTheme'
 import { SectionLabel } from '../../../components/ui'
 
-export function GroupAnalysis({ clients }) {
+export function GroupAnalysis({ clients, terminology }) {
 
   // ── Heatmap ─────────────────────────────────────────────────────────────────
   const { statCols, heatRows, averageRow } = useMemo(() => buildHeatmap(clients), [clients])
@@ -23,7 +23,7 @@ export function GroupAnalysis({ clients }) {
 
       {/* Riga 1 — Riepilogo gruppo (full width) */}
       <div className="rounded-[4px] p-5 rx-card">
-        <SectionLabel className="mb-5">◈ Riepilogo gruppo</SectionLabel>
+        <SectionLabel className="mb-5">◈ Riepilogo {terminology.group.toLowerCase()}</SectionLabel>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
           <StatTile label="ATLETI"      value={clients.length}             />
           {summary.avgLevel    != null && <StatTile label="LV. MEDIO"     value={`Lv.${summary.avgLevel}`}     />}
@@ -38,7 +38,7 @@ export function GroupAnalysis({ clients }) {
 
       {/* Riga 3 — Heatmap full width */}
       <div className="rounded-[4px] p-5 rx-card">
-          <SectionLabel className="mb-5">◈ Heatmap gruppo</SectionLabel>
+          <SectionLabel className="mb-5">◈ Heatmap {terminology.group.toLowerCase()}</SectionLabel>
           {statCols.length > 0 ? (
             <div
               className="rounded-[3px] p-4 overflow-x-auto"
@@ -91,7 +91,7 @@ export function GroupAnalysis({ clients }) {
                             style={{
                               background: val != null ? bg : 'transparent',
                               color: val != null ? text : 'rgba(255,255,255,0.15)',
-                              border: val != null ? `1px solid ${text}33` : 'none',
+                              border: val != null ? `1px solid color-mix(in srgb, ${text} 20%, transparent)` : 'none',
                               minWidth: 48,
                             }}
                           >

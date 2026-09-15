@@ -145,7 +145,7 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
                 <button
                   onClick={() => handleEdit(activePlan)}
                   className="text-[11px] font-display px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all hover:opacity-80"
-                  style={{ color: color + 'cc', borderColor: color + '33', background: color + '08' }}
+                  style={{ color: `color-mix(in srgb, ${color} 80%, transparent)`, borderColor: `color-mix(in srgb, ${color} 20%, transparent)`, background: `color-mix(in srgb, ${color} 3%, transparent)` }}
                 >
                   MODIFICA
                 </button>
@@ -153,7 +153,7 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
               <button
                 onClick={() => { setEditing(null); setView('form') }}
                 className="text-[11px] font-display px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all hover:opacity-80"
-                style={{ color, borderColor: color + '55', background: color + '11' }}
+                style={{ color, borderColor: `color-mix(in srgb, ${color} 33%, transparent)`, background: `color-mix(in srgb, ${color} 7%, transparent)` }}
               >
                 {activePlan ? 'NUOVA SCHEDA' : 'CREA SCHEDA'}
               </button>
@@ -279,7 +279,7 @@ function PlanDisplay({ plan, color, activeDay, onDayChange, readonly, onArchive 
             className="rounded-[3px] p-3 flex items-start gap-3"
             style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
           >
-            <span className="font-display text-[12px] font-bold shrink-0 w-5 pt-0.5" style={{ color: color + '88' }}>
+            <span className="font-display text-[12px] font-bold shrink-0 w-5 pt-0.5" style={{ color: `color-mix(in srgb, ${color} 53%, transparent)` }}>
               {index + 1}.
             </span>
             <div className="flex-1 min-w-0">

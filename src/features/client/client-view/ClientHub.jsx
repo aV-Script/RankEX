@@ -148,9 +148,9 @@ export function ClientHub({ client, orgId, color, rankObj, onTabChange }) {
         <div className="mt-2 flex items-center justify-center gap-1.5 flex-wrap">
           {rankObj && <RankBadge label={rankObj.label} color={color} />}
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[3px] font-display font-black"
-            style={{ fontSize: 11, background: color + '12', color: color + 'bb', border: `1px solid ${color}28` }}>
+            style={{ fontSize: 11, background: `color-mix(in srgb, ${color} 7%, transparent)`, color: `color-mix(in srgb, ${color} 73%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 16%, transparent)` }}>
             <span>LV.{client.level ?? 1}</span>
-            <span style={{ color: color + '40' }}>·</span>
+            <span style={{ color: `color-mix(in srgb, ${color} 25%, transparent)` }}>·</span>
             <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.5px' }}>{xp} / {xpNext} XP</span>
           </div>
         </div>

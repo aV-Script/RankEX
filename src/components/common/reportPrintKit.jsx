@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 
 /**
  * Kit condiviso tra ClientReportPrint.jsx e GroupReportPrint.jsx — prima
@@ -79,6 +79,27 @@ export function usePrintDocument(BG, onClose) {
       document.getElementById('rankex-print-style')?.remove()
     }
   }, [onClose, BG])
+}
+
+/**
+ * Stato pending per il bottone "STAMPA / SALVA PDF" — su bridge nativo
+ * (mobile-app) window.print() è asincrono (costruisce il documento prima di
+ * mostrare il foglio di stampa), quindi tap ripetuti possono accodare più
+ * invocazioni sul lato nativo. Disabilita il bottone per una finestra breve
+ * dopo il click (STORY-025, audit superfici mobile-native).
+ */
+export function usePrintTrigger() {
+  const [printing, setPrinting] = useState(false)
+  const handlePrint = useCallback(() => {
+    if (printing) return
+    setPrinting(true)
+    try {
+      window.print()
+    } finally {
+      setTimeout(() => setPrinting(false), 1000)
+    }
+  }, [printing])
+  return { printing, handlePrint }
 }
 
 export function DarkModeWarning() {

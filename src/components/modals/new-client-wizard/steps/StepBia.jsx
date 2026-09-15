@@ -61,7 +61,7 @@ export function StepBia({ biaValues, setBiaValues, errors, anagrafica }) {
                 {status && (
                   <span
                     className="font-display text-[10px] shrink-0 px-2 py-1 rounded-[2px]"
-                    style={{ background: status.color + '22', color: status.color }}
+                    style={{ background: `color-mix(in srgb, ${status.color} 13%, transparent)`, color: status.color }}
                   >
                     {status.label}
                   </span>

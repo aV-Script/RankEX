@@ -16,8 +16,26 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            // Attivo solo se il keystore reale esiste — build unsigned di default,
+            // finché non generi rankex-release.keystore (vedi mobile-app/docs/
+            // MOBILE-APP.md → "Firma release"). Nessuna password hardcoded: letta da
+            // env var, mai committata.
+            def releaseKeystore = file("../../rankex-release.keystore")
+            if (releaseKeystore.exists()) {
+                storeFile releaseKeystore
+                storePassword System.getenv("RANKEX_KEYSTORE_PASSWORD")
+                keyAlias "rankex"
+                keyPassword System.getenv("RANKEX_KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
+            if (file("../../rankex-release.keystore").exists()) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

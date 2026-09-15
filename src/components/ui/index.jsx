@@ -2,6 +2,7 @@ import { useEffect, useRef, cloneElement, isValidElement } from 'react'
 import { Pentagon }       from './Pentagon'
 import { getStatsConfig } from '../../constants'
 import { useFocusTrap }   from '../../hooks/useFocusTrap'
+import { useModalBackButton } from '../../hooks/useModalStack'
 import { IconClose }      from './icons'
 
 export { XPBar } from './XPBar'
@@ -149,6 +150,8 @@ export function Modal({ title, onClose, disableOverlayClose, size = 'default', a
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
+
+  useModalBackButton(onClose)
 
   return (
     <div
@@ -381,7 +384,7 @@ export function ActivityLog({ log = [], color, limit = 5 }) {
       {log.slice(0, limit).map((entry, i) => (
         <div key={i} className="flex gap-2.5 items-start mb-2.5">
           <div className="flex flex-col items-center pt-1.5 gap-1">
-            <div className="w-[5px] h-[5px] rounded-full shrink-0" style={{ background: color ? `${color}88` : 'color-mix(in srgb, var(--rx-accent) 55%, transparent)' }} />
+            <div className="w-[5px] h-[5px] rounded-full shrink-0" style={{ background: color ? `color-mix(in srgb, ${color} 53%, transparent)` : 'color-mix(in srgb, var(--rx-accent) 55%, transparent)' }} />
             {i < Math.min(log.length, limit) - 1 && (
               <div className="w-px flex-1 min-h-[12px]" style={{ background: 'rgba(255,255,255,0.06)' }} />
             )}
@@ -460,7 +463,7 @@ export function StatsSection({ stats = {}, prevStats = null, categoria = 'health
         />
         {rankObj && (
           <div className="font-display font-black px-2.5 py-0.5 rounded-[3px]"
-            style={{ fontSize: 10, background: color + '1e', color, border: `1px solid ${color}40` }}>
+            style={{ fontSize: 10, background: `color-mix(in srgb, ${color} 12%, transparent)`, color, border: `1px solid color-mix(in srgb, ${color} 25%, transparent)` }}>
             {rankObj.label}
           </div>
         )}

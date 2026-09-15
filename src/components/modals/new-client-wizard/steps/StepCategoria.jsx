@@ -13,7 +13,7 @@ export function StepCategoria({ categoria, setCategoria }) {
           onClick={() => setCategoria(cat.id)}
           className="flex items-start gap-4 p-4 rounded-[4px] cursor-pointer border transition-all text-left"
           style={categoria === cat.id
-            ? { background: cat.color + '15', borderColor: cat.color + '55' }
+            ? { background: `color-mix(in srgb, ${cat.color} 8%, transparent)`, borderColor: `color-mix(in srgb, ${cat.color} 33%, transparent)` }
             : { background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.07)' }
           }
         >
@@ -34,7 +34,7 @@ export function StepCategoria({ categoria, setCategoria }) {
                 <span
                   key={t.key}
                   className="font-display text-[9px] px-2 py-0.5 rounded-md"
-                  style={{ background: cat.color + '18', color: cat.color + 'cc' }}
+                  style={{ background: `color-mix(in srgb, ${cat.color} 9%, transparent)`, color: `color-mix(in srgb, ${cat.color} 80%, transparent)` }}
                 >
                   {t.test}
                 </span>

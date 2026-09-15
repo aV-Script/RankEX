@@ -29,8 +29,8 @@ export const EventBlock = memo(function EventBlock({ slot, clients, onSelect, st
       onClick={(e) => { e.stopPropagation(); onSelect(slot, e) }}
       className="absolute left-1 right-1 rounded-[3px] px-2 py-1 text-left cursor-pointer transition-all hover:opacity-90 overflow-hidden"
       style={{
-        background:  statusColor + '22',
-        border:      `1px solid ${statusColor}55`,
+        background:  `color-mix(in srgb, ${statusColor} 13%, transparent)`,
+        border:      `1px solid color-mix(in srgb, ${statusColor} 33%, transparent)`,
         ...style,
       }}
     >
@@ -42,7 +42,7 @@ export const EventBlock = memo(function EventBlock({ slot, clients, onSelect, st
         {label}
       </div>
       {slot.recurrenceId && (
-        <div className="font-display text-[8px] mt-0.5" style={{ color: statusColor + '88' }}>
+        <div className="font-display text-[8px] mt-0.5" style={{ color: `color-mix(in srgb, ${statusColor} 53%, transparent)` }}>
           ↺
         </div>
       )}

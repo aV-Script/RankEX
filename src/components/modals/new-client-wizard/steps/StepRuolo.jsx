@@ -16,7 +16,7 @@ export function StepRuolo({ ruolo, setRuolo }) {
           aria-pressed={ruolo === role.value}
           className="flex items-center gap-4 p-4 rounded-[4px] cursor-pointer border transition-all text-left"
           style={ruolo === role.value
-            ? { background: SOCCER_COLOR + '15', borderColor: SOCCER_COLOR + '55' }
+            ? { background: `color-mix(in srgb, ${SOCCER_COLOR} 8%, transparent)`, borderColor: `color-mix(in srgb, ${SOCCER_COLOR} 33%, transparent)` }
             : { background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.07)' }
           }
         >
