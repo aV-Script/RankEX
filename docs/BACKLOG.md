@@ -448,10 +448,17 @@ personali orfani — incluse note testuali libere che possono riguardare un mino
   logica di dedup/filtro array verificata con uno script Node standalone che
   simula un cliente presente sia in `clientIds` sia in `attendees` dello stesso
   slot — un solo update, entrambi gli array puliti correttamente. Nessun bug
-  aperto. **Non ancora verificato dal vivo contro rankex-dev** (nessun deploy
-  eseguito) — la verifica one-off con
-  fixture completo (nota+goal+slot+ricorrenza+notifica+scheda) resta da fare dopo il
-  deploy, come da nota tecnica del Tech Lead.
+  aperto. **Deployato e verificato dal vivo contro rankex-dev (2026-09-15):**
+  script one-off contro `test-org-pt` — creato un cliente reale con nota,
+  obiettivo, slot (clientIds+attendees), ricorrenza, notifica e scheda
+  allenamento collegati, chiamata `eliminaCliente`, confermato: cliente e
+  subcollection `notes`/`goals` cancellati, notifica e scheda cancellate,
+  slot/ricorrenza (condivisi con altri client, non cancellabili per intero)
+  ripuliti del riferimento a questo cliente ma non cancellati per intero,
+  `clientCount` ripristinato dopo il test (il fixture non passava da
+  `creaCliente`, quindi non lo aveva mai incrementato). Zero residui. Script
+  eliminato dopo l'uso (one-off, path relativi specifici all'ambiente di test).
+- **Status: DONE su rankex-dev.** Non ancora deployato su `fitquest-60a09` (prod).
 
 ### [STORY-017] Loggare davvero i tentativi di login falliti
 **Come** super_admin **voglio** che ogni login fallito venga effettivamente registrato

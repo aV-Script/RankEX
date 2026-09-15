@@ -47,7 +47,7 @@ scrive codice.
 |------|--------|------|
 | STORY-018 — messaggio di errore login generico | **DEPLOYED (rankex-dev)** | Codice mergiato in `dev` (`ddef4a0`) e deployato: rules+functions live su rankex-dev. **Hosting rankex-dev non ancora ridistribuito** (dipende dal push su origin, bloccato — vedi Blockers) — il fix è verificabile solo in locale (`npm run dev`) finché l'hosting non si aggiorna. |
 | STORY-015 — hardening regola `create` su `audit_logs` | **DONE (rankex-dev)** | `firestore.rules` deployata su rankex-dev (2026-09-15, worktree isolato `epic-007-privacy-remediation` → merge in `dev`). 47/47 test rules verdi pre-deploy. Non ancora su `fitquest-60a09` (prod). |
-| STORY-016 — cascade delete completo in `eliminaCliente` | **DEPLOYED (rankex-dev), verifica fixture live ANCORA DA FARE** | Cloud Function aggiornata deployata con successo ("Successful update operation"). La verifica end-to-end con un cliente reale (note+goal+slot+ricorrenza+notifica+scheda) su rankex-dev non è ancora stata eseguita — resta l'unico passo prima di DONE. |
+| STORY-016 — cascade delete completo in `eliminaCliente` | **DONE (rankex-dev)** | Verifica fixture live eseguita con successo su `test-org-pt`: creato un cliente reale con nota+obiettivo+slot+ricorrenza+notifica+scheda, chiamato `eliminaCliente`, confermato — cliente e subcollection `notes`/`goals` cancellati, notifica e scheda cancellate, slot/ricorrenza (condivisi) ripuliti del riferimento ma non cancellati per intero. `clientCount` ripristinato dopo il test (il fixture non passava da `creaCliente`). Nessun residuo lasciato sull'org di test. Non ancora su prod. |
 | STORY-017 — log reale dei login falliti | **DONE (rankex-dev)** | `registraLoginFallito` deployata ("Successful create operation") + indice composito deployato. **Smoke test live eseguito con successo**: chiamata diretta all'endpoint HTTPS (`curl` verso `europe-west1-rankex-dev.cloudfunctions.net/registraLoginFallito`) → `{"result":{"ok":true}}`, HTTP 200 — la funzione scrive senza errori (un fallimento della write via Admin SDK avrebbe fatto fallire la callable con 500). Non ancora su prod. |
 | STORY-019 — Privacy Policy + Cookie Policy in-app | BLOCKED (fuori capacità developer) | Track parallelo aperto: "raccogliere contenuto legale" — proprietario utente/consulente esterno. Non impegna il developer, non condiziona la chiusura di questo sprint. |
 | STORY-020 — consenso genitoriale minori | BLOCKED (fuori capacità developer) | Track parallelo aperto: "raccogliere decisione Titolare del trattamento + modalità di raccolta consenso" — proprietario utente. Non impegna il developer, non condiziona la chiusura di questo sprint. |
@@ -59,14 +59,20 @@ scrive codice.
   (`epic-007-privacy-remediation`, poi fast-forward in `dev` in locale) per non
   interferire con una sessione concorrente attiva su `feature/mobile-app` nella
   cartella di lavoro condivisa.
-- Il branch `dev` locale è avanzato a `ddef4a0` ma non è stato ancora inviato a
-  origin — resta da fare manualmente. Finché non arriva su origin: nessun
-  aggiornamento automatico dell'hosting rankex-dev, e chi lavora su altre copie
-  del repository non vede questi commit.
-- Resta da fare: verifica fixture live per STORY-016 (cliente di test con
-  note/goal/slot/ricorrenza/notifica/scheda → `eliminaCliente` → conferma zero
-  residui), poi ripetere l'intera sequenza di deploy su `fitquest-60a09` (prod)
-  prima di segnare le story DONE definitivamente.
+- Il branch `dev` locale è avanzato oltre `ddef4a0` (fix + aggiornamenti di
+  processo) ma non è stato ancora inviato a origin — resta da fare
+  manualmente. Finché non arriva su origin: nessun aggiornamento automatico
+  dell'hosting rankex-dev, e chi lavora su altre copie del repository non vede
+  questi commit.
+- **Verifica fixture live STORY-016 completata** (2026-09-15): cliente di test
+  reale su `test-org-pt` con nota+obiettivo+slot+ricorrenza+notifica+scheda →
+  `eliminaCliente` → tutte le verifiche passate, zero residui, `clientCount`
+  ripristinato. Script one-off eliminato dopo l'uso (non era pensato per
+  riutilizzo — path relativi specifici a questo ambiente).
+- **Tutte e 4 le story in capacità developer (STORY-015/016/017/018) sono ora
+  DONE su rankex-dev.** Resta: ripetere l'intera sequenza di deploy su
+  `fitquest-60a09` (prod) dopo un merge `dev`→`main`, e il push di `dev` su
+  origin (vedi sopra) come prerequisito.
 - STORY-019 e STORY-020 restano bloccate su input non tecnico (contenuto legale
   approvato + decisione dell'utente su Titolare del trattamento/raccolta consenso
   minori) — nessuna stima di sviluppo possibile finché non arrivano. Vedi nota
