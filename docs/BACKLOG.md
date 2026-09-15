@@ -517,7 +517,18 @@ un'incoerenza grammaticale visibile nella pagina più trafficata del modulo grup
   essere "la prima". Stesso problema di concordanza già risolto altrove in P2.9/questa
   sessione (vedi STORY-024) con costruzioni senza articolo — qui va applicata la
   stessa disciplina.
-- **Status:** BACKLOG — non bloccante, cosmetico
+- **Fix (2026-09-15):** applicata la stessa disciplina di costruzione invariante già
+  usata in STORY-024/GroupNotes.jsx/GroupSessionsPanel.jsx, invece di calcolare il
+  genere dinamicamente: titolo riscritto con "Non ci sono ancora {groups}" (il verbo
+  "ci sono" non concorda per genere, solo il sostantivo, già corretto per
+  definizione); descrizione riscritta togliendo "il primo" e aggiungendo "tuoi" prima
+  del termine cliente (`i tuoi {clients}`) — bonus: "tuoi" risolve anche l'elisione
+  `i`→`gli` prima di "allievi" (vocale iniziale), un secondo bug di concordanza nello
+  stesso punto mai segnalato separatamente. **Trovato un bug gemello altrove**,
+  fixato nello stesso giro: `NewClientView.jsx` → `` `Torna ai
+  ${terminology.clients.toLowerCase()}` `` produceva "Torna ai allievi" (dovrebbe
+  essere "agli allievi") — stessa soluzione, `ai tuoi {clients}`. `npm run
+  lint`/`build`/`test:run` verdi (211/211). **Status:** DONE
 
 ### [STORY-024] Terminologia multi-modulo — wave 2 su `groups-page/`
 **Come** trainer di un'org GYM o soccer_academy **voglio** vedere la terminologia
@@ -693,6 +704,25 @@ stack modal di questa story.
   trainer, non solo il wizard. Promosso a STORY-028 (Tech Lead review, non tentato alla
   cieca senza device per verificarlo). **Status:** DONE (wave 1, solo dialog
   Modal/ConfirmDialog) — la claim "copre il wizard" è stata rimossa, non era vera
+  (il wizard è ora coperto separatamente da STORY-028, tramite `useViewBackButton`,
+  non tramite questa story)
+- **Wave 2 (2026-09-15, sprint successivo):** i 4 dialog bespoke nominati sopra —
+  `CloseSessionModal.jsx`, `RecurrenceModal.jsx`, `SlotPopup.jsx`,
+  `GroupToggleDialog.jsx` — ora registrano `useModalBackButton(onClose)` (stesso hook
+  già usato da `Modal`/`ConfirmDialog`, nessuna nuova API). **Trovato in più un 5°
+  dialog bespoke non nominato originariamente**: `client-dashboard/DeleteDialog.jsx`
+  (conferma eliminazione cliente — azione irreversibile, stesso pattern
+  overlay+Escape) — incluso nello stesso fix, coerenza col resto: lasciare scoperta
+  proprio una conferma distruttiva sarebbe stato un gap peggiore degli altri 4.
+  **Trovato ma non incluso** (pattern UI diverso, non un overlay a schermo intero —
+  richiederebbe una valutazione UX separata prima di trattarlo allo stesso modo):
+  menu overflow "⋮" con proprio Escape-handler in `GroupDetailHeader.jsx` e
+  `ClientDashboardHeader.jsx` (dropdown, non dialog — P1.9 audit lug 2026), e il form
+  inline "nuovo gruppo" in `GroupsPage.jsx` (toggle di stato, non un overlay). `npm run
+  lint`/`build`/`test:run` verdi (211/211) dopo l'estensione. **Non verificato su
+  device reale**, stesso limite di wave 1. **Status:** DONE (wave 1 + wave 2, dialog
+  overlay a schermo intero) — menu overflow e form inline restano fuori scope,
+  candidati per un'eventuale wave 3 se si decide che meritano lo stesso trattamento
 
 ### [STORY-025] Audit UX delle superfici mobile-native
 **Come** utente dell'app mobile **voglio** che le schermate aggiunte dal contenitore

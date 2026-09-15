@@ -136,9 +136,9 @@ export function GroupsPage({ orgId }) {
         ) : filteredGroups.length === 0 ? (
           <EmptyState
             icon={ICON_NEW_GROUP}
-            title={groups.length === 0 ? `Nessun ${terminology.group.toLowerCase()}` : 'Nessun risultato'}
+            title={groups.length === 0 ? `Non ci sono ancora ${terminology.groups.toLowerCase()}` : 'Nessun risultato'}
             description={groups.length === 0
-              ? `Crea il primo ${terminology.group.toLowerCase()} per organizzare i ${terminology.clients.toLowerCase()}.`
+              ? `Crea ${terminology.group.toLowerCase()} per organizzare i tuoi ${terminology.clients.toLowerCase()}.`
               : 'Prova a cambiare il termine di ricerca.'
             }
             action={groups.length === 0 ? { label: `Crea ${terminology.group.toLowerCase()}`, onClick: () => setShowNew(true) } : undefined}

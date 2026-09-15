@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { getGroupTogglePreview } from '../../../features/calendar/calendarGroupUtils'
 import { useFocusTrap }          from '../../../hooks/useFocusTrap'
+import { useModalBackButton }    from '../../../hooks/useModalStack'
 import { Button }                from '../../../components/ui'
 
 const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
@@ -36,6 +37,8 @@ export function GroupToggleDialog({
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [onCancel])
+
+  useModalBackButton(onCancel)
 
   const handleConfirm = async () => {
     setSaving(true)

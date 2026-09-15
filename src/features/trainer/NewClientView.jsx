@@ -45,7 +45,7 @@ export function NewClientView({ orgId, onAdd, onBack, clients = [], onNavigate }
       <div className="flex items-center px-4 sm:px-6 py-4 border-b border-white/[.05]">
         <button
           onClick={onBack}
-          aria-label={`Torna ai ${terminology.clients.toLowerCase()}`}
+          aria-label={`Torna ai tuoi ${terminology.clients.toLowerCase()}`}
           className="w-10 shrink-0 flex items-center justify-center bg-transparent border-none text-white/40 hover:text-white/70 transition-colors cursor-pointer"
         >
           <IconChevronLeft />

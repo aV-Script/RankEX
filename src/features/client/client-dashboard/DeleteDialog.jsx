@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useFocusTrap } from '../../../hooks/useFocusTrap'
+import { useModalBackButton } from '../../../hooks/useModalStack'
 
 /**
  * Dialog di conferma eliminazione cliente.
@@ -14,6 +15,8 @@ export function DeleteDialog({ clientName, clientLabel = 'Cliente', onConfirm, o
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [onCancel])
+
+  useModalBackButton(onCancel)
 
   return (
     <div

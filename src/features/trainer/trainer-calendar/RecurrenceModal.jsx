@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { generateRecurrenceDates } from '../../../utils/calendarUtils'
 import { useFocusTrap } from '../../../hooks/useFocusTrap'
+import { useModalBackButton } from '../../../hooks/useModalStack'
 import { IconClose }    from '../../../components/ui/icons'
 
 const WEEK_DAYS = [
@@ -64,6 +65,8 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
+
+  useModalBackButton(onClose)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(8,12,18,0.9)' }} onClick={onClose}>

@@ -81,6 +81,49 @@ sull'iscrizione Apple Developer Program ($99/anno, dell'utente).
 
 ## Storico sprint chiusi
 
+### SPRINT #8 — Back button wave 2 + fix concordanza genere (STORY-026/027) — chiuso il 2026-09-15
+
+**Goal:** dopo la chiusura di Sprint #7, l'utente ha chiesto esplicitamente "cosa
+possiamo fare" in attesa dei controlli su device — proposti STORY-026 wave 2 (dialog
+bespoke non ancora protetti dal back button) e STORY-027 (fix genere cosmetico),
+entrambi confermati dall'utente ("Entrambe").
+
+**Completato:**
+- STORY-026 wave 2 — i 4 dialog bespoke nominati nel gap originale
+  (`CloseSessionModal.jsx`, `RecurrenceModal.jsx`, `SlotPopup.jsx`,
+  `GroupToggleDialog.jsx`) ora registrano `useModalBackButton(onClose)`. **Trovato un
+  5° dialog bespoke non nominato**, `client-dashboard/DeleteDialog.jsx` (conferma
+  eliminazione cliente, azione irreversibile) — incluso per coerenza, sarebbe stato
+  il gap più grave da lasciare aperto. **Trovati ma non inclusi** (pattern UI diverso,
+  serve valutazione UX separata): menu overflow "⋮" (`GroupDetailHeader.jsx`,
+  `ClientDashboardHeader.jsx`) e il form inline "nuovo gruppo" in `GroupsPage.jsx`.
+- STORY-027 — fix concordanza di genere in `GroupsPage.jsx` con la stessa disciplina
+  di costruzione invariante già stabilita (P2.9/STORY-024): "Non ci sono ancora
+  {groups}" invece di "Nessun {group}", "i tuoi {clients}" invece di "il primo
+  {group}... i {clients}". **Trovato un bug gemello altrove**, fixato nello stesso
+  giro: `NewClientView.jsx` aveva la stessa elisione mancante (`ai allievi` invece di
+  `agli allievi`), risolta con lo stesso trucco (`ai tuoi {clients}`).
+- Verificato lint/build/`vitest run` dopo entrambe le fix (211/211 test, 0 errori, 9
+  warning preesistenti invariati). Committato e pushato su `feature/mobile-app`.
+
+**Non completato:**
+- Verifica su device reale di STORY-026 wave 2 — stesso limite di wave 1, nessun
+  device disponibile
+- Menu overflow / form inline (vedi sopra) — non nello scope richiesto, candidati per
+  un'eventuale wave 3 se si decide che meritano lo stesso trattamento
+
+**Blockers:** nessuno per l'implementazione — solo la verifica dal vivo resta
+bloccata su STORY-016.
+
+**Tech debt emerso:** nessuno nuovo — i 2 gap trovati (menu overflow/form inline,
+bug gemello NewClientView) sono stati o fixati subito (il bug gemello) o documentati
+esplicitamente come fuori scope (i menu), non lasciati impliciti.
+
+**Prossimo sprint (candidati):** vedi "Piano sprint successivi" in cima al file —
+nessun item azionabile senza risorse esterne al momento della chiusura.
+
+---
+
 ### SPRINT #7 — Back button: navigazione senza history reale (STORY-028) — chiuso il 2026-09-15
 
 **Goal:** scoping tecnico + implementazione di STORY-028, unico candidato azionabile

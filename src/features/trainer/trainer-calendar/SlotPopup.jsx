@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { SLOT_STATUS }   from '../../../constants/slotStatus'
 import { IconClose }     from '../../../components/ui/icons'
 import { useFocusTrap }  from '../../../hooks/useFocusTrap'
+import { useModalBackButton } from '../../../hooks/useModalStack'
 
 /**
  * Popup dettaglio slot — appare al click su un evento.
@@ -26,6 +27,8 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
+
+  useModalBackButton(onClose)
 
   const slotClients = slot.clientIds
     .map(id => clients.find(c => c.id === id))

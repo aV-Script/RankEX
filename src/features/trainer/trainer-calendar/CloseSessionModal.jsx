@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { calcSessionXP, calcStreakPreview } from '../../../utils/gamification'
 import { useFocusTrap } from '../../../hooks/useFocusTrap'
+import { useModalBackButton } from '../../../hooks/useModalStack'
 import { Button } from '../../../components/ui'
 
 export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
@@ -17,6 +18,8 @@ export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
+
+  useModalBackButton(onClose)
 
   const toggleAttendee = (id) =>
     setAttendees(prev =>
