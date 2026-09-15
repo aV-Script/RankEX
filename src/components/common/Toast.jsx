@@ -1,10 +1,15 @@
 import { IconClose } from '../ui/icons'
 
+// Colori fissi (non tema-dipendenti), come --rx-danger/--rx-gold/--rx-silver in
+// index.css: il Toast è un riempimento pieno con testo bianco sopra, non il
+// pattern "colore + tinta trasparente" usato altrove — richiede tonalità più
+// scure di --rx-accent/--rx-danger per restare leggibile (WCAG AA 4.5:1),
+// quindi non può limitarsi a leggere le CSS variable del tema attivo.
 const VARIANT = {
-  success: { bg: '#059669', icon: '✓' },
-  error:   { bg: '#dc2626', icon: '✕' },
-  warning: { bg: '#d97706', icon: '!' },
-  info:    { bg: '#00c8ff', icon: 'i' },
+  success: { bg: '#047857', icon: '✓' }, // ~5.5:1 con testo bianco
+  error:   { bg: '#dc2626', icon: '✕' }, // ~4.8:1
+  warning: { bg: '#b45309', icon: '!' }, // ~5.0:1
+  info:    { bg: '#0369a1', icon: 'i' }, // ~5.9:1
 }
 
 export function Toast({ toasts, onRemove }) {

@@ -152,7 +152,12 @@ body, #root {
   border-color: color-mix(in srgb, var(--rx-accent) 50%, transparent);
   box-shadow:   0 0 0 2px color-mix(in srgb, var(--rx-accent) 8%, transparent);
 }
-.input-base::placeholder { color: rgba(255,255,255,0.2); }
+.input-base::placeholder { color: rgba(255,255,255,0.35); }
+.input-base:disabled {
+  opacity:      0.45;
+  cursor:       not-allowed;
+  background:   rgba(255,255,255,0.02);
+}
 
 @media (min-width: 1024px) {
   .input-base.input-compact {

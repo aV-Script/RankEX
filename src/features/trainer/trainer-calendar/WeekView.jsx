@@ -69,7 +69,7 @@ export function WeekView({ currentDate, slots, clients, today, onSlotClick, onEm
               </div>
               <div
                 className={`font-display font-black text-[18px] mt-0.5 mx-auto w-9 h-9 flex items-center justify-center rounded-full transition-colors ${isToday ? 'text-white' : 'text-white/60'}`}
-                style={isToday ? { background: '#00c8ff' } : {}}
+                style={isToday ? { background: 'var(--rx-accent-2)' } : {}}
               >
                 {d.getDate()}
               </div>

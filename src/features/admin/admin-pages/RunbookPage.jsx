@@ -167,7 +167,7 @@ function CaseRow({ testCase, result, onSetStatus, onSetNote }) {
               onClick={() => onSetStatus(s)}
               className="font-display text-[10px] px-2.5 py-1 rounded-[3px] cursor-pointer border transition-all"
               style={status === s
-                ? { color: STATUS_META[s].color, borderColor: STATUS_META[s].color + '66', background: STATUS_META[s].color + '18' }
+                ? { color: STATUS_META[s].color, borderColor: `color-mix(in srgb, ${STATUS_META[s].color} 40%, transparent)`, background: `color-mix(in srgb, ${STATUS_META[s].color} 15%, transparent)` }
                 : { color: 'rgba(255,255,255,0.3)', borderColor: 'rgba(255,255,255,0.1)', background: 'transparent' }}
             >
               {STATUS_META[s].label}
