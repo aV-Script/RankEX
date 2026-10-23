@@ -34,16 +34,23 @@ export function useCalendar(orgId) {
 
   const { from, to } = getRange(currentDate, view)
 
+  // Ogni lettura ha un numero progressivo: si applica solo la risposta dell'ultima.
+  // Con le frecce cliccate in fretta la risposta di una settimana precedente
+  // poteva arrivare dopo e mostrare gli slot della settimana sbagliata.
+  const lastRequest = useRef(0)
+
   const fetchSlots = useCallback(() => {
     if (!orgId) return
     if (!initialLoadDone.current) setLoading(true)
+    const requestId = ++lastRequest.current
     getTrainerSlots(orgId, from, to)
       .then(data => {
+        if (requestId !== lastRequest.current) return
         setSlots(data)
         initialLoadDone.current = true
       })
-      .catch(() => toastError('Impossibile caricare le sessioni'))
-      .finally(() => setLoading(false))
+      .catch(() => { if (requestId === lastRequest.current) toastError('Impossibile caricare le sessioni') })
+      .finally(() => { if (requestId === lastRequest.current) setLoading(false) })
   }, [orgId, from, to, toastError])
 
   useEffect(() => { fetchSlots() }, [fetchSlots])

@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { calcSessionXP, calcStreakPreview } from '../../../utils/gamification'
 import { useFocusTrap } from '../../../hooks/useFocusTrap'
 import { Button } from '../../../components/ui'
+import { useEscapeKey } from '../../../hooks/useEscapeKey'
 
 export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
   const slotClients = slot.clientIds
@@ -12,11 +13,7 @@ export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
   const dialogRef = useRef(null)
   useFocusTrap(dialogRef, true)
 
-  useEffect(() => {
-    const handler = e => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [onClose])
+  useEscapeKey(onClose)
 
   const toggleAttendee = (id) =>
     setAttendees(prev =>

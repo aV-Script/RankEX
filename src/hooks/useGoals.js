@@ -21,10 +21,13 @@ export function useGoals(orgId, clientId) {
   useEffect(() => {
     if (!orgId || !clientId) return
     setLoading(true)
+    // Vedi useNotes: ignora la risposta di un cliente non più selezionato
+    let cancelled = false
     getGoals(orgId, clientId)
-      .then(data => setGoals(data))
-      .catch(() => toastError('Impossibile caricare gli obiettivi'))
-      .finally(() => setLoading(false))
+      .then(data => { if (!cancelled) setGoals(data) })
+      .catch(() => { if (!cancelled) toastError('Impossibile caricare gli obiettivi') })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
   }, [orgId, clientId, toastError])
 
   const handleAddGoal = useCallback(async (goalInput) => {

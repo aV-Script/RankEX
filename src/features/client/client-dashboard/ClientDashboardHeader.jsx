@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEscapeKey } from '../../../hooks/useEscapeKey'
 import {
   ICON_TEST, ICON_BIA, ICON_WORKOUT, ICON_CALENDAR, ICON_NOTES, ICON_ACTIVITY,
   ICON_AVATAR, ICON_WEARABLE, ICON_TROFEI, ICON_MISURE, ICON_GOALS, ICON_BACK, ICON_PDF,
@@ -32,12 +32,7 @@ export function ClientDashboardHeader({
 
   // Chiusura da tastiera per il menu overflow — l'unico modo per chiuderlo
   // era prima un click esterno su un div non focusabile.
-  useEffect(() => {
-    if (!showActions) return
-    const handler = e => { if (e.key === 'Escape') onToggleActions() }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [showActions, onToggleActions])
+  useEscapeKey(onToggleActions, showActions)
 
   return (
     <header

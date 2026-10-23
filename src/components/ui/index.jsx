@@ -1,8 +1,9 @@
-import { useEffect, useRef, cloneElement, isValidElement } from 'react'
+import { useRef, cloneElement, isValidElement } from 'react'
 import { Pentagon }       from './Pentagon'
 import { getStatsConfig } from '../../constants'
 import { useFocusTrap }   from '../../hooks/useFocusTrap'
 import { IconClose }      from './icons'
+import { useEscapeKey } from '../../hooks/useEscapeKey'
 
 export { XPBar } from './XPBar'
 
@@ -144,11 +145,7 @@ export function Modal({ title, onClose, disableOverlayClose, size = 'default', a
   const dialogRef = useRef(null)
   useFocusTrap(dialogRef, true)
 
-  useEffect(() => {
-    const handler = e => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [onClose])
+  useEscapeKey(onClose)
 
   return (
     <div

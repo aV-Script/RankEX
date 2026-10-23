@@ -3,6 +3,7 @@ import { SLOT_STATUS }   from '../../../constants/slotStatus'
 import { IconClose }     from '../../../components/ui/icons'
 import { useFocusTrap }  from '../../../hooks/useFocusTrap'
 import { toLocalDateStr } from '../../../utils/calendarUtils'
+import { useEscapeKey } from '../../../hooks/useEscapeKey'
 
 /**
  * Popup dettaglio slot — appare al click su un evento.
@@ -22,11 +23,7 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
   }, [onClose])
 
   // Chiude con Escape, come Modal/ConfirmDialog
-  useEffect(() => {
-    const handler = e => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [onClose])
+  useEscapeKey(onClose)
 
   const slotClients = slot.clientIds
     .map(id => clients.find(c => c.id === id))

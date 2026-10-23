@@ -20,10 +20,14 @@ export function useNotes(orgId, clientId, author) {
   useEffect(() => {
     if (!orgId || !clientId) return
     setLoading(true)
+    // Cambiando cliente prima che la lettura finisca, la risposta del cliente
+    // precedente arrivava dopo e ne mostrava le note sul nuovo
+    let cancelled = false
     getNotes(orgId, clientId)
-      .then(data => setNotes(data))
-      .catch(() => toastError('Impossibile caricare le note'))
-      .finally(() => setLoading(false))
+      .then(data => { if (!cancelled) setNotes(data) })
+      .catch(() => { if (!cancelled) toastError('Impossibile caricare le note') })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
   }, [orgId, clientId, toastError])
 
   // Raggruppamento: thread root (parentId null) + loro commenti

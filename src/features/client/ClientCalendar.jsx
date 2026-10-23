@@ -18,7 +18,13 @@ export function ClientCalendar({ clientId, orgId, clients }) {
   // Ottieni i dati delle sessioni del client
   useEffect(() => {
     if (!orgId || !clientId) return
-    getClientSlots(orgId, clientId, from, to).then(setSlots).catch(() => {})
+    // Cambiando mese velocemente, la risposta del mese precedente non deve
+    // sovrascrivere quella del mese mostrato
+    let cancelled = false
+    getClientSlots(orgId, clientId, from, to)
+      .then(data => { if (!cancelled) setSlots(data) })
+      .catch(() => {})
+    return () => { cancelled = true }
   }, [orgId, clientId, from, to])
 
   const client = clients?.find(c => c.id === clientId)

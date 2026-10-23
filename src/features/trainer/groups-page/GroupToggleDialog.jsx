@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { getGroupTogglePreview } from '../../../features/calendar/calendarGroupUtils'
 import { useFocusTrap }          from '../../../hooks/useFocusTrap'
 import { Button }                from '../../../components/ui'
+import { useEscapeKey } from '../../../hooks/useEscapeKey'
 
 const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
 
@@ -30,11 +31,7 @@ export function GroupToggleDialog({
       .finally(() => setLoading(false))
   }, [orgId, group.id])
 
-  useEffect(() => {
-    const handler = e => { if (e.key === 'Escape') onCancel() }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [onCancel])
+  useEscapeKey(onCancel)
 
   const handleConfirm = async () => {
     setSaving(true)

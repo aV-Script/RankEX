@@ -1,7 +1,8 @@
-import { useState, useMemo, useRef, useEffect } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { generateRecurrenceDates, toLocalDateStr } from '../../../utils/calendarUtils'
 import { useFocusTrap } from '../../../hooks/useFocusTrap'
 import { IconClose }    from '../../../components/ui/icons'
+import { useEscapeKey } from '../../../hooks/useEscapeKey'
 
 const WEEK_DAYS = [
   { value: 1, label: 'Lun' }, { value: 2, label: 'Mar' }, { value: 3, label: 'Mer' },
@@ -59,11 +60,7 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
   const dialogRef = useRef(null)
   useFocusTrap(dialogRef, true)
 
-  useEffect(() => {
-    const handler = e => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [onClose])
+  useEscapeKey(onClose)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(8,12,18,0.9)' }} onClick={onClose}>

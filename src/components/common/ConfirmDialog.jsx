@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import { useFocusTrap } from '../../hooks/useFocusTrap'
 import { Button } from '../ui'
+import { useEscapeKey } from '../../hooks/useEscapeKey'
 
 /**
  * Modal generico di conferma.
@@ -12,11 +13,7 @@ export function ConfirmDialog({ title, description, confirmLabel = 'CONFERMA', c
   const dialogRef = useRef(null)
   useFocusTrap(dialogRef, true)
 
-  useEffect(() => {
-    const handler = e => { if (e.key === 'Escape') onCancel() }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [onCancel])
+  useEscapeKey(onCancel)
 
   return (
     <div

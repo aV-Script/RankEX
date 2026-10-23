@@ -11,7 +11,11 @@ const TIMEOUT_MS = {
 
 const WARNING_MS = 60 * 1000   // preavviso prima del logout automatico
 
-const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keypress', 'touchstart', 'scroll']
+const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll']
+
+// mousemove e scroll scattano decine di volte al secondo: basta azzerare i timer
+// al massimo una volta ogni pochi secondi
+const ACTIVITY_THROTTLE_MS = 5000
 
 /**
  * Esegue il logout automatico dopo un periodo di inattività.
@@ -33,22 +37,39 @@ export function useSessionTimeout(role) {
 
     const timeout = TIMEOUT_MS[role] ?? TIMEOUT_MS.trainer
 
+    let warningVisible = false
+    let lastReset      = 0
+
     const reset = () => {
       clearTimeout(warnTimerRef.current)
       clearTimeout(logoutTimerRef.current)
+      warningVisible = false
+      lastReset      = Date.now()
       setShowWarning(false)
-      warnTimerRef.current   = setTimeout(() => setShowWarning(true), Math.max(timeout - WARNING_MS, 0))
+      warnTimerRef.current = setTimeout(() => {
+        warningVisible = true
+        setShowWarning(true)
+      }, Math.max(timeout - WARNING_MS, 0))
       logoutTimerRef.current = setTimeout(() => logout(), timeout)
     }
     resetRef.current = reset
 
+    // Con l'avviso visibile l'attività generica non estende la sessione: prima il
+    // primo movimento del mouse lo chiudeva prima che si potesse leggere. Si
+    // estende solo con "Resta collegato" (extendSession).
+    const onActivity = () => {
+      if (warningVisible) return
+      if (Date.now() - lastReset < ACTIVITY_THROTTLE_MS) return
+      reset()
+    }
+
     reset()
-    ACTIVITY_EVENTS.forEach(e => window.addEventListener(e, reset, { passive: true }))
+    ACTIVITY_EVENTS.forEach(e => window.addEventListener(e, onActivity, { passive: true }))
 
     return () => {
       clearTimeout(warnTimerRef.current)
       clearTimeout(logoutTimerRef.current)
-      ACTIVITY_EVENTS.forEach(e => window.removeEventListener(e, reset))
+      ACTIVITY_EVENTS.forEach(e => window.removeEventListener(e, onActivity))
     }
   }, [role])
 
