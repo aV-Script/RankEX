@@ -3,6 +3,7 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { getAuth }           from 'firebase-admin/auth'
 import { requireOrgAdmin }   from '../shared/auth.js'
 import { isAtTrainerLimit }  from '../shared/plans.js'
+import { requireValidPassword, optionalString } from '../shared/validate.js'
 
 const REGION = 'europe-west1'
 
@@ -19,6 +20,8 @@ export const creaMembroTeam = onCall({ region: REGION }, async (request) => {
   }
 
   const profile = await requireOrgAdmin(request, orgId)
+  requireValidPassword(password)
+  optionalString(name, 'name', 100)
 
   const db  = getFirestore()
   const org = await db.doc(`organizations/${orgId}`).get()

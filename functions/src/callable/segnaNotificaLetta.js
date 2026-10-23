@@ -11,10 +11,21 @@ export const segnaNotificaLetta = onCall({ region: REGION }, async (request) => 
     throw new HttpsError('invalid-argument', 'orgId e notificationId sono obbligatori')
   }
 
-  await requireOrgMemberOrClient(request, orgId)
+  const profile = await requireOrgMemberOrClient(request, orgId)
+  if (profile.role === 'staff_readonly') {
+    throw new HttpsError('permission-denied', 'Permessi insufficienti')
+  }
 
-  const db = getFirestore()
-  await db.doc(`organizations/${orgId}/notifications/${notificationId}`).update({
+  const db     = getFirestore()
+  const notRef = db.doc(`organizations/${orgId}/notifications/${notificationId}`)
+  const notDoc = await notRef.get()
+  if (!notDoc.exists) throw new HttpsError('not-found', 'Notifica non trovata')
+  // Un cliente segna letta solo una propria notifica
+  if (profile.role === 'client' && notDoc.data().clientId !== profile.clientId) {
+    throw new HttpsError('permission-denied', 'Puoi gestire solo le tue notifiche')
+  }
+
+  await notRef.update({
     read:   true,
     readAt: new Date().toISOString(),
   })

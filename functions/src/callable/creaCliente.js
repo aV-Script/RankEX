@@ -3,9 +3,15 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { getAuth }          from 'firebase-admin/auth'
 import { requireOrgAccess } from '../shared/auth.js'
 import { buildNewClient }   from '../shared/gamification.js'
+import { pickAllowed, optionalString, requireValidPassword } from '../shared/validate.js'
 import { isAtClientLimit }  from '../shared/plans.js'
 
 const REGION = 'europe-west1'
+
+const ANAGRAFICA_FIELDS = [
+  'name', 'dataNascita', 'eta', 'sesso', 'peso', 'altezza',
+  'categoria', 'ruolo', 'profileType',
+]
 
 const NEW_CLIENT_DEFAULTS = {
   level:              1,
@@ -49,7 +55,13 @@ export const creaCliente = onCall({ region: REGION }, async (request) => {
     throw new HttpsError('resource-exhausted', `Limite clienti del piano ${orgData.plan ?? 'free'} raggiunto`)
   }
 
-  const { email, password, testValues = {}, stats = {}, ...anagrafica } = formData
+  const { email, password, testValues = {}, stats = {}, ...rest } = formData
+  requireValidPassword(password)
+  // Solo i campi raccolti dal wizard (useWizard → handleConfirmSubmit). Lo spread
+  // completo permetteva di creare un cliente con coins, badges, xp o
+  // avatarPurchased già impostati, che finivano sopra ai default.
+  const anagrafica = pickAllowed(rest, ANAGRAFICA_FIELDS)
+  optionalString(anagrafica.name, 'name', 100)
 
   // Crea l'account Firebase Auth con Admin SDK — nessun logout del trainer
   let clientUid

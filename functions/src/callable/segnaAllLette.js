@@ -11,7 +11,15 @@ export const segnaAllLette = onCall({ region: REGION }, async (request) => {
     throw new HttpsError('invalid-argument', 'orgId e clientId sono obbligatori')
   }
 
-  await requireOrgMemberOrClient(request, orgId)
+  const profile = await requireOrgMemberOrClient(request, orgId)
+  // Un cliente segna lette solo le proprie notifiche; staff_readonly non scrive.
+  // Prima bastava passare il clientId di un altro cliente dell'org.
+  if (profile.role === 'staff_readonly') {
+    throw new HttpsError('permission-denied', 'Permessi insufficienti')
+  }
+  if (profile.role === 'client' && profile.clientId !== clientId) {
+    throw new HttpsError('permission-denied', 'Puoi gestire solo le tue notifiche')
+  }
 
   const db      = getFirestore()
   const readAt  = new Date().toISOString()

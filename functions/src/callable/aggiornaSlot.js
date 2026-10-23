@@ -1,6 +1,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore }      from 'firebase-admin/firestore'
 import { requireOrgAccess }  from '../shared/auth.js'
+import { pickAllowed, assertIdsInData } from '../shared/validate.js'
 
 const REGION = 'europe-west1'
 
@@ -13,8 +14,14 @@ export const aggiornaSlot = onCall({ region: REGION }, async (request) => {
 
   await requireOrgAccess(request, orgId)
 
+  // Solo i campi di pianificazione: stato, presenti e assenti li scrivono
+  // chiudiSessione / saltaSlot, che assegnano anche XP e streak.
+  const update = pickAllowed(data, ['date', 'startTime', 'endTime', 'clientIds', 'groupIds'])
+  if (!Object.keys(update).length) throw new HttpsError('invalid-argument', 'Nessun campo aggiornabile')
+  assertIdsInData(update)
+
   const db = getFirestore()
-  await db.doc(`organizations/${orgId}/slots/${slotId}`).update(data)
+  await db.doc(`organizations/${orgId}/slots/${slotId}`).update(update)
 
   return { ok: true }
 })

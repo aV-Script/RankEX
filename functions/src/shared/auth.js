@@ -1,12 +1,17 @@
 import { getFirestore } from 'firebase-admin/firestore'
 import { HttpsError }   from 'firebase-functions/v2/https'
+import { assertIdsInData } from './validate.js'
 
 /**
  * Verifica che il chiamante sia autenticato e restituisce il suo profilo Firestore.
  * Lancia HttpsError se non autenticato.
+ * Valida anche il formato di tutti gli id in request.data: ogni callable passa
+ * da qui (direttamente o via requireRole/requireOrg*), quindi è l'unico punto
+ * che copre tutte le callable.
  */
 export async function requireAuth(request) {
   if (!request.auth) throw new HttpsError('unauthenticated', 'Autenticazione richiesta')
+  assertIdsInData(request.data)
   const db      = getFirestore()
   const userDoc = await db.collection('users').doc(request.auth.uid).get()
   if (!userDoc.exists) throw new HttpsError('not-found', 'Profilo utente non trovato')

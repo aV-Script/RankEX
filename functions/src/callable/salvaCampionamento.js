@@ -1,6 +1,7 @@
-import { onCall }        from 'firebase-functions/v2/https'
+import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore }  from 'firebase-admin/firestore'
 import { requireOrgAccess }        from '../shared/auth.js'
+import { requireId, optionalString } from '../shared/validate.js'
 import { buildCampionamentoUpdate } from '../shared/gamification.js'
 import { TESTS_META }              from '../shared/testsMeta.js'
 import { calcPercentileEx, calcAge } from '../shared/percentile.js'
@@ -29,43 +30,58 @@ function resolveTestInput(test, testValues) {
 export const salvaCampionamento = onCall({ region: REGION }, async (request) => {
   const { orgId, clientId, testValues = {}, logAction } = request.data
   await requireOrgAccess(request, orgId)
+  requireId(clientId, 'clientId')
+  if (!testValues || typeof testValues !== 'object' || Array.isArray(testValues)) {
+    throw new HttpsError('invalid-argument', 'testValues non valido')
+  }
+  const safeLogAction = optionalString(logAction, 'logAction', 500)
 
   const db = getFirestore()
   const clientRef = db.doc(`organizations/${orgId}/clients/${clientId}`)
-  const snap = await clientRef.get()
-  if (!snap.exists) throw new Error('Cliente non trovato')
+  const goalsQuery = db
+    .collection(`organizations/${orgId}/clients/${clientId}/goals`)
+    .where('status', '==', 'active')
 
-  const client    = { id: clientId, ...snap.data() }
-  const clientAge = calcAge(client.dataNascita) ?? client.eta ?? 25
-  const sex       = client.sesso ?? 'M'
-  const categoria = client.categoria ?? ''
+  // Transazione: legge campionamenti/xp/log e obiettivi attivi e li riscrive.
+  // Con lettura e scrittura separate un salvataggio concorrente (altro trainer,
+  // chiusura sessione) veniva sovrascritto e perdeva XP o voci di log.
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(clientRef)
+    if (!snap.exists) throw new HttpsError('not-found', 'Cliente non trovato')
 
-  // Calcolo server-side dei percentili dai valori grezzi
-  const newStats = {}
-  for (const test of TESTS_META.filter(t => t.categories.includes(categoria))) {
-    const finalValue = resolveTestInput(test, testValues)
-    if (finalValue !== null) {
-      const { value } = calcPercentileEx(test.stat, finalValue, sex, clientAge, test.key)
-      if (value !== null) newStats[test.stat] = value
+    const client    = { id: clientId, ...snap.data() }
+    const clientAge = calcAge(client.dataNascita) ?? client.eta ?? 25
+    const sex       = client.sesso ?? 'M'
+    const categoria = client.categoria ?? ''
+
+    // Calcolo server-side dei percentili dai valori grezzi
+    const newStats = {}
+    for (const test of TESTS_META.filter(t => t.categories.includes(categoria))) {
+      const finalValue = resolveTestInput(test, testValues)
+      if (finalValue !== null) {
+        const { value } = calcPercentileEx(test.stat, finalValue, sex, clientAge, test.key)
+        if (value !== null) newStats[test.stat] = value
+      }
     }
-  }
 
-  const { update } = buildCampionamentoUpdate(client, newStats, testValues, logAction)
+    // Senza nessun test valido si registrerebbe un campionamento vuoto (media 0,
+    // rank F) — lo stesso effetto del vecchio campionamento fantasma.
+    if (!Object.keys(newStats).length) {
+      throw new HttpsError('invalid-argument', 'Nessun valore di test valido per la categoria del cliente')
+    }
 
-  const batch = db.batch()
-  batch.update(clientRef, update)
+    // Letture prima di ogni scrittura (vincolo delle transazioni)
+    const goalsSnap = await tx.get(goalsQuery)
 
-  // ── Obiettivi: controlla se questo campionamento ne raggiunge qualcuno ─────
-  // Un obiettivo è su un test specifico (testKey), non solo su una stat — con
-  // stat condivise tra più test (es. 'resistenza' su 5 test) va verificato che
-  // il test dell'obiettivo sia effettivamente tra quelli di questa categoria,
-  // non solo che la sua stat compaia in newStats.
-  if (Object.keys(newStats).length) {
-    const goalsSnap = await db
-      .collection(`organizations/${orgId}/clients/${clientId}/goals`)
-      .where('status', '==', 'active')
-      .get()
+    const { update } = buildCampionamentoUpdate(client, newStats, testValues, safeLogAction)
 
+    tx.update(clientRef, update)
+
+    // ── Obiettivi: controlla se questo campionamento ne raggiunge qualcuno ─────
+    // Un obiettivo è su un test specifico (testKey), non solo su una stat — con
+    // stat condivise tra più test (es. 'resistenza' su 5 test) va verificato che
+    // il test dell'obiettivo sia effettivamente tra quelli di questa categoria,
+    // non solo che la sua stat compaia in newStats.
     for (const goalDoc of goalsSnap.docs) {
       const goal     = goalDoc.data()
       const testMeta = TESTS_META.find(t => t.key === goal.testKey)
@@ -74,14 +90,14 @@ export const salvaCampionamento = onCall({ region: REGION }, async (request) => 
       const achievedValue = newStats[testMeta.stat]
       if (achievedValue === undefined || achievedValue < goal.targetPercentile) continue
 
-      batch.update(goalDoc.ref, {
+      tx.update(goalDoc.ref, {
         status:             'achieved',
         achievedAt:         new Date().toISOString(),
         achievedPercentile: achievedValue,
       })
 
       if (client.clientAuthUid) {
-        batch.set(db.collection(`organizations/${orgId}/notifications`).doc(), {
+        tx.set(db.collection(`organizations/${orgId}/notifications`).doc(), {
           clientId,
           message:   `Obiettivo raggiunto: ${goal.testLabel} — ${achievedValue}° percentile!`,
           date:      new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }),
@@ -91,28 +107,27 @@ export const salvaCampionamento = onCall({ region: REGION }, async (request) => 
         })
       }
     }
-  }
 
-  if (client.clientAuthUid) {
-    const isFirst     = !client.campionamenti?.length
-    const rankChanged = !isFirst && update.rank !== client.rank
-    const xpGain      = update.log?.[0]?.xp ?? 0
-    const message = isFirst
-      ? 'Primo campionamento registrato!'
-      : rankChanged
-        ? `Campionamento registrato — rank aggiornato: ${client.rank} → ${update.rank}`
-        : `Campionamento registrato (+${xpGain} XP)`
+    if (client.clientAuthUid) {
+      const isFirst     = !client.campionamenti?.length
+      const rankChanged = !isFirst && update.rank !== client.rank
+      const xpGain      = update.log?.[0]?.xp ?? 0
+      const message = isFirst
+        ? 'Primo campionamento registrato!'
+        : rankChanged
+          ? `Campionamento registrato — rank aggiornato: ${client.rank} → ${update.rank}`
+          : `Campionamento registrato (+${xpGain} XP)`
 
-    batch.set(db.collection(`organizations/${orgId}/notifications`).doc(), {
-      clientId,
-      message,
-      date:      new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }),
-      type:      rankChanged ? 'rank' : 'xp',
-      read:      false,
-      createdAt: new Date().toISOString(),
-    })
-  }
+      tx.set(db.collection(`organizations/${orgId}/notifications`).doc(), {
+        clientId,
+        message,
+        date:      new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }),
+        type:      rankChanged ? 'rank' : 'xp',
+        read:      false,
+        createdAt: new Date().toISOString(),
+      })
+    }
 
-  await batch.commit()
-  return { ok: true, rank: update.rank, xpGain: update.log?.[0]?.xp ?? 0 }
+    return { ok: true, rank: update.rank, xpGain: update.log?.[0]?.xp ?? 0 }
+  })
 })
