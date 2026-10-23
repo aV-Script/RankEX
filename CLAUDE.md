@@ -38,7 +38,7 @@ con terminologie, test e comportamenti UI diversi.
 - Profili: `tests_only` (unico)
 - `client.categoria` = `'soccer_youth'` | `'soccer_junior'` | `'soccer'` — chiave interna
   per `getTestsForCategoria`. Non è mostrata in UI (il ruolo è il badge visivo).
-  Badge fascia: Pulcini → giallo `#fbbf24`, Esordienti → viola `#a78bfa`, Senior → nessun badge.
+  Badge fascia: Pulcini → giallo `#facc15`, Esordienti → viola `#a78bfa`, Senior → nessun badge.
 - Configurazione fasce: `SOCCER_AGE_GROUPS` in `config/modules.config.js`
 - `categoria` derivata automaticamente da `eta` via `getCategoriaFromEta(eta)` in `config/modules.config.js`
   (età < 10 → `soccer_youth`, 10-13 → `soccer_junior`, 14+ → `soccer`)
@@ -68,12 +68,9 @@ client           → solo i propri dati
 ```
 
 ### Documento utente in Firestore
-**IMPORTANTE:** Solo gli utenti con ruolo
-`super_admin`, `org_admin`, `trainer`, `staff_readonly`
-hanno un documento in `/users/{uid}`.
-
-I client **hanno** un documento `/users/{uid}` (creato da
-`createClientUseCase`), ma i loro dati operativi (stats,
+Tutti gli utenti hanno un documento `/users/{uid}`, creato sempre dall'Admin SDK
+(`creaCliente` / `creaMembroTeam`: le rules non permettono di crearlo dal client).
+I client lo hanno con `role: 'client'`, ma i loro dati operativi (stats,
 campionamenti, ecc.) stanno in
 `/organizations/{orgId}/clients/{clientId}`.
 Il documento `/users/{uid}` del client contiene:
@@ -182,12 +179,13 @@ I counter `memberCount` e `clientCount` sono mantenuti
 **UI — blocchi al limite:**
 - `MembersPage`: banner giallo + bottone "AGGIUNGI" disabilitato
 - `NewClientView`: schermata di blocco invece del wizard
-- `OrgSettingsPage`: select piano con descrizione limiti dinamica
+- `OrgSettingsPage`: piano corrente in sola lettura con i limiti (lo cambia solo super_admin)
 - `OrgDetailView` (super_admin): barre progresso utilizzo trainer/clienti
 
 ```js
 // Import corretto
-import { getPlanLimits, isAtTrainerLimit, isAtClientLimit } from 'config/plans.config'
+// Non esiste un alias per src/: import relativi, es. da src/features/trainer/
+import { getPlanLimits, isAtTrainerLimit, isAtClientLimit } from '../../config/plans.config'
 ```
 
 ---
@@ -236,7 +234,7 @@ note proprie (`firestore.rules` limita `create`/`delete` a `canWrite(orgId)`, la
 Function `aggiungiNota` rifiuta esplicitamente `role === 'client'`, e `NotesSection` è
 montata `readonly` in `ClientDashboardPage.jsx`). Solo trainer/org_admin scrivono note e
 commenti; il client li vede e basta.
-Il trainer gestisce la cancellazione a cascata (nota root + suoi commenti) lato app.
+La cancellazione a cascata (nota root + suoi commenti) la fa la Cloud Function `eliminaNota`.
 
 ### Scheda Allenamento (`workoutPlans/{planId}`)
 ```js
@@ -386,7 +384,7 @@ src/
 │   │       └── navItems.config.jsx  ← NAV_ITEMS + ORG_ADMIN_NAV_ITEMS
 │   └── ui/
 │       ├── index.jsx        ← Card, SectionLabel, Badge, RankBadge, DayTabs,
-│       │                       Modal, Input, Textarea, Button, Divider, Field,
+│       │                       Modal, Input, Textarea, Button, Field,
 │       │                       EmptyState, ActivityLog, StatsSection, StatCard,
 │       │                       XPBar (re-export da ./XPBar.jsx)
 │       ├── icons.jsx             ← icon registry condiviso: IconClose, IconChevronLeft,
@@ -424,12 +422,8 @@ src/
 │   ├── TrainerContext.jsx   ← selectedClient, orgId, moduleType,
 │   │                           terminology, userRole, orgPlan
 │   ├── ReadonlyContext.jsx  ← readonly boolean
-│   ├── ThemeContext.jsx     ← 5 temi dinamici client (Pentagon Nav + Theme System, giu 2026)
+│   ├── ThemeContext.jsx     ← 7 temi dinamici client (Pentagon Nav + Theme System, giu 2026)
 │   └── ToastContext.jsx
-│
-├── design/
-│   └── tokens.js            ← SPACE, TYPE, COLOR, GRADIENT,
-│                               SHADOW, RADIUS, MOTION, Z
 │
 ├── features/
 │   ├── admin/               ← area super_admin
@@ -455,7 +449,6 @@ src/
 │   ├── bia/
 │   │   ├── useBia.js        ← no args — gets orgId from useTrainerState()
 │   │   ├── BiaView.jsx
-│   │   ├── BiaLockedPanel.jsx
 │   │   ├── UpgradeCategoryBanner.jsx
 │   │   └── bia-view/
 │   │       ├── BiaGaugeBar.jsx
@@ -469,7 +462,6 @@ src/
 │   │
 │   ├── client/              ← area cliente (role: client)
 │   │   ├── ClientView.jsx
-│   │   ├── ClientBadges.jsx
 │   │   ├── useClient.js     ← useClient(orgId, clientId)
 │   │   ├── CampionamentoView.jsx
 │   │   ├── ClientCalendar.jsx
@@ -582,7 +574,7 @@ src/
 │       ├── groups.js        ← tutte le fn accettano orgId come primo arg
 │       ├── groupNotes.js    ← getGroupNotes, addGroupNote, deleteGroupNote (orgId, groupId)
 │       ├── notifications.js ← tutte le fn accettano orgId come primo arg
-│       ├── notes.js         ← getNotes, addNote, deleteNoteItem (orgId, clientId)
+│       ├── notes.js         ← getNotes (orgId, clientId) — scritture via usecases → aggiungiNota/eliminaNota
 │       ├── goals.js         ← getGoals (orgId, clientId) — solo lettura, scrittura via usecases
 │       ├── runbook.js       ← getRuns, saveRun — collection top-level qa_runs, scrittura
 │       │                       diretta (unico ruolo ammesso è già super_admin, niente da cui difendersi)
@@ -603,7 +595,7 @@ src/
 │
 ├── usecases/                ← wrapper httpsCallable — SCRITTURE sensibili verso le Cloud
 │   │                           Functions in functions/ (vedi sezione dedicata più sotto).
-│   │                           34 file, uno per callable, stesso pattern minimale:
+│   │                           34 file (ott 2026), stesso pattern minimale:
 │   ├── createClientUseCase.js       ← creaCliente
 │   ├── deleteClientUseCase.js       ← eliminaCliente
 │   ├── createMemberUseCase.js       ← creaMembroTeam
@@ -627,7 +619,6 @@ src/
 │   └── markNotificationReadUseCase.js / markAllNotificationsReadUseCase.js
 │
 ├── hooks/
-│   ├── useAsync.js
 │   ├── useClientRank.js
 │   ├── useClients.js           ← useClients(orgId, userId?)
 │   ├── useGroups.js            ← useGroups(orgId)
@@ -671,13 +662,13 @@ src/
 Pacchetto Node **separato** alla radice del repo (proprio `package.json`, proprio
 `node_modules`, nessun import da `src/`, deploy indipendente da hosting/rules). Gestisce
 la maggior parte delle scritture sensibili dell'app tramite il layer `usecases/` visto
-sopra — 34 callable, una per operazione.
+sopra — 36 callable (ott 2026), una per operazione.
 
 ```
 functions/
 ├── src/
 │   ├── index.js         ← esporta tutte le callable (region europe-west1)
-│   ├── callable/        ← 34 funzioni onCall — una per operazione:
+│   ├── callable/        ← 36 funzioni onCall — una per operazione:
 │   │                       creaCliente, eliminaCliente, creaMembroTeam,
 │   │                       rimuoviMembroTeam, aggiornaRuoloMembro, salvaXP,
 │   │                       salvaCampionamento, salvaBia, aggiornaProfiloCliente,
@@ -771,7 +762,6 @@ constants/bia.js         → range clinici, XP_BIA
 config/modules.config.js → terminologia, test fissi per modulo
 config/plans.config.js   → limiti piano (trainer, clienti)
 utils/gamification.js    → XP, rank, livello (speculare a functions/src/shared/gamification.js)
-design/tokens.js         → spacing, colori, motion, shadow
 ```
 
 ### Data-driven UI
@@ -856,7 +846,7 @@ La guida deve mostrare solo i test pertinenti al modulo:
 ```js
 // Logica corretta per ottenere i test da mostrare
 const tests = isSoccer
-  ? ALL_TESTS.filter(t => t.categories.includes('soccer'))
+  ? ALL_TESTS.filter(t => t.categories.includes(soccerFascia))   // 'soccer_youth' | 'soccer_junior' | 'soccer'
   : ALL_TESTS   // o filtrati per la categoria selezionata
 ```
 
@@ -1112,27 +1102,24 @@ Codice colore: 🟢 verde = verificato · 🔴 rosso = da rollback · 🟡 ambra
 ### Y Balance Test — formula bilaterale
 Il test raccoglie i valori di **entrambi gli arti** (DX e SX) separatamente:
 ```
-variables: ANT_dx, PM_dx, PL_dx, ANT_sx, PM_sx, PL_sx, lunghezzaArto
+variables: ANT_dx, PM_dx, PL_dx, ANT_sx, PM_sx, PL_sx, lunghezza_dx, lunghezza_sx
 formulaType: 'y_balance_composite'
 ```
 La formula calcola il Composite Score per ciascun arto e ne restituisce la media:
 ```js
-dx = (ANT_dx + PM_dx + PL_dx) / (3 × lunghezzaArto) × 100
-sx = (ANT_sx + PM_sx + PL_sx) / (3 × lunghezzaArto) × 100
+dx = (ANT_dx + PM_dx + PL_dx) / (3 × lunghezza_dx) × 100
+sx = (ANT_sx + PM_sx + PL_sx) / (3 × lunghezza_sx) × 100
 result = (dx + sx) / 2
 ```
-`lunghezzaArto`: da ASIS al malleolo mediale (una sola misura, arto dominante).
+`lunghezza_dx` / `lunghezza_sx`: da ASIS al malleolo mediale, una misura per arto.
 
 ---
 
 ## Gamification
 
 ```js
-MONTHLY_XP_TARGET       = 500       // definito ma non usato attivamente
-BONUS_XP_FULL_MONTH     = 200       // definito ma non usato attivamente
-WEEKS_PER_MONTH         = 4.33
 XP_PER_LEVEL_MULTIPLIER = 1.08      // era 1.3 — ridotto per curva raggiungibile
-// xpNext partenza = 500 (era 700) — in NEW_CLIENT_DEFAULTS
+// xpNext partenza = 500 (era 700) — NEW_CLIENT_DEFAULTS in functions/src/callable/creaCliente.js
 
 // Streak sessioni — cap aumentato a streak 10 = ×2.0 (era streak 5 = ×1.5)
 calcSessionXP(baseXP, streak)
@@ -1447,7 +1434,7 @@ Struttura: `clients/{clientId}/notes/{noteId}` (subcollection del cliente).
 - Hook: `useNotes(orgId, clientId, { role, name })` in `hooks/useNotes.js`
 - UI trainer: `NotesSection` già integrata in `ClientDashboard`
 - UI client: `NotesSection` già integrata in `ClientDashboardPage`
-- Rules: già presenti in `firestore.rules` (client crea solo commenti)
+- Rules: `firestore.rules` — il client è in sola lettura; scrivono solo trainer/org_admin via `aggiungiNota`
 
 ### Obiettivo
 Struttura: `clients/{clientId}/goals/{goalId}` (subcollection del cliente).
@@ -1548,16 +1535,15 @@ con `aside` sticky, non esiste più `mobileOnly`/`window.innerWidth < 1024`.
 
 ### Nuova pagina org_admin (solo)
 1. Crea componente in `features/org/org-pages/`
-2. Aggiungi in `features/org/OrgAdminView.jsx` (PAGES map)
-3. Aggiungi tab nella sidebar dell'OrgAdminView
+2. Aggiungi in `features/org/OrgAdminView.jsx` (mappa `ORG_PAGES`)
+3. Aggiungi la voce in `ORG_ADMIN_NAV_ITEMS` (`components/layout/trainer-shell/navItems.config.jsx`)
 
 ### Membro del team
 Flusso creazione: OrgAdminView → MembersPage → CreateMemberForm
-→ `createClientAccount` (Firebase Auth — app secondaria)
-→ `createUserProfile(uid, { role, orgId, ... })` → `/users/{uid}`
-→ `addMember(orgId, uid, data)` → batch: setDoc member + `increment(1)` su `org.memberCount`
+→ `createMemberUseCase` → Cloud Function `creaMembroTeam`: account Auth, `/users/{uid}`,
+  `members/{uid}` e `increment(1)` su `org.memberCount` in un unico batch (Admin SDK)
 
-Cambio ruolo: `updateMember(orgId, uid, { role })` + `updateUserProfile(uid, { role })`
+Cambio ruolo: `updateMemberRoleUseCase` → Cloud Function `aggiornaRuoloMembro` (batch su `members/` e `users/`)
 Permesso Firestore: `isOrgAdminForMember(uid)` nella regola update di `/users/{uid}`.
 
 MembersPage è accessibile da org_admin tramite nav item "Team" (`ORG_ADMIN_NAV_ITEMS`
@@ -1575,7 +1561,7 @@ Flusso: SuperAdminView → OrgsPage → CreateOrgForm
 ```
 utils/tables.js        → solo aggiungere nuove tabelle
 firebase/config.js     → configurazione Firebase
-firestore.indexes.json → aggiungere solo, mai rimuovere
+firestore.index.json   → aggiungere solo, mai rimuovere
 firestore.rules        → modificare con estrema cautela
 ```
 
@@ -1776,8 +1762,12 @@ npm run deploy:rules:dev   # → dev  (rankex-dev)
 
 ## Monitoraggio costi Firebase
 
-### Piano attuale: Spark (gratuito)
-Sul piano Spark Firebase non può addebitare nulla. Monitorare i limiti per sapere quando avvicinarsi all'upgrade.
+### Piano attuale: Blaze (pay-as-you-go), uso dentro la fascia gratuita
+Le Cloud Functions richiedono Blaze. L'obiettivo è restare a 0 €: su `rankex-dev` c'è un
+budget con limite di spesa **rigido a 1 €** sul servizio Cloud Run Functions (ott 2026 — a
+0 € il servizio veniva sospeso e i deploy fallivano con "Container Healthcheck failed").
+Le immagini delle funzioni in Artifact Registry si cancellano dopo 1 giorno su entrambi i
+progetti (`firebase functions:artifacts:setpolicy`), per non superare lo spazio gratuito.
 
 **Limiti Firestore gratuiti (per giorno):**
 ```
@@ -1919,8 +1909,9 @@ Streak presenze        → IMPLEMENTATO (verificato set 2026 — sezione corrett
                          sessione: sessionStreak sale di 1 a ogni sessione chiusa con
                          presenza, si azzera a qualunque assenza (calcolo server-side
                          in chiudiSessione, batch atomico — vedi utils/gamification.js
-                         → calcSessionXP/calcStreakPreview, speculare a
-                         functions/src/shared/gamification.js). Moltiplicatore XP
+                         → calcSessionXP, speculare a
+                         functions/src/shared/gamification.js; calcStreakPreview
+                         esiste solo lato client). Moltiplicatore XP
                          +10%/streak, cap +100% a streak 10 (vedi sezione
                          Gamification più sotto). Superficie UI: preview
                          "+XP · streak N" in CloseSessionModal.jsx e ClientCalendar.jsx
