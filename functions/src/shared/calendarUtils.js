@@ -19,3 +19,12 @@ export function generateRecurrenceDates(startDate, endDate, days) {
   }
   return dates
 }
+
+/**
+ * Data di oggi 'YYYY-MM-DD' nel fuso dell'app. Le Cloud Functions girano in UTC:
+ * con toISOString(), tra mezzanotte e le 1-2 italiane "oggi" era ieri, e le
+ * operazioni sugli slot futuri di una ricorrenza toccavano anche quelli di ieri.
+ */
+export function todayInRome() {
+  return new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Rome' })
+}

@@ -7,25 +7,17 @@ import { workoutPlansPath } from '../paths'
 import { pickActivePlan, sortPlansByCreatedAtDesc } from '../../utils/workoutPlans'
 
 export const getWorkoutPlans = async (orgId) => {
-  try {
-    const q    = query(collection(db, workoutPlansPath(orgId)), orderBy('createdAt', 'desc'))
-    const snap = await getDocs(q)
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }))
-  } catch {
-    return []
-  }
+  const q    = query(collection(db, workoutPlansPath(orgId)), orderBy('createdAt', 'desc'))
+  const snap = await getDocs(q)
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
 }
 
 // Fetch schede di un singolo cliente (usato dal lato client — single-field index automatico)
 // Tutte le schede di un cliente (attive + archiviate), ordinate per data
 export const getClientPlans = async (orgId, clientId) => {
-  try {
-    const q    = query(collection(db, workoutPlansPath(orgId)), where('clientId', '==', clientId))
-    const snap = await getDocs(q)
-    return sortPlansByCreatedAtDesc(snap.docs.map(d => ({ id: d.id, ...d.data() })))
-  } catch {
-    return []
-  }
+  const q    = query(collection(db, workoutPlansPath(orgId)), where('clientId', '==', clientId))
+  const snap = await getDocs(q)
+  return sortPlansByCreatedAtDesc(snap.docs.map(d => ({ id: d.id, ...d.data() })))
 }
 
 // Scheda attiva di un cliente (usato dal lato client)

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { getClientSlots } from '../../firebase/services/calendar'
 import { getMonthRange, calcMonthlyCompletion } from '../calendar/useCalendar'
 import { calcStreakPreview, calcSessionXP } from '../../utils/gamification'
+import { toLocalDateStr } from '../../utils/calendarUtils'
 
 const MONTH_NAMES = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
   'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
@@ -37,7 +38,7 @@ export function ClientCalendar({ clientId, orgId, clients }) {
   }, [currentYear, currentMonth, slots])
 
   const { planned, completed, pct } = calcMonthlyCompletion(slots, clientId)
-  const today = new Date().toISOString().slice(0, 10)
+  const today = toLocalDateStr()
 
   const prevMonth = () => setCurrentMonth(m => { if (m === 1) { setCurrentYear(y => y-1); return 12 } return m-1 })
   const nextMonth = () => setCurrentMonth(m => { if (m === 12) { setCurrentYear(y => y+1); return 1 } return m+1 })

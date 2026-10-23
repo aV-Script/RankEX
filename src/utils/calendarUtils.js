@@ -5,6 +5,19 @@ export const HOUR_HEIGHT_PX = 60
 export const MIN_EVENT_HEIGHT_PX = 40
 
 /**
+ * Data locale 'YYYY-MM-DD' (default: oggi).
+ * Da usare al posto di toISOString().slice(0, 10), che restituisce la data UTC:
+ * in Italia tra mezzanotte e le 1-2 "oggi" risultava ieri (slot di oggi visti
+ * come passati, obiettivi scaduti un giorno prima, min dei date picker sbagliato).
+ */
+export function toLocalDateStr(date = new Date()) {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+/**
  * Restituisce il range {from, to} del mese dato in formato 'YYYY-MM-DD'.
  * @param {number} year  — anno (es. 2026)
  * @param {number} month — mese 1-based (es. 3 = marzo)
@@ -31,8 +44,8 @@ export function getWeekRange(date) {
   const sunday = new Date(monday)
   sunday.setDate(monday.getDate() + 6)
   return {
-    from: monday.toISOString().slice(0, 10),
-    to:   sunday.toISOString().slice(0, 10),
+    from: toLocalDateStr(monday),
+    to:   toLocalDateStr(sunday),
   }
 }
 
@@ -115,7 +128,7 @@ export function generateRecurrenceDates(startDate, endDate, days) {
 
   while (cursor <= end) {
     if (days.includes(cursor.getDay())) {
-      dates.push(cursor.toISOString().slice(0, 10))
+      dates.push(toLocalDateStr(cursor))
     }
     cursor.setDate(cursor.getDate() + 1)
   }

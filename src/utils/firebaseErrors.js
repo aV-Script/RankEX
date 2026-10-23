@@ -14,7 +14,16 @@ const FIREBASE_ERROR_MESSAGES = {
   'unavailable':                 'Servizio temporaneamente non disponibile. Riprova.',
   'deadline-exceeded':           'Timeout. Connessione troppo lenta.',
   'not-found':                   'Documento non trovato.',
+  // Cloud Functions (httpsCallable): i messaggi di HttpsError sono già scritti in
+  // italiano lato server e vengono mostrati così come sono (vedi sotto). Qui
+  // solo i codici che non hanno un messaggio utile per l'utente.
+  'functions/unavailable':       'Servizio temporaneamente non disponibile. Riprova.',
+  'functions/deadline-exceeded': 'Timeout. Connessione troppo lenta.',
+  'functions/unauthenticated':   'Sessione scaduta. Effettua di nuovo il login.',
 }
+
+// Codici callable il cui messaggio è generico ("internal") o tecnico: si usa il fallback
+const FUNCTIONS_OPAQUE_CODES = new Set(['functions/internal', 'functions/unknown'])
 
 /**
  * Traduce un errore Firebase in un messaggio leggibile in italiano.
@@ -23,7 +32,15 @@ const FIREBASE_ERROR_MESSAGES = {
  */
 export function getFirebaseErrorMessage(err, fallback = 'Errore imprevisto. Riprova.') {
   if (!err) return fallback
-  return FIREBASE_ERROR_MESSAGES[err.code] ?? err.message ?? fallback
+  if (FIREBASE_ERROR_MESSAGES[err.code]) return FIREBASE_ERROR_MESSAGES[err.code]
+  // Prima gli errori delle callable non erano mappati e l'utente leggeva "internal"
+  if (FUNCTIONS_OPAQUE_CODES.has(err.code)) return fallback
+  return err.message || fallback
+}
+
+/** Errore di una callable che riguarda l'email (già in uso) — da mostrare sul campo email */
+export function isEmailTakenError(err) {
+  return ['auth/email-already-in-use', 'auth/invalid-email', 'functions/already-exists'].includes(err?.code)
 }
 
 // Codici che, SOLO nel form di login (utente non ancora autenticato),

@@ -6,17 +6,13 @@ import { db }               from './db'
 import { notificationsPath } from '../paths'
 
 export const getNotifications = async (orgId, clientId) => {
-  try {
-    const q    = query(
-      collection(db, notificationsPath(orgId)),
-      where('clientId', '==', clientId),
-    )
-    const snap = await getDocs(q)
-    const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-    return docs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  } catch {
-    return []
-  }
+  const q    = query(
+    collection(db, notificationsPath(orgId)),
+    where('clientId', '==', clientId),
+  )
+  const snap = await getDocs(q)
+  const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return docs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 }
 
 export const deleteNotification = (orgId, id) =>

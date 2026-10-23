@@ -1,6 +1,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore }      from 'firebase-admin/firestore'
 import { requireOrgAccess }  from '../shared/auth.js'
+import { todayInRome } from '../shared/calendarUtils.js'
 
 const REGION = 'europe-west1'
 
@@ -14,7 +15,7 @@ export const aggiornaRicorrenzaOrario = onCall({ region: REGION }, async (reques
   await requireOrgAccess(request, orgId)
 
   const db    = getFirestore()
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayInRome()
 
   // Slot futuri della ricorrenza
   const slotsSnap = await db.collection(`organizations/${orgId}/slots`)

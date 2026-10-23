@@ -7,6 +7,7 @@ import {
 } from '../../firebase/services/calendar'
 import { addClientToRecurrenceUseCase }    from '../../usecases/addClientToRecurrenceUseCase'
 import { removeClientFromRecurrenceUseCase } from '../../usecases/removeClientFromRecurrenceUseCase'
+import { toLocalDateStr } from '../../utils/calendarUtils'
 
 /**
  * Raccoglie tutti i dati necessari per mostrare
@@ -15,7 +16,7 @@ import { removeClientFromRecurrenceUseCase } from '../../usecases/removeClientFr
  * @returns {{ futureSlots: number, recurrences: Array }}
  */
 export async function getGroupTogglePreview(orgId, groupId) {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = toLocalDateStr()
 
   const [slots, recurrences] = await Promise.all([
     getSlotsByGroup(orgId, groupId, today),
@@ -33,7 +34,7 @@ export async function getGroupTogglePreview(orgId, groupId) {
  * aggiorna slot futuri E ricorrenze attive.
  */
 export async function addClientToGroupSlots(orgId, groupId, clientId) {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = toLocalDateStr()
 
   const [slots, recurrences] = await Promise.all([
     getSlotsByGroup(orgId, groupId, today),
@@ -64,7 +65,7 @@ export async function addClientToGroupSlots(orgId, groupId, clientId) {
  * aggiorna slot futuri E ricorrenze attive.
  */
 export async function removeClientFromGroupSlots(orgId, groupId, clientId) {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = toLocalDateStr()
 
   const [slots, recurrences] = await Promise.all([
     getSlotsByGroup(orgId, groupId, today),

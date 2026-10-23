@@ -1,6 +1,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore }      from 'firebase-admin/firestore'
 import { requireOrgAccess }  from '../shared/auth.js'
+import { todayInRome } from '../shared/calendarUtils.js'
 
 const REGION = 'europe-west1'
 
@@ -14,7 +15,7 @@ export const cancellaRicorrenza = onCall({ region: REGION }, async (request) => 
   await requireOrgAccess(request, orgId)
 
   const db    = getFirestore()
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayInRome()
 
   const slotsSnap = await db.collection(`organizations/${orgId}/slots`)
     .where('recurrenceId', '==', recurrenceId)

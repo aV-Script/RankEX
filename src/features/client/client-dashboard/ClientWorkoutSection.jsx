@@ -11,16 +11,31 @@ export function ClientWorkoutSection({ orgId, clientId, color }) {
   const [plan,      setPlan]      = useState(null)
   const [loading,   setLoading]   = useState(true)
   const [activeDay, setActiveDay] = useState(0)
+  const [loadError, setLoadError] = useState(false)
 
   useEffect(() => {
     if (!orgId || !clientId) return
     getWorkoutPlanForClient(orgId, clientId)
       .then(active => setPlan(active))
-      .catch(() => {})
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false))
   }, [orgId, clientId])
 
   if (loading) return null
+  // Un errore di lettura non è "nessuna scheda": prima il cliente leggeva che il
+  // trainer non gliel'aveva assegnata anche quando la scheda esisteva.
+  if (loadError) return (
+    <section className="px-4 py-6">
+      <div className="rounded-[4px] p-5 rx-card">
+        <SectionLabel className="mb-2">◈ Scheda allenamento</SectionLabel>
+        <EmptyState
+          color={color}
+          title="Scheda non disponibile"
+          description="Non è stato possibile caricare la scheda. Controlla la connessione e riapri questa sezione."
+        />
+      </div>
+    </section>
+  )
   if (!plan) return (
     <section className="px-4 py-6">
       <div className="rounded-[4px] p-5 rx-card">

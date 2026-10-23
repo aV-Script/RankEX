@@ -32,12 +32,17 @@ export function GroupNotes({ orgId, groupId }) {
   const notesPagination  = usePagination(notes, NOTES_PAGE_SIZE)
   const currentUserId    = getAuth().currentUser?.uid
 
+  const { error: toastError } = toast
   const fetchNotes = useCallback(async () => {
     setLoading(true)
-    const data = await getGroupNotes(orgId, groupId)
-    setNotes(data)
-    setLoading(false)
-  }, [orgId, groupId])
+    try {
+      setNotes(await getGroupNotes(orgId, groupId))
+    } catch {
+      toastError('Impossibile caricare le note del gruppo')
+    } finally {
+      setLoading(false)
+    }
+  }, [orgId, groupId, toastError])
 
   useEffect(() => { fetchNotes() }, [fetchNotes])
 

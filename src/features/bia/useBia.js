@@ -4,6 +4,7 @@ import { buildBiaUpdate, buildProfileUpgrade }           from '../../utils/gamif
 import { saveBiaUseCase }                                from '../../usecases/saveBiaUseCase'
 import { upgradeProfileUseCase }                         from '../../usecases/upgradeProfileUseCase'
 import { useToast }                                      from '../../hooks/useToast'
+import { getFirebaseErrorMessage }                       from '../../utils/firebaseErrors'
 
 /**
  * Hook per la gestione delle misurazioni BIA.
@@ -23,8 +24,10 @@ export function useBia() {
       success('BIA salvata')
     } catch (err) {
       dispatch({ type: ACTIONS.SELECT_CLIENT, payload: client })
-      error('Impossibile salvare la BIA')
+      error(getFirebaseErrorMessage(err, 'Impossibile salvare la BIA'))
       console.error('[useBia] saveBiaUseCase error:', err)
+      // Rilanciato: BiaView resta aperta con i valori inseriti
+      throw err
     }
   }, [orgId, dispatch, success, error])
 
@@ -36,10 +39,12 @@ export function useBia() {
 
     try {
       await upgradeProfileUseCase(orgId, client, update)
-    } catch {
+    } catch (err) {
       dispatch({ type: ACTIONS.SELECT_CLIENT, payload: snapshot })
+      error(getFirebaseErrorMessage(err, 'Impossibile aggiornare il profilo'))
+      throw err
     }
-  }, [orgId, dispatch])
+  }, [orgId, dispatch, error])
 
   return { handleSaveBia, handleUpgradeProfile }
 }

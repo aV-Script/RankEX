@@ -105,9 +105,14 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
   const tab        = activeTab ?? defaultTab
 
   const handleDelete = useCallback(async () => {
-    await onDelete(client.id)
-    setShowDelete(false)
-    onBack()
+    try {
+      await onDelete(client.id)
+      onBack()
+    } catch {
+      // Errore già mostrato da useClients: si resta sulla scheda del cliente
+    } finally {
+      setShowDelete(false)
+    }
   }, [onDelete, client.id, onBack])
 
   const handleSaveCampionamento = useCallback(async (newStats, testValues) => {

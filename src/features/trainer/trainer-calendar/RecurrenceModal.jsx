@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { generateRecurrenceDates } from '../../../utils/calendarUtils'
+import { generateRecurrenceDates, toLocalDateStr } from '../../../utils/calendarUtils'
 import { useFocusTrap } from '../../../hooks/useFocusTrap'
 import { IconClose }    from '../../../components/ui/icons'
 
@@ -13,8 +13,8 @@ const WEEK_DAYS = [
  * Modal per la creazione di una ricorrenza settimanale.
  */
 export function RecurrenceModal({ clients, groups, onClose, onSave }) {
-  const today    = new Date().toISOString().slice(0, 10)
-  const inAMonth = new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  const today    = toLocalDateStr()
+  const inAMonth = toLocalDateStr(new Date(Date.now() + 28 * 24 * 60 * 60 * 1000))
 
   const [selectedDays,    setSelectedDays]    = useState([])
   const [startDate,       setStartDate]       = useState(today)

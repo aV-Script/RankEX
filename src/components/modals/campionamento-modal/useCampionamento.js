@@ -119,8 +119,11 @@ export function useCampionamento({ client, onSave, onBack }) {
     setLoading(true)
     try {
       const newStats = {}
+      // Un test senza valore non entra nelle stats (come lato server): prima
+      // diventava percentile 0 e abbassava media e rank solo nella stima locale.
       config.forEach(test => {
-        newStats[test.stat] = calcTestResult(test, testValues, client.sesso, clientAge).value ?? 0
+        const { value } = calcTestResult(test, testValues, client.sesso, clientAge)
+        if (value !== null && value !== undefined) newStats[test.stat] = value
       })
       await onSave(newStats, { ...testValues })
       onBack()

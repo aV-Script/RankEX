@@ -1,3 +1,4 @@
+import { toLocalDateStr } from '../../../utils/calendarUtils'
 const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
 
 function dateFmt(str) {
@@ -22,7 +23,7 @@ export function RecurrenceCard({ recurrence, clients, onClick }) {
     .filter(Boolean)
 
   const dayLabels = DAY_LABELS.filter((_, i) => recurrence.days.includes(i))
-  const isExpired = recurrence.endDate < new Date().toISOString().slice(0, 10)
+  const isExpired = recurrence.endDate < toLocalDateStr()
 
   return (
     <button

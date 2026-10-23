@@ -1,7 +1,7 @@
 import { useState }              from 'react'
 import { Modal, Field, Input, Button } from '../../../components/ui'
 import { createMemberUseCase }   from '../../../usecases/createMemberUseCase'
-import { getFirebaseErrorMessage } from '../../../utils/firebaseErrors'
+import { getFirebaseErrorMessage, isEmailTakenError } from '../../../utils/firebaseErrors'
 import { validateRequired }      from '../../../utils/validation'
 
 const ROLE_OPTIONS = [
@@ -37,7 +37,9 @@ export function CreateMemberForm({ orgId, onClose, onCreated }) {
       onCreated({ id: member.uid, name: member.name, email: member.email, role: member.role })
     } catch (err) {
       const message = getFirebaseErrorMessage(err, 'Impossibile creare il membro')
-      const isEmailError = err?.code === 'auth/email-already-in-use' || err?.code === 'auth/invalid-email'
+      // creaCliente/creaMembroTeam rispondono functions/already-exists: il vecchio
+      // controllo su auth/* non scattava più e l'errore finiva in fondo al form
+      const isEmailError = isEmailTakenError(err)
       setErrors(isEmailError ? { email: message } : { form: message })
     } finally {
       setSaving(false)

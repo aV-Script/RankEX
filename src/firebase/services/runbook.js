@@ -18,13 +18,9 @@ import app         from '../config'
 const COLLECTION = 'qa_runs'
 
 export async function getRuns(max = 50) {
-  try {
-    const q    = query(collection(db, COLLECTION), orderBy('finishedAt', 'desc'), fsLimit(max))
-    const snap = await getDocs(q)
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }))
-  } catch {
-    return []
-  }
+  const q    = query(collection(db, COLLECTION), orderBy('finishedAt', 'desc'), fsLimit(max))
+  const snap = await getDocs(q)
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
 }
 
 /**

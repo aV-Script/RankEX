@@ -4,7 +4,7 @@ import {
   addClientToGroupSlots,
   removeClientFromGroupSlots,
 } from './calendarGroupUtils'
-import { getMonthRange, getWeekRange } from '../../utils/calendarUtils'
+import { getMonthRange, getWeekRange, toLocalDateStr } from '../../utils/calendarUtils'
 import { closeSessionUseCase }    from '../../usecases/closeSessionUseCase'
 import { addSlotUseCase }         from '../../usecases/addSlotUseCase'
 import { updateSlotUseCase }      from '../../usecases/updateSlotUseCase'
@@ -19,7 +19,7 @@ export { calcMonthlyCompletion, getMonthRange, getWeekRange } from '../../utils/
 export function useCalendar(orgId) {
   const [slots, setSlots]           = useState([])
   const [loading, setLoading]       = useState(false)
-  const [currentDate, setCurrentDate] = useState(new Date().toISOString().slice(0, 10))
+  const [currentDate, setCurrentDate] = useState(toLocalDateStr())
   const [view, setView]             = useState('week') // 'month' | 'week' | 'day'
   const { success: toastSuccess, error: toastError } = useToast()
   const initialLoadDone = useRef(false)
@@ -52,14 +52,15 @@ export function useCalendar(orgId) {
   const navigate = useCallback((direction) => {
     setCurrentDate(prev => {
       const d = new Date(prev + 'T12:00')
-      if (view === 'month') d.setMonth(d.getMonth() + direction)
+      // Giorno 1 prima di cambiare mese: dal 29-31 setMonth sforava nel mese dopo
+      if (view === 'month') { d.setDate(1); d.setMonth(d.getMonth() + direction) }
       else if (view === 'week') d.setDate(d.getDate() + direction * 7)
       else d.setDate(d.getDate() + direction)
-      return d.toISOString().slice(0, 10)
+      return toLocalDateStr(d)
     })
   }, [view])
 
-  const goToToday = useCallback(() => setCurrentDate(new Date().toISOString().slice(0, 10)), [])
+  const goToToday = useCallback(() => setCurrentDate(toLocalDateStr()), [])
 
   // ── Add slot ──────────────────────────────────────────────────────────
   const handleAddSlot = useCallback(async ({ date, startTime, endTime, clientIds, groupIds = [] }) => {

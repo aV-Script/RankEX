@@ -26,6 +26,7 @@ import { ErrorBoundary } from '../../../components/common/ErrorBoundary'
 import { ChartErrorFallback } from '../../../components/common/ChartErrorFallback'
 import { useToast }           from '../../../hooks/useToast'
 import { PrintPickerModal }   from '../../../components/common/PrintPickerModal'
+import { toLocalDateStr } from '../../../utils/calendarUtils'
 
 const CLIENTS_PAGE_SIZE = 8
 const SOCCER_CATS = ['soccer_youth', 'soccer_junior', 'soccer']
@@ -54,7 +55,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
     setSlotsLoading(true)
     const from = new Date()
     from.setDate(from.getDate() - 90)
-    getSlotsByGroup(orgId, group.id, from.toISOString().slice(0, 10))
+    getSlotsByGroup(orgId, group.id, toLocalDateStr(from))
       .then(setSlots)
       .catch(() => setSlots([]))
       .finally(() => setSlotsLoading(false))

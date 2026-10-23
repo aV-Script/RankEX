@@ -3,9 +3,10 @@ import { usePagination }  from '../../../hooks/usePagination'
 import { Pagination }     from '../../../components/common/Pagination'
 import { EmptyState, SectionLabel } from '../../../components/ui'
 import { SLOT_STATUS }    from '../../../constants/slotStatus'
+import { toLocalDateStr } from '../../../utils/calendarUtils'
 
 export function GroupSessionsPanel({ slots, loading }) {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = toLocalDateStr()
 
   const upcoming = useMemo(() =>
     slots
@@ -25,7 +26,7 @@ export function GroupSessionsPanel({ slots, loading }) {
   const stats = useMemo(() => {
     const cutoff = new Date()
     cutoff.setDate(cutoff.getDate() - 30)
-    const cutoffStr = cutoff.toISOString().slice(0, 10)
+    const cutoffStr = toLocalDateStr(cutoff)
 
     const completedLast30 = slots.filter(s =>
       s.status === SLOT_STATUS.COMPLETED && s.date >= cutoffStr && s.date < today

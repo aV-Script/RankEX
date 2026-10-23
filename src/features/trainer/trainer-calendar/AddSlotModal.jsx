@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react'
 import { Modal }        from '../../../components/ui'
+import { toLocalDateStr } from '../../../utils/calendarUtils'
 
 /**
  * Modal per la creazione di una nuova sessione.
  */
 export function AddSlotModal({ date, clients, groups, slots, onClose, onSave }) {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = toLocalDateStr()
 
   const [selectedDate,    setSelectedDate]    = useState(date)
   const [startTime,       setStartTime]       = useState('09:00')

@@ -11,6 +11,7 @@ import { CloseSessionModal }               from './trainer-calendar/CloseSession
 import { AddSlotModal }                    from './trainer-calendar/AddSlotModal'
 import { RecurrenceModal }                 from './trainer-calendar/RecurrenceModal'
 import { useGroups }                       from '../../hooks/useGroups'
+import { toLocalDateStr } from '../../utils/calendarUtils'
 
 export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavigate }) {
   const {
@@ -22,7 +23,7 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
   } = useCalendar(orgId)
 
   const { groups } = useGroups(orgId)
-  const today = new Date().toISOString().slice(0, 10)
+  const today = toLocalDateStr()
 
   // ── Stato UI ──────────────────────────────────────────────────────────────
   const [popup,          setPopup]          = useState(null) // { slot, x, y }

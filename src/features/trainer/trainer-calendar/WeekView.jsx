@@ -1,7 +1,7 @@
 import { useMemo, useRef, useEffect }              from 'react'
 import { HOUR_HEIGHT_PX as HOUR_H,
          MIN_EVENT_HEIGHT_PX,
-         computeSlotLayout }                       from '../../../utils/calendarUtils'
+         computeSlotLayout, toLocalDateStr }                       from '../../../utils/calendarUtils'
 import { EventBlock }                              from './EventBlock'
 
 const HOURS              = Array.from({ length: 24 }, (_, i) => i)
@@ -33,7 +33,7 @@ export function WeekView({ currentDate, slots, clients, today, onSlotClick, onEm
     return Array.from({ length: 7 }, (_, i) => {
       const date = new Date(monday)
       date.setDate(monday.getDate() + i)
-      return date.toISOString().slice(0, 10)
+      return toLocalDateStr(date)
     })
   }, [currentDate])
 

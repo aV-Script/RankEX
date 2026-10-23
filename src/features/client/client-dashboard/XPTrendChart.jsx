@@ -5,6 +5,7 @@ import {
 } from 'recharts'
 import { EmptyState, SegmentedToggle } from '../../../components/ui'
 import { CHART_GRID_STROKE, CHART_TICK_STYLE, chartTooltipStyle, BAR_CURSOR } from '../../../utils/chartTheme'
+import { toLocalDateStr } from '../../../utils/calendarUtils'
 
 const BUCKETS = [
   { id: 'giorno',    label: 'Giorno' },
@@ -23,7 +24,7 @@ function getMondayKey(ts) {
   const dow = d.getDay()
   d.setDate(d.getDate() + (dow === 0 ? -6 : 1 - dow))
   d.setHours(0, 0, 0, 0)
-  return d.toISOString().slice(0, 10)
+  return toLocalDateStr(d)
 }
 
 function toItLabel(isoDate) {
@@ -49,7 +50,7 @@ export function XPTrendChart({ log = [], color }) {
     for (const entry of entries) {
       let key, label
       if (bucket === 'giorno') {
-        key   = new Date(entry.ts).toISOString().slice(0, 10)
+        key   = toLocalDateStr(new Date(entry.ts))
         label = toItLabel(key)
       } else if (bucket === 'settimana') {
         key   = getMondayKey(entry.ts)

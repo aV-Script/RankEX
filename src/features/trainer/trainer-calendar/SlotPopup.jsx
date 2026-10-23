@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { SLOT_STATUS }   from '../../../constants/slotStatus'
 import { IconClose }     from '../../../components/ui/icons'
 import { useFocusTrap }  from '../../../hooks/useFocusTrap'
+import { toLocalDateStr } from '../../../utils/calendarUtils'
 
 /**
  * Popup dettaglio slot — appare al click su un evento.
@@ -37,7 +38,7 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
     [SLOT_STATUS.SKIPPED]:   { text: 'SALTATA',     color: '#6b7280' },
   }[slot.status ?? SLOT_STATUS.PLANNED]
 
-  const isPast      = slot.date < new Date().toISOString().slice(0, 10)
+  const isPast      = slot.date < toLocalDateStr()
   const isCompleted = slot.status === SLOT_STATUS.COMPLETED
   const isSkipped   = slot.status === SLOT_STATUS.SKIPPED
 

@@ -6,13 +6,9 @@ import { db }             from './db'
 import { groupNotesPath } from '../paths'
 
 export const getGroupNotes = async (orgId, groupId) => {
-  try {
-    const q    = query(collection(db, groupNotesPath(orgId, groupId)), orderBy('createdAt', 'desc'))
-    const snap = await getDocs(q)
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }))
-  } catch {
-    return []
-  }
+  const q    = query(collection(db, groupNotesPath(orgId, groupId)), orderBy('createdAt', 'desc'))
+  const snap = await getDocs(q)
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
 }
 
 export const addGroupNote = (orgId, groupId, data) =>

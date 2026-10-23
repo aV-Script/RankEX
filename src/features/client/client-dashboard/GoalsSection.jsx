@@ -6,6 +6,7 @@ import { useGoals }                   from '../../../hooks/useGoals'
 import { getTestsForCategoria }       from '../../../constants'
 import { getGoalDisplayStatus }       from '../../../utils/goals'
 import { ICON_GOALS }                 from './clientDashboardIcons'
+import { toLocalDateStr } from '../../../utils/calendarUtils'
 
 const STATUS_META = {
   active:    { label: 'In corso',   color: 'var(--rx-accent)' },
@@ -118,7 +119,7 @@ export function GoalsSection({ client, orgId, color, readonly = false }) {
                   type="date"
                   value={deadline}
                   onChange={e => setDeadline(e.target.value)}
-                  min={new Date().toISOString().slice(0, 10)}
+                  min={toLocalDateStr()}
                 />
               </Field>
             </div>

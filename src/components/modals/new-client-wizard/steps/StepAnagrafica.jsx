@@ -1,11 +1,12 @@
 import { Field, Input, SegmentedToggle } from '../../../ui'
 import { calcAge }     from '../../../../utils/validation'
+import { toLocalDateStr } from '../../../../utils/calendarUtils'
 
 export function StepAnagrafica({ anagrafica, setAnagrafica, errors }) {
   const update = (key) => (e) =>
     setAnagrafica(p => ({ ...p, [key]: e.target.value }))
 
-  const todayIso = new Date().toISOString().split('T')[0]
+  const todayIso = toLocalDateStr()
   const computedAge = calcAge(anagrafica.dataNascita)
 
   return (

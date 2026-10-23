@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useTrainerDispatch, ACTIONS }      from '../context/TrainerContext'
-import { getClients }                from '../firebase/services/clients'
+import { getClients, getClientById } from '../firebase/services/clients'
 import { buildCampionamentoUpdate, buildXPUpdate } from '../utils/gamification'
 import { createClientUseCase }      from '../usecases/createClientUseCase'
 import { deleteClientUseCase }      from '../usecases/deleteClientUseCase'
@@ -19,7 +19,7 @@ export function useClients(orgId, userId) {
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState(null)
   const dispatch              = useTrainerDispatch()
-  const toast                 = useToast()
+  const { success: toastSuccess, error: toastError } = useToast()
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
   const fetchClients = useCallback(() => {
@@ -48,13 +48,13 @@ export function useClients(orgId, userId) {
     try {
       const newClient = await createClientUseCase(orgId, userId ?? orgId, formData)
       setClients(prev => [...prev, newClient])
-      toast.success('Cliente creato')
+      toastSuccess('Cliente creato')
       return newClient
     } catch (err) {
-      toast.error(getFirebaseErrorMessage(err, 'Impossibile creare il cliente'))
+      toastError(getFirebaseErrorMessage(err, 'Impossibile creare il cliente'))
       throw err
     }
-  }, [orgId, userId, toast])
+  }, [orgId, userId, toastSuccess, toastError])
 
   // ── Campionamento — ottimistico con rollback ───────────────────────────────
   const handleCampionamento = useCallback(async (client, newStats, testValues) => {
@@ -66,13 +66,28 @@ export function useClients(orgId, userId) {
 
     try {
       await saveCampionamentoUseCase(orgId, client, update, testValues)
-      toast.success('Campionamento salvato')
-    } catch {
+      toastSuccess('Campionamento salvato')
+    } catch (err) {
       updateLocal(client.id, snapshot)
       dispatch({ type: ACTIONS.SELECT_CLIENT, payload: snapshot })
-      toast.error('Impossibile salvare il campionamento')
+      toastError(getFirebaseErrorMessage(err, 'Impossibile salvare il campionamento'))
+      // Rilanciato: chi ha aperto il campionamento lo tiene aperto con i valori
+      // inseriti, invece di chiuderlo come se il salvataggio fosse riuscito.
+      throw err
     }
-  }, [orgId, dispatch, updateLocal, toast])
+
+    // Percentili, rank e XP li calcola il server: l'update locale è una stima.
+    // Si rilegge il cliente per mostrare i valori realmente salvati.
+    try {
+      const saved = await getClientById(orgId, client.id)
+      if (saved) {
+        updateLocal(client.id, saved)
+        dispatch({ type: ACTIONS.SELECT_CLIENT, payload: saved })
+      }
+    } catch {
+      // Non bloccante: il salvataggio è riuscito, resta la stima locale fino al refresh
+    }
+  }, [orgId, dispatch, updateLocal, toastSuccess, toastError])
 
   // ── Add XP — ottimistico con rollback ─────────────────────────────────────
   const handleAddXP = useCallback(async (client, xpToAdd, note) => {
@@ -84,11 +99,13 @@ export function useClients(orgId, userId) {
 
     try {
       await saveXPUseCase(orgId, client, xpToAdd, note, update)
-    } catch {
+    } catch (err) {
       updateLocal(client.id, snapshot)
       dispatch({ type: ACTIONS.SELECT_CLIENT, payload: snapshot })
+      toastError(getFirebaseErrorMessage(err, 'Impossibile assegnare gli XP'))
+      throw err
     }
-  }, [orgId, dispatch, updateLocal])
+  }, [orgId, dispatch, updateLocal, toastError])
 
   // ── Delete client — ottimistico con rollback ──────────────────────────────
   const handleDeleteClient = useCallback(async (clientId) => {
@@ -100,12 +117,13 @@ export function useClients(orgId, userId) {
     try {
       await deleteClientUseCase(orgId, clientId)
       auditLog(AUDIT_ACTIONS.CLIENT_DELETED, { clientId, clientName: snapshot?.name, orgId })
-      toast.success('Cliente eliminato')
-    } catch {
+      toastSuccess('Cliente eliminato')
+    } catch (err) {
       if (snapshot) setClients(prev => [...prev, snapshot])
-      toast.error('Impossibile eliminare il cliente')
+      toastError(getFirebaseErrorMessage(err, 'Impossibile eliminare il cliente'))
+      throw err
     }
-  }, [orgId, clients, dispatch, removeLocal, toast])
+  }, [orgId, clients, dispatch, removeLocal, toastSuccess, toastError])
 
   return {
     clients,

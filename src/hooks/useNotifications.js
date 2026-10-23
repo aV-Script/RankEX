@@ -32,6 +32,10 @@ export function useNotifications(orgId, clientId) {
       })
       setNotifications(fresh)
       setUnreadCount(fresh.filter(n => !n.read).length)
+    }).catch(err => {
+      // Le notifiche non bloccano la dashboard: il pannello resta vuoto, ma
+      // l'errore resta visibile in console invece di diventare una promise rifiutata.
+      console.error('[useNotifications] caricamento fallito', err)
     })
   }, [orgId, clientId])
 

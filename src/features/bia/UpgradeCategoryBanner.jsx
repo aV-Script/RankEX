@@ -35,6 +35,8 @@ export function UpgradeCategoryBanner({ client, _color, onUpgrade }) {
     try {
       await onUpgrade(client, 'complete')
       setShowConfirm(false)
+    } catch {
+      // Errore già mostrato da useBia: il dialog resta aperto per riprovare
     } finally {
       setLoading(false)
     }

@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback }   from 'react'
 import { getWizardSteps, TOTAL_STEPS_MAP } from './wizard.config'
 import { getTestsForCategoria, applyFormula, getRankFromMedia } from '../../../constants'
 import { calcPercentileEx, calcStatMedia }  from '../../../utils/percentile'
-import { getFirebaseErrorMessage }         from '../../../utils/firebaseErrors'
+import { getFirebaseErrorMessage, isEmailTakenError } from '../../../utils/firebaseErrors'
 import { validateEmail, validatePassword, validateBirthDate, validateRequired, validateNumber, calcAge } from '../../../utils/validation'
 import { getCategoriaFromEta }             from '../../../config/modules.config'
 
@@ -139,7 +139,9 @@ export function useWizard({ onAdd, onClose, isSoccer = false }) {
       onClose()
     } catch (err) {
       const message = getFirebaseErrorMessage(err, 'Impossibile creare il cliente')
-      const isEmailError = err?.code === 'auth/email-already-in-use' || err?.code === 'auth/invalid-email'
+      // creaCliente/creaMembroTeam rispondono functions/already-exists: il vecchio
+      // controllo su auth/* non scattava più e l'errore finiva in fondo al form
+      const isEmailError = isEmailTakenError(err)
       setErrors(isEmailError ? { email: message } : { form: message })
       setLoading(false)
       setShowConfirm(false)
