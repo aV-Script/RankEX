@@ -117,8 +117,12 @@ export function buildXPUpdate(client, xpToAdd, note) {
  * test compositi (es. y_balance: ANT_dx, PM_dx...) — mai il `key` del test
  * stesso, quindi va cercata su entrambi i campi.
  */
-function labelForTestValueKey(k) {
-  const test = ALL_TESTS.find(t => t.stat === k)
+function labelForTestValueKey(k, categoria) {
+  // Più test condividono la stessa stat (es. 'esplosivita': sit_to_stand in
+  // secondi, standing_long_jump e cmj in cm): prima quello della categoria del
+  // cliente, altrimenti il log mostrava "220secondi" per un salto in lungo.
+  const test = ALL_TESTS.find(t => t.stat === k && t.categories.includes(categoria))
+    ?? ALL_TESTS.find(t => t.stat === k)
   if (test) return { label: test.label, unit: test.unit ?? '' }
 
   const testWithVar = ALL_TESTS.find(t => t.variables?.some(v => v.key === k))
@@ -163,7 +167,7 @@ export function buildCampionamentoUpdate(client, newStats, testValues) {
 
   const valStr = Object.entries(testValues)
     .map(([k, v]) => {
-      const { label, unit } = labelForTestValueKey(k)
+      const { label, unit } = labelForTestValueKey(k, client.categoria)
       return `${label} ${v}${unit}`
     })
     .join(' · ')

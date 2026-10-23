@@ -13,7 +13,7 @@ import {
   initializeTestEnvironment, assertSucceeds, assertFails,
 } from '@firebase/rules-unit-testing'
 import {
-  doc, getDoc, setDoc, updateDoc, deleteDoc, collection, addDoc,
+  doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, collection, addDoc, query, where,
 } from 'firebase/firestore'
 
 const PROJECT_ID = 'demo-rankex-rules-test'
@@ -352,6 +352,122 @@ describe('Client self-update', () => {
   it('il client NON può modificare il proprio xp', async () => {
     const db = ctxFor('clientUser1').firestore()
     await assertFails(updateDoc(doc(db, 'organizations/org1/clients/client1'), { xp: 999999 }))
+  })
+})
+
+// ── Avatar — sblocco per livello e acquisto ──────────────────────────────────
+// Prima il cliente poteva impostare qualsiasi avatarId e saltare livello/acquisto.
+describe('Avatar — sblocco', () => {
+  const CLIENT = 'organizations/org1/clients/client1'   // level 1, nessun acquisto
+  const setClient = data => testEnv.withSecurityRulesDisabled(ctx => updateDoc(doc(ctx.firestore(), CLIENT), data))
+
+  it('avatar di default (01-03) sempre selezionabile', async () => {
+    await assertSucceeds(updateDoc(doc(ctxFor('clientUser1').firestore(), CLIENT), { avatarId: 'vdp5_02' }))
+  })
+
+  it('avatar a livello (04 = liv. 5) NON selezionabile al livello 1', async () => {
+    await assertFails(updateDoc(doc(ctxFor('clientUser1').firestore(), CLIENT), { avatarId: 'vdp5_04' }))
+  })
+
+  it('avatar a livello selezionabile raggiunto il livello', async () => {
+    await setClient({ level: 5 })
+    await assertSucceeds(updateDoc(doc(ctxFor('clientUser1').firestore(), CLIENT), { avatarId: 'vdp5_04' }))
+  })
+
+  it('avatar a pagamento (07) NON selezionabile senza acquisto', async () => {
+    await assertFails(updateDoc(doc(ctxFor('clientUser1').firestore(), CLIENT), { avatarId: 'vdp5_07' }))
+  })
+
+  it('avatar a pagamento selezionabile dopo l\'acquisto', async () => {
+    await setClient({ avatarPurchased: ['vdp5_07'] })
+    await assertSucceeds(updateDoc(doc(ctxFor('clientUser1').firestore(), CLIENT), { avatarId: 'vdp5_07' }))
+  })
+
+  it('il cliente NON può aggiungersi un avatar agli acquisti', async () => {
+    await assertFails(updateDoc(doc(ctxFor('clientUser1').firestore(), CLIENT), { avatarPurchased: ['vdp5_09'] }))
+  })
+})
+
+// ── Trainer — scritture dirette sul cliente ──────────────────────────────────
+// XP, livello, Monete, rank, stats e storico li scrivono solo le Cloud Functions.
+describe('Trainer — update diretto del cliente', () => {
+  const CLIENT = 'organizations/org1/clients/client1'
+  const trainerDb = () => ctxFor('trainer1').firestore()
+
+  it.each([
+    ['misure (useMisure)',          { peso: 72, altezza: 180 }],
+    ['trofeo (useBadges)',          { 'badges.prima_sessione': { awardedAt: 1, awardedBy: 'system' } }],
+    ['vetrina trofei',              { badgeShowcase: ['prima_sessione'] }],
+    ['wearable (useWearable)',      { wearableEnabled: false }],
+  ])('consentito: %s', async (_label, data) => {
+    await assertSucceeds(updateDoc(doc(trainerDb(), CLIENT), data))
+  })
+
+  it.each([
+    ['xp',            { xp: 99999 }],
+    ['level',         { level: 30 }],
+    ['coins',         { coins: 99999 }],
+    ['rank',          { rank: 'EX', rankColor: '#ffd700' }],
+    ['stats e media', { stats: { forza: 100 }, media: 100 }],
+    ['avatarPurchased', { avatarPurchased: ['vdp5_09'] }],
+    ['misure insieme a xp', { peso: 72, xp: 99999 }],
+  ])('negato: %s', async (_label, data) => {
+    await assertFails(updateDoc(doc(trainerDb(), CLIENT), data))
+  })
+
+  it('il trainer NON può cancellare un cliente direttamente (solo via eliminaCliente)', async () => {
+    await assertFails(deleteDoc(doc(trainerDb(), CLIENT)))
+  })
+})
+
+// ── Schede allenamento — il cliente legge solo le proprie ────────────────────
+describe('Schede allenamento — lettura cliente', () => {
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore()
+      await setDoc(doc(db, 'organizations/org1/workoutPlans/planMio'),   { clientId: 'client1', status: 'active', title: 'Mia' })
+      await setDoc(doc(db, 'organizations/org1/workoutPlans/planAltro'), { clientId: 'client2', status: 'active', title: 'Altrui' })
+    })
+  })
+
+  it('il cliente legge la propria scheda', async () => {
+    await assertSucceeds(getDoc(doc(ctxFor('clientUser1').firestore(), 'organizations/org1/workoutPlans/planMio')))
+  })
+
+  it('il cliente NON legge la scheda di un altro cliente', async () => {
+    await assertFails(getDoc(doc(ctxFor('clientUser1').firestore(), 'organizations/org1/workoutPlans/planAltro')))
+  })
+
+  it('la query filtrata sul proprio clientId funziona (come getClientPlans)', async () => {
+    const db = ctxFor('clientUser1').firestore()
+    await assertSucceeds(getDocs(query(collection(db, 'organizations/org1/workoutPlans'), where('clientId', '==', 'client1'))))
+  })
+
+  it('la query su tutte le schede dell\'org viene rifiutata', async () => {
+    await assertFails(getDocs(collection(ctxFor('clientUser1').firestore(), 'organizations/org1/workoutPlans')))
+  })
+
+  it('il trainer continua a leggere tutte le schede', async () => {
+    await assertSucceeds(getDocs(collection(ctxFor('trainer1').firestore(), 'organizations/org1/workoutPlans')))
+  })
+})
+
+// ── Notifiche — il cliente cambia solo lo stato di lettura ───────────────────
+describe('Notifiche — update cliente', () => {
+  const NOTIF = 'organizations/org1/notifications/n1'
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(ctx =>
+      setDoc(doc(ctx.firestore(), NOTIF), { clientId: 'client1', message: 'Ciao', read: false }))
+  })
+
+  it('il cliente segna letta la propria notifica', async () => {
+    await assertSucceeds(updateDoc(doc(ctxFor('clientUser1').firestore(), NOTIF), { read: true, readAt: '2026-10-23' }))
+  })
+
+  it('il cliente NON può riscrivere messaggio o destinatario', async () => {
+    const db = ctxFor('clientUser1').firestore()
+    await assertFails(updateDoc(doc(db, NOTIF), { message: 'Modificato' }))
+    await assertFails(updateDoc(doc(db, NOTIF), { clientId: 'client2' }))
   })
 })
 

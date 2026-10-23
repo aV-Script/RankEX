@@ -249,6 +249,22 @@ describe('buildProfileUpgrade', () => {
   })
 })
 
+// ── Testo del log campionamento ───────────────────────────────────────────────
+// 'esplosivita' è la stat di tre test con unità diverse: l'unità va presa dal
+// test della categoria del cliente.
+describe('buildCampionamentoUpdate — testo del log', () => {
+  it('Active: salto in lungo in cm, non in secondi', () => {
+    const { update } = buildCampionamentoUpdate({ ...clienteBase, categoria: 'active' }, { esplosivita: 60 }, { esplosivita: 220 })
+    expect(update.log[0].action).toContain('220cm')
+    expect(update.log[0].action).not.toContain('secondi')
+  })
+
+  it('Health: sit-to-stand in secondi', () => {
+    const { update } = buildCampionamentoUpdate({ ...clienteBase, categoria: 'health' }, { esplosivita: 60 }, { esplosivita: 11 })
+    expect(update.log[0].action).toMatch(/11\s?(s|sec)/)
+  })
+})
+
 // ── Contratto trofei di sessione ──────────────────────────────────────────────
 // I trofei prima_sessione / striscia_N li assegna il client leggendo ciò che
 // scrive chiudiSessione sul server. Prima il client cercava action === 'session'

@@ -57,6 +57,21 @@ service cloud.firestore {
         request.resource.data.role in ['org_admin', 'trainer', 'staff_readonly'];
     }
 
+    // Regole di sblocco avatar per suffisso — speculari a config/avatars.config.js
+    // e functions/src/shared/avatarUnlocks.js (01-03 default, 04-06 a livello,
+    // 07-09 solo se acquistati con acquistaAvatar). Prima il cliente poteva
+    // impostare qualsiasi avatarId e saltare livello e acquisto.
+    function avatarUnlocked(avatarId, client) {
+      let level = client.get('level', 1);
+      return avatarId is string && (
+        !avatarId.matches('.*0[4-9]$') ||
+        (avatarId.matches('.*04$') && level >= 5) ||
+        (avatarId.matches('.*05$') && level >= 10) ||
+        (avatarId.matches('.*06$') && level >= 15) ||
+        (avatarId.matches('.*0[7-9]$') && avatarId in client.get('avatarPurchased', []))
+      );
+    }
+
     function isOwnClient(orgId, clientId) {
       return isAuth() &&
         userProfile().orgId == orgId &&
@@ -121,10 +136,26 @@ service cloud.firestore {
         // create: solo via creaCliente (Admin SDK), che applica il limite piano
         // e incrementa clientCount nello stesso batch.
         allow create: if isSuperAdmin();
-        allow update: if canWrite(orgId) ||
+        // update diretto: solo i campi che l'app scrive senza Cloud Function.
+        // XP, livello, Monete, rank, stats, campionamenti, log, BIA, streak e
+        // acquisti li scrivono solo le callable (Admin SDK): prima un trainer
+        // poteva modificarli direttamente dalla console del browser.
+        //   trainer/org_admin: misure (useMisure), trofei (useBadges), wearable (useWearable)
+        //   cliente: vetrina trofei, wearable, avatar — solo se sbloccato
+        allow update: if isSuperAdmin() ||
+          (canWrite(orgId) &&
+           request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+             'peso', 'altezza', 'misureHistory',
+             'badges', 'badgeShowcase',
+             'wearableEnabled', 'wearable',
+           ])) ||
           (isOwnClient(orgId, clientId) &&
-           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wearable', 'avatarId', 'badgeShowcase']));
-        allow delete: if canWrite(orgId);
+           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wearable', 'avatarId', 'badgeShowcase']) &&
+           (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['avatarId']) ||
+            avatarUnlocked(request.resource.data.avatarId, resource.data)));
+        // delete: solo via eliminaCliente (Admin SDK), che decrementa clientCount
+        // e cancella le subcollection e l'account del cliente
+        allow delete: if isSuperAdmin();
 
         // ── Notes (thread + commenti del cliente) ──────────
         // Trainer: legge, crea thread root e commenti, elimina qualsiasi nota.
@@ -197,7 +228,13 @@ service cloud.firestore {
           (isClientOfOrg(orgId) &&
            userProfile().clientId == resource.data.clientId);
         allow create: if canWrite(orgId);
-        allow update, delete: if canWrite(orgId) ||
+        // Il cliente può solo segnare lette o eliminare le proprie notifiche:
+        // prima poteva riscriverne anche clientId e messaggio.
+        allow update: if canWrite(orgId) ||
+          (isClientOfOrg(orgId) &&
+           resource.data.clientId == userProfile().clientId &&
+           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'readAt']));
+        allow delete: if canWrite(orgId) ||
           (isClientOfOrg(orgId) &&
            resource.data.clientId == userProfile().clientId);
       }
@@ -207,7 +244,12 @@ service cloud.firestore {
       // assegnate a sé (clientId == proprio clientId nel profilo utente).
 
       match /workoutPlans/{planId} {
-        allow read:                    if canRead(orgId) || isClientOfOrg(orgId);
+        // Il cliente legge solo le schede assegnate a sé. Prima leggeva quelle di
+        // tutti i clienti dell'org (dati di allenamento, anche di minori).
+        // La query del client filtra già per clientId (getClientPlans), quindi
+        // la regola è valutabile anche sulle query.
+        allow read: if canRead(orgId) ||
+          (isClientOfOrg(orgId) && resource.data.clientId == userProfile().clientId);
         allow create, update, delete:  if canWrite(orgId);
       }
     }

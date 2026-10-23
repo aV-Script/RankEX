@@ -1475,9 +1475,23 @@ Struttura: `organizations/{orgId}/workoutPlans/{planId}`.
   - Crea nuova → archivia automaticamente la scheda attiva corrente
 - UI client: `ClientWorkoutSection` in `client-dashboard/` (read-only, scheda attiva con tab giorni)
 - Schema dati: `days: [{ label, exercises[] }]` — max 7 giorni, backward compat con `exercises[]` flat
-- Rules: `allow read: if canRead(orgId) || isClientOfOrg(orgId)` — semplificato
-  perché `resource.data.clientId == userProfile().clientId` non è valutabile
-  da Firestore a query-plan time su collection query.
+- Rules: `allow read: if canRead(orgId) || (isClientOfOrg(orgId) && resource.data.clientId == userProfile().clientId)`.
+  Funziona anche sulle query perché il client filtra già per `clientId` (`getClientPlans`):
+  una query senza quel filtro viene rifiutata. Fino a ott 2026 la regola era
+  `canRead || isClientOfOrg` con la motivazione (errata) che il vincolo non fosse
+  valutabile sulle query: ogni cliente leggeva le schede di tutta l'org.
+
+### Rules sul documento cliente (ott 2026)
+Update diretti ammessi — tutto il resto (XP, livello, Monete, rank, stats,
+campionamenti, log, BIA, streak, acquisti) passa solo dalle Cloud Functions:
+- trainer/org_admin: `peso`, `altezza`, `misureHistory`, `badges`, `badgeShowcase`,
+  `wearableEnabled`, `wearable`
+- cliente: `wearable`, `badgeShowcase`, `avatarId` solo se sbloccato (funzione
+  `avatarUnlocked` nelle rules, speculare a `config/avatars.config.js` e
+  `functions/src/shared/avatarUnlocks.js` — terza copia delle soglie, da tenere allineata)
+- `delete` del cliente: solo super_admin; il flusso normale è `eliminaCliente`.
+Un nuovo campo scritto direttamente dal client va aggiunto alla lista nelle rules,
+con un test in `tests/rules/firestore.rules.test.js`.
 
 ### Dashboard cliente — layout (riverificato lug 2026 — la doc apr 2026 era obsoleta)
 
