@@ -33,8 +33,18 @@ export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
     return { xp, streak }
   }
 
-  const handleConfirm = () => {
-    onConfirm(attendees)
+  // Il bottone resta disabilitato finché la chiusura non risponde: un doppio
+  // tap chiamava chiudiSessione due volte.
+  const [saving, setSaving] = useState(false)
+
+  const handleConfirm = async () => {
+    if (saving) return
+    setSaving(true)
+    try {
+      await onConfirm(attendees)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -154,6 +164,7 @@ export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
             size="sm"
             className="flex-1"
             onClick={handleConfirm}
+            loading={saving}
             disabled={presentCount === 0 && slotClients.length > 0}
           >
             CHIUDI SESSIONE

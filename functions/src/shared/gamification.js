@@ -45,7 +45,12 @@ export function buildSessionUpdate(client, baseXP, label = 'Sessione') {
     client.level  ?? 1,
   )
 
-  return { update: { xp, xpNext, level, sessionStreak: streak, lastSessionDate: todayDate.toISOString(), log }, xpGain, streak }
+  // sessionCount: totale sessioni con presenza, usato dai trofei prima_sessione /
+  // striscia_N. Contare le voci del log non funziona: il log è troncato a
+  // LOG_MAX_ENTRIES e l'action contiene "(streak N)".
+  const sessionCount = (client.sessionCount ?? 0) + 1
+
+  return { update: { xp, xpNext, level, sessionStreak: streak, sessionCount, lastSessionDate: todayDate.toISOString(), log }, xpGain, streak }
 }
 
 export function buildCampionamentoUpdate(client, newStats, testValues, logAction) {
@@ -161,13 +166,16 @@ export function buildNewClient(trainerId, formData, defaults) {
   const today = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
   const { testValues = {}, stats = {}, ...anagrafica } = formData
   const profileType = anagrafica.profileType ?? 'tests_only'
-  const hasTests    = profileType !== 'bia_only'
+  // Il wizard non raccoglie più i test: senza stats non c'è un campionamento da
+  // registrare. Prima veniva salvato un campionamento vuoto con +50 XP, che faceva
+  // scattare il trofeo "primo campionamento" e toglieva i 50 XP al primo vero.
+  const hasCampionamento = profileType !== 'bia_only' && Object.keys(stats).length > 0
 
-  const media   = hasTests ? calcStatMedia(stats) : 0
+  const media   = hasCampionamento ? calcStatMedia(stats) : 0
   const rankObj = getRankFromMedia(media)
 
   const FIRST_CAMP_XP = 50
-  const { xp, xpNext, level } = hasTests
+  const { xp, xpNext, level } = hasCampionamento
     ? calcLevelProgression((defaults.xp ?? 0) + FIRST_CAMP_XP, defaults.xpNext, defaults.level)
     : { xp: defaults.xp ?? 0, xpNext: defaults.xpNext, level: defaults.level }
 
@@ -176,15 +184,15 @@ export function buildNewClient(trainerId, formData, defaults) {
     ...anagrafica,
     trainerId,
     xp, xpNext, level,
-    stats:         hasTests ? stats : {},
-    rank:          hasTests ? rankObj.label : 'F',
-    rankColor:     hasTests ? rankObj.color : '#4a5568',
-    media:         hasTests ? media : 0,
-    campionamenti: hasTests ? [{ date: today, stats, tests: testValues, media }] : [],
+    stats:         hasCampionamento ? stats : {},
+    rank:          hasCampionamento ? rankObj.label : 'F',
+    rankColor:     hasCampionamento ? rankObj.color : '#4a5568',
+    media:         hasCampionamento ? media : 0,
+    campionamenti: hasCampionamento ? [{ date: today, stats, tests: testValues, media }] : [],
     log: [{
       date:   today,
-      action: 'Primo campionamento effettuato',
-      xp:     hasTests ? FIRST_CAMP_XP : 0,
+      action: hasCampionamento ? 'Primo campionamento effettuato' : 'Profilo creato',
+      xp:     hasCampionamento ? FIRST_CAMP_XP : 0,
       ts:     Date.now(),
     }],
   }

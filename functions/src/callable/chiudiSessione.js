@@ -2,7 +2,8 @@
  * chiudiSessione — callable Cloud Function (Gen 2)
  *
  * Sostituisce closeSessionUseCase.js lato client.
- * Esegue in un unico batch atomico server-side:
+ * Esegue in un'unica transazione server-side (idempotente: una seconda chiamata
+ * sulla stessa sessione fallisce con failed-precondition):
  *   - slot.status = 'completed'
  *   - XP + streak + Monete (spike EPIC-005) per ogni attendee
  *   - streak reset per ogni assente
@@ -33,86 +34,94 @@ export const chiudiSessione = onCall({ region: REGION }, async (request) => {
 
   await requireOrgAccess(request, orgId)
 
-  const db   = getFirestore()
-  const batch = db.batch()
+  const db         = getFirestore()
+  const slotRef    = db.collection(`organizations/${orgId}/slots`).doc(slotId)
+  const clientsCol = db.collection(`organizations/${orgId}/clients`)
+  const notifCol   = db.collection(`organizations/${orgId}/notifications`)
+  const today      = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
 
-  // ── Carica slot ──────────────────────────────────────────────────────────
-  const slotRef = db.collection(`organizations/${orgId}/slots`).doc(slotId)
-  const slotDoc = await slotRef.get()
-  if (!slotDoc.exists) throw new HttpsError('not-found', 'Slot non trovato')
+  // Transazione, non batch: il controllo "già chiusa" deve stare nella stessa
+  // unità delle scritture. Con un batch due chiamate ravvicinate (doppio tap,
+  // retry di rete) passavano entrambe il controllo e accreditavano XP e Monete
+  // due volte. Firestore ritenta la transazione se lo slot cambia nel frattempo.
+  return db.runTransaction(async (tx) => {
+    const slotDoc = await tx.get(slotRef)
+    if (!slotDoc.exists) throw new HttpsError('not-found', 'Slot non trovato')
 
-  const slot       = slotDoc.data()
-  const allClientIds = slot.clientIds ?? []
-  const absenteeIds  = allClientIds.filter(id => !attendeeIds.includes(id))
+    const slot = slotDoc.data()
+    if (slot.status === 'completed') {
+      throw new HttpsError('failed-precondition', 'Sessione già chiusa')
+    }
 
-  if (slot.status === 'completed') {
-    throw new HttpsError('failed-precondition', 'Sessione già chiusa')
-  }
+    // Presenti = solo clienti dello slot, senza duplicati: un id ripetuto o
+    // estraneo allo slot riceveva XP e Monete più volte, o senza essere iscritto.
+    const allClientIds = slot.clientIds ?? []
+    const presentIds   = [...new Set(attendeeIds)].filter(id => allClientIds.includes(id))
+    const absenteeIds  = allClientIds.filter(id => !presentIds.includes(id))
 
-  batch.update(slotRef, {
-    status:    'completed',
-    attendees: attendeeIds,
-    absentees: absenteeIds,
-  })
+    // Tutte le letture prima delle scritture (vincolo delle transazioni)
+    const clientDocs = await Promise.all(
+      [...presentIds, ...absenteeIds].map(id => tx.get(clientsCol.doc(id)))
+    )
+    const clientMap = {}
+    clientDocs.forEach(d => { if (d.exists) clientMap[d.id] = { id: d.id, ...d.data() } })
 
-  // ── Carica tutti i client coinvolti in un'unica round-trip ───────────────
-  const clientIds = [...new Set([...attendeeIds, ...absenteeIds])]
-  const clientDocs = await Promise.all(
-    clientIds.map(id => db.collection(`organizations/${orgId}/clients`).doc(id).get())
-  )
-  const clientMap = {}
-  clientDocs.forEach(d => { if (d.exists) clientMap[d.id] = { id: d.id, ...d.data() } })
-
-  const today    = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
-  const notifCol = db.collection(`organizations/${orgId}/notifications`)
-
-  // ── Attendees: XP + streak ───────────────────────────────────────────────
-  for (const clientId of attendeeIds) {
-    const client = clientMap[clientId]
-    if (!client) continue
-
-    const { update, xpGain } = buildSessionUpdate(client, client.baseXP ?? 50, 'Sessione di allenamento')
-    // Monete negozio avatar — unica fonte di guadagno implementata nello spike
-    // EPIC-005 (vedi docs/DECISIONS.md → ADR-002). Importo provvisorio, non
-    // un'economia bilanciata — richiede playtesting (STORY-012).
-    const coinsGain = COINS_PER_SESSION
-    batch.update(db.collection(`organizations/${orgId}/clients`).doc(clientId), {
-      ...update,
-      coins: FieldValue.increment(coinsGain),
+    tx.update(slotRef, {
+      status:    'completed',
+      attendees: presentIds,
+      absentees: absenteeIds,
     })
 
-    if (client.clientAuthUid) {
-      batch.set(notifCol.doc(), {
-        clientId,
-        message:   `Sessione del ${slot.date} completata! +${xpGain} XP (streak ${update.sessionStreak})`,
-        date:      today,
-        type:      'session',
-        read:      false,
-        createdAt: new Date().toISOString(),
+    // ── Presenti: XP + streak + sessionCount ───────────────────────────────
+    for (const clientId of presentIds) {
+      const client = clientMap[clientId]
+      if (!client) continue
+
+      const { update, xpGain } = buildSessionUpdate(client, client.baseXP ?? 50, 'Sessione di allenamento')
+      // Monete negozio avatar — unica fonte di guadagno implementata nello spike
+      // EPIC-005 (vedi docs/DECISIONS.md → ADR-002). Importo provvisorio, non
+      // un'economia bilanciata — richiede playtesting (STORY-012).
+      tx.update(clientsCol.doc(clientId), {
+        ...update,
+        coins: FieldValue.increment(COINS_PER_SESSION),
       })
+
+      if (client.clientAuthUid) {
+        tx.set(notifCol.doc(), {
+          clientId,
+          message:   `Sessione del ${slot.date} completata! +${xpGain} XP (streak ${update.sessionStreak})`,
+          date:      today,
+          type:      'session',
+          read:      false,
+          createdAt: new Date().toISOString(),
+        })
+      }
     }
-  }
 
-  // ── Absentees: azzera streak ─────────────────────────────────────────────
-  for (const clientId of absenteeIds) {
-    const client = clientMap[clientId]
-    if (!client) continue
+    // ── Assenti: azzera streak ─────────────────────────────────────────────
+    for (const clientId of absenteeIds) {
+      const client = clientMap[clientId]
+      if (!client) continue
 
-    batch.update(db.collection(`organizations/${orgId}/clients`).doc(clientId), { sessionStreak: 0 })
+      tx.update(clientsCol.doc(clientId), { sessionStreak: 0 })
 
-    if (client.clientAuthUid) {
-      batch.set(notifCol.doc(), {
-        clientId,
-        message:   `Sessione del ${slot.date} — assenza registrata. Streak azzerata.`,
-        date:      today,
-        type:      'absence',
-        read:      false,
-        createdAt: new Date().toISOString(),
-      })
+      if (client.clientAuthUid) {
+        tx.set(notifCol.doc(), {
+          clientId,
+          message:   `Sessione del ${slot.date} — assenza registrata. Streak azzerata.`,
+          date:      today,
+          type:      'absence',
+          read:      false,
+          createdAt: new Date().toISOString(),
+        })
+      }
     }
-  }
 
-  await batch.commit()
-
-  return { ok: true, attendees: attendeeIds.length, absentees: absenteeIds.length }
+    return {
+      ok:        true,
+      attendees: presentIds.length,
+      absentees: absenteeIds.length,
+      ignored:   attendeeIds.length - presentIds.length,
+    }
+  })
 })

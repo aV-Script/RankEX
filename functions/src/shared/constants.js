@@ -19,8 +19,8 @@ export const RANKS = [
   { min: 45, label: 'C',   color: '#facc15' },
   { min: 40, label: 'D+',  color: '#fb923c' },
   { min: 35, label: 'D',   color: '#f97316' },
-  { min: 30, label: 'E+',  color: '#f87171' },
-  { min: 25, label: 'E',   color: '#ef4444' },
+  { min: 30, label: 'E+',  color: '#d97757' },
+  { min: 25, label: 'E',   color: '#b5563a' },
   { min: 20, label: 'F+',  color: '#8a9bb0' },
   { min: 0,  label: 'F',   color: '#4a5568' },
 ]

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { awardBadge, revokeBadge, updateBadgeShowcase } from '../firebase/services/badges'
-import { checkAutoBadges }                from '../utils/badges'
+import { checkAutoBadges, getSessionCount } from '../utils/badges'
 import { BADGES, BADGES_MAP }             from '../config/badges.config'
 import { useToast }                       from './useToast'
 
@@ -19,17 +19,29 @@ import { useToast }                       from './useToast'
 export function useBadges(orgId, clientId, client, { readonly = false } = {}) {
   const { success: toastSuccess, error: toastError } = useToast()
   const awarding = useRef(false)
+  // Lato trainer `client` è una copia locale che non riceve i badge appena scritti:
+  // senza questo registro ogni aggiornamento del cliente riassegnava gli stessi
+  // badge, sovrascrivendo awardedAt con la data corrente.
+  const awardedIds = useRef(new Set())
+
+  useEffect(() => {
+    awardedIds.current = new Set()
+  }, [clientId])
 
   useEffect(() => {
     if (readonly || !orgId || !clientId || !client || awarding.current) return
 
-    const toAward = checkAutoBadges(client)
+    const toAward = checkAutoBadges(client).filter(id => !awardedIds.current.has(id))
     if (toAward.length === 0) return
 
     awarding.current = true
+    toAward.forEach(id => awardedIds.current.add(id))
     Promise.all(
       toAward.map(id => awardBadge(orgId, clientId, id, 'system'))
-    ).catch(() => {}).finally(() => { awarding.current = false })
+    ).catch(() => {
+      // Al prossimo cambio dati si riprova
+      toAward.forEach(id => awardedIds.current.delete(id))
+    }).finally(() => { awarding.current = false })
   }, [client, orgId, clientId, readonly])
 
   const rawBadges = client?.badges ?? {}
@@ -73,7 +85,7 @@ export function useBadges(orgId, clientId, client, { readonly = false } = {}) {
 
 function computeBadgeProgress(client) {
   if (!client) return {}
-  const sessions  = (client.log ?? []).filter(e => e.action === 'session').length
+  const sessions  = getSessionCount(client)
   const camps     = (client.campionamenti ?? []).length
   const media     = client.media ?? 0
   const rank      = client.rank  ?? 'F'

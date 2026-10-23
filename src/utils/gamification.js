@@ -68,6 +68,7 @@ export function buildSessionUpdate(client, baseXP, label = 'Sessione') {
       xpNext,
       level,
       sessionStreak: streak,
+      sessionCount: (client.sessionCount ?? 0) + 1,
       lastSessionDate: todayDate.toISOString(),
       log
     },
@@ -281,13 +282,15 @@ export function buildNewClient(trainerId, formData, defaults) {
   const today = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
   const { testValues = {}, stats = {}, ...anagrafica } = formData
   const profileType = anagrafica.profileType ?? 'tests_only'
-  const hasTests    = profileType !== 'bia_only'
+  // Speculare a functions/src/shared/gamification.js: senza stats nessun
+  // campionamento iniziale (prima ne veniva salvato uno vuoto con +50 XP).
+  const hasCampionamento = profileType !== 'bia_only' && Object.keys(stats).length > 0
 
-  const media   = hasTests ? calcStatMedia(stats) : 0
+  const media   = hasCampionamento ? calcStatMedia(stats) : 0
   const rankObj = getRankFromMedia(media)
 
   const FIRST_CAMP_XP = 50
-  const { xp, xpNext, level } = hasTests
+  const { xp, xpNext, level } = hasCampionamento
     ? calcLevelProgression((defaults.xp ?? 0) + FIRST_CAMP_XP, defaults.xpNext, defaults.level)
     : { xp: defaults.xp ?? 0, xpNext: defaults.xpNext, level: defaults.level }
 
@@ -298,11 +301,16 @@ export function buildNewClient(trainerId, formData, defaults) {
     xp,
     xpNext,
     level,
-    stats:         hasTests ? stats : {},
-    rank:          hasTests ? rankObj.label : 'F',
-    rankColor:     hasTests ? rankObj.color : '#4a5568',
-    media:         hasTests ? media : 0,
-    campionamenti: hasTests ? [{ date: today, stats, tests: testValues, media }] : [],
-    log: [{ date: today, action: 'Primo campionamento effettuato', xp: hasTests ? FIRST_CAMP_XP : 0, ts: Date.now() }],
+    stats:         hasCampionamento ? stats : {},
+    rank:          hasCampionamento ? rankObj.label : 'F',
+    rankColor:     hasCampionamento ? rankObj.color : '#4a5568',
+    media:         hasCampionamento ? media : 0,
+    campionamenti: hasCampionamento ? [{ date: today, stats, tests: testValues, media }] : [],
+    log: [{
+      date:   today,
+      action: hasCampionamento ? 'Primo campionamento effettuato' : 'Profilo creato',
+      xp:     hasCampionamento ? FIRST_CAMP_XP : 0,
+      ts:     Date.now(),
+    }],
   }
 }

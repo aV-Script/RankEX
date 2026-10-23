@@ -8,6 +8,8 @@ import {
   buildProfileUpgrade,
   buildNewClient,
 } from '../../utils/gamification.js'
+import { checkAutoBadges, getSessionCount } from '../../utils/badges.js'
+import { buildSessionUpdate as serverBuildSessionUpdate } from '../../../functions/src/shared/gamification.js'
 
 // ── Dati di base riusabili ────────────────────────────────────────────────────
 const clienteBase = {
@@ -247,6 +249,39 @@ describe('buildProfileUpgrade', () => {
   })
 })
 
+// ── Contratto trofei di sessione ──────────────────────────────────────────────
+// I trofei prima_sessione / striscia_N li assegna il client leggendo ciò che
+// scrive chiudiSessione sul server. Prima il client cercava action === 'session'
+// mentre il server scriveva "Sessione di allenamento (streak N)": nessun trofeo
+// di sessione veniva mai assegnato.
+describe('trofei di sessione — contratto con chiudiSessione', () => {
+  const chiudi = (client) => {
+    const { update } = serverBuildSessionUpdate(client, 50, 'Sessione di allenamento')
+    return { ...client, ...update }
+  }
+
+  it('dopo la prima sessione chiusa dal server scatta prima_sessione', () => {
+    const client = chiudi({ ...clienteBase })
+    expect(client.sessionCount).toBe(1)
+    expect(checkAutoBadges(client)).toContain('prima_sessione')
+  })
+
+  it('dopo 5 sessioni scatta striscia_5, non striscia_10', () => {
+    let client = { ...clienteBase }
+    for (let i = 0; i < 5; i++) client = chiudi(client)
+    const ids = checkAutoBadges(client)
+    expect(ids).toContain('striscia_5')
+    expect(ids).not.toContain('striscia_10')
+  })
+
+  it('clienti senza sessionCount: conta le voci di log scritte dal server', () => {
+    let client = { ...clienteBase }
+    for (let i = 0; i < 3; i++) client = chiudi(client)
+    const { sessionCount: _sc, ...legacy } = client
+    expect(getSessionCount(legacy)).toBe(3)
+  })
+})
+
 // ── buildNewClient ────────────────────────────────────────────────────────────
 describe('buildNewClient', () => {
   const defaults  = { xp: 0, xpNext: 500, level: 1, sessionsPerWeek: 3 }
@@ -270,9 +305,21 @@ describe('buildNewClient', () => {
     expect(doc.rank).not.toBe('F')
   })
 
-  it('50 XP per il primo campionamento (tests_only)', () => {
+  it('50 XP per il primo campionamento (tests_only con stats)', () => {
     const doc = buildNewClient('t1', formData, defaults)
-    expect(doc.xp).toBeGreaterThan(0)  // 50 XP primo campionamento
+    expect(doc.xp).toBe(50)
+  })
+
+  // Il wizard attuale non raccoglie test: prima veniva comunque salvato un
+  // campionamento vuoto con +50 XP (trofeo "primo campionamento" immediato e
+  // primo vero campionamento non trattato come primo).
+  it('tests_only senza stats: nessun campionamento, nessun XP', () => {
+    const { stats: _stats, testValues: _tv, ...senzaTest } = formData
+    const doc = buildNewClient('t1', senzaTest, defaults)
+    expect(doc.campionamenti).toEqual([])
+    expect(doc.xp).toBe(0)
+    expect(doc.rank).toBe('F')
+    expect(doc.log[0].action).toBe('Profilo creato')
   })
 
   it('bia_only: stats vuoto, nessun XP iniziale', () => {

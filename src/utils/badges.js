@@ -1,5 +1,20 @@
 // Logica auto-badge — funzioni pure, nessun side effect
 
+// Prefisso dell'action scritta da chiudiSessione (buildSessionUpdate con label
+// 'Sessione di allenamento' → "Sessione di allenamento (streak N)").
+const SESSION_LOG_PREFIX = 'Sessione di allenamento'
+
+/**
+ * Numero di sessioni con presenza del cliente.
+ * Fonte: client.sessionCount, scritto da chiudiSessione. Per i clienti senza il
+ * campo (sessioni chiuse prima della sua introduzione) si contano le voci di log:
+ * è una stima per difetto, perché il log è troncato a LOG_MAX_ENTRIES.
+ */
+export function getSessionCount(client) {
+  if (typeof client.sessionCount === 'number') return client.sessionCount
+  return (client.log ?? []).filter(e => e.action?.startsWith(SESSION_LOG_PREFIX)).length
+}
+
 /**
  * Restituisce gli ID dei badge automatici che il cliente dovrebbe
  * avere ma non ha ancora. Chiamato da useBadges (trainer context).
@@ -7,7 +22,7 @@
 export function checkAutoBadges(client) {
   const earned = Object.keys(client.badges ?? {})
 
-  const sessions = (client.log ?? []).filter(e => e.action === 'session').length
+  const sessions = getSessionCount(client)
   const camps    = (client.campionamenti ?? []).length
   const media    = client.media ?? 0
   const rank     = client.rank  ?? 'F'
