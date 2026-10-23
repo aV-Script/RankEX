@@ -27,6 +27,23 @@ jobs:
       - name: Test
         run: npm run test:run
 
+      # deploy.yml pubblica firestore.rules solo se questo job passa: le regole
+      # non devono più arrivare su dev/prod senza che i loro test siano girati.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Test Firestore rules (emulatore)
+        run: |
+          npm install -g firebase-tools
+          npm run test:rules
+
+      - name: Test Cloud Functions
+        run: |
+          npm ci --prefix functions
+          npm test --prefix functions
+
       - name: Build
         run: npm run build
         env:

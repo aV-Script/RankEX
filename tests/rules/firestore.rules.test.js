@@ -150,58 +150,83 @@ describe('Escalation di ruolo', () => {
   })
 })
 
-// ── Falsificazione counter (memberCount / clientCount) ───────────────────────
-describe('Counter memberCount/clientCount', () => {
-  it('org_admin può incrementare memberCount di 1', async () => {
-    const db = ctxFor('admin1').firestore()
-    await assertSucceeds(updateDoc(doc(db, 'organizations/org1'), { memberCount: 2 }))
-  })
-
-  it('org_admin NON può incrementare memberCount di più di 1 in un colpo solo', async () => {
-    const db = ctxFor('admin1').firestore()
-    await assertFails(updateDoc(doc(db, 'organizations/org1'), { memberCount: 3 }))
-  })
-
-  it('org_admin NON può impostare memberCount negativo', async () => {
-    await testEnv.withSecurityRulesDisabled(async (ctx) => {
-      await updateDoc(doc(ctx.firestore(), 'organizations/org1'), { memberCount: 0 })
-    })
-    const db = ctxFor('admin1').firestore()
-    await assertFails(updateDoc(doc(db, 'organizations/org1'), { memberCount: -1 }))
-  })
-
-  it('org_admin NON può modificare memberCount insieme ad altri campi nello stesso update', async () => {
-    const db = ctxFor('admin1').firestore()
-    await assertFails(updateDoc(doc(db, 'organizations/org1'), { memberCount: 2, name: 'Nome falsificato' }))
-  })
-
-  it('un trainer (non org_admin) può aggiornare clientCount di ±1', async () => {
+// ── users/{uid} create — escalation tramite profilo nuovo ────────────────────
+// I profili li crea solo l'Admin SDK (creaCliente / creaMembroTeam). Prima un
+// trainer poteva creare users/{nuovoUid} con role 'super_admin'.
+describe('users/{uid} — create', () => {
+  it('un trainer NON può creare un profilo super_admin per un nuovo uid', async () => {
     const db = ctxFor('trainer1').firestore()
-    await assertSucceeds(updateDoc(doc(db, 'organizations/org1'), { clientCount: 2 }))
+    await assertFails(setDoc(doc(db, 'users/nuovoUid'), { role: 'super_admin', orgId: 'org1' }))
   })
 
-  it('un trainer (non org_admin) non può toccare memberCount', async () => {
-    const db = ctxFor('trainer1').firestore()
-    await assertFails(updateDoc(doc(db, 'organizations/org1'), { memberCount: 2 }))
+  it('un org_admin NON può creare un profilo, nemmeno con un ruolo ammesso', async () => {
+    const db = ctxFor('admin1').firestore()
+    await assertFails(setDoc(doc(db, 'users/nuovoUid'), { role: 'trainer', orgId: 'org1' }))
+  })
+
+  it('un nuovo account senza profilo NON può crearsi il proprio profilo', async () => {
+    const db = ctxFor('nuovoUid').firestore()
+    await assertFails(setDoc(doc(db, 'users/nuovoUid'), { role: 'super_admin' }))
+  })
+
+  it('super_admin può creare un profilo', async () => {
+    const db = ctxFor('superadmin1').firestore()
+    await assertSucceeds(setDoc(doc(db, 'users/nuovoUid'), { role: 'trainer', orgId: 'org1' }))
   })
 })
 
-// ── Limiti piano ──────────────────────────────────────────────────────────────
-describe('Limiti piano', () => {
-  it('creare un cliente quando clientCount è già al limite free (10) fallisce', async () => {
-    await testEnv.withSecurityRulesDisabled(async (ctx) => {
-      await updateDoc(doc(ctx.firestore(), 'organizations/org1'), { clientCount: 10 })
-    })
+// ── organizations/{orgId} — create/delete ────────────────────────────────────
+describe('organizations/{orgId} — create/delete', () => {
+  it('org_admin NON può cancellare la propria org', async () => {
+    const db = ctxFor('admin1').firestore()
+    await assertFails(deleteDoc(doc(db, 'organizations/org1')))
+  })
+
+  it('super_admin può cancellare un\'org', async () => {
+    const db = ctxFor('superadmin1').firestore()
+    await assertSucceeds(deleteDoc(doc(db, 'organizations/org2')))
+  })
+
+  it('org_admin può ancora aggiornare il nome della propria org', async () => {
+    const db = ctxFor('admin1').firestore()
+    await assertSucceeds(updateDoc(doc(db, 'organizations/org1'), { name: 'Nuovo nome' }))
+  })
+})
+
+// ── Counter memberCount/clientCount — solo Cloud Functions ───────────────────
+// creaCliente/creaMembroTeam leggono i counter per applicare il limite piano:
+// se il client potesse decrementarli, aggirerebbe il limite.
+describe('Counter memberCount/clientCount', () => {
+  it('org_admin NON può modificare memberCount', async () => {
+    const db = ctxFor('admin1').firestore()
+    await assertFails(updateDoc(doc(db, 'organizations/org1'), { memberCount: 2 }))
+  })
+
+  it('org_admin NON può decrementare clientCount', async () => {
+    const db = ctxFor('admin1').firestore()
+    await assertFails(updateDoc(doc(db, 'organizations/org1'), { clientCount: 0 }))
+  })
+
+  it('un trainer NON può decrementare clientCount', async () => {
+    const db = ctxFor('trainer1').firestore()
+    await assertFails(updateDoc(doc(db, 'organizations/org1'), { clientCount: 0 }))
+  })
+
+  it('org_admin NON può modificare memberCount insieme ad altri campi', async () => {
+    const db = ctxFor('admin1').firestore()
+    await assertFails(updateDoc(doc(db, 'organizations/org1'), { memberCount: 2, name: 'Nome falsificato' }))
+  })
+})
+
+// ── Creazione diretta di clienti/membri — solo Cloud Functions ───────────────
+// Una create diretta salterebbe sia il limite piano sia l'incremento del counter.
+describe('Creazione diretta clienti/membri', () => {
+  it('un trainer NON può creare un cliente direttamente, anche sotto al limite', async () => {
     const db = ctxFor('trainer1').firestore()
     await assertFails(setDoc(doc(db, 'organizations/org1/clients/nuovoCliente'), { name: 'Nuovo' }))
   })
 
-  it('creare un cliente sotto al limite riesce', async () => {
-    const db = ctxFor('trainer1').firestore()
-    await assertSucceeds(setDoc(doc(db, 'organizations/org1/clients/nuovoCliente'), { name: 'Nuovo' }))
-  })
-
-  it('creare un membro quando memberCount è già al limite free (1) fallisce', async () => {
+  it('un org_admin NON può creare un membro direttamente', async () => {
     const db = ctxFor('admin1').firestore()
     await assertFails(setDoc(doc(db, 'organizations/org1/members/trainer2'), { role: 'trainer' }))
   })

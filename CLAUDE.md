@@ -145,22 +145,19 @@ tramite `isOrgAdminForMember(targetUid)` (rule separata nel file).
 
 ### Firestore Rules — limiti piano
 
-I limiti sono applicati **solo su `create`** (non su update/delete).
-`super_admin` bypassa sempre entrambi i limiti.
+**Le regole non applicano più i limiti piano (fix sicurezza ott 2026).** I limiti li
+applicano solo `creaCliente` / `creaMembroTeam` (`functions/src/shared/plans.js`), e le
+regole impediscono al client ogni scrittura che li aggirerebbe:
+- `users/{uid}` create → solo `super_admin` (prima un trainer poteva creare un profilo
+  `role: 'super_admin'` per un nuovo account Auth)
+- `clients/{id}` e `members/{uid}` create → solo `super_admin` (una create diretta
+  saltava limite e counter)
+- `memberCount` / `clientCount` → nessuna scrittura client (prima ±1 ripetibile
+  all'infinito: bastava decrementare per superare il limite)
+- `organizations/{orgId}` create/delete → solo `super_admin`
 
-```js
-// Orgs senza memberCount/clientCount (esistenti prima del feature) → bypass automatico
-function withinTrainerLimit(orgId) {
-  let org   = get(/organizations/$(orgId)).data;
-  let limit = org.plan == 'enterprise' ? 999999 : org.plan == 'pro' ? 5 : 1;
-  return !('memberCount' in org) || org.memberCount < limit;
-}
-function withinClientLimit(orgId) {
-  let org   = get(/organizations/$(orgId)).data;
-  let limit = org.plan == 'enterprise' ? 999999 : org.plan == 'pro' ? 100 : 10;
-  return !('clientCount' in org) || org.clientCount < limit;
-}
-```
+Ogni nuova creazione di utenti/clienti/membri va fatta in una Cloud Function, mai
+allargando queste regole. Test: `tests/rules/firestore.rules.test.js`, in CI.
 
 Le regole Firestore **non supportano `if/return`** dentro le funzioni:
 usare solo espressioni booleane (`&&`, `||`, ternario).
@@ -178,9 +175,9 @@ enterprise: illimitati
 ```
 
 I counter `memberCount` e `clientCount` sono mantenuti
-**atomicamente** via batch write su ogni add/remove:
-- `addMember` / `removeMember` → `increment(±1)` su `org.memberCount`
-- `addClient` / `deleteClient` → `increment(±1)` su `org.clientCount`
+**atomicamente** dalle Cloud Functions (Admin SDK), nello stesso batch dell'operazione:
+- `creaMembroTeam` / `rimuoviMembroTeam` → `increment(±1)` su `org.memberCount`
+- `creaCliente` / `eliminaCliente` → `increment(±1)` su `org.clientCount`
 
 **UI — blocchi al limite:**
 - `MembersPage`: banner giallo + bottone "AGGIUNGI" disabilitato
@@ -1601,7 +1598,9 @@ utils/validation.js          → importato da 16 file; firma validatePassword us
 - `memberRole()` null-safe — ritorna `null` se il documento membro non esiste
 - `isOrgAdminForMember()` valida il valore del nuovo `role` (solo `org_admin`, `trainer`, `staff_readonly` — impedisce escalation a `super_admin`)
 - `mustChangePassword` scrivibile dal client solo con valore `false` (non può reimpostarlo a `true`)
-- `memberCount` / `clientCount` modificabili solo in ±1 per batch — nessun reset diretto
+- `memberCount` / `clientCount` non scrivibili dal client (ott 2026 — prima ±1 ripetibile, aggirava i limiti piano)
+- Creazione `users` / `clients` / `members` e create/delete `organizations` solo super_admin (ott 2026)
+- `rimuoviMembroTeam` verifica che l'uid sia membro dell'org del chiamante (ott 2026 — prima cancellava qualsiasi account)
 
 **Auth & Session:**
 - `ChangePasswordScreen` richiede re-auth con password temporanea prima di `updatePassword`

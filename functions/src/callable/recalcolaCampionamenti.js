@@ -37,6 +37,15 @@ export const recalcolaCampionamenti = onCall({ region: REGION, timeoutSeconds: 5
   await requireRole(request, ['super_admin'])
 
   const { orgId = null, dryRun = false } = request.data ?? {}
+
+  // Sospeso: AFFECTED_TESTS applica la tabella standing_long_jump a ogni stat
+  // 'esplosivita', anche sit_to_stand (health) e cmj (athlete), azzerandone il
+  // percentile. Resta solo l'anteprima finché la funzione non usa calcPercentileEx
+  // con il testKey corretto.
+  if (!dryRun) {
+    throw new HttpsError('failed-precondition', 'Ricalcolo sospeso: è disponibile solo l\'anteprima dry-run')
+  }
+
   const db     = getFirestore()
   const report = []
   let patched  = 0

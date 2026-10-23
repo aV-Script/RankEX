@@ -43,20 +43,9 @@ service cloud.firestore {
     }
 
     // ── Limiti piano ─────────────────────────────────────────────
-    // Se il campo counter non è ancora inizializzato (org esistente),
-    // si lascia passare (return true) fino alla prima operazione contabile.
-
-    function withinTrainerLimit(orgId) {
-      let org   = get(/databases/$(database)/documents/organizations/$(orgId)).data;
-      let limit = org.plan == 'enterprise' ? 999999 : org.plan == 'pro' ? 5 : 1;
-      return !('memberCount' in org) || org.memberCount < limit;
-    }
-
-    function withinClientLimit(orgId) {
-      let org   = get(/databases/$(database)/documents/organizations/$(orgId)).data;
-      let limit = org.plan == 'enterprise' ? 999999 : org.plan == 'pro' ? 100 : 10;
-      return !('clientCount' in org) || org.clientCount < limit;
-    }
+    // Applicati solo nelle Cloud Functions creaCliente / creaMembroTeam
+    // (functions/src/shared/plans.js). Il client non crea clienti/membri né
+    // tocca memberCount/clientCount: se potesse, aggirerebbe il limite.
 
     function isOrgAdminForMember(targetUid) {
       let admin = userProfile();
@@ -81,13 +70,10 @@ service cloud.firestore {
       // Ogni utente legge solo il proprio profilo (o super_admin legge tutto)
       allow read: if isAuth() && (request.auth.uid == uid || isSuperAdmin());
 
-      // CREATE: org_admin e trainer possono creare profili cliente/membro
-      // nella propria org. Super_admin può creare qualsiasi profilo.
-      allow create: if isSuperAdmin() ||
-        (isAuth() &&
-         request.resource.data.orgId != null &&
-         isOrgMember(request.resource.data.orgId) &&
-         memberRole(request.resource.data.orgId) in ['org_admin', 'trainer']);
+      // CREATE: solo super_admin. I profili di clienti e membri li crea l'Admin SDK
+      // (creaCliente / creaMembroTeam). Una regola più larga permetteva a un trainer
+      // di creare un profilo con role 'super_admin' per un nuovo account Auth.
+      allow create: if isSuperAdmin();
 
       // UPDATE: super_admin può tutto.
       // L'utente può azzerare solo mustChangePassword (non impostarlo a true).
@@ -106,35 +92,24 @@ service cloud.firestore {
 
     match /organizations/{orgId} {
       allow read:   if isSuperAdmin() || isOrgMember(orgId) || isClientOfOrg(orgId);
-      allow create, delete: if isSuperAdmin() ||
-        (isOrgMember(orgId) && memberRole(orgId) == 'org_admin');
-      // 1. org_admin aggiorna campi org — NON può toccare i counter, il modulo o il piano
-      //    (moduleType/plan: solo super_admin — cambio strutturale/di fatturazione)
-      // 2. org_admin aggiorna memberCount ±1 (addMember/removeMember)
-      // 3. org_admin o trainer aggiornano clientCount ±1 (addClient/deleteClient)
+      // create/delete: solo super_admin (CreateOrgForm). Un org_admin che cancella
+      // l'org lascerebbe orfani clienti, slot, gruppi e utenti.
+      allow create, delete: if isSuperAdmin();
+      // org_admin aggiorna i campi descrittivi dell'org. Counter, modulo e piano
+      // restano fuori: memberCount/clientCount li muovono solo le Cloud Functions
+      // (Admin SDK), moduleType/plan solo super_admin.
       allow update: if isSuperAdmin() ||
         (isOrgMember(orgId) && memberRole(orgId) == 'org_admin' &&
-         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['memberCount', 'clientCount', 'moduleType', 'plan'])) ||
-        (isOrgMember(orgId) && memberRole(orgId) == 'org_admin' &&
-         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberCount']) &&
-         request.resource.data.memberCount >= 0 &&
-         (!('memberCount' in resource.data) && request.resource.data.memberCount == 1 ||
-          request.resource.data.memberCount == resource.data.memberCount + 1 ||
-          request.resource.data.memberCount == resource.data.memberCount - 1)) ||
-        (isOrgMember(orgId) && memberRole(orgId) in ['org_admin', 'trainer'] &&
-         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clientCount']) &&
-         request.resource.data.clientCount >= 0 &&
-         (!('clientCount' in resource.data) && request.resource.data.clientCount == 1 ||
-          request.resource.data.clientCount == resource.data.clientCount + 1 ||
-          request.resource.data.clientCount == resource.data.clientCount - 1));
+         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['memberCount', 'clientCount', 'moduleType', 'plan']));
 
       // ── Members ───────────────────────────────────────────
 
       match /members/{uid} {
         allow read:   if isSuperAdmin() ||
           (isOrgMember(orgId) && memberRole(orgId) == 'org_admin');
-        allow create: if isSuperAdmin() ||
-          (isOrgMember(orgId) && memberRole(orgId) == 'org_admin' && withinTrainerLimit(orgId));
+        // create: solo via creaMembroTeam (Admin SDK), che applica il limite piano
+        // e incrementa memberCount nello stesso batch.
+        allow create: if isSuperAdmin();
         allow update, delete: if isSuperAdmin() ||
           (isOrgMember(orgId) && memberRole(orgId) == 'org_admin');
       }
@@ -143,8 +118,9 @@ service cloud.firestore {
 
       match /clients/{clientId} {
         allow read:   if canRead(orgId) || isOwnClient(orgId, clientId);
-        allow create: if isSuperAdmin() ||
-          (isOrgMember(orgId) && memberRole(orgId) in ['org_admin', 'trainer'] && withinClientLimit(orgId));
+        // create: solo via creaCliente (Admin SDK), che applica il limite piano
+        // e incrementa clientCount nello stesso batch.
+        allow create: if isSuperAdmin();
         allow update: if canWrite(orgId) ||
           (isOwnClient(orgId, clientId) &&
            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wearable', 'avatarId', 'badgeShowcase']));

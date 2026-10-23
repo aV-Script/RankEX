@@ -44,17 +44,6 @@ export function AdminDashboard({ onSelectOrg }) {
     }
   }
 
-  const handleConfirmRecalc = async () => {
-    setRecalcState('running')
-    try {
-      const { data } = await _recalcola({ dryRun: false })
-      setRecalcResult(data)
-      setRecalcState('done')
-    } catch {
-      setRecalcState('error')
-    }
-  }
-
   useEffect(() => {
     getOrganizations()
       .then(setOrgs)
@@ -208,14 +197,12 @@ export function AdminDashboard({ onSelectOrg }) {
                   {recalcResult.report.map((line, i) => <div key={i}>{line}</div>)}
                 </div>
               )}
+              {/* Ricalcolo sospeso: applica la tabella standing_long_jump anche a
+                  sit_to_stand/cmj (stat 'esplosivita'). Il server rifiuta dryRun:false. */}
+              <div className="font-body text-[11px] text-[#f87171] mb-3">
+                Ricalcolo sospeso: corromperebbe i percentili di esplosività dei clienti Health e Athlete. È disponibile solo l'anteprima.
+              </div>
               <div className="flex gap-3">
-                <button
-                  onClick={handleConfirmRecalc}
-                  className="font-display text-[10px] tracking-[1.5px] px-4 py-2 rounded-[3px] border transition-all"
-                  style={{ borderColor: '#f87171', color: '#fff', background: '#f87171' }}
-                >
-                  CONFERMA RICALCOLO
-                </button>
                 <button
                   onClick={() => { setRecalcState('idle'); setRecalcResult(null) }}
                   className="font-display text-[10px] tracking-[1.5px] px-4 py-2 rounded-[3px] border transition-all text-white/40"
