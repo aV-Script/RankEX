@@ -49,6 +49,8 @@ Thumbs.db
 # Firebase Admin SDK — chiave privata service account
 service-account.json
 service-account*.json
+# nome di default dei file scaricati da Firebase Console → Account di servizio
+*-firebase-adminsdk-*.json
 
 # Functions — dipendenze locali
 functions/node_modules/
