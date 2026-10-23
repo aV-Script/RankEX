@@ -1,5 +1,5 @@
 import {
-  collection, getDocs, getDoc, updateDoc, deleteDoc,
+  collection, getDocs, getDoc, updateDoc,
   doc, query, orderBy, setDoc,
 } from 'firebase/firestore'
 import { db } from './db'
@@ -27,9 +27,6 @@ export const createOrganization = (orgId, data) =>
 
 export const updateOrganization = (orgId, data) =>
   updateDoc(doc(db, 'organizations', orgId), data)
-
-export const deleteOrganization = (orgId) =>
-  deleteDoc(doc(db, 'organizations', orgId))
 
 // ── Membri — solo lettura ─────────────────────────────────────────────────────
 

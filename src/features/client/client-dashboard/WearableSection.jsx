@@ -10,22 +10,6 @@ const DAY_LABELS = ['L', 'M', 'M', 'G', 'V', 'S', 'D']
 const RING_SIZE  = 88
 const RING_STROKE = 7
 
-export function ActivityDot({ wearable, size = 8 }) {
-  const data  = wearable?.lastData
-  const level = getActivityLevel(data?.stepsAvg7d)
-  const bg    = level ? level.color : 'rgba(255,255,255,0.15)'
-  return (
-    <span
-      title={level ? `Attività: ${level.label}` : 'Nessun dato wearable'}
-      style={{
-        display: 'inline-block', width: size, height: size,
-        borderRadius: '50%', background: bg, flexShrink: 0,
-        boxShadow: level ? `0 0 6px ${bg}88` : 'none',
-      }}
-    />
-  )
-}
-
 function Ring({ value, unit, label, pct, color }) {
   const r    = (RING_SIZE - RING_STROKE * 2) / 2
   const circ = 2 * Math.PI * r

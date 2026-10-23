@@ -131,7 +131,7 @@ function SubTabBar({ tabs, active, onSelect, stickyClass = 'sticky top-0 lg:top-
 // ── Componente principale ─────────────────────────────────────────────────────
 
 export function ClientDashboardPage({
-  client, clientId, orgId, color, rankObj, biaRankObj,
+  client, clientId, orgId, color, rankObj, biaRankObj: _biaRankObj,
   unreadCount = 0, onOpenNotifs,
 }) {
   const prevStats   = client.campionamenti?.[1]?.stats ?? null

@@ -13,21 +13,9 @@ export function formatSteps(n) {
   return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n)
 }
 
-export function formatDistance(meters) {
-  if (meters == null) return '—'
-  return meters >= 1000 ? `${(meters / 1000).toFixed(1)}km` : `${Math.round(meters)}m`
-}
-
 export function formatCalories(kcal) {
   if (kcal == null) return '—'
   return kcal >= 1000 ? `${(kcal / 1000).toFixed(1)}k` : String(Math.round(kcal))
-}
-
-export function formatSleep(hours) {
-  if (hours == null || hours === 0) return '—'
-  const h = Math.floor(hours)
-  const m = Math.round((hours - h) * 60)
-  return m > 0 ? `${h}h ${m}m` : `${h}h`
 }
 
 export function formatSyncTime(timestamp) {

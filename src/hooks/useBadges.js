@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { awardBadge, revokeBadge, updateBadgeShowcase } from '../firebase/services/badges'
 import { checkAutoBadges, getSessionCount } from '../utils/badges'
-import { BADGES, BADGES_MAP }             from '../config/badges.config'
+import { BADGES }                         from '../config/badges.config'
 import { useToast }                       from './useToast'
 
 /**

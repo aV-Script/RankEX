@@ -19,7 +19,6 @@
     "firebase-functions": "^4.9.0"
   },
   "devDependencies": {
-    "firebase-functions-test": "^3.3.0",
     "vitest": "^2.1.9"
   }
 }

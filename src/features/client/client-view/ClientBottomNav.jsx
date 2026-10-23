@@ -22,7 +22,7 @@ const BOTTOM_ITEMS = [
 
 // ── Slot top nav desktop: tutte le 5 sezioni ──────────────────────────────────
 
-import { ICON_SCHEDA, PENTAGON_SECTIONS } from './ClientHub'
+import { PENTAGON_SECTIONS } from './ClientHub'
 
 // ── Componente ────────────────────────────────────────────────────────────────
 

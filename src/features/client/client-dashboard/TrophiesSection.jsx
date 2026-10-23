@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { BadgeMedal }            from '../../../components/ui/BadgeMedal'
 import { IconClose }             from '../../../components/ui/icons'
 import { EmptyState }            from '../../../components/ui'
@@ -61,7 +61,7 @@ export function TrophiesSection({
   const [revoking,       setRevoking]       = useState(false)
 
   const earned    = Object.keys(rawBadges)
-  const earnedSet = new Set(earned)
+  const earnedSet = useMemo(() => new Set(earned), [earned])
 
   const [localShowcase, setLocalShowcase] = useState(showcase)
   const currentShowcase = localShowcase.length ? localShowcase : showcase

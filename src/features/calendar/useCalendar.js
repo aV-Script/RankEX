@@ -7,7 +7,6 @@ import {
 import { getMonthRange, getWeekRange, toLocalDateStr } from '../../utils/calendarUtils'
 import { closeSessionUseCase }    from '../../usecases/closeSessionUseCase'
 import { addSlotUseCase }         from '../../usecases/addSlotUseCase'
-import { updateSlotUseCase }      from '../../usecases/updateSlotUseCase'
 import { deleteSlotUseCase }      from '../../usecases/deleteSlotUseCase'
 import { skipSlotUseCase }        from '../../usecases/skipSlotUseCase'
 import { addRecurrenceUseCase }   from '../../usecases/addRecurrenceUseCase'

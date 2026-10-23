@@ -9,10 +9,6 @@ export function getTestsForCategoria(categoriaId) {
   return ALL_TESTS.filter(t => t.categories.includes(categoriaId))
 }
 
-export function getStatKeysForCategoria(categoriaId) {
-  return getTestsForCategoria(categoriaId).map(t => t.stat)
-}
-
 export function getStatsConfig(categoria = 'health') {
   return getTestsForCategoria(categoria)
 }
@@ -68,31 +64,6 @@ export const CATEGORIE = [
 
 export function getCategoriaById(id) {
   return CATEGORIE.find(c => c.id === id) ?? CATEGORIE[0]
-}
-
-// ── Defaults nuovo cliente ────────────────────────────────────────────────────
-export const NEW_CLIENT_DEFAULTS = {
-  level:              1,
-  rank:               'F',
-  rankColor:          '#6b7280',
-  xp:                 0,
-  xpNext:             500,
-  stats:              {},
-  log:                [],
-  campionamenti:      [],
-  sessionStreak:      0,
-  lastSessionDate:    null,
-  baseXP:             50,
-  maxMonthlySessions: 20,
-  sessionsPerWeek:    3,
-  categoria:          'tests_only',
-  profileType:        'tests_only',  // 'tests_only' | 'bia_only' | 'complete'
-  biaHistory:         [],
-  lastBia:            null,
-  wearableEnabled:    false,
-  wearable:           null,
-  coins:              0,   // valuta negozio avatar — spike EPIC-005, vedi ADR-002
-  avatarPurchased:    [],  // avatarId acquistati (unlockType: 'purchase')
 }
 
 // ── Costanti gamification ─────────────────────────────────────────────────────

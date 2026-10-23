@@ -299,7 +299,7 @@ export const RUNBOOK_SUITES = [
       {
         id: 'TP-018', usId: 'US-029', severity: 'important', title: 'BIA bloccata per Soccer',
         preconditions: 'Org Soccer Academy.',
-        steps: ['Dashboard allievo Soccer → tab BIA', 'Verificare BiaLockedPanel con messaggio esplicativo'],
+        steps: ['Dashboard allievo Soccer → tab BIA', 'Verificare che la BIA non sia disponibile, con messaggio esplicativo'],
         expected: ['Form BIA non accessibile', 'Messaggio che spiega il blocco'],
       },
     ],
@@ -416,7 +416,7 @@ export const RUNBOOK_SUITES = [
         steps: [
           'Chiudere una sessione col cliente presente → verificare sessionStreak: 1, XP con moltiplicatore +10%',
           'Chiudere una seconda sessione presente → sessionStreak: 2, moltiplicatore +20%',
-          'Verificare anteprima "streak N" in CloseSessionModal, ClientCalendar e badge su SlotCard prima di confermare',
+          'Verificare anteprima "streak N" in CloseSessionModal e ClientCalendar prima di confermare',
           'Chiudere una sessione col cliente assente → verificare sessionStreak azzerato a 0',
           'Ripetere fino a streak 10+ → verificare che il moltiplicatore resti fermo a +100% (cap)',
         ],

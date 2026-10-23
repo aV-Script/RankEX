@@ -51,7 +51,7 @@ const ClientReportPrint = lazy(() =>
  *   avatar+dati │  stat tiles + tab nav + contenuto
  */
 export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDelete }) {
-  const { rankObj: testRankObj, color: testColor } = useClientRank(client)
+  const { rankObj: testRankObj } = useClientRank(client)
   const { userRole, terminology } = useTrainerState()
   const readonly      = useReadonly()
 

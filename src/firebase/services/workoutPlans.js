@@ -1,16 +1,10 @@
 import {
   collection, getDocs,
-  query, orderBy, where,
+  query, where,
 } from 'firebase/firestore'
 import { db }               from './db'
 import { workoutPlansPath } from '../paths'
 import { pickActivePlan, sortPlansByCreatedAtDesc } from '../../utils/workoutPlans'
-
-export const getWorkoutPlans = async (orgId) => {
-  const q    = query(collection(db, workoutPlansPath(orgId)), orderBy('createdAt', 'desc'))
-  const snap = await getDocs(q)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
-}
 
 // Fetch schede di un singolo cliente (usato dal lato client — single-field index automatico)
 // Tutte le schede di un cliente (attive + archiviate), ordinate per data

@@ -260,22 +260,6 @@ export function Button({ variant = 'primary', size = 'md', loading, disabled, ac
   )
 }
 
-// ─── Divider ──────────────────────────────────────────────────────────────────
-export function Divider({ color }) {
-  return (
-    <div className="px-6 my-1">
-      <div
-        className="w-full h-px"
-        style={{
-          background: color
-            ? `linear-gradient(90deg, transparent, ${color}55, transparent)`
-            : 'linear-gradient(90deg, transparent, color-mix(in srgb, var(--rx-accent) 20%, transparent), transparent)',
-        }}
-      />
-    </div>
-  )
-}
-
 // ─── Field ────────────────────────────────────────────────────────────────────
 export function Field({ label, error, htmlFor, children }) {
   const errorId = htmlFor ? `${htmlFor}-error` : undefined

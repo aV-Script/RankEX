@@ -1,10 +1,9 @@
 import {
   collection, getDocs,
-  doc, query, where, orderBy,
+  query, where, orderBy,
 } from 'firebase/firestore'
 import { db }                         from './db'
 import { slotsPath, recurrencesPath } from '../paths'
-import { toLocalDateStr } from '../../utils/calendarUtils'
 
 // ── Slots — solo lettura ──────────────────────────────────────────────────────
 
@@ -41,20 +40,6 @@ export const getSlotsByGroup = async (orgId, groupId, fromDate) => {
   )
   const snap = await getDocs(q)
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
-}
-
-/**
- * Conta slot futuri di una ricorrenza (per preview nel dialog).
- */
-export const countFutureSlots = async (orgId, recurrenceId) => {
-  const today = toLocalDateStr()
-  const q     = query(
-    collection(db, slotsPath(orgId)),
-    where('recurrenceId', '==', recurrenceId),
-    where('date', '>=', today),
-  )
-  const snap = await getDocs(q)
-  return snap.size
 }
 
 // ── Recurrences — solo lettura ────────────────────────────────────────────────

@@ -12,7 +12,7 @@ import { useToast }           from './useToast'
  * @param {string} clientId
  * @param {{ role: string, name: string }} author — ruolo e nome dell'utente corrente
  */
-export function useNotes(orgId, clientId, author) {
+export function useNotes(orgId, clientId, _author) {
   const { error: toastError } = useToast()
   const [notes,   setNotes]   = useState([])
   const [loading, setLoading] = useState(true)

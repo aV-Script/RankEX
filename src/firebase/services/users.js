@@ -1,4 +1,4 @@
-import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore'
+import { doc, getDoc, updateDoc } from 'firebase/firestore'
 import { db } from './db'
 
 export const getUserProfile    = async (uid) => {
@@ -7,5 +7,3 @@ export const getUserProfile    = async (uid) => {
 }
 
 export const updateUserProfile = (uid, data) => updateDoc(doc(db, 'users', uid), data)
-
-export const createUserProfile = (uid, data) => setDoc(doc(db, 'users', uid), data)
