@@ -8,7 +8,7 @@ import { useEscapeKey } from '../../hooks/useEscapeKey'
  * Riusato per campionamento, creazione cliente e qualsiasi altra azione
  * che richiede una conferma esplicita prima di procedere.
  */
-export function ConfirmDialog({ title, description, confirmLabel = 'CONFERMA', cancelLabel = 'ANNULLA', loading = false, variant = 'default', onConfirm, onCancel }) {
+export function ConfirmDialog({ title, description, confirmLabel = 'CONFERMA', cancelLabel = 'ANNULLA', loading = false, variant = 'default', confirmDisabled = false, children, onConfirm, onCancel }) {
   const isDanger = variant === 'danger'
   const dialogRef = useRef(null)
   useFocusTrap(dialogRef, true)
@@ -36,6 +36,7 @@ export function ConfirmDialog({ title, description, confirmLabel = 'CONFERMA', c
         {description && (
           <p className="font-body text-[13px] text-white/40 leading-relaxed m-0 mb-5">{description}</p>
         )}
+        {children}
         <div className="flex gap-3">
           <Button variant="neutral" size="sm" className="flex-1" onClick={onCancel} disabled={loading}>
             {cancelLabel}
@@ -46,6 +47,7 @@ export function ConfirmDialog({ title, description, confirmLabel = 'CONFERMA', c
             className="flex-1"
             onClick={onConfirm}
             loading={loading}
+            disabled={confirmDisabled}
           >
             {confirmLabel}
           </Button>

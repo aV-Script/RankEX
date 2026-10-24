@@ -11,6 +11,7 @@
  *   - creaCliente                 → sostituisce createClientUseCase.js
  *   — Batch 2: tutte le scritture FE migrate a BE —
  *   - eliminaCliente
+ *   - eliminaOrganizzazione       → solo super_admin, fine contratto (DPA)
  *   - creaMembroTeam
  *   - rimuoviMembroTeam
  *   - aggiornaRuoloMembro
@@ -40,6 +41,7 @@ export { aggiornaProfiloCliente }  from './callable/aggiornaProfiloCliente.js'
 export { creaCliente }             from './callable/creaCliente.js'
 
 export { eliminaCliente }              from './callable/eliminaCliente.js'
+export { eliminaOrganizzazione }       from './callable/eliminaOrganizzazione.js'
 export { creaMembroTeam }              from './callable/creaMembroTeam.js'
 export { rimuoviMembroTeam }           from './callable/rimuoviMembroTeam.js'
 export { aggiornaRuoloMembro }         from './callable/aggiornaRuoloMembro.js'

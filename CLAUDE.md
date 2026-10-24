@@ -924,6 +924,12 @@ La sidebar usa `bg-black/50 backdrop-blur-md` per effetto frosted glass sulla te
 font-display → Montserrat (titoli, label, bottoni, numeri grandi)
 font-body    → Inter (testo corrente, descrizioni)
 ```
+Serviti dall'app, **non** da Google Fonts (ott 2026, STORY-022 — Google riceveva l'IP di
+chi apriva l'app, in contrasto con informativa privacy e DPA): `src/fonts.css`, importato in
+`main.jsx`, dichiara le famiglie `Montserrat`/`Inter` sui file variabili dei pacchetti
+`@fontsource-variable/*` (Vite li copia in `dist/assets`). Stessi nomi di famiglia di prima,
+quindi gli stili inline esistenti non cambiano. Non reintrodurre `@import` da
+`fonts.googleapis.com`: la CSP in `firebase.json` non lo permette più.
 
 ### Elevation — 5 livelli
 ```
@@ -1558,6 +1564,21 @@ Flusso: SuperAdminView → OrgsPage → CreateOrgForm
 → `createOrganization(orgId, data)` → orgId = slug(name) + random suffix
 → `ownerId` viene da `user.uid` passato via `SuperAdminView → OrgsPage (currentUserUid) → CreateOrgForm (ownerUid)`
 
+### Fine contratto di un'organizzazione (DPA, sezione 7)
+1. **Esportare i dati** se l'org li vuole indietro:
+   `node scripts/export-org.mjs <service-account.json> <orgId>` → `exports/<orgId>-<data>/`
+   con `completo.json` (tutto l'albero dell'org + profili + email) e CSV per Excel
+   (clienti, campionamenti, BIA, staff). Sola lettura. `exports/` è in `.gitignore`:
+   contiene dati personali, va consegnata con un canale protetto e poi cancellata.
+2. **Cancellare l'org**: `OrgDetailView` → "Zona pericolosa" → ELIMINA ORGANIZZAZIONE
+   (bisogna digitare il nome) → `deleteOrganizationUseCase` → Cloud Function
+   `eliminaOrganizzazione` (solo super_admin, ricontrolla il nome lato server). Cancella gli
+   account Auth di staff e clienti, i loro `/users/{uid}`, poi l'org con tutte le
+   subcollection (`recursiveDelete`). Non tocca mai utenti `super_admin`. Se si interrompe,
+   si può rilanciare: l'org viene cancellata per ultima.
+3. I backup giornalieri (vedi "Monitoraggio costi") conservano ancora i dati per 7 giorni:
+   è la durata da dichiarare all'org come cancellazione definitiva.
+
 ---
 
 ## File da NON modificare
@@ -1800,6 +1821,16 @@ Impostare subito un budget alert su Google Cloud Console:
 
 Il piano Blaze mantiene lo stesso free tier — si paga solo oltre la soglia.
 MFA via SMS e backup automatico Firestore richiedono Blaze.
+
+### Backup Firestore (prod)
+Attivo dal 24/10/2026 su `fitquest-60a09` (solo prod, non su rankex-dev): backup
+**giornaliero**, conservato **7 giorni** (`firebase firestore:backups:schedules:list
+--project fitquest-60a09`). Costo: frazioni di centesimo al mese con il volume attuale.
+Ripristino: un backup si ripristina sempre in un **nuovo** database, mai sopra quello
+esistente — `firebase firestore:backups:list --project fitquest-60a09`, poi
+`firebase firestore:databases:restore --backup <nome-backup> --database <nuovo-db>
+--project fitquest-60a09`, poi si copiano i documenti necessari nel `(default)` con uno
+script Admin SDK.
 
 ---
 

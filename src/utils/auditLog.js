@@ -21,6 +21,7 @@ export const AUDIT_ACTIONS = {
   // Organizzazione
   ORG_CREATED:     'org.created',
   ORG_SUSPENDED:   'org.suspended',
+  ORG_DELETED:     'org.deleted',
   MEMBER_ADDED:    'org.member_added',
   MEMBER_REMOVED:  'org.member_removed',
   ROLE_CHANGED:    'org.role_changed',

@@ -3,12 +3,14 @@ import { getMembers, updateMember, updateOrganization } from '../../../firebase/
 import { updateUserProfile }    from '../../../firebase/services/users'
 import { getClients }           from '../../../firebase/services/clients'
 import { removeMemberUseCase }  from '../../../usecases/removeMemberUseCase'
+import { deleteOrganizationUseCase } from '../../../usecases/deleteOrganizationUseCase'
+import { auditLog, AUDIT_ACTIONS } from '../../../utils/auditLog'
 import { CreateMemberForm }     from '../../org/org-pages/CreateMemberForm'
 import { ConfirmDialog }        from '../../../components/common/ConfirmDialog'
 import { usePagination }        from '../../../hooks/usePagination'
 import { Pagination }           from '../../../components/common/Pagination'
 import { useToast }             from '../../../hooks/useToast'
-import { EmptyState }           from '../../../components/ui'
+import { EmptyState, Input }    from '../../../components/ui'
 import { getPlanLimits, PLAN_OPTIONS } from '../../../config/plans.config'
 
 const ICON_MEMBERS = (
@@ -41,6 +43,9 @@ export function OrgDetailView({ org, onBack }) {
   const [removing,      setRemoving]      = useState(false)
   const [plan,          setPlan]          = useState(org.plan ?? 'free')
   const [moduleType,    setModuleType]    = useState(org.moduleType ?? 'personal_training')
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleteName,    setDeleteName]    = useState('')
+  const [deleting,      setDeleting]      = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -71,6 +76,20 @@ export function OrgDetailView({ org, onBack }) {
       setRemoving(false)
     }
   }, [org.id, confirmRemove, removing, toast])
+
+  const handleDeleteOrg = useCallback(async () => {
+    if (deleting) return
+    setDeleting(true)
+    try {
+      const result = await deleteOrganizationUseCase(org.id, deleteName)
+      auditLog(AUDIT_ACTIONS.ORG_DELETED, { orgId: org.id, name: org.name, ...result })
+      toast.success('Organizzazione eliminata')
+      onBack()
+    } catch {
+      toast.error("Impossibile eliminare l'organizzazione: riprova")
+      setDeleting(false)
+    }
+  }, [org.id, org.name, deleteName, deleting, toast, onBack])
 
   const handlePlanChange = useCallback(async (newPlan) => {
     const snapshot = plan
@@ -311,7 +330,50 @@ export function OrgDetailView({ org, onBack }) {
             </div>
           )}
         </section>
+
+        {/* Fine contratto: cancellazione completa (DPA) */}
+        <section>
+          <div className="font-display text-[10px] tracking-[2px] mb-3" style={{ color: '#f87171' }}>ZONA PERICOLOSA</div>
+          <div
+            className="p-4 rounded-[4px] flex flex-wrap items-center justify-between gap-3"
+            style={{ background: 'rgba(248,113,113,0.04)', border: '1px solid rgba(248,113,113,0.2)' }}
+          >
+            <p className="font-body text-[12px] text-white/50 m-0 max-w-md">
+              Elimina l&apos;organizzazione con tutti i clienti, lo staff e i loro account. Non si può annullare:
+              esporta prima i dati se vanno restituiti.
+            </p>
+            <button
+              onClick={() => { setDeleteName(''); setConfirmDelete(true) }}
+              className="font-display text-[10px] tracking-[1px] px-3 py-2 rounded-[3px] cursor-pointer bg-transparent"
+              style={{ color: '#f87171', border: '1px solid rgba(248,113,113,0.4)' }}
+            >
+              ELIMINA ORGANIZZAZIONE
+            </button>
+          </div>
+        </section>
       </div>
+
+      {confirmDelete && (
+        <ConfirmDialog
+          variant="danger"
+          title={`Eliminare ${org.name}?`}
+          description={`Verranno cancellati ${clients.length} clienti e ${members.length} membri dello staff, con i loro account. Per confermare scrivi il nome dell'organizzazione.`}
+          confirmLabel="ELIMINA"
+          loading={deleting}
+          confirmDisabled={deleteName.trim() !== (org.name ?? '').trim()}
+          onConfirm={handleDeleteOrg}
+          onCancel={() => { if (!deleting) setConfirmDelete(false) }}
+        >
+          <Input
+            value={deleteName}
+            onChange={e => setDeleteName(e.target.value)}
+            placeholder={org.name}
+            aria-label="Nome dell'organizzazione"
+            className="mb-5"
+            disabled={deleting}
+          />
+        </ConfirmDialog>
+      )}
 
       {showAddMember && (
         <CreateMemberForm
