@@ -143,7 +143,7 @@ export function ClientDashboardPage({
   const age         = calcAge(client.dataNascita)
 
   const { earnedBadges, allBadges, rawBadges, badgeProgress, handleUpdateShowcase } =
-    useBadges(orgId, clientId, client, { readonly: true })
+    useBadges(orgId, clientId, client)
 
   const [activeTab,    setActiveTab]    = useState('home')
   const [profiloTab,   setProfiloTab]   = useState('avatar')

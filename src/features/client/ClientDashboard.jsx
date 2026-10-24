@@ -77,7 +77,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
 
   const trainerUid = getAuth(app).currentUser?.uid ?? 'trainer'
   const { earnedBadges, allBadges, rawBadges, badgeProgress, handleAwardManual, handleRevoke, handleUpdateShowcase } =
-    useBadges(orgId, client.id, client, { readonly })
+    useBadges(orgId, client.id, client)
 
   const profileType = client.profileType ?? 'tests_only'
   const profile     = getProfileCategory(profileType)

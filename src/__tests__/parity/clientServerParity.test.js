@@ -22,6 +22,8 @@ import * as serverPlans  from '../../../functions/src/shared/plans.js'
 import * as serverGame   from '../../../functions/src/shared/gamification.js'
 import * as clientModules from '../../config/modules.config.js'
 import * as serverSoccer  from '../../../functions/src/shared/soccer.js'
+import * as clientBadges  from '../../utils/badges.js'
+import * as serverBadges  from '../../../functions/src/shared/badges.js'
 import { MAX_RECURRENCE_SLOTS as CLIENT_MAX_REC } from '../../utils/calendarUtils.js'
 import { MAX_RECURRENCE_SLOTS as SERVER_MAX_REC } from '../../../functions/src/shared/calendarUtils.js'
 
@@ -143,6 +145,23 @@ describe('Fasce soccer', () => {
       { categoria: null },
     ]
     for (const c of casi) expect(serverSoccer.resolveCategoria(c)).toBe(clientModules.resolveCategoria(c))
+  })
+})
+
+describe('Trofei automatici', () => {
+  it('stessi badge per gli stessi dati cliente', () => {
+    const casi = [
+      {},
+      { sessionCount: 1 },
+      { sessionCount: 10, campionamenti: [{}], media: 92, rank: 'EX' },
+      { sessionCount: 26, badges: { prima_sessione: {}, striscia_5: {} } },
+      { log: [{ action: 'Sessione di allenamento (streak 1)' }, { action: '+50 XP' }] },
+      { campionamenti: [{}], media: 0 },
+    ]
+    for (const c of casi) {
+      expect(serverBadges.checkAutoBadges(c)).toEqual(clientBadges.checkAutoBadges(c))
+      expect(serverBadges.getSessionCount(c)).toBe(clientBadges.getSessionCount(c))
+    }
   })
 })
 

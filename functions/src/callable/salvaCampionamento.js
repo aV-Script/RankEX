@@ -7,6 +7,7 @@ import { TESTS_META }              from '../shared/testsMeta.js'
 import { calcPercentileEx, calcAge } from '../shared/percentile.js'
 import { applyFormula }            from '../shared/formulas.js'
 import { resolveCategoria }        from '../shared/soccer.js'
+import { autoBadgeFields }         from '../shared/badges.js'
 
 const REGION = 'europe-west1'
 
@@ -79,7 +80,7 @@ export const salvaCampionamento = onCall({ region: REGION }, async (request) => 
     const { update } = buildCampionamentoUpdate(client, newStats, testValues, safeLogAction)
     if (categoria && categoria !== client.categoria) update.categoria = categoria
 
-    tx.update(clientRef, update)
+    tx.update(clientRef, { ...update, ...autoBadgeFields(client, update) })
 
     // ── Obiettivi: controlla se questo campionamento ne raggiunge qualcuno ─────
     // Un obiettivo è su un test specifico (testKey), non solo su una stat — con

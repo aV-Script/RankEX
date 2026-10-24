@@ -104,6 +104,20 @@ describe('chiudiSessione', () => {
     expect(client('x').sessionCount).toBeUndefined()
   })
 
+  it('assegna i trofei maturati con questa sessione', async () => {
+    await call(['a'])   // sessionCount 4 → 5
+    expect(client('a')['badges.prima_sessione']).toMatchObject({ awardedBy: 'system' })
+    expect(client('a')['badges.striscia_5']).toMatchObject({ awardedBy: 'system' })
+    expect(client('a')['badges.striscia_10']).toBeUndefined()
+  })
+
+  it('non riassegna un trofeo già ottenuto (awardedAt resta quello originale)', async () => {
+    db.docs.get('organizations/org1/clients/a').badges = { prima_sessione: { awardedAt: 1, awardedBy: 'system' } }
+    await call(['a'])
+    expect(client('a')['badges.prima_sessione']).toBeUndefined()
+    expect(client('a')['badges.striscia_5']).toBeDefined()
+  })
+
   it('primo conteggio sessioni per un cliente senza sessionCount', async () => {
     await call(['b'])
     expect(client('b').sessionCount).toBe(1)

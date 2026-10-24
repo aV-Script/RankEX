@@ -18,6 +18,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { requireOrgAccess }  from '../shared/auth.js'
 import { buildSessionUpdate } from '../shared/gamification.js'
+import { autoBadgeFields }    from '../shared/badges.js'
 
 const REGION = 'europe-west1'
 
@@ -83,6 +84,7 @@ export const chiudiSessione = onCall({ region: REGION }, async (request) => {
       // un'economia bilanciata — richiede playtesting (STORY-012).
       tx.update(clientsCol.doc(clientId), {
         ...update,
+        ...autoBadgeFields(client, update),
         coins: FieldValue.increment(COINS_PER_SESSION),
       })
 

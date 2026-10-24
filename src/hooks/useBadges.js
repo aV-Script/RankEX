@@ -1,14 +1,16 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useCallback }                    from 'react'
 import { awardBadge, revokeBadge, updateBadgeShowcase } from '../firebase/services/badges'
-import { checkAutoBadges, getSessionCount } from '../utils/badges'
+import { getSessionCount }                from '../utils/badges'
 import { BADGES }                         from '../config/badges.config'
 import { useToast }                       from './useToast'
 
 /**
- * useBadges(orgId, clientId, client, { readonly })
+ * useBadges(orgId, clientId, client)
  *
- * Se !readonly (trainer context): controlla e assegna automaticamente
- * i badge automatici mancanti ogni volta che i dati del cliente cambiano.
+ * I badge automatici li assegna il server (functions/src/shared/badges.js, dentro
+ * chiudiSessione e salvaCampionamento), nella stessa transazione che cambia i dati
+ * da cui dipendono. Qui restano solo lettura, assegnazione manuale e vetrina
+ * (le azioni manuali sono nascoste in sola lettura da TrophiesSection).
  *
  * Restituisce:
  *   earnedBadges — badge ottenuti con dati completi (config + awardedAt)
@@ -16,33 +18,8 @@ import { useToast }                       from './useToast'
  *   handleAwardManual(badgeId, awardedBy, note?)
  *   handleRevoke(badgeId)
  */
-export function useBadges(orgId, clientId, client, { readonly = false } = {}) {
+export function useBadges(orgId, clientId, client) {
   const { success: toastSuccess, error: toastError } = useToast()
-  const awarding = useRef(false)
-  // Lato trainer `client` è una copia locale che non riceve i badge appena scritti:
-  // senza questo registro ogni aggiornamento del cliente riassegnava gli stessi
-  // badge, sovrascrivendo awardedAt con la data corrente.
-  const awardedIds = useRef(new Set())
-
-  useEffect(() => {
-    awardedIds.current = new Set()
-  }, [clientId])
-
-  useEffect(() => {
-    if (readonly || !orgId || !clientId || !client || awarding.current) return
-
-    const toAward = checkAutoBadges(client).filter(id => !awardedIds.current.has(id))
-    if (toAward.length === 0) return
-
-    awarding.current = true
-    toAward.forEach(id => awardedIds.current.add(id))
-    Promise.all(
-      toAward.map(id => awardBadge(orgId, clientId, id, 'system'))
-    ).catch(() => {
-      // Al prossimo cambio dati si riprova
-      toAward.forEach(id => awardedIds.current.delete(id))
-    }).finally(() => { awarding.current = false })
-  }, [client, orgId, clientId, readonly])
 
   const rawBadges = client?.badges ?? {}
 
