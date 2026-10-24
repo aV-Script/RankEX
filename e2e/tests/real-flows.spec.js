@@ -35,13 +35,16 @@ async function readAtleta(page) {
 }
 
 test.describe('Flussi reali (scrivono su rankex-dev)', () => {
-  test.describe.configure({ mode: 'serial' })
+  // Più salvataggi per test, e la prima chiamata a una Cloud Function dopo
+  // inattività può richiedere ~30 s
+  test.describe.configure({ mode: 'serial', timeout: 120_000 })
 
   test('campionamento: salvato e conteggiato una volta', async ({ trainerPage: page }) => {
     await openClient(page)
     const before = await readAtleta(page)
 
-    await page.locator('button', { hasText: /^\s*TEST\s*$/ }).first().click()
+    // Il testo è maiuscolo solo via CSS: nel DOM è "Test"
+    await page.locator('button', { hasText: /^\s*test\s*$/i }).first().click()
     await page.getByRole('button', { name: /campionamento/i }).click()
     const inputs = page.locator('input[type="number"]')
     await expect(inputs).toHaveCount(ACTIVE_VALUES.length)
