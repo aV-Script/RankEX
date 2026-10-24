@@ -32,14 +32,14 @@
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",
     "@fontsource-variable/montserrat": "^5.3.0",
-    "firebase": "^10.12.0",
+    "firebase": "^12.19.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.15.0",
     "recharts": "^2.12.0"
   },
   "devDependencies": {
-    "@firebase/rules-unit-testing": "^3.0.4",
+    "@firebase/rules-unit-testing": "^5.0.2",
     "@playwright/test": "^1.60.0",
     "@tailwindcss/vite": "^4.2.4",
     "@vitejs/plugin-react": "^4.3.1",
@@ -55,5 +55,10 @@
     "tailwindcss": "^4.2.4",
     "vite": "^5.4.0",
     "vitest": "^2.1.9"
+  },
+  "overrides": {
+    "@firebase/firestore": {
+      "@grpc/grpc-js": "1.14.6"
+    }
   }
 }
