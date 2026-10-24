@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useRecurrences }                from '../../features/calendar/useRecurrences'
-import { useClients }                    from '../../hooks/useClients'
 import { RecurrenceDetailView }          from './recurrences-page/RecurrenceDetailView'
 import { RecurrenceCard }                from './recurrences-page/RecurrenceCard'
 import { usePagination }                 from '../../hooks/usePagination'
@@ -8,14 +7,13 @@ import { Pagination }                    from '../../components/common/Paginatio
 import { EmptyState, PageTitle }         from '../../components/ui'
 import { IconChevronDown }               from '../../components/ui/icons'
 
-export function RecurrencesPage({ orgId, initialRecurrenceId, onNavigate }) {
+export function RecurrencesPage({ orgId, clients = [], initialRecurrenceId, onNavigate }) {
   const {
     recurrences, loading, error,
     handleUpdateTime, handleUpdateDays, handleExtendPeriod,
     handleAddClient, handleRemoveClient, handleCancel,
   } = useRecurrences(orgId)
 
-  const { clients } = useClients(orgId)
 
   const [showArchive, setShowArchive] = useState(false)
   const [selectedId,  setSelectedId]  = useState(initialRecurrenceId ?? null)

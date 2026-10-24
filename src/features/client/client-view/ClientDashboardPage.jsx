@@ -1,25 +1,28 @@
-import { useState }                  from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { ActivityLog, StatsSection }  from '../../../components/ui'
-import { StatsChart }                 from '../StatsChart'
 import { BiaSummary }                 from '../../bia/bia-view/BiaSummary'
-import { BiaHistoryChart }            from '../../bia/bia-view/BiaHistoryChart'
 import { getProfileCategory }         from '../../../constants/bia'
 import { NotesSection }               from '../client-dashboard/NotesSection'
 import { ClientWorkoutSection }       from '../client-dashboard/ClientWorkoutSection'
-import { MisureSection }              from '../client-dashboard/MisureSection'
 import { ClientCalendar }             from '../ClientCalendar'
 import { calcAge }                    from '../../../utils/validation'
 import { ClientHub }                  from './ClientHub'
 import { ClientBottomNav }            from './ClientBottomNav'
 import { AvatarPicker }               from './avatar/AvatarPicker'
 import { TrophiesSection }            from '../client-dashboard/TrophiesSection'
-import { XPTrendChart }               from '../client-dashboard/XPTrendChart'
 import { useBadges }                  from '../../../hooks/useBadges'
 import { ThemePicker }                from '../../../components/ui/ThemePicker'
 import { logout }                     from '../../../firebase/services/auth'
 import { IconDocument }               from '../../../components/ui/icons'
 import { ErrorBoundary }              from '../../../components/common/ErrorBoundary'
 import { ChartErrorFallback }         from '../../../components/common/ChartErrorFallback'
+
+// Componenti con Recharts (~105 KB gzip): caricati solo quando si apre la sezione,
+// non all'avvio dell'hub cliente, dove non c'è nessun grafico.
+const StatsChart      = lazy(() => import('../StatsChart').then(m => ({ default: m.StatsChart })))
+const BiaHistoryChart = lazy(() => import('../../bia/bia-view/BiaHistoryChart').then(m => ({ default: m.BiaHistoryChart })))
+const XPTrendChart    = lazy(() => import('../client-dashboard/XPTrendChart').then(m => ({ default: m.XPTrendChart })))
+const MisureSection   = lazy(() => import('../client-dashboard/MisureSection').then(m => ({ default: m.MisureSection })))
 
 // ── Icone sub-tab ─────────────────────────────────────────────────────────────
 
@@ -232,7 +235,9 @@ export function ClientDashboardPage({
                   </div>
                   {(client.campionamenti?.length ?? 0) > 0 && (
                     <ErrorBoundary fallback={ChartErrorFallback}>
-                      <StatsChart campionamenti={client.campionamenti} color={displayColor} categoria={client.categoria} />
+                      <Suspense fallback={null}>
+                        <StatsChart campionamenti={client.campionamenti} color={displayColor} categoria={client.categoria} />
+                      </Suspense>
                     </ErrorBoundary>
                   )}
                 </section>
@@ -250,7 +255,9 @@ export function ClientDashboardPage({
                   />
                   {(client.biaHistory?.length ?? 0) > 1 && (
                     <ErrorBoundary fallback={ChartErrorFallback}>
-                      <BiaHistoryChart biaHistory={client.biaHistory} color={displayColor} />
+                      <Suspense fallback={null}>
+                        <BiaHistoryChart biaHistory={client.biaHistory} color={displayColor} />
+                      </Suspense>
                     </ErrorBoundary>
                   )}
                 </section>
@@ -314,14 +321,18 @@ export function ClientDashboardPage({
                 {profiloTab === 'attivita' && (
                   <section className="px-4 pt-6 pb-10 flex flex-col gap-4">
                     <ErrorBoundary fallback={ChartErrorFallback}>
-                      <XPTrendChart log={client.log ?? []} color={displayColor} />
+                      <Suspense fallback={null}>
+                        <XPTrendChart log={client.log ?? []} color={displayColor} />
+                      </Suspense>
                     </ErrorBoundary>
                     <ActivityLog log={client.log} color={displayColor} />
                   </section>
                 )}
 
                 {profiloTab === 'misure' && (
-                  <MisureSection client={client} color={displayColor} readonly />
+                  <Suspense fallback={null}>
+                    <MisureSection client={client} color={displayColor} readonly />
+                  </Suspense>
                 )}
 
                 {profiloTab === 'tema' && (

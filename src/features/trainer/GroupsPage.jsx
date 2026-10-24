@@ -1,6 +1,5 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useGroups }                      from '../../hooks/useGroups'
-import { useClients }                     from '../../hooks/useClients'
 import { usePagination }                  from '../../hooks/usePagination'
 import { useTrainerState }                from '../../context/TrainerContext'
 import { Pagination }                     from '../../components/common/Pagination'
@@ -21,9 +20,8 @@ const ICON_NEW_GROUP = (
   </svg>
 )
 
-export function GroupsPage({ orgId }) {
+export function GroupsPage({ orgId, clients = [] }) {
   const { groups, isLoading, handleAddGroup, handleRenameGroup, handleToggleClient, handleDeleteGroup } = useGroups(orgId)
-  const { clients } = useClients(orgId)
   const { terminology } = useTrainerState()
 
   const [view,          setView]          = useState('list')

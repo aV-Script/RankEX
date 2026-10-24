@@ -1,3 +1,4 @@
+import { Suspense }        from 'react'
 import { TrainerProvider } from '../../context/TrainerContext'
 import { ReadonlyProvider } from '../../context/ReadonlyContext'
 import { TrainerShell }    from '../../components/layout/TrainerShell'
@@ -5,6 +6,7 @@ import { ReadonlyBanner }  from '../../components/common/ReadonlyBanner'
 import { useTrainerNav }   from '../trainer/useTrainerNav'
 import { useClients }      from '../../hooks/useClients'
 import { ClientDashboard } from '../client/ClientDashboard'
+import { LoadingScreen }   from '../../components/common/LoadingScreen'
 import { PAGES }           from '../trainer/trainer.config'
 import { OrgDashboard }    from './org-pages/OrgDashboard'
 import { MembersPage }     from './org-pages/MembersPage'
@@ -60,6 +62,7 @@ function OrgAdminLayout({ user, orgId, org }) {
           onDelete={handleDeleteClient}
         />
       ) : (
+        <Suspense fallback={<LoadingScreen />}>
         <CurrentPage
           orgId={orgId}
           trainerId={user.uid}
@@ -72,6 +75,7 @@ function OrgAdminLayout({ user, orgId, org }) {
           onNavigate={navigateTo}
           {...(navParams ?? {})}
         />
+        </Suspense>
       )}
     </TrainerShell>
   )
