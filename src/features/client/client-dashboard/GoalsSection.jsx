@@ -159,7 +159,9 @@ export function GoalsSection({ client, orgId, color, readonly = false }) {
             color={color}
             icon={ICON_GOALS}
             title="Nessun obiettivo"
-            description="Fissa un target su un test specifico per motivare il prossimo campionamento."
+            description={readonly
+              ? 'Quando il tuo coach fissa un obiettivo su un test, lo trovi qui.'
+              : 'Fissa un target su un test specifico per motivare il prossimo campionamento.'}
           />
         ) : (
           <div className="flex flex-col gap-2">

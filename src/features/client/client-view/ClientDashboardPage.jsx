@@ -10,7 +10,9 @@ import { ClientHub }                  from './ClientHub'
 import { ClientBottomNav }            from './ClientBottomNav'
 import { AvatarPicker }               from './avatar/AvatarPicker'
 import { TrophiesSection }            from '../client-dashboard/TrophiesSection'
+import { GoalsSection }               from '../client-dashboard/GoalsSection'
 import { useBadges }                  from '../../../hooks/useBadges'
+import { useClientExport }            from '../../../hooks/useClientExport'
 import { ThemePicker }                from '../../../components/ui/ThemePicker'
 import { logout }                     from '../../../firebase/services/auth'
 import { IconDocument }               from '../../../components/ui/icons'
@@ -63,6 +65,16 @@ const ICON_FISICI = (
 const ICON_BIA_SUB = (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+  </svg>
+)
+const ICON_OBIETTIVI = (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+  </svg>
+)
+const ICON_DOWNLOAD = (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
   </svg>
 )
 const ICON_LOGOUT = (
@@ -144,6 +156,7 @@ export function ClientDashboardPage({
 
   const { earnedBadges, allBadges, rawBadges, badgeProgress, handleUpdateShowcase } =
     useBadges(orgId, clientId, client)
+  const { exporting, handleExport } = useClientExport(orgId, clientId, client)
 
   const [activeTab,    setActiveTab]    = useState('home')
   const [profiloTab,   setProfiloTab]   = useState('avatar')
@@ -161,9 +174,10 @@ export function ClientDashboardPage({
     { id: 'account',  label: 'Account',  icon: ICON_ACCOUNT },
   ].filter(Boolean)
 
-  // Sub-tab Test (solo se hasBia)
+  // Sub-tab Test: Fisici sempre, Obiettivi se fa test, BIA se ha il profilo BIA
   const testTabs = [
     { id: 'fisici', label: 'Fisici', icon: ICON_FISICI, color: displayColor },
+    profile.hasTests && orgId && { id: 'obiettivi', label: 'Obiettivi', icon: ICON_OBIETTIVI, color: displayColor },
     profile.hasBia && { id: 'bia', label: 'BIA', icon: ICON_BIA_SUB, color: displayColor },
   ].filter(Boolean)
 
@@ -210,7 +224,7 @@ export function ClientDashboardPage({
           {/* Test (Fisici + BIA) ────────────────────────────────────────── */}
           {activeTab === 'test' && (
             <>
-              {/* Sub-tab bar interna — visibile solo se hasBia */}
+              {/* Sub-tab bar interna — nascosta se c'è solo Fisici */}
               {testTabs.length > 1 && (
                 <SubTabBar
                   tabs={testTabs}
@@ -241,6 +255,11 @@ export function ClientDashboardPage({
                     </ErrorBoundary>
                   )}
                 </section>
+              )}
+
+              {/* Obiettivi — sola lettura, li fissa il trainer */}
+              {testTab === 'obiettivi' && profile.hasTests && orgId && (
+                <GoalsSection client={{ ...client, id: clientId }} orgId={orgId} color={displayColor} readonly />
               )}
 
               {/* BIA */}
@@ -369,6 +388,28 @@ export function ClientDashboardPage({
                         </div>
                       </div>
                       <div className="h-px mb-4" style={{ background: 'rgba(255,255,255,0.05)' }} />
+                      {orgId && (
+                        <>
+                          <button
+                            onClick={handleExport}
+                            disabled={exporting}
+                            className="font-display flex items-center gap-2.5 w-full cursor-pointer rounded-[4px] transition-colors mb-2 disabled:opacity-50 disabled:cursor-wait"
+                            style={{
+                              padding: '10px 12px', background: displayColor + '10',
+                              border: `1px solid ${displayColor}30`,
+                              fontWeight: 700,
+                              fontSize: 10, letterSpacing: '1.5px', textTransform: 'uppercase',
+                              color: displayColor,
+                            }}
+                          >
+                            {ICON_DOWNLOAD}
+                            {exporting ? 'Preparazione…' : 'Scarica i miei dati'}
+                          </button>
+                          <p className="font-body text-[11px] m-0 mb-4" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                            Un file JSON con profilo, test, BIA, obiettivi, note, schede e notifiche.
+                          </p>
+                        </>
+                      )}
                       <button
                         onClick={logout}
                         className="font-display flex items-center gap-2.5 w-full cursor-pointer rounded-[4px] transition-colors"
