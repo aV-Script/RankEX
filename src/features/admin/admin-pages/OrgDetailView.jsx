@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback }  from 'react'
 import { getMembers, updateMember, updateOrganization } from '../../../firebase/services/org'
 import { updateUserProfile }    from '../../../firebase/services/users'
-import { getClients }           from '../../../firebase/services/clients'
+import { countClients }         from '../../../firebase/services/clients'
 import { removeMemberUseCase }  from '../../../usecases/removeMemberUseCase'
 import { deleteOrganizationUseCase } from '../../../usecases/deleteOrganizationUseCase'
 import { auditLog, AUDIT_ACTIONS } from '../../../utils/auditLog'
@@ -36,7 +36,7 @@ const ROLE_OPTIONS = [
 export function OrgDetailView({ org, onBack }) {
   const toast = useToast()
   const [members,       setMembers]       = useState([])
-  const [clients,       setClients]       = useState([])
+  const [clientCount,   setClientCount]   = useState(0)
   const [loading,       setLoading]       = useState(true)
   const [showAddMember, setShowAddMember] = useState(false)
   const [confirmRemove, setConfirmRemove] = useState(null)
@@ -50,9 +50,9 @@ export function OrgDetailView({ org, onBack }) {
   useEffect(() => {
     Promise.all([
       getMembers(org.id),
-      getClients(org.id),
+      countClients(org.id),
     ])
-      .then(([m, c]) => { setMembers(m); setClients(c) })
+      .then(([m, c]) => { setMembers(m); setClientCount(c) })
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [org.id])
@@ -208,9 +208,9 @@ export function OrgDetailView({ org, onBack }) {
         {!loading && (() => {
           const limits = getPlanLimits(plan)
           const trainerPct = limits.trainers === Infinity ? 0 : Math.round((members.length / limits.trainers) * 100)
-          const clientPct  = limits.clients  === Infinity ? 0 : Math.round((clients.length  / limits.clients)  * 100)
+          const clientPct  = limits.clients  === Infinity ? 0 : Math.round((clientCount  / limits.clients)  * 100)
           const atT = limits.trainers !== Infinity && members.length >= limits.trainers
-          const atC = limits.clients  !== Infinity && clients.length  >= limits.clients
+          const atC = limits.clients  !== Infinity && clientCount  >= limits.clients
           return (
             <section>
               <div className="font-display text-[10px] tracking-[2px] text-white/30 mb-3">UTILIZZO PIANO</div>
@@ -227,7 +227,7 @@ export function OrgDetailView({ org, onBack }) {
                 />
                 <UsageBar
                   label="Clienti"
-                  current={clients.length}
+                  current={clientCount}
                   limit={limits.clients}
                   pct={clientPct}
                   atLimit={atC}
@@ -316,7 +316,7 @@ export function OrgDetailView({ org, onBack }) {
         {/* Clienti */}
         <section>
           <div className="font-display text-[10px] tracking-[2px] text-white/30 mb-3">
-            CLIENTI ({clients.length})
+            CLIENTI ({clientCount})
           </div>
           {loading ? (
             <div className="h-10 rounded-[3px] animate-pulse" style={{ background: 'rgba(255,255,255,0.03)' }} />
@@ -325,7 +325,7 @@ export function OrgDetailView({ org, onBack }) {
               className="px-4 py-3 rounded-[3px]"
               style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
             >
-              <span className="font-display font-black text-[28px] text-white/70">{clients.length}</span>
+              <span className="font-display font-black text-[28px] text-white/70">{clientCount}</span>
               <span className="font-body text-[12px] text-white/30 ml-2">clienti registrati</span>
             </div>
           )}
@@ -357,7 +357,7 @@ export function OrgDetailView({ org, onBack }) {
         <ConfirmDialog
           variant="danger"
           title={`Eliminare ${org.name}?`}
-          description={`Verranno cancellati ${clients.length} clienti e ${members.length} membri dello staff, con i loro account. Per confermare scrivi il nome dell'organizzazione.`}
+          description={`Verranno cancellati ${clientCount} clienti e ${members.length} membri dello staff, con i loro account. Per confermare scrivi il nome dell'organizzazione.`}
           confirmLabel="ELIMINA"
           loading={deleting}
           confirmDisabled={deleteName.trim() !== (org.name ?? '').trim()}

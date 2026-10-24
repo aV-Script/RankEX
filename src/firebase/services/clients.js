@@ -1,6 +1,6 @@
 import {
   collection, getDocs, getDoc, updateDoc,
-  doc, query,
+  doc, query, getCountFromServer,
 } from 'firebase/firestore'
 import { db }          from './db'
 import { clientsPath } from '../paths'
@@ -9,6 +9,12 @@ export const getClients    = async (orgId) => {
   const q    = query(collection(db, clientsPath(orgId)))
   const snap = await getDocs(q)
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+}
+
+// Solo il numero, senza scaricare i documenti: 1 lettura ogni 1000 clienti
+export const countClients = async (orgId) => {
+  const snap = await getCountFromServer(collection(db, clientsPath(orgId)))
+  return snap.data().count
 }
 
 export const getClientById = async (orgId, clientId) => {
