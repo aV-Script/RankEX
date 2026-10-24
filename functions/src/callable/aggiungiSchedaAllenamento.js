@@ -1,11 +1,14 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore }      from 'firebase-admin/firestore'
 import { requireOrgAccess }  from '../shared/auth.js'
+import { optionalTargetSessions } from '../shared/validate.js'
+import { MAX_PLAN_SESSIONS } from '../shared/constants.js'
 
 const REGION = 'europe-west1'
 
 export const aggiungiSchedaAllenamento = onCall({ region: REGION }, async (request) => {
   const { orgId, clientId, title, description = '', days = [] } = request.data
+  const targetSessions = optionalTargetSessions(request.data.targetSessions, MAX_PLAN_SESSIONS)
 
   if (!orgId || !clientId || !title) {
     throw new HttpsError('invalid-argument', 'orgId, clientId e title sono obbligatori')
@@ -34,6 +37,8 @@ export const aggiungiSchedaAllenamento = onCall({ region: REGION }, async (reque
     description,
     clientId,
     days,
+    targetSessions,
+    completedSessions: 0,
     status:    'active',
     createdAt: now,
     updatedAt: now,

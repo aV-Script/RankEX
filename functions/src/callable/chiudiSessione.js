@@ -17,7 +17,8 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { requireOrgAccess }  from '../shared/auth.js'
-import { buildSessionUpdate } from '../shared/gamification.js'
+import { buildSessionUpdate, buildXPUpdate } from '../shared/gamification.js'
+import { PLAN_COMPLETION_XP } from '../shared/constants.js'
 import { autoBadgeFields }    from '../shared/badges.js'
 
 const REGION = 'europe-west1'
@@ -25,6 +26,8 @@ const REGION = 'europe-west1'
 // Spike EPIC-005 (docs/DECISIONS.md → ADR-002) — importo provvisorio, non
 // un'economia bilanciata. Unica fonte di Monete implementata nello spike.
 const COINS_PER_SESSION = 10
+// Limite degli id per una query 'in'
+const IN_QUERY_LIMIT = 30
 
 export const chiudiSessione = onCall({ region: REGION }, async (request) => {
   const { orgId, slotId, attendeeIds } = request.data
@@ -39,6 +42,7 @@ export const chiudiSessione = onCall({ region: REGION }, async (request) => {
   const slotRef    = db.collection(`organizations/${orgId}/slots`).doc(slotId)
   const clientsCol = db.collection(`organizations/${orgId}/clients`)
   const notifCol   = db.collection(`organizations/${orgId}/notifications`)
+  const plansCol   = db.collection(`organizations/${orgId}/workoutPlans`)
   const today      = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
 
   // Transazione, non batch: il controllo "già chiusa" deve stare nella stessa
@@ -67,6 +71,16 @@ export const chiudiSessione = onCall({ region: REGION }, async (request) => {
     const clientMap = {}
     clientDocs.forEach(d => { if (d.exists) clientMap[d.id] = { id: d.id, ...d.data() } })
 
+    // Scheda attiva di ogni presente: la sessione la fa avanzare di uno
+    const activePlans = {}
+    for (let i = 0; i < presentIds.length; i += IN_QUERY_LIMIT) {
+      const snap = await tx.get(plansCol.where('clientId', 'in', presentIds.slice(i, i + IN_QUERY_LIMIT)))
+      snap.docs.forEach(d => {
+        const plan = d.data()
+        if (plan.status === 'active' && !activePlans[plan.clientId]) activePlans[plan.clientId] = { ref: d.ref, ...plan }
+      })
+    }
+
     tx.update(slotRef, {
       status:    'completed',
       attendees: presentIds,
@@ -78,7 +92,26 @@ export const chiudiSessione = onCall({ region: REGION }, async (request) => {
       const client = clientMap[clientId]
       if (!client) continue
 
-      const { update, xpGain } = buildSessionUpdate(client, client.baseXP ?? 50, 'Sessione di allenamento')
+      const session = buildSessionUpdate(client, client.baseXP ?? 50, 'Sessione di allenamento')
+      let update    = session.update
+      let xpGain    = session.xpGain
+
+      // Scheda ↔ calendario: +1 sessione sulla scheda attiva; raggiunte quelle
+      // previste, scheda completata e bonus XP (una volta sola: completedAt)
+      const plan = activePlans[clientId]
+      let planCompleted = false
+      if (plan) {
+        const completedSessions = (plan.completedSessions ?? 0) + 1
+        const planUpdate = { completedSessions, updatedAt: new Date().toISOString() }
+        if (plan.targetSessions && completedSessions >= plan.targetSessions && !plan.completedAt) {
+          planUpdate.completedAt = planUpdate.updatedAt
+          planCompleted = true
+          const bonus = buildXPUpdate({ ...client, ...update }, PLAN_COMPLETION_XP, `Scheda completata: ${plan.title} (+${PLAN_COMPLETION_XP} XP)`)
+          update  = { ...update, ...bonus.update }
+          xpGain += PLAN_COMPLETION_XP
+        }
+        tx.update(plan.ref, planUpdate)
+      }
       // Monete negozio avatar — unica fonte di guadagno implementata nello spike
       // EPIC-005 (vedi docs/DECISIONS.md → ADR-002). Importo provvisorio, non
       // un'economia bilanciata — richiede playtesting (STORY-012).
@@ -91,7 +124,9 @@ export const chiudiSessione = onCall({ region: REGION }, async (request) => {
       if (client.clientAuthUid) {
         tx.set(notifCol.doc(), {
           clientId,
-          message:   `Sessione del ${slot.date} completata! +${xpGain} XP (streak ${update.sessionStreak})`,
+          message:   planCompleted
+            ? `Sessione del ${slot.date} completata e scheda "${plan.title}" finita! +${xpGain} XP (streak ${update.sessionStreak})`
+            : `Sessione del ${slot.date} completata! +${xpGain} XP (streak ${update.sessionStreak})`,
           date:      today,
           type:      'session',
           read:      false,

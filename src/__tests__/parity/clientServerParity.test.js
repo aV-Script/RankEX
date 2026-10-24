@@ -36,6 +36,8 @@ describe('Costanti', () => {
   })
 
   it('LOG_MAX_ENTRIES e XP_PER_LEVEL_MULTIPLIER identici', () => {
+    expect(serverConst.PLAN_COMPLETION_XP).toBe(clientConst.PLAN_COMPLETION_XP)
+    expect(serverConst.MAX_PLAN_SESSIONS).toBe(clientConst.MAX_PLAN_SESSIONS)
     expect(serverConst.LOG_MAX_ENTRIES).toBe(clientConst.LOG_MAX_ENTRIES)
     expect(serverConst.XP_PER_LEVEL_MULTIPLIER).toBe(clientConst.XP_PER_LEVEL_MULTIPLIER)
   })

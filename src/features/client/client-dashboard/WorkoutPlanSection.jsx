@@ -9,6 +9,7 @@ import { updateWorkoutPlanUseCase }      from '../../../usecases/updateWorkoutPl
 import { deleteWorkoutPlanUseCase }      from '../../../usecases/deleteWorkoutPlanUseCase'
 import { useToast }                      from '../../../hooks/useToast'
 import { normalizePlanDays }             from '../../../utils/workoutPlans'
+import { PlanProgress }                  from './PlanProgress'
 import { useTrainerState }               from '../../../context/TrainerContext'
 
 /**
@@ -42,10 +43,10 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
 
   // ── CRUD ──────────────────────────────────────────────────────────────────
 
-  const handleSubmit = useCallback(async ({ title, description, days }) => {
+  const handleSubmit = useCallback(async ({ title, description, days, targetSessions }) => {
     try {
       if (editing) {
-        const updated = { title, description, days }
+        const updated = { title, description, days, targetSessions }
         await updateWorkoutPlanUseCase(orgId, editing.id, updated)
         setPlans(prev => prev.map(p =>
           p.id === editing.id
@@ -54,9 +55,9 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
         ))
       } else {
         // Il BE archivia automaticamente la scheda attiva corrente
-        const newId   = await addWorkoutPlanUseCase(orgId, clientId, title, description, days)
+        const newId   = await addWorkoutPlanUseCase(orgId, clientId, title, description, days, targetSessions)
         const newPlan = {
-          id: newId, title, description, clientId, days,
+          id: newId, title, description, clientId, days, targetSessions, completedSessions: 0,
           status:    'active',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -260,6 +261,8 @@ function PlanDisplay({ plan, color, activeDay, onDayChange, readonly, onArchive 
           {plan.description}
         </p>
       )}
+
+      <PlanProgress plan={plan} color={color} />
 
       {/* Tab giorni — solo se più di uno */}
       {days.length > 1 && (

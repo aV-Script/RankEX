@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { PLAN_COMPLETION_XP, MAX_PLAN_SESSIONS } from '../../../constants'
 import { ConfirmDialog }         from '../../../components/common/ConfirmDialog'
 import { IconChevronLeft }       from '../../../components/ui/icons'
 
@@ -33,7 +34,7 @@ function initDays(initialData) {
  *   clientId     — se passato, il selettore cliente è nascosto (contesto dashboard)
  *   clients      — array clienti (solo se clientId non è pre-impostato)
  *   initialData  — piano esistente da modificare
- *   onSubmit     — callback con { title, description, clientId, days }
+ *   onSubmit     — callback con { title, description, clientId, days, targetSessions }
  *   onBack       — callback annulla
  */
 export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBack, terminology }) {
@@ -42,6 +43,7 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
   const [description,  setDescription]  = useState(initialData?.description ?? '')
   const [selClientId,  setSelClientId]  = useState(initialData?.clientId    ?? '')
   const [days,         setDays]         = useState(() => initDays(initialData))
+  const [targetSessions, setTargetSessions] = useState(initialData?.targetSessions ? String(initialData.targetSessions) : '')
   const [activeDay,    setActiveDay]    = useState(0)
   const [loading,      setLoading]      = useState(false)
   const [errors,       setErrors]       = useState({})
@@ -105,6 +107,8 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
     if (!clientId && !selClientId)           e.clientId = `Seleziona un ${clientLabel.toLowerCase()}`
     if (days.every(d => d.exercises.every(ex => !ex.name.trim())))
       e.exercises = 'Aggiungi almeno un esercizio'
+    if (targetSessions && !(Number.isInteger(Number(targetSessions)) && Number(targetSessions) >= 1 && Number(targetSessions) <= MAX_PLAN_SESSIONS))
+      e.targetSessions = `Inserisci un numero da 1 a ${MAX_PLAN_SESSIONS}, o lascia vuoto`
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -132,6 +136,7 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
       description: description.trim() || null,
       clientId:    clientId ?? selClientId,
       days:        cleanedDays,
+      targetSessions: targetSessions ? Number(targetSessions) : null,
     })
     setLoading(false)
   }
@@ -197,6 +202,26 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
               rows={2}
               className="input-base resize-none"
             />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="plan-target-sessions" className="font-display text-[11px] tracking-[2px] text-white/40">SESSIONI PREVISTE</label>
+            <input
+              id="plan-target-sessions"
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={MAX_PLAN_SESSIONS}
+              value={targetSessions}
+              onChange={e => setTargetSessions(e.target.value)}
+              placeholder="Es. 12 — facoltativo"
+              className="input-base"
+              style={{ maxWidth: 200 }}
+            />
+            <span className="font-body text-[11px] text-white/35">
+              Ogni presenza registrata in calendario conta una sessione. Raggiunto il numero, la scheda è completata e l&apos;atleta riceve +{PLAN_COMPLETION_XP} XP.
+            </span>
+            {errors.targetSessions && <span className="text-red-400 text-[11px]">{errors.targetSessions}</span>}
           </div>
         </div>
 

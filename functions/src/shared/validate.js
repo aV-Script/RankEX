@@ -47,6 +47,12 @@ export function requireNumber(value, name, { min = -Infinity, max = Infinity, in
   return value
 }
 
+/** Sessioni previste di una scheda: intero 1..max, oppure null (nessun obiettivo) */
+export function optionalTargetSessions(value, max) {
+  if (value === undefined || value === null || value === '') return null
+  return requireNumber(value, 'targetSessions', { min: 1, max, integer: true })
+}
+
 export function optionalString(value, name, maxLength) {
   if (value === undefined || value === null || value === '') return ''
   if (typeof value !== 'string') invalid(`${name} deve essere un testo`)

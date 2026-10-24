@@ -14,6 +14,24 @@ export function normalizePlanDays(plan) {
   return [{ label: 'Giorno 1', exercises: plan?.exercises ?? [] }]
 }
 
+/**
+ * Avanzamento di una scheda. completedSessions/completedAt li scrive solo
+ * chiudiSessione (una presenza = una sessione); il giorno consigliato ruota
+ * sui giorni della scheda (Giorno 1 → 2 → … → 1).
+ */
+export function getPlanProgress(plan) {
+  const days   = normalizePlanDays(plan)
+  const done   = plan?.completedSessions ?? 0
+  const target = plan?.targetSessions ?? null
+  return {
+    done,
+    target,
+    pct:          target ? Math.min(100, Math.round((done / target) * 100)) : null,
+    completed:    Boolean(plan?.completedAt),
+    nextDayIndex: done % days.length,
+  }
+}
+
 /** La scheda attiva tra quelle di un cliente, o null se nessuna lo è. */
 export function pickActivePlan(plans) {
   return plans.find(p => p.status === 'active') ?? null

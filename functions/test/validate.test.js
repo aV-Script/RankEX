@@ -14,10 +14,22 @@ vi.mock('firebase-functions/v2/https', () => {
 
 const {
   assertIdsInData, requireNumber, optionalString, pickAllowed, requireValidPassword,
-  requireDate, requireTime, requireDays,
+  requireDate, requireTime, requireDays, optionalTargetSessions,
 } = await import('../src/shared/validate.js')
 
 const invalid = { code: 'invalid-argument' }
+
+describe('optionalTargetSessions', () => {
+  it('vuoto → null (scheda senza sessioni previste)', () => {
+    for (const v of [undefined, null, '']) expect(optionalTargetSessions(v, 200)).toBeNull()
+  })
+  it('intero nel range → valore', () => {
+    expect(optionalTargetSessions(12, 200)).toBe(12)
+  })
+  it('zero, decimali, testo o oltre il massimo → errore', () => {
+    for (const v of [0, 2.5, '12', 201]) expect(() => optionalTargetSessions(v, 200)).toThrow(expect.objectContaining(invalid))
+  })
+})
 
 describe('assertIdsInData', () => {
   it('accetta id Firestore normali, null e campi che non sono id', () => {

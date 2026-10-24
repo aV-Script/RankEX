@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { normalizePlanDays, pickActivePlan, sortPlansByCreatedAtDesc } from '../../utils/workoutPlans'
+import { normalizePlanDays, pickActivePlan, sortPlansByCreatedAtDesc, getPlanProgress } from '../../utils/workoutPlans'
 
 describe('normalizePlanDays', () => {
   it('restituisce days invariato quando già presente e non vuoto', () => {
@@ -62,5 +62,33 @@ describe('sortPlansByCreatedAtDesc', () => {
     const original = [...plans]
     sortPlansByCreatedAtDesc(plans)
     expect(plans).toEqual(original)
+  })
+})
+
+describe('getPlanProgress', () => {
+  const days = [{ label: 'A', exercises: [] }, { label: 'B', exercises: [] }, { label: 'C', exercises: [] }]
+
+  it('scheda nuova: 0 sessioni, si parte dal primo giorno', () => {
+    expect(getPlanProgress({ days })).toEqual({ done: 0, target: null, pct: null, completed: false, nextDayIndex: 0 })
+  })
+
+  it('il giorno consigliato ruota sui giorni della scheda', () => {
+    expect(getPlanProgress({ days, completedSessions: 1 }).nextDayIndex).toBe(1)
+    expect(getPlanProgress({ days, completedSessions: 3 }).nextDayIndex).toBe(0)
+    expect(getPlanProgress({ days, completedSessions: 5 }).nextDayIndex).toBe(2)
+  })
+
+  it('percentuale sulle sessioni previste, mai oltre 100', () => {
+    expect(getPlanProgress({ days, targetSessions: 12, completedSessions: 3 }).pct).toBe(25)
+    expect(getPlanProgress({ days, targetSessions: 4, completedSessions: 6 }).pct).toBe(100)
+  })
+
+  it('completata solo quando il server ha scritto completedAt', () => {
+    expect(getPlanProgress({ days, targetSessions: 2, completedSessions: 2 }).completed).toBe(false)
+    expect(getPlanProgress({ days, targetSessions: 2, completedSessions: 2, completedAt: '2026-10-24' }).completed).toBe(true)
+  })
+
+  it('schede vecchie con exercises flat: un solo giorno', () => {
+    expect(getPlanProgress({ exercises: [], completedSessions: 4 }).nextDayIndex).toBe(0)
   })
 })

@@ -1,7 +1,8 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore }      from 'firebase-admin/firestore'
 import { requireOrgAccess }  from '../shared/auth.js'
-import { pickAllowed }       from '../shared/validate.js'
+import { pickAllowed, optionalTargetSessions } from '../shared/validate.js'
+import { MAX_PLAN_SESSIONS } from '../shared/constants.js'
 
 const REGION = 'europe-west1'
 
@@ -14,8 +15,10 @@ export const aggiornaSchedaAllenamento = onCall({ region: REGION }, async (reque
 
   await requireOrgAccess(request, orgId)
 
-  // clientId escluso: una scheda non si sposta su un altro cliente con un update
-  const update = pickAllowed(data, ['title', 'description', 'days', 'status'])
+  // clientId escluso: una scheda non si sposta su un altro cliente con un update.
+  // completedSessions/completedAt esclusi: li scrive solo chiudiSessione.
+  const update = pickAllowed(data, ['title', 'description', 'days', 'status', 'targetSessions'])
+  if ('targetSessions' in update) update.targetSessions = optionalTargetSessions(update.targetSessions, MAX_PLAN_SESSIONS)
   if (!Object.keys(update).length) throw new HttpsError('invalid-argument', 'Nessun campo aggiornabile')
   if ('status' in update && !['active', 'archived'].includes(update.status)) {
     throw new HttpsError('invalid-argument', 'status non valido')

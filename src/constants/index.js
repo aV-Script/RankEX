@@ -69,3 +69,9 @@ export function getCategoriaById(id) {
 // ── Costanti gamification ─────────────────────────────────────────────────────
 export const LOG_MAX_ENTRIES         = 200
 export const XP_PER_LEVEL_MULTIPLIER = 1.08
+
+// Scheda allenamento ↔ calendario: ogni sessione chiusa con presenza fa avanzare
+// la scheda attiva; al raggiungimento delle sessioni previste, bonus XP una volta sola
+// (speculare a functions/src/shared/constants.js)
+export const PLAN_COMPLETION_XP = 100
+export const MAX_PLAN_SESSIONS  = 200

@@ -20,7 +20,11 @@ vi.mock('firebase-functions/v2/https', () => {
 
 vi.mock('firebase-admin/firestore', () => {
   const ref = path => ({ path })
-  const collection = path => ({ doc: id => ref(`${path}/${id ?? `auto${++db.autoId}`}`) })
+  const collection = path => ({
+    doc:   id => ref(`${path}/${id ?? `auto${++db.autoId}`}`),
+    // Solo il caso usato dalla callable: where(campo, 'in', valori)
+    where: (field, _op, values) => ({ isQuery: true, path, field, values }),
+  })
   const apply = (path, data, merge) => {
     const prev = merge ? (db.docs.get(path) ?? {}) : {}
     const next = { ...prev }
@@ -36,11 +40,17 @@ vi.mock('firebase-admin/firestore', () => {
       runTransaction: async fn => {
         const writes = []
         const tx = {
-          get: async r => ({
-            id:     r.path.split('/').pop(),
-            exists: db.docs.has(r.path),
-            data:   () => structuredClone(db.docs.get(r.path)),
-          }),
+          get: async r => r.isQuery
+            ? {
+                docs: [...db.docs.entries()]
+                  .filter(([p, d]) => p.startsWith(`${r.path}/`) && r.values.includes(d[r.field]))
+                  .map(([p, d]) => ({ id: p.split('/').pop(), ref: ref(p), data: () => structuredClone(d) })),
+              }
+            : {
+                id:     r.path.split('/').pop(),
+                exists: db.docs.has(r.path),
+                data:   () => structuredClone(db.docs.get(r.path)),
+              },
           update: (r, data) => writes.push([r.path, data, true]),
           set:    (r, data) => writes.push([r.path, data, false]),
         }
@@ -116,6 +126,45 @@ describe('chiudiSessione', () => {
     await call(['a'])
     expect(client('a')['badges.prima_sessione']).toBeUndefined()
     expect(client('a')['badges.striscia_5']).toBeDefined()
+  })
+
+  describe('scheda allenamento', () => {
+    const PLAN = 'organizations/org1/workoutPlans/p1'
+    const plan = () => db.docs.get(PLAN)
+
+    it('ogni presenza fa avanzare la scheda attiva, senza bonus prima della fine', async () => {
+      db.docs.set(PLAN, { clientId: 'a', status: 'active', title: 'Forza', targetSessions: 3, completedSessions: 1 })
+      await call(['a'])
+      expect(plan().completedSessions).toBe(2)
+      expect(plan().completedAt).toBeUndefined()
+      expect(client('a').log[0].action).toMatch(/^Sessione di allenamento/)
+    })
+
+    it("all'ultima sessione prevista: scheda completata e bonus XP una volta sola", async () => {
+      db.docs.set(PLAN, { clientId: 'a', status: 'active', title: 'Forza', targetSessions: 3, completedSessions: 2 })
+      await call(['a'])
+      expect(plan().completedSessions).toBe(3)
+      expect(plan().completedAt).toBeDefined()
+      expect(client('a').log[0]).toMatchObject({ action: 'Scheda completata: Forza (+100 XP)', xp: 100 })
+      expect(client('a').log[1].action).toMatch(/^Sessione di allenamento/)
+
+      // Una sessione dopo la fine conta, ma non ridà il bonus
+      db.docs.set(SLOT, { date: '2026-10-24', status: 'planned', clientIds: ['a'] })
+      await call(['a'])
+      expect(plan().completedSessions).toBe(4)
+      expect(client('a').log[0].action).toMatch(/^Sessione di allenamento/)
+    })
+
+    it('scheda senza sessioni previste: conta, mai bonus; schede archiviate e assenti non toccate', async () => {
+      db.docs.set(PLAN, { clientId: 'a', status: 'active', title: 'Libera' })
+      db.docs.set('organizations/org1/workoutPlans/old', { clientId: 'a', status: 'archived', completedSessions: 5 })
+      db.docs.set('organizations/org1/workoutPlans/pb', { clientId: 'b', status: 'active', completedSessions: 0 })
+      await call(['a'])
+      expect(plan()).toMatchObject({ completedSessions: 1 })
+      expect(plan().completedAt).toBeUndefined()
+      expect(db.docs.get('organizations/org1/workoutPlans/old').completedSessions).toBe(5)
+      expect(db.docs.get('organizations/org1/workoutPlans/pb').completedSessions).toBe(0)
+    })
   })
 
   it('primo conteggio sessioni per un cliente senza sessionCount', async () => {

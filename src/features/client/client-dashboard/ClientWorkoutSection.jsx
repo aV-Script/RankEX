@@ -1,7 +1,8 @@
 import { useState, useEffect }                from 'react'
 import { SectionLabel, EmptyState, DayTabs } from '../../../components/ui'
 import { getWorkoutPlanForClient }           from '../../../firebase/services/workoutPlans'
-import { normalizePlanDays }                 from '../../../utils/workoutPlans'
+import { normalizePlanDays, getPlanProgress } from '../../../utils/workoutPlans'
+import { PlanProgress }                      from './PlanProgress'
 
 /**
  * Sezione scheda allenamento nella dashboard cliente.
@@ -16,7 +17,11 @@ export function ClientWorkoutSection({ orgId, clientId, color }) {
   useEffect(() => {
     if (!orgId || !clientId) return
     getWorkoutPlanForClient(orgId, clientId)
-      .then(active => setPlan(active))
+      .then(active => {
+        setPlan(active)
+        // Apre direttamente il giorno consigliato per il prossimo allenamento
+        if (active) setActiveDay(getPlanProgress(active).nextDayIndex)
+      })
       .catch(() => setLoadError(true))
       .finally(() => setLoading(false))
   }, [orgId, clientId])
@@ -67,6 +72,8 @@ export function ClientWorkoutSection({ orgId, clientId, color }) {
             {plan.description}
           </p>
         )}
+
+        <PlanProgress plan={plan} color={color} />
 
         {/* Tab giorni — solo se più di uno */}
         {days.length > 1 && (
