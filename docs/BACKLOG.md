@@ -888,3 +888,577 @@ diritto alla portabilità dei dati.
 
 ---
 <!-- Nuove epic/user story vengono aggiunte qui sotto dal Product Owner -->
+
+
+## [EPIC-010] Lipedema Edition — terzo modulo RankEX (v1, senza rank)
+Fonte: specifiche v1.0 dei 5 test CORE in `lipidemia/*.docx` (fanno fede; l'infografica
+`.jpg` nella stessa cartella è **superata** — dice 6MWT invece di 2MWT, ignorarla).
+Decisione utente post-riunione del 24/10/2026: nuovo `moduleType` a livello
+organizzazione, accanto a `personal_training` e `soccer_academy` (vedi CLAUDE.md →
+"Prodotto → Moduli" e "Comportamento UI per modulo"). Popolazione target: donne adulte
+con lipedema, valutate da professionisti.
+
+**Principio di dominio (dai docx, vincolante per tutta l'epic):** niente percentili,
+cut-off o etichette qualitative ("scarso/normale/ottimo"). Solo valore grezzo + andamento
+nel tempo. Prove grezze sempre conservate, `protocol_version` e deviazioni sempre
+registrate. Questo confligge con il modello rank-da-percentili del resto di RankEX
+(CLAUDE.md → "Calcolo percentili", "Gamification") — da qui la scelta v1 senza rank.
+
+**Scope v1 (deciso dall'utente, non in discussione):**
+- Gamification OFF: niente XP, livelli, badge, Monete, streak, rank
+- Dati paziente inclusi: anagrafica + misure, BIA, note, scheda allenamento,
+  calendario/appuntamenti, valutazioni dei 5 test
+- Solo professionisti usano l'app (org_admin / trainer / staff_readonly) — nessun login
+  paziente
+- Terminologia: Professionista / Paziente / Gruppo / Appuntamento (plurali coerenti:
+  Professionisti / Pazienti / Gruppi / Appuntamenti). "Appuntamento" è la voce del
+  calendario (l'equivalente di Sessione/Allenamento); **"Valutazione"** indica invece il
+  record dei test, non uno slot di calendario
+- Base giuridica (decisione utente 24/10/2026): art. 9(2)(h) GDPR — trattamento per
+  finalità di cura da parte di professionisti sanitari, **non** consenso. Nel modulo
+  **tutto** è dato sanitario: l'appartenenza del paziente a un'org Lipedema rivela già
+  la diagnosi. `staff_readonly` vede anche i dati sanitari (BIA inclusa)
+
+**Fuori scope v1 (esplicito):**
+- Cancellazione automatica a scadenza / retention configurabile per org — in v1 la
+  cancellazione è solo manuale, su decisione del titolare (STORY-032)
+- Rank / punteggio composito di qualunque tipo (eventuale epic futura)
+- Obiettivi (`goals` — oggi basati su `targetPercentile`); eventuale story futura
+  "obiettivi su valore grezzo"
+- Vista/login paziente (area client, Pentagon Nav, notifiche push al paziente)
+- Analytics di gruppo basate su ranking (Classifica, Campioni, Confronto radar)
+- Wearable (già disattivato per tutti i moduli)
+- Normative/valori di riferimento lipedema-specifici (i docx li escludono)
+- Test aggiuntivi oltre i 5 CORE; 6MWT
+- Mobile app (parcheggiata — vedi memoria `project_mobile_app_parked`)
+- Protocolli "avanzati/research" previsti dai docx 01 e 02 (2 prove con recupero e
+  criterio di scelta predefiniti) — v1 implementa solo il CORE a prova singola
+- Valori normativi generali per adulti (es. norme internazionali handgrip 2025 citate
+  nel docx 03, tabelle CDC/STEADI nel docx 02): i docx li ammettono solo come
+  "riferimento scientifico separato", mai come norme lipedema — in v1 non si mostrano
+- Estensione polpaccio del Test 04 (il docx la indica come modulo secondario futuro)
+- Registrazione video del test (docx 02, solo "se previsto dal centro")
+- Qualunque decisione automatica di idoneità/stop su soglie HR/SpO2/PA (i docx 01 la
+  escludono esplicitamente dall'MVP)
+
+**Default provvisori decisi dall'utente (24/10/2026)** al posto delle domande per
+l'autore dei protocolli — validi per `protocol_version` "1.0" di tutti e 5 i test,
+rivedibili con una nuova versione di protocollo:
+- **2MWT:** l'operatore inserisce il numero di **tratti** completi cono→cono + frazione
+  finale; distanza = tratti × `course_length_m` + frazione; frazione < `course_length_m`
+- **Unità di forza (03/04):** solo N e kgf, niente lbf
+- **Test 04:** contrazione ~3 s (come il Test 03); anca in posizione seduta ~90°,
+  registrata come campo; fissaggio belt/manuale entrambi ammessi, registrati, e non
+  comparabili tra loro (STORY-039)
+- **Test 05:** `protocol_version` "1.0" anche se il docx non ha versione/data; dolore
+  come valore singolo 0-10, come da docx (non pre/post)
+
+**Questioni aperte nei documenti (residue, da chiarire con l'autore dei protocolli —
+non bloccano il backlog):**
+- **Test 05 (OLS):** documento senza sezione UI (c'è solo la scheda rapida) — il flusso
+  va disegnato da ux-ui-designer; il "motivo di terminazione" compare come campo unico
+  nello schema dati — si assume per prova (come sembra logico), da confermare.
+- **Test 03:** l'obiettivo cita il "confronto con valori di riferimento compatibili
+  con età e sesso" — in contrasto con la regola trasversale "niente percentili": per la
+  v1 si assume nessun confronto normativo in app (vedi fuori scope), da confermare.
+- **Codici motivo di stop:** 01 e 02 chiedono `stop_reason_code` come "codice standard"
+  ma nessun documento ne elenca i valori — serve il catalogo (eventualmente unico per
+  tutti i test).
+- **Scala del dolore:** il docx 01 dice "scala utilizzata dal centro; consigliata 0-10"
+  — in v1 si fissa 0-10 per tutti i centri o la scala è configurabile (e quindi un
+  altro parametro di comparabilità)?
+- **Naming campi** disomogeneo tra i 5 documenti — sarà unificato nel design tecnico,
+  i nomi nei docx non sono vincolanti.
+
+**Questioni aperte per il Tech Lead (trasversali):**
+- Nome tecnico del `moduleType`: `lipedema` vs generico (es. `clinical`) — decisione
+  utente: da decidere con Tech Lead.
+- Oggi `getModule()` (`src/config/modules.config.js`) ramifica solo su `isSoccer`, e
+  diverse capability sono definite per negazione (`hasCategories`/`hasBia: moduleType
+  !== SOCCER_ACADEMY`), `getTerminology()` fa fallback su PT: un terzo modulo
+  **erediterebbe silenziosamente il comportamento PT** (rank, categorie, percentili)
+  ovunque non venga gestito esplicitamente. ~19 file in `src/` ramificano su
+  `isSoccer`/`soccer_academy` — serve un inventario completo delle superfici.
+- Lato server le callable non conoscono il modulo (es. `chiudiSessione` accredita XP +
+  Monete + streak, `creaCliente` inizializza xp/level/rank, `salvaCampionamento` calcola
+  percentili): dove e come applicare "gamification OFF" in modo che non sia aggirabile
+  dal client.
+- Modello dati delle valutazioni lipedema (riuso di `campionamenti[]`/`stats` vs
+  struttura dedicata) — le prove grezze multiple, i metadati di protocollo e i dati
+  sanitari opzionali non entrano nel modello attuale `stats: { stat: percentile }`.
+- `creaCliente` crea sempre un account Firebase Auth per il cliente: in v1 il paziente
+  non fa login — come creare un paziente senza account (e senza email obbligatoria).
+
+### [STORY-029] Privacy art. 9 GDPR — attestazione informativa + DPA (requisito bloccante)
+**Come** org_admin/professionista di un'organizzazione Lipedema **voglio** che ogni
+paziente abbia registrata la consegna dell'informativa prima di poterne salvare le
+valutazioni, e che il rapporto titolare/responsabile con RankEX sia formalizzato **per**
+trattare dati sanitari su pazienti reali in modo lecito.
+
+**Decisioni utente (24/10/2026), non in discussione:**
+- Base giuridica: art. 9(2)(h) GDPR (finalità di cura da parte di professionisti
+  sanitari), **non il consenso** → nessun flusso di consenso né di revoca in app
+- Nel modulo **tutto** è dato sanitario, anagrafica e valori grezzi inclusi
+  (l'appartenenza all'org rivela la diagnosi) — nessuna distinzione tra campi
+  "sanitari" e "non sanitari"
+- `staff_readonly` vede tutti i dati del paziente, sanitari e BIA inclusi — nessun
+  filtro di visibilità per ruolo da costruire
+
+- **Priority:** P0 — **bloccante**: (a) blocca il salvataggio di qualunque
+  valutazione (STORY-033…038); (b) blocca il go-live in produzione di ogni org Lipedema
+- **Modulo:** Lipedema (nuovo)
+- **Acceptance Criteria:**
+  - [ ] **(a) Attestazione "informativa consegnata"** registrabile sul paziente da
+        trainer/org_admin: data di consegna, versione dell'informativa, professionista
+        che l'ha consegnata — tutti e tre obbligatori; `staff_readonly` la vede ma non
+        la registra
+  - [ ] Finché l'attestazione è assente il salvataggio di una valutazione è
+        **rifiutato** — sia in UI (azione disabilitata con messaggio che spiega cosa
+        manca) sia lato server (chiamata diretta → errore), non solo nascosto a schermo
+  - [ ] Con attestazione presente il salvataggio funziona normalmente; l'attestazione
+        resta visibile nella scheda del paziente
+  - [ ] Una nuova versione dell'informativa consegnata in seguito si registra senza
+        perdere quella precedente (storico delle attestazioni) — da confermare con
+        Tech Lead se in v1 basta l'ultima
+  - [ ] Nessun dato del paziente compare in log applicativi o in `audit_logs.details`
+  - [ ] **(b) Requisito non-codice:** DPA / nomina a responsabile del trattamento
+        ex art. 28 firmata con ogni org Lipedema **prima** del go-live in produzione —
+        verificato come checklist di attivazione org da super_admin, non dal developer
+  - [ ] **(c) Requisito non-codice:** il testo dell'informativa è redatto dal titolare
+        (l'organizzazione), non da RankEX; l'app registra solo la versione consegnata
+  - [ ] `docs/PRIVACY-POLICY-DRAFT.md` aggiornato con il modulo Lipedema, la base
+        giuridica art. 9(2)(h) e la popolazione del modulo
+  - [ ] Valutato l'uso di un identificativo pseudonimo del paziente (i docx usano
+        `participant_id` "ID anonimo") — esito documentato, adozione non obbligatoria
+        in v1
+- **Dependencies:** EPIC-008 (STORY-020 bozza privacy, ADR "processo di cancellazione
+  dati") — entrambi oggi solo su `feature/mobile-app`, non ancora su `dev`; se il
+  blocco lato server richiede modifiche a `firestore.rules` → deploy separato su
+  `rankex-dev` e `fitquest-60a09`
+- **Risks:** DPA e informativa dipendono da azioni legali/commerciali fuori dal
+  repository → possono ritardare il go-live di ogni org anche a codice pronto; un blocco
+  solo UI darebbe una falsa sicurezza (stesso errore di RX-63, STORY-002)
+- **Status:** BACKLOG
+
+### [STORY-030] Nuovo modulo a livello organizzazione + capability + terminologia
+**Come** super_admin **voglio** creare un'organizzazione con il modulo Lipedema e
+vederla correttamente in elenco/dettaglio **per** attivare un nuovo cliente B2B del
+terzo verticale.
+
+- **Priority:** P0 (fondamenta dell'epic)
+- **Modulo:** Lipedema (nuovo) — con verifica di non regressione su entrambi i moduli
+  esistenti
+- **Acceptance Criteria:**
+  - [ ] `CreateOrgForm` permette di scegliere il terzo modulo; l'org creata ha il nuovo
+        `moduleType` salvato
+  - [ ] `OrgsPage`, `OrgDetailView`, `AdminDashboard` mostrano il nuovo modulo con
+        etichetta propria (non "Personal Training" né "Soccer" di fallback)
+  - [ ] In tutta l'area professionista dell'org la terminologia è Professionista /
+        Paziente / Gruppo / Appuntamento, singolare e plurale, inclusi nav, titoli,
+        empty state, toast, dialog di conferma — nessuna occorrenza visibile di
+        "Cliente", "Allievo", "Trainer", "Coach", "Sessione", "Allenamento" (come voce
+        di calendario) nel modulo (verifica a campione sulle pagine Pazienti, Gruppi,
+        Calendario, Ricorrenze, Team, dashboard paziente)
+  - [ ] "Valutazione/Valutazioni" è usato solo per il record dei test (STORY-033), mai
+        per uno slot di calendario
+  - [ ] Il cambio di `moduleType` **da o verso** Lipedema è bloccato se l'org ha già
+        almeno un paziente/cliente (`clientCount > 0`): l'azione è rifiutata con
+        messaggio esplicito, sia in UI sia lato server. Il cambio tra
+        `personal_training` e `soccer_academy` resta invariato rispetto a oggi
+        (verifica di non regressione)
+  - [ ] Il modulo dichiara esplicitamente le proprie capability (rank: no, gamification:
+        no, BIA: sì, obiettivi: no, categorie PT: no, test: i 5 Lipedema) — nessuna
+        capability ereditata per fallback dal modulo PT (da verificare con test unitario
+        su `getModule` per tutti e 3 i moduli)
+  - [ ] Org PT e Soccer esistenti: nessun cambiamento visibile (unit test
+        `modules.config.test.js` esistenti verdi + verifica manuale di 1 org per modulo)
+  - [ ] Limiti piano (free/pro/enterprise) invariati e applicati anche al nuovo modulo
+- **Dependencies:** decisione Tech Lead sul nome tecnico del `moduleType`
+- **Risks:** fallback silenzioso su PT in `getModule`/`getTerminology` (vedi questioni
+  aperte epic); concordanza di genere ("il Paziente"/"la Paziente", "nuovo/nuova") — già
+  un problema noto su terminologia multi-modulo (STORY-024, STORY-027): da decidere con
+  ux-ui-designer se usare forme neutre
+- **Status:** BACKLOG
+
+### [STORY-031] Rank, percentili e gamification assenti nel modulo
+**Come** professionista Lipedema **voglio** non vedere mai rank, percentili, XP,
+livelli, badge, Monete o streak **per** non comunicare giudizi normativi che le
+specifiche dei test escludono esplicitamente, e non confondere la paziente con
+meccaniche di gioco non pertinenti.
+
+- **Priority:** P0
+- **Modulo:** Lipedema (nuovo)
+- **Acceptance Criteria:**
+  - [ ] `ClientCard` / lista Pazienti: nessun rank, colore rank, media, livello, barra
+        XP; nessun filtro per categoria/ruolo/fascia PT o Soccer
+  - [ ] Dashboard paziente (vista professionista): nessuna card rank/XP/livello in
+        AtletaTab (o equivalente), nessun Pentagono, nessuna tab Trofei, nessuna tab
+        Obiettivi, nessun XPTrendChart, nessuna tab Wearable
+  - [ ] Chiusura appuntamento in calendario: nessuna preview "+XP · streak", nessun XP né
+        Monete né streak accreditati — verificato **lato dati** (dopo la chiusura i
+        campi xp/level/coins/sessionStreak del paziente non cambiano), non solo a
+        schermo
+  - [ ] Nessun badge automatico assegnato al paziente (oggi `useBadges` auto-assegna
+        lato client all'apertura della dashboard) — verificato sui dati
+  - [ ] Salvataggio BIA: nessun XP accreditato (oggi `XP_BIA`)
+  - [ ] Hub gruppo: tab Classifica, Campioni, Confronto e ogni ordinamento per media
+        assenti; restano Gestione, Sessioni, Note (Analisi: da decidere con
+        ux-ui-designer se ha senso su valori grezzi, altrimenti assente)
+  - [ ] Notifiche: nessuna notifica di rank-up, XP o achievement generata per i
+        pazienti
+  - [ ] Nessun testo "percentile", "rank", "XP" visibile in alcuna pagina del modulo
+        (verifica a campione su tutte le pagine nav)
+  - [ ] Il blocco gamification non è aggirabile chiamando direttamente le Cloud
+        Function dal client (verifica: chiamata diretta a una callable che accredita XP
+        su un paziente Lipedema → nessun effetto o errore esplicito)
+- **Dependencies:** STORY-030; inventario superfici del Tech Lead
+- **Risks:** è la story con la superficie più ampia (~19 file con ramificazioni per
+  modulo + callable server) — rischio alto di superfici dimenticate; le callable oggi
+  non conoscono il modulo
+- **Status:** BACKLOG
+
+### [STORY-032] Wizard "Nuovo paziente" per il modulo
+**Come** professionista Lipedema **voglio** registrare un nuovo paziente con anagrafica
+e misure **per** iniziare a raccoglierne le valutazioni.
+
+- **Priority:** P1
+- **Modulo:** Lipedema (nuovo)
+- **Acceptance Criteria:**
+  - [ ] Il wizard non mostra categoria PT, profilo (`tests_only`/`bia_only`/`complete`),
+        ruolo o fascia Soccer
+  - [ ] Il wizard non richiede creazione di credenziali/account di accesso del paziente
+        (v1 senza login); l'email, se presente, è facoltativa
+  - [ ] Il paziente creato ha a disposizione sia le valutazioni dei 5 test sia la BIA
+        (nessun "upgrade profilo" necessario)
+  - [ ] Il paziente creato non ha xp/level/rank/coins inizializzati a valori visibili
+        (o, se presenti per compatibilità, non sono mai mostrati — vedi STORY-031)
+  - [ ] Il contatore `clientCount` e il blocco limite piano funzionano come negli altri
+        moduli (schermata di blocco al limite)
+  - [ ] **(P0) Cancellazione completa del paziente** su decisione del titolare
+        (org_admin/trainer, stesso flusso `eliminaCliente`): cancellazione ricorsiva di
+        documento paziente **e di tutte le subcollection** (valutazioni, note,
+        attestazioni informativa, ecc.) e rimozione del paziente da slot, ricorrenze,
+        gruppi, schede e notifiche dell'org — verificato con **test su emulatore**: dopo
+        la cancellazione una query su tutti i path dell'org non restituisce alcun dato
+        residuo del paziente nei dati live. Nessun flusso di "revoca consenso" (base
+        giuridica art. 9(2)(h), vedi STORY-029); nessuna cancellazione automatica a
+        scadenza in v1 (fuori scope). Backup Firestore, se attivi, fuori dal criterio
+        "dati live"
+  - [ ] Nuovo caso nel runbook (`config/runbook.config.js`) per creazione paziente
+- **Dependencies:** STORY-030; decisione Tech Lead su "cliente senza account Auth";
+  su `dev` `eliminaCliente.js` fa già `recursiveDelete` di `notes`/`goals` per nome
+  (BUG-001, tracciato su `feature/mobile-app`); qui va generalizzato a
+  `listCollections()` così da includere `assessments` (ADR-009/015)
+- **Risks:** `creaCliente` oggi crea sempre l'account Auth e `/users/{uid}` — un
+  paziente senza account è un caso nuovo per l'intero stack (reset password, dashboard
+  header "Reset password", eliminazione); campi anagrafici richiesti dai protocolli
+  (es. arto/mano dominante) — da verificare nei docx se servono a livello paziente
+  o di singola valutazione
+- **Status:** BACKLOG
+
+### [STORY-033] Infrastruttura comune "Valutazione" (metadati protocollo, prove grezze, sintomi)
+**Come** professionista Lipedema **voglio** che ogni valutazione salvata registri data,
+versione del protocollo, deviazioni, prove grezze e (opzionali) dolore/sintomi e
+parametri fisiologici pre/post **per** avere uno storico clinicamente difendibile e
+confrontabile nel tempo, come richiesto da tutti e 5 i documenti.
+
+- **Priority:** P1
+- **Modulo:** Lipedema (nuovo)
+- **Acceptance Criteria:**
+  - [ ] Una valutazione (la "sessione" dei docx, `session_id`) può contenere uno o più
+        dei 5 test, ognuno salvato con: data e ora, professionista che l'ha eseguito
+        (`examiner_id`/`Evaluator_ID`), `protocol_version` del test, deviazione dal
+        protocollo come **sì/no + descrizione** (entrambi i campi, come in tutti i
+        docx), note libere
+  - [ ] Tutte le prove grezze inserite sono conservate (non solo il risultato
+        derivato/best), e restano visibili nel dettaglio; un dato salvato non viene mai
+        sovrascritto da un ricalcolo
+  - [ ] Ogni prova dei test multi-prova (03/04/05) ha un proprio flag di **validità**;
+        il best si calcola solo sulle prove valide e le prove non valide restano
+        conservate (03/04: "tre prove valide"; 05: "ripetere solo le prove non valide
+        per errore procedurale")
+  - [ ] Il risultato derivato (distanza, best, simmetria, ecc.) è calcolato dal
+        sistema, non digitato a mano, con regola e arrotondamento identici a ogni
+        salvataggio (i docx 01 citano "arrotondare in modo diverso tra una sessione e
+        l'altra" tra gli errori comuni)
+  - [ ] Ogni test può essere marcato come **interrotto/stop anticipato** con motivo
+        (codice + testo breve); un test interrotto resta salvato e non è mai trattato
+        come prova completa
+  - [ ] Dati sanitari opzionali, solo dove il docx del test li prevede — sempre
+        **opzionali**, un test è salvabile senza di essi:
+        - 01 2MWT: dolore, dispnea Borg, fatica Borg pre/post; FC, SpO2, PA pre/post
+        - 02 30s-STS: dolore, fatica, dispnea pre/post (nessun parametro fisiologico)
+        - 03/04: dolore/disagio per prova e per lato (`Pain_Right`/`Pain_Left`), dolore
+          pre-test (04)
+        - 05 OLS: dolore 0-10 (valore unico, non pre/post) e sintomi
+  - [ ] Condizioni concomitanti rilevanti (es. lipo-linfedema, patologia
+        muscoloscheletrica/cardiopolmonare) registrabili come nota strutturata o libera
+        — richiesto dal docx 01 §27 perché influenzano il risultato
+  - [ ] Nessuna soglia automatica di stop o di idoneità su FC/SpO2/PA (docx 01 §19-20:
+        i valori citati non vanno trasformati in decisioni automatiche dell'app)
+  - [ ] Lato dominante (mano per 03, gamba per 04/05) disponibile per i test
+        bilaterali — da decidere con Tech Lead se dato del paziente o della valutazione
+  - [ ] Nessuna valutazione è salvabile per un paziente senza attestazione
+        "informativa consegnata" (STORY-029) — vale per l'intera valutazione, non solo
+        per i campi opzionali, perché nel modulo ogni dato è sanitario
+  - [ ] Nessun percentile, cut-off o etichetta qualitativa è calcolato o mostrato
+  - [ ] Nessun XP/notifica generata dal salvataggio
+  - [ ] `staff_readonly` consulta le valutazioni per intero (dati sanitari inclusi) ma
+        non può crearle, modificarle o eliminarle (pulsanti assenti + scrittura
+        rifiutata lato server)
+  - [ ] Una valutazione salvata con errore può essere corretta o eliminata dal
+        professionista — **da decidere**: modifica in place vs. eliminazione +
+        reinserimento (impatto sulla tracciabilità)
+  - [ ] Guida test (`TestGuidePage`) del modulo mostra solo i 5 test Lipedema con
+        istruzioni di esecuzione tratte dai docx — inclusa l'**istruzione verbale
+        standardizzata** di ciascun test, testuale (i docx 01/02 la indicano come da non
+        modificare tra i retest) e la checklist operatore dove presente (01, 02)
+- **Dependencies:** STORY-030, STORY-032, STORY-029 (attestazione informativa, gate
+  del salvataggio); design dati del Tech Lead
+- **Risks:** il modello attuale `campionamenti[]` / `stats: { stat: percentile }` non
+  rappresenta prove multiple + metadati — forzarlo dentro creerebbe ambiguità con PT/
+  Soccer; volume dati per paziente più alto (prove grezze × test × valutazioni) →
+  verificare impatto sui limiti Firestore piano Spark
+- **Status:** BACKLOG
+
+### [STORY-034] Test 01 — 2-Minute Walk Test (2MWT)
+**Come** professionista **voglio** registrare un 2MWT inserendo tratti e frazione finale
+**per** ottenere la distanza percorsa in 120 s senza calcoli manuali.
+
+- **Priority:** P1
+- **Modulo:** Lipedema (nuovo)
+- **Acceptance Criteria:**
+  - [ ] Una sola prova ufficiale per valutazione (CORE); durata 120 s
+  - [ ] Setup: lunghezza del percorso tra i coni in metri (`course_length_m`, 30 m
+        preferito/default), ausilio, versione protocollo. Un percorso diverso da 30 m è
+        ammesso solo come **variante identificata** salvata come tale, non come semplice
+        valore libero (docx 01 §7 e App. C)
+  - [ ] Input (default v1.0): numero di **tratti** completi cono→cono (intero ≥ 0) e
+        frazione finale in metri — l'operatore non inserisce "giri" andata+ritorno,
+        nessun campo `lap_length_m` separato
+  - [ ] Distanza (m) calcolata automaticamente = tratti × `course_length_m` +
+        frazione, **arrotondata al metro più vicino**, mostrata prima del salvataggio;
+        velocità media (m/s = distanza/120) eventualmente mostrata come dato
+        secondario, mai al posto della distanza
+  - [ ] Validazioni: `course_length_m` > 0, tratti ≥ 0, frazione ≥ 0 e
+        **< `course_length_m`**
+  - [ ] Pause: numero e durata totale (s), con indicazione esplicita in UI che il timer
+        ufficiale **non** si ferma durante le pause
+  - [ ] Ausilio: nessuno / bastone / stampella / rollator / altro
+  - [ ] Stop anticipato: sì/no; se sì, tempo raggiunto (s, < 120), distanza percorsa
+        fino all'interruzione e motivo (codice + testo) obbligatori; il risultato è
+        marcato come non completo
+  - [ ] Dati sanitari opzionali pre/post come da STORY-033 (dolore, Borg dispnea, Borg
+        fatica, FC, SpO2, PA sistolica/diastolica)
+  - [ ] Nessuna conversione del risultato in un "6MWT equivalente" (docx 01 §18)
+- **Dependencies:** STORY-033
+- **Risks:** una distanza da stop anticipato non è confrontabile con una completa — il
+  trend (STORY-039) deve distinguerla. Il docx §23 descrive una schermata test con timer
+  02:00, contatore (tratti) e pulsante "Pausa" live: **da decidere con ux-ui-designer** se
+  la v1 offre timer/contatore in app o solo l'inserimento a posteriori dei valori
+- **Status:** BACKLOG
+
+### [STORY-035] Test 02 — 30-Second Sit-to-Stand (30s STS)
+**Come** professionista **voglio** registrare le ripetizioni valide in 30 s e gli
+eventuali motivi di invalidazione **per** avere un dato coerente con il protocollo.
+
+- **Priority:** P1
+- **Modulo:** Lipedema (nuovo)
+- **Acceptance Criteria:**
+  - [ ] Una prova ufficiale di 30 s; la familiarizzazione è consentita, registrabile
+        come eseguita (sì/no) e **non** contribuisce al risultato
+  - [ ] Input: ripetizioni valide (intero ≥ 0) + flag "ripetizione parziale finale
+        conteggiata" (sì/no — vale se allo scadere la paziente era oltre metà del
+        movimento verso la stazione eretta, regola CDC/STEADI)
+  - [ ] Setup registrato: altezza **effettiva** della sedia in cm (default 43,2),
+        presenza braccioli (deve essere no nel CORE), braccia incrociate (sì nel CORE);
+        braccioli = sì o braccia non incrociate → deviazione registrata
+  - [ ] Pause: numero e durata (opzionale)
+  - [ ] Uso delle braccia = protocollo standard invalidato: test interrotto, score
+        salvato come 0 **e** flag "uso braccia" registrato separatamente, così che uno
+        0 da invalidazione sia distinguibile da uno 0 reale (docx §19)
+  - [ ] Errore tecnico: sì/no + descrizione, campo distinto da deviazione protocollo e
+        da note
+  - [ ] Stop anticipato: sì/no; se sì, tempo raggiunto, ripetizioni valide fino allo
+        stop e motivo (codice + testo); risultato marcato come non completo
+  - [ ] Nessun ausilio nel protocollo standard (valore fisso "nessuno")
+  - [ ] Dati sanitari opzionali pre/post: dolore 0-10, fatica, dispnea Borg — **nessun**
+        parametro fisiologico (FC/SpO2/PA non previsti dal docx 02)
+  - [ ] Nessuna etichetta da tabelle CDC/STEADI (sviluppate per anziani, docx §23)
+- **Dependencies:** STORY-033
+- **Risks:** uno 0 da invalidazione e uno 0 reale vanno distinti nel trend (STORY-039)
+  per non mostrare un falso crollo di performance
+- **Status:** BACKLOG
+
+### [STORY-036] Test 03 — Handgrip Dynamometry (infrastruttura bilaterale multi-prova)
+**Come** professionista **voglio** inserire 3 prove per mano alternate D-S e ottenere il
+best per mano in Newton **per** monitorare la forza di presa nel tempo con qualunque
+dinamometro.
+
+- **Priority:** P1
+- **Modulo:** Lipedema (nuovo)
+- **Acceptance Criteria:**
+  - [ ] 3 prove **valide** per mano, nell'ordine alternato D, S, D, S, D, S (ordine
+        guidato in UI); per ogni prova: mano, numero prova, valore, unità, validità,
+        dolore/disagio, note (docx §14)
+  - [ ] Right Best / Left Best = massimo delle prove valide della mano (mai la media);
+        Strongest e Weakest = max/min tra i due best — tutti calcolati dal sistema
+  - [ ] Indice di simmetria opzionale = (Weakest / Strongest) × 100, solo come numero
+        (nessuna etichetta qualitativa)
+  - [ ] Unità primaria Newton; inserimento consentito **solo** in N o kgf (niente lbf
+        né altre unità) con conversione automatica (1 kgf = 9,80665 N); valore e unità
+        **nativi** conservati accanto al valore convertito; la UI può mostrare kgf se
+        richiesto
+  - [ ] Registrati: mano dominante, dinamometro (marca, modello, numero di serie),
+        impostazione dell'impugnatura (`Grip_Setting`), unica per tutta la sessione
+  - [ ] Interruzione per sicurezza (dolore acuto/crescente, sintomi neurologici,
+        capogiri, ecc. — docx §19): registrabile con motivo; i best di una mano non
+        testata/incompleta restano vuoti senza invalidare l'altra mano
+  - [ ] Recupero ~60 s prima di ritestare la stessa mano: un recupero prolungato è
+        registrabile come deviazione
+  - [ ] La logica "N prove valide per lato, alternate D-S, best per lato, simmetria
+        min/max" è riusabile da STORY-037 e STORY-038 (non reimplementata per ogni
+        test) — verificato in code review
+- **Dependencies:** STORY-033
+- **Risks:** precisione di arrotondamento dopo conversione (decimali da conservare —
+  da decidere con Tech Lead)
+- **Status:** BACKLOG
+
+### [STORY-037] Test 04 — Handheld Dynamometry quadricipite
+**Come** professionista **voglio** registrare 3 prove per gamba della forza del
+quadricipite con il metodo di fissaggio usato **per** confrontare correttamente solo
+valutazioni eseguite nelle stesse condizioni.
+
+- **Priority:** P1
+- **Modulo:** Lipedema (nuovo)
+- **Acceptance Criteria:**
+  - [ ] Stesso comportamento di STORY-036 per gamba: 3 prove **valide** alternate
+        D-S-D-S-D-S con validità/dolore/note per prova, Right/Left Best = massimo delle
+        valide (mai la media), Strongest/Weakest Leg, simmetria opzionale min/max × 100,
+        solo N o kgf con conversione (se il dispositivo misura già in N si usa N
+        direttamente),
+        valore/unità nativi, dispositivo marca/modello/seriale, gamba dominante
+  - [ ] Differenza assoluta e relativa tra i lati opzionale, come numero derivato
+  - [ ] Metodo di fissaggio obbligatorio (belt esterna / manuale — entrambi ammessi),
+        **unico per
+        entrambe le gambe** nella sessione — il docx elenca "fissazione diversa tra
+        destra e sinistra" tra gli errori
+  - [ ] Angolo del ginocchio registrato (default ~90°) e punto di applicazione del
+        sensore registrato (default: anteriore distale della gamba, appena prossimale
+        alla caviglia)
+  - [ ] Dolore pre-test e uso di ausili registrabili (docx §8)
+  - [ ] Angolo d'anca registrato come campo (default v1.0: seduta, ~90°)
+  - [ ] Durata della contrazione da protocollo v1.0: ~3 s (come Test 03), riportata
+        nell'istruzione/guida del test; una durata diversa è registrabile come
+        deviazione
+- **Dependencies:** STORY-036
+- **Risks:** fissaggio diverso tra retest = dato non comparabile (gestito da STORY-039)
+- **Status:** BACKLOG
+
+### [STORY-038] Test 05 — One-Leg Standing (OLS)
+**Come** professionista **voglio** registrare 2 prove per gamba con tempo e motivo di
+fine **per** monitorare l'equilibrio statico, distinguendo chi raggiunge il tempo
+massimo.
+
+- **Priority:** P1
+- **Modulo:** Lipedema (nuovo)
+- **Acceptance Criteria:**
+  - [ ] Occhi aperti, braccia lungo i fianchi, nessun ausilio durante la prova (fisso
+        nel protocollo)
+  - [ ] 2 prove **valide** per gamba, ordine alternato D, S, D, S; una prova non valida
+        (assistenza fisica, appoggio, errore evidente di cronometraggio, interruzione
+        esterna significativa) resta conservata e viene ripetuta
+  - [ ] Tempo in secondi con 1 decimale; valori > 60,0 non accettati
+  - [ ] Best per gamba = massimo delle 2 prove valide, calcolato dal sistema
+  - [ ] Flag ceiling per gamba impostato automaticamente quando il best è 60,0 s,
+        sempre valorizzato sì/no (obbligatorio, non modificabile a mano); visibile nello
+        storico e nel trend — 60,0 s non va presentato come "≥ 60"
+  - [ ] Motivo di fine registrato per ogni prova, da elenco: piede libero tocca
+        pavimento/altro arto, uso di supporto, spostamento dell'arto di appoggio,
+        richiesta della paziente, 60,0 s raggiunti, stop per sicurezza
+  - [ ] Simmetria opzionale = (tempo minore / tempo maggiore) × 100, solo descrittiva
+  - [ ] Registrati: gamba dominante, calzature, superficie, ausili abituali, dolore
+        0-10 (valore unico), sintomi, deviazioni (docx §21-22)
+  - [ ] Riusa la logica bilaterale multi-prova di STORY-036
+  - [ ] `protocol_version` = "1.0" (default provvisorio — il docx non ha versione/data)
+  - [ ] Durata massima per prova registrata come parametro di protocollo (60,0 s in
+        v1.0), così che un limite diverso sia riconoscibile come altro protocollo
+- **Dependencies:** STORY-036
+- **Risks:** senza sezione UI nel docx, il flusso di inserimento va disegnato da
+  ux-ui-designer senza riferimento dell'autore
+- **Status:** BACKLOG
+
+### [STORY-039] Storico, trend e avviso di non comparabilità per test
+**Come** professionista **voglio** vedere per ogni test lo storico delle valutazioni, un
+grafico dell'andamento e il delta rispetto alla precedente, con un avviso quando due
+valutazioni non sono confrontabili **per** interpretare correttamente l'evoluzione della
+paziente senza ricorrere a valori normativi.
+
+- **Priority:** P1
+- **Modulo:** Lipedema (nuovo)
+- **Acceptance Criteria:**
+  - [ ] Per ciascuno dei 5 test: lista cronologica delle valutazioni con risultato
+        (per test bilaterali: un valore per lato), data, professionista; espandibile
+        per vedere prove grezze e metadati di protocollo
+  - [ ] Grafico andamento nel tempo del risultato (per test bilaterali: una serie per
+        lato), in unità grezza, senza fasce colorate, soglie o etichette qualitative
+  - [ ] La riga di storico mostra almeno: data, risultato, delta vs precedente,
+        versione protocollo e i parametri di setup del test (es. 01 lunghezza percorso;
+        02 altezza sedia e deviazioni — docx 01 §23, 02 §23)
+  - [ ] Delta assoluto vs la valutazione precedente **comparabile** dello stesso test
+        (e lato), con unità; nessun colore "buono/cattivo" che implichi un giudizio
+        normativo (da validare con ux-ui-designer — il verso "migliore" esiste per ogni
+        test ma non va presentato come valutazione clinica)
+  - [ ] Quando la valutazione differisce dalla precedente nei parametri di protocollo,
+        il confronto non è presentato come variazione ordinaria ("non confrontarlo
+        automaticamente con la serie precedente", docx 02 §21) e compare un avviso che
+        elenca quale parametro differisce. Parametri per test:
+        - 01 2MWT: `course_length_m` (o variante di percorso), ausilio,
+          `protocol_version` — elenco esplicito del docx 01 §23
+        - 02 30s-STS: altezza sedia, presenza braccioli, `protocol_version` — docx 02
+          §21/§23
+        - 03 Handgrip: dispositivo, regolazione dell'impugnatura (`Grip_Setting`),
+          `protocol_version` — docx 03 §21
+        - 04 HHD: metodo di fissaggio (regola esplicita: "non direttamente
+          comparabile"), dispositivo, angolo ginocchio, punto di applicazione del
+          sensore, `protocol_version` — docx 04 §21 e scheda rapida
+        - 05 OLS: durata massima per prova (un limite diverso da 60,0 s = altro
+          protocollo, docx 05 §19), `protocol_version`; calzature e superficie da
+          decidere se scatenano
+          l'avviso o sono solo mostrate (il docx chiede solo di mantenerle costanti)
+  - [ ] Valutazioni interrotte/stop anticipato (01, 02), invalidate per uso braccia
+        (02) o con ceiling (05) sono distinguibili nel grafico e nel delta (non trattate
+        come valori ordinari)
+  - [ ] Nessun calcolo di media/score composito tra test diversi né tra le prove di uno
+        stesso test (il risultato ufficiale è sempre il best o la prova singola)
+  - [ ] Caso runbook aggiunto in `config/runbook.config.js` per l'avviso di
+        comparabilità
+- **Dependencies:** STORY-034…038
+- **Risks:** definizione esatta di "stesso dispositivo" (confronto per seriale? per
+  marca+modello?) e tolleranza su altezza sedia/angolo ginocchio (43,2 vs 43,0 cm è un
+  cambio?) — da decidere con Tech Lead/autore protocolli
+- **Status:** BACKLOG
+
+### [STORY-040] Export PDF paziente Lipedema
+**Come** professionista **voglio** esportare un report PDF del paziente con le
+valutazioni **per** condividerlo con la paziente o con altri curanti.
+
+- **Priority:** P2
+- **Modulo:** Lipedema (nuovo)
+- **Acceptance Criteria:**
+  - [ ] Il PDF del modulo (stessa tecnica `window.print()` di `ClientReportPrint`)
+        contiene anagrafica, ultima valutazione per ciascuno dei 5 test con metadati di
+        protocollo, delta vs precedente con eventuale avviso di non comparabilità,
+        BIA se presente
+  - [ ] Nessun rank, percentile, XP, badge nel PDF
+  - [ ] Il PDF include anche i dati sanitari opzionali registrati (dolore, Borg,
+        parametri fisiologici) ed è esportabile da tutti i ruoli che vedono il paziente,
+        `staff_readonly` incluso (decisione utente: nessun filtro per ruolo)
+  - [ ] Terminologia del modulo anche nel PDF
+  - [ ] Report di gruppo (`GroupReportPrint`): nel modulo assente oppure senza
+        classifiche — da decidere con ux-ui-designer
+- **Dependencies:** STORY-039, STORY-029
+- **Risks:** il PDF esce dall'app → una volta stampato i dati sanitari non sono più
+  controllabili dall'app; la custodia del documento è responsabilità del titolare
+  (da citare nell'informativa/DPA, STORY-029)
+- **Status:** BACKLOG

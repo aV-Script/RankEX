@@ -92,3 +92,55 @@ atteso di un giro e2e locale lungo contro un servizio reale, CI non lo mostra.
 ---
 
 <!-- Nuove voci aggiunte qui dal Tech Lead o dalla Retrospective -->
+
+---
+## [TD-004] Numerazione ADR/TD divergente tra `dev` e `feature/mobile-app`
+**Data:** 2026-10-24 (trovato durante il design di EPIC-010)
+**Cosa si è scelto di rimandare:** il riallineamento dei due file. Questo design ha
+solo scelto numeri liberi su entrambi i rami (ADR-006…014, TD-004/005).
+**Dettaglio:** su `dev` `docs/DECISIONS.md` ha `ADR-004` = "Log dei login falliti";
+su `feature/mobile-app` `ADR-004` = "Processo di cancellazione dati" e `ADR-005` =
+"Back button". `docs/TECH-DEBT.md` su `dev` arriva a TD-002, qui a TD-003. Al merge ci
+saranno due ADR-004 diversi.
+**Rischio se non risolto:** medio-basso. Riferimenti "vedi ADR-004" ambigui nei
+commenti di codice e nel backlog (es. STORY-029 cita "ADR-004 cancellazione").
+**Status:** OPEN. Al merge rinumerare uno dei due ADR-004 (es. login falliti →
+ADR-015) e aggiornare i riferimenti.
+
+---
+
+## [TD-005] Rules `clients/{id}` non conoscono il modulo: `badges` scrivibile direttamente anche in org lipedema
+**Data:** 2026-10-24 (ADR-008, EPIC-010)
+**Cosa si è scelto di rimandare:** impedire a livello di rules che un trainer/org_admin
+scriva `badges`/`badgeShowcase` su un paziente di un'org con `hasGamification: false`.
+**Perché:** il gating della gamification è garantito nelle callable (ADR-008), che sono
+l'unico percorso per xp/coins/streak/rank. `badges` è l'unico campo di gamification
+ancora nella whitelist di update diretto (assegnazione manuale da `TrophiesSection`,
+che in lipedema non è montata). Bloccarlo nelle rules richiederebbe un `get()` dell'org
+in ogni update cliente, cioè una lettura in più su ogni scrittura misure/trofei di tutti
+i moduli, per un campo cosmetico mai mostrato nel modulo, scrivibile solo da un membro
+fidato della stessa org.
+**Rischio se non risolto:** basso. Un dato spurio invisibile, nessun confine di
+sicurezza attraversato. Diventa medio solo se un giorno il login paziente arriva in
+lipedema e i badge vengono mostrati.
+**Status:** OPEN
+
+---
+
+## [TD-006] Attestazione informativa non blocca le scritture dirette (misure) nelle org lipedema
+**Data:** 2026-10-24 (ADR-015 §1, EPIC-010)
+**Cosa si è scelto di rimandare:** il blocco "informativa non registrata" vale solo
+per le callable `aggiungiValutazione` e `salvaBia`. Misure (peso/altezza, `updateDoc`
+diretto da `useMisure`) restano salvabili anche senza `client.privacyNotice`. Le note
+passano da callable, ma volutamente non sono bloccate.
+**Perché:** le misure si scrivono direttamente, e le rules non conoscono il modulo
+dell'org. Bloccarle richiederebbe un `get()` dell'org più un controllo su
+`privacyNotice` nella rule di update cliente, quindi una lettura in più su ogni
+scrittura di tutti i moduli, per un dato già raccolto nella stessa visita in cui di
+norma si consegna l'informativa. Stessa causa di TD-005.
+**Rischio se non risolto:** basso. L'obbligo informativo resta dell'org titolare;
+l'attestazione è un aiuto tecnico, non la base del trattamento (art. 9(2)(h)).
+Diventa medio se un'org lavora sistematicamente senza registrare l'informativa
+(verificabile con una query sui pazienti senza `privacyNotice`).
+**Status:** OPEN
+
