@@ -6,6 +6,7 @@ import { buildCampionamentoUpdate } from '../shared/gamification.js'
 import { TESTS_META }              from '../shared/testsMeta.js'
 import { calcPercentileEx, calcAge } from '../shared/percentile.js'
 import { applyFormula }            from '../shared/formulas.js'
+import { resolveCategoria }        from '../shared/soccer.js'
 
 const REGION = 'europe-west1'
 
@@ -52,7 +53,9 @@ export const salvaCampionamento = onCall({ region: REGION }, async (request) => 
     const client    = { id: clientId, ...snap.data() }
     const clientAge = calcAge(client.dataNascita) ?? client.eta ?? 25
     const sex       = client.sesso ?? 'M'
-    const categoria = client.categoria ?? ''
+    // Fascia soccer ricalcolata dall'età attuale: prima restava quella della
+    // creazione e un Pulcino di 10 anni veniva valutato con test e tabelle 7-9
+    const categoria = resolveCategoria(client) ?? ''
 
     // Calcolo server-side dei percentili dai valori grezzi
     const newStats = {}
@@ -74,6 +77,7 @@ export const salvaCampionamento = onCall({ region: REGION }, async (request) => 
     const goalsSnap = await tx.get(goalsQuery)
 
     const { update } = buildCampionamentoUpdate(client, newStats, testValues, safeLogAction)
+    if (categoria && categoria !== client.categoria) update.categoria = categoria
 
     tx.update(clientRef, update)
 

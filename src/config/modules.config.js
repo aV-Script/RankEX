@@ -3,6 +3,8 @@
  * Fonte di verità per terminologie, test fissi e comportamento per moduleType.
  */
 
+import { calcAge } from '../utils/validation'
+
 // ── Moduli ────────────────────────────────────────────────────────────────────
 
 export const MODULES = {
@@ -85,6 +87,20 @@ export function getCategoriaFromEta(eta) {
   if (isNaN(age) || age < 10) return 'soccer_youth'
   if (age < 14)               return 'soccer_junior'
   return 'soccer'
+}
+
+/**
+ * Categoria con cui valutare il cliente oggi.
+ * Per il soccer la fascia dipende dall'età attuale, non da quella alla creazione:
+ * `client.categoria` veniva calcolata una volta sola, e un Pulcino che compiva 10
+ * anni restava valutato con test e tabelle 7-9. Speculare a
+ * functions/src/shared/soccer.js → resolveCategoria (che la salva a ogni campionamento).
+ */
+export function resolveCategoria(client) {
+  const categoria = client?.categoria
+  if (!categoria?.startsWith('soccer')) return categoria
+  const age = calcAge(client.dataNascita) ?? client.eta
+  return age === null || age === undefined ? categoria : getCategoriaFromEta(age)
 }
 
 // ── Helper: ottieni terminologia ──────────────────────────────────────────────

@@ -1,12 +1,13 @@
 import { Pentagon } from '../../ui/Pentagon'
 import { getStatsConfig } from '../../../constants'
+import { resolveCategoria } from '../../../config/modules.config'
 
 /**
  * Colonna destra del modal campionamento.
  * Mostra rank proiettato, pentagon e contatore test completati.
  */
 export function RankPreview({ client, statsForPreview, newRankObj, newMedia, oldRankObj, oldMedia, filledCount }) {
-  const config     = getStatsConfig(client.categoria)
+  const config     = getStatsConfig(resolveCategoria(client))
   const statKeys   = config.map(t => t.stat)
   const statLabels = config.map(t => t.label)
   const rankChanged = newRankObj.label !== oldRankObj.label

@@ -1,6 +1,7 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import {
   getCategoriaFromEta,
+  resolveCategoria,
   getModule,
   getTerminology,
   MODULES,
@@ -94,5 +95,38 @@ describe('getTerminology', () => {
   it('modulo sconosciuto → fallback personal_training', () => {
     const t = getTerminology('unknown_module')
     expect(t.client).toBe('Cliente')
+  })
+})
+
+// ── resolveCategoria — fascia soccer dall'età attuale ─────────────────────────
+// Prima la fascia era fissata alla creazione del cliente: un Pulcino che
+// compiva 10 anni restava valutato con i test e le tabelle 7-9.
+
+describe('resolveCategoria', () => {
+  afterEach(() => { vi.useRealTimers() })
+  const pulcino = { categoria: 'soccer_youth', dataNascita: '2016-10-24' }
+
+  it('il giorno prima del 10° compleanno resta Pulcino', () => {
+    vi.useFakeTimers(); vi.setSystemTime(new Date(2026, 9, 23, 12))
+    expect(resolveCategoria(pulcino)).toBe('soccer_youth')
+  })
+
+  it('dal 10° compleanno passa a Esordienti, anche se la categoria salvata è Pulcini', () => {
+    vi.useFakeTimers(); vi.setSystemTime(new Date(2026, 9, 24, 12))
+    expect(resolveCategoria(pulcino)).toBe('soccer_junior')
+  })
+
+  it('a 14 anni passa a Senior', () => {
+    vi.useFakeTimers(); vi.setSystemTime(new Date(2030, 9, 24, 12))
+    expect(resolveCategoria(pulcino)).toBe('soccer')
+  })
+
+  it('senza data di nascita usa eta, senza nessuna delle due tiene la categoria salvata', () => {
+    expect(resolveCategoria({ categoria: 'soccer_youth', eta: 12 })).toBe('soccer_junior')
+    expect(resolveCategoria({ categoria: 'soccer_youth' })).toBe('soccer_youth')
+  })
+
+  it("le categorie personal training non cambiano con l'età", () => {
+    expect(resolveCategoria({ categoria: 'athlete', dataNascita: '1960-01-01' })).toBe('athlete')
   })
 })

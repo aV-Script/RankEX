@@ -3,6 +3,7 @@ import { getStatsConfig, applyFormula }   from '../../../constants'
 import { calcPercentileEx, calcStatMedia } from '../../../utils/percentile'
 import { getRankFromMedia }               from '../../../constants'
 import { calcAge }                        from '../../../utils/validation'
+import { resolveCategoria }               from '../../../config/modules.config'
 
 // Risolve l'input grezzo di un test (con o senza formula) al valore numerico finale.
 // Restituisce null se i campi sono incompleti/non validi.
@@ -30,7 +31,8 @@ function calcTestResult(test, testValues, sesso, eta) {
 }
 
 export function useCampionamento({ client, onSave, onBack }) {
-  const config    = getStatsConfig(client.categoria)
+  // Fascia soccer dall'età attuale (vedi resolveCategoria)
+  const config    = getStatsConfig(resolveCategoria(client))
   const clientAge = calcAge(client.dataNascita)
 
   const EMPTY = Object.fromEntries(

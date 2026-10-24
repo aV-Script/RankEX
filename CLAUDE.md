@@ -42,6 +42,9 @@ con terminologie, test e comportamenti UI diversi.
 - Configurazione fasce: `SOCCER_AGE_GROUPS` in `config/modules.config.js`
 - `categoria` derivata automaticamente da `eta` via `getCategoriaFromEta(eta)` in `config/modules.config.js`
   (età < 10 → `soccer_youth`, 10-13 → `soccer_junior`, 14+ → `soccer`)
+  e **ricalcolata a ogni campionamento** dall'età attuale (`resolveCategoria`, client in
+  `config/modules.config.js` + server in `functions/src/shared/soccer.js`, che la salva):
+  prima restava quella della creazione. Riallineamento dati: `scripts/sync-fasce-soccer.mjs`.
 
 ### Profili cliente (`profileType`)
 ```

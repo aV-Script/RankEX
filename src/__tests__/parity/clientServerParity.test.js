@@ -20,6 +20,8 @@ import { TESTS_META }    from '../../../functions/src/shared/testsMeta.js'
 import { calcPercentileEx as serverPercentile } from '../../../functions/src/shared/percentile.js'
 import * as serverPlans  from '../../../functions/src/shared/plans.js'
 import * as serverGame   from '../../../functions/src/shared/gamification.js'
+import * as clientModules from '../../config/modules.config.js'
+import * as serverSoccer  from '../../../functions/src/shared/soccer.js'
 
 const AGES  = Array.from({ length: 66 }, (_, i) => i + 5)   // 5..70
 const SEXES = ['M', 'F']
@@ -119,5 +121,25 @@ describe('Gamification', () => {
   ])('buildNewClient %s', (_label, form) => {
     const defaults = { xp: 0, xpNext: 500, level: 1 }
     expect(serverGame.buildNewClient('t1', form, defaults)).toEqual(clientGame.buildNewClient('t1', form, defaults))
+  })
+})
+
+describe('Fasce soccer', () => {
+  it('getCategoriaFromEta identica per ogni età', () => {
+    for (let age = 3; age <= 40; age++) {
+      expect(serverSoccer.getCategoriaFromEta(age), `età ${age}`).toBe(clientModules.getCategoriaFromEta(age))
+    }
+  })
+
+  it('resolveCategoria identica (soccer, PT, dati mancanti)', () => {
+    const casi = [
+      { categoria: 'soccer_youth', dataNascita: '2016-03-10' },
+      { categoria: 'soccer_junior', dataNascita: '2011-12-31' },
+      { categoria: 'soccer', eta: 9 },
+      { categoria: 'soccer_youth' },
+      { categoria: 'active', dataNascita: '1990-01-01' },
+      { categoria: null },
+    ]
+    for (const c of casi) expect(serverSoccer.resolveCategoria(c)).toBe(clientModules.resolveCategoria(c))
   })
 })
