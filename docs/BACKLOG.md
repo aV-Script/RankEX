@@ -355,6 +355,7 @@ caso di incidente di sicurezza.
 - **Risks:** nessuna voce storica esistente viola le nuove regole (si applicano solo a
   nuove `create`, non retroattive); verificare che l'app scriva sempre correttamente
   `uid`/`email` (già lo fa, vedi `utils/auditLog.js` righe 41-49)
+- **Status attuale (24/10/2026):** DONE — in produzione (ott 2026)
 - **Status:** CODE REVIEW — implementato: `firestore.rules` aggiornata (uid/email
   anti-spoofing + `hasOnly` sui 7 campi), `tests/rules/firestore.rules.test.js` esteso
   (`ctxFor` ora passa una claim `email` di test, nuovo test sul flusso legittimo +
@@ -431,6 +432,7 @@ personali orfani — incluse note testuali libere che possono riguardare un mino
 - **Risks:** volume di letture/scritture più alto per singola cancellazione
   (query aggiuntive prima del batch) — accettabile sul piano Spark ma da monitorare
   su clienti con storico lungo (molti slot/ricorrenze)
+- **Status attuale (24/10/2026):** DONE — in produzione (ott 2026)
 - **Status:** CODE REVIEW → **fix applicati post-review**. `functions/src/callable/eliminaCliente.js`
   esteso con `recursiveDelete` su `notes/`/`goals/`, tre query `array-contains` su
   slots (dedup via `Map`), query `array-contains` su recurrences, query+delete
@@ -520,6 +522,7 @@ stuffing, invece di un codice che sembra farlo ma non scrive mai nulla.
 - **Risks:** rate limit per-email non ferma un attaccante con email casuali/distribuite
   — rischio residuo accettato esplicitamente in ADR-004, da rivalutare solo se si
   osserva abuso reale (non da costruire preventivamente oggi).
+- **Status attuale (24/10/2026):** DONE — in produzione (ott 2026)
 - **Status:** CODE REVIEW → **fix applicato post-review**. Implementato:
   `functions/src/callable/registraLoginFallito.js` (no auth, valida email, throttle
   5 entry/5min per email), export in `functions/src/index.js`,
@@ -584,6 +587,7 @@ prova email a caso.
   da solo codice).
 - **Dependencies:** nessuna
 - **Risks:** nessuno — cambio isolato, nessuna migrazione
+- **Status attuale (24/10/2026):** DONE — in produzione (ott 2026)
 - **Status:** CODE REVIEW → **fix applicato post-review**. **Finding MEDIUM del
   code-reviewer risolto:** la prima implementazione applicava il messaggio generico
   direttamente a `FIREBASE_ERROR_MESSAGES`, la mappa condivisa usata anche da
@@ -630,6 +634,7 @@ trattati, come richiesto dal GDPR.
 - **Risks:** pubblicare una policy scritta senza competenza legale reale (es. un
   placeholder generico copiato online) è peggio di non pubblicarla affatto — rischio
   di dichiarazioni non veritiere sul trattamento dei dati
+- **Status attuale (24/10/2026):** BLOCKED — bozza Informativa Privacy pronta (Claude Docs, 24/10/2026), in attesa di revisione legale; poi pagina /privacy + link dal login
 - **Status:** BLOCKED — in attesa di contenuto legale da parte dell'utente o di un
   consulente esterno
 
@@ -664,6 +669,7 @@ l'evidenza, **per** non trattare dati di minori senza una base giuridica chiara.
 - **Risks:** se non chiarito, RankEX potrebbe trattare dati di minori senza base
   giuridica documentata — rischio legale/reputazionale più alto di qualunque item
   tecnico in questa epic
+- **Status attuale (24/10/2026):** BLOCKED — il DPA (bozza 24/10/2026) mette il consenso genitoriale a carico dell'org; serve conferma del legale
 - **Status:** BLOCKED — in attesa di decisione dell'utente sul modello
   Titolare/Contitolare e sul flusso di raccolta consenso
 
@@ -688,6 +694,7 @@ se serve una base giuridica per il trasferimento.
 - **Risks:** se si scopre extra-UE e si decide di migrare, è un'operazione ad alto
   rischio (richiede downtime/migrazione dati) — da trattare come epic separata con
   Tech Lead, non un fix di sprint
+- **Status attuale (24/10/2026):** DONE — Firestore in eur3 (Belgio/Paesi Bassi) su entrambi i progetti, verificato 24/10/2026
 - **Status:** BLOCKED — in attesa che l'utente esegua il controllo su Firebase
   Console (nessun accesso diretto alla Console dal team di sviluppo automatizzato) e
   comunichi l'esito
@@ -716,6 +723,7 @@ raccolta dati di terze parti non disclosata.
   `firestore.rules`
 - **Risks:** dimensione bundle leggermente maggiore (font come asset del progetto
   invece che da CDN con cache condivisa cross-sito) — trascurabile
+- **Status attuale (24/10/2026):** DONE — font serviti dall'app (@fontsource-variable), CSP senza Google Fonts, in produzione 24/10/2026
 - **Status:** BACKLOG
 
 ### [STORY-023] Backup dei dati di produzione
@@ -740,6 +748,7 @@ incidente, dato che il piano Spark non include backup automatici pianificati.
   decisione di budget dell'utente, non tecnica — non blocca la parte immediata
 - **Risks:** uno script manuale dipende dalla disciplina di eseguirlo — non sostituisce
   un vero backup automatico pianificato
+- **Status attuale (24/10/2026):** DONE — backup giornaliero gestito da Firestore su fitquest-60a09, conservato 7 giorni (24/10/2026)
 - **Status:** BACKLOG (per lo script interim — la domanda su Blaze resta aperta e non
   blocca questa story)
 
@@ -773,6 +782,7 @@ principio di minimizzazione — il ruolo è pensato per operatività, non dati c
 - **Risks:** se si sceglie la subcollection, serve una migrazione dati one-shot per
   spostare `biaHistory`/`lastBia` esistenti fuori dal documento cliente — da
   pianificare con Tech Lead prima di stimare lo sforzo
+- **Status attuale (24/10/2026):** WON'T DO (per ora) — decisione utente 24/10/2026: lo staff in sola lettura vede i dati BIA, dichiarato in Informativa e DPA; da riaprire se un'org lo chiede
 - **Status:** BACKLOG
 
 ### [STORY-025] Rimuovere o correggere `deleteOrganization`
@@ -798,6 +808,7 @@ bottone reale con un comportamento di cancellazione incompleto.
   STORY-016 ma a livello di intera org (superficie più ampia)
 - **Risks:** nessuno per l'Opzione A (pura rimozione di codice non raggiungibile);
   l'Opzione B è uno sforzo paragonabile a un'epic a sé
+- **Status attuale (24/10/2026):** DONE — Cloud Function eliminaOrganizzazione (cascade completo, solo super_admin) + scripts/export-org.mjs, in produzione 24/10/2026
 - **Status:** BACKLOG
 
 ### [STORY-026] Definire una policy di retention per gli storici cliente
@@ -821,6 +832,7 @@ conservare dati a tempo indeterminato senza una policy dichiarata — oggi solo
 - **Risks:** nessuno tecnico nella sola definizione; un eventuale cap futuro andrà
   valutato per non cancellare dati che un trainer si aspetta di vedere nello storico
   lungo di un atleta pluriennale
+- **Status attuale (24/10/2026):** BLOCKED — in attesa di decisione dell'utente sulla retention (serve anche a Informativa e DPA)
 - **Status:** BLOCKED — in attesa di decisione dell'utente sulla policy di retention
 
 ### [STORY-027] Rimuovere `VITE_FIREBASE_MEASUREMENT_ID` finché Analytics non è
@@ -845,6 +857,7 @@ sistema di consenso cookie a monte.
 - **Dependencies:** rimozione dei secret da GitHub Actions richiede accesso alle
   impostazioni del repo (l'utente, non il developer, gestisce i secret)
 - **Risks:** nessuno — chiave non usata, nessuna funzionalità dipende da essa
+- **Status attuale (24/10/2026):** DONE — chiave rimossa da config, .env.example e workflow (ott 2026); i secret GitHub si possono cancellare
 - **Status:** BACKLOG
 
 ### [STORY-028] Export dati strutturato per il cliente finale
@@ -870,6 +883,7 @@ diritto alla portabilità dei dati.
   domanda aperta di prodotto, non un blocco per l'inserimento in backlog
 - **Risks:** basso — nessun dato nuovo da esporre, solo un formato diverso da quello
   già esistente
+- **Status attuale (24/10/2026):** DONE — Profilo → Account → "Scarica i miei dati" (JSON), self-service (ott 2026)
 - **Status:** BACKLOG
 
 ---
