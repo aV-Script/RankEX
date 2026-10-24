@@ -14,6 +14,7 @@ vi.mock('firebase-functions/v2/https', () => {
 
 const {
   assertIdsInData, requireNumber, optionalString, pickAllowed, requireValidPassword,
+  requireDate, requireTime, requireDays,
 } = await import('../src/shared/validate.js')
 
 const invalid = { code: 'invalid-argument' }
@@ -75,5 +76,22 @@ describe('requireValidPassword (stessa policy di src/utils/validation.js)', () =
   })
   it.each(['Pass1', 'password1', 'Password', 123456789])('rifiuta %s', (pwd) => {
     expect(() => requireValidPassword(pwd)).toThrow(expect.objectContaining(invalid))
+  })
+})
+
+describe('requireDate / requireTime / requireDays (ricorrenze)', () => {
+  it('accettano valori validi', () => {
+    expect(requireDate('2026-10-24', 'd')).toBe('2026-10-24')
+    expect(requireTime('07:30', 't')).toBe('07:30')
+    expect(requireDays([1, 3, 5])).toEqual([1, 3, 5])
+  })
+  it.each([['24/10/2026'], ['2026-13-45'], [20261024]])('requireDate rifiuta %s', (v) => {
+    expect(() => requireDate(v, 'd')).toThrow(expect.objectContaining(invalid))
+  })
+  it.each([['7:30'], ['24:00'], ['07:60']])('requireTime rifiuta %s', (v) => {
+    expect(() => requireTime(v, 't')).toThrow(expect.objectContaining(invalid))
+  })
+  it.each([[[]], [[7]], [[1, 1]], ['1,3']])('requireDays rifiuta %j', (v) => {
+    expect(() => requireDays(v)).toThrow(expect.objectContaining(invalid))
   })
 })

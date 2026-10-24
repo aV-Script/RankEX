@@ -28,3 +28,12 @@ export function generateRecurrenceDates(startDate, endDate, days) {
 export function todayInRome() {
   return new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Rome' })
 }
+
+/**
+ * Massimo di sessioni future per ricorrenza. Con questo tetto ricorrenza e slot
+ * stanno sempre in un unico batch Firestore (limite 500 operazioni), quindi
+ * creazione, estensione, cancellazione e modifiche sono atomiche: prima oltre
+ * ~490 slot si scriveva in più batch e un errore a metà lasciava sessioni parziali.
+ * 450 = più di un anno a 7 giorni su 7. Speculare a src/utils/calendarUtils.js.
+ */
+export const MAX_RECURRENCE_SLOTS = 450

@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from 'react'
-import { generateRecurrenceDates, toLocalDateStr } from '../../../utils/calendarUtils'
+import { generateRecurrenceDates, toLocalDateStr, MAX_RECURRENCE_SLOTS } from '../../../utils/calendarUtils'
 import { useFocusTrap } from '../../../hooks/useFocusTrap'
 import { IconClose }    from '../../../components/ui/icons'
 import { useEscapeKey } from '../../../hooks/useEscapeKey'
@@ -45,7 +45,9 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
     return generateRecurrenceDates(startDate, endDate, selectedDays).length
   }, [selectedDays, startDate, endDate])
 
-  const canSave = selectedDays.length > 0 && selectedClients.length > 0 && startDate && endDate && !saving
+  // Oltre il tetto il server rifiuta la ricorrenza (resta atomica solo in un batch)
+  const tooLong = previewCount > MAX_RECURRENCE_SLOTS
+  const canSave = selectedDays.length > 0 && selectedClients.length > 0 && startDate && endDate && !saving && !tooLong
 
   const handleSave = async () => {
     if (!canSave) return
@@ -136,7 +138,9 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
             style={{ background: 'color-mix(in srgb, var(--rx-accent) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-accent) 20%, transparent)' }}
           >
             <span className="font-display text-[11px]" style={{ color: 'var(--rx-accent)' }}>
-              Verranno create {previewCount} sessioni
+              {tooLong
+                ? `${previewCount} sessioni: il massimo è ${MAX_RECURRENCE_SLOTS}. Accorcia il periodo e prolungala in seguito.`
+                : `Verranno create ${previewCount} sessioni`}
             </span>
           </div>
         )}

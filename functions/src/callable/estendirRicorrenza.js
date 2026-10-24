@@ -1,10 +1,10 @@
 import { onCall, HttpsError }      from 'firebase-functions/v2/https'
 import { getFirestore }            from 'firebase-admin/firestore'
 import { requireOrgAccess }        from '../shared/auth.js'
-import { generateRecurrenceDates } from '../shared/calendarUtils.js'
+import { generateRecurrenceDates, MAX_RECURRENCE_SLOTS, todayInRome } from '../shared/calendarUtils.js'
+import { requireDate } from '../shared/validate.js'
 
-const REGION       = 'europe-west1'
-const MAX_PER_BATCH = 490
+const REGION = 'europe-west1'
 
 export const estendirRicorrenza = onCall({ region: REGION }, async (request) => {
   const { orgId, recurrenceId, newEndDate } = request.data
@@ -14,6 +14,7 @@ export const estendirRicorrenza = onCall({ region: REGION }, async (request) => 
   }
 
   await requireOrgAccess(request, orgId)
+  requireDate(newEndDate, 'newEndDate')
 
   const db    = getFirestore()
   const recDoc = await db.doc(`organizations/${orgId}/recurrences/${recurrenceId}`).get()
@@ -27,23 +28,31 @@ export const estendirRicorrenza = onCall({ region: REGION }, async (request) => 
   nextStart.setDate(nextStart.getDate() + 1)
   const newStartDate = nextStart.toISOString().slice(0, 10)
 
+  if (newEndDate <= rec.endDate) {
+    throw new HttpsError('invalid-argument', 'La nuova data di fine deve essere dopo quella attuale')
+  }
   const newDates = generateRecurrenceDates(newStartDate, newEndDate, rec.days)
 
-  const allBatches = []
-  let currentBatch  = db.batch()
-  let opsInCurrent  = 0
+  // Il tetto vale sulle sessioni future totali: così anche cancellazione e
+  // modifiche (che toccano tutti gli slot futuri in un batch) restano atomiche.
+  const futureSnap = await db.collection(`organizations/${orgId}/slots`)
+    .where('recurrenceId', '==', recurrenceId)
+    .where('date', '>=', todayInRome())
+    .count().get()
+  const totalFuture = futureSnap.data().count + newDates.length
+  if (totalFuture > MAX_RECURRENCE_SLOTS) {
+    throw new HttpsError('failed-precondition',
+      `Estensione troppo lunga: ${totalFuture} sessioni future, massimo ${MAX_RECURRENCE_SLOTS}.`)
+  }
 
-  currentBatch.update(recDoc.ref, { endDate: newEndDate })
-  opsInCurrent++
+  // Un solo batch: nuova data di fine e nuovi slot insieme. Prima la data di
+  // fine veniva aggiornata nel primo di più batch: se un batch successivo
+  // falliva, un nuovo tentativo saltava le date mai create.
+  const batch = db.batch()
+  batch.update(recDoc.ref, { endDate: newEndDate })
 
   for (const date of newDates) {
-    if (opsInCurrent >= MAX_PER_BATCH) {
-      allBatches.push(currentBatch)
-      currentBatch = db.batch()
-      opsInCurrent = 0
-    }
-    const slotRef = db.collection(`organizations/${orgId}/slots`).doc()
-    currentBatch.set(slotRef, {
+    batch.set(db.collection(`organizations/${orgId}/slots`).doc(), {
       date,
       startTime:    rec.startTime,
       endTime:      rec.endTime,
@@ -55,13 +64,8 @@ export const estendirRicorrenza = onCall({ region: REGION }, async (request) => 
       absentees:    [],
       createdAt,
     })
-    opsInCurrent++
   }
 
-  allBatches.push(currentBatch)
-  for (const batch of allBatches) {
-    await batch.commit()
-  }
-
-  return { ok: true }
+  await batch.commit()
+  return { ok: true, slots: newDates.length }
 })

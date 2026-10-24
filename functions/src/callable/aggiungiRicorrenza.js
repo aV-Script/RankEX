@@ -1,10 +1,10 @@
 import { onCall, HttpsError }      from 'firebase-functions/v2/https'
 import { getFirestore }            from 'firebase-admin/firestore'
 import { requireOrgAccess }        from '../shared/auth.js'
-import { generateRecurrenceDates } from '../shared/calendarUtils.js'
+import { generateRecurrenceDates, MAX_RECURRENCE_SLOTS } from '../shared/calendarUtils.js'
+import { requireDate, requireTime, requireDays } from '../shared/validate.js'
 
-const REGION       = 'europe-west1'
-const MAX_PER_BATCH = 490
+const REGION = 'europe-west1'
 
 export const aggiungiRicorrenza = onCall({ region: REGION }, async (request) => {
   const { orgId, clientIds = [], groupIds = [], days, startDate, endDate, startTime, endTime } = request.data
@@ -14,6 +14,13 @@ export const aggiungiRicorrenza = onCall({ region: REGION }, async (request) => 
   }
 
   await requireOrgAccess(request, orgId)
+  requireDays(days)
+  requireDate(startDate, 'startDate')
+  requireDate(endDate, 'endDate')
+  requireTime(startTime, 'startTime')
+  requireTime(endTime, 'endTime')
+  if (endDate < startDate) throw new HttpsError('invalid-argument', 'La data di fine è prima di quella di inizio')
+  if (endTime <= startTime) throw new HttpsError('invalid-argument', "L'orario di fine deve essere dopo quello di inizio")
 
   const db        = getFirestore()
   const recRef    = db.collection(`organizations/${orgId}/recurrences`).doc()
@@ -21,29 +28,24 @@ export const aggiungiRicorrenza = onCall({ region: REGION }, async (request) => 
   const createdAt = new Date().toISOString()
 
   const dates = generateRecurrenceDates(startDate, endDate, days)
+  if (dates.length === 0) throw new HttpsError('invalid-argument', 'Nessuna sessione nel periodo scelto')
+  if (dates.length > MAX_RECURRENCE_SLOTS) {
+    throw new HttpsError('failed-precondition',
+      `Ricorrenza troppo lunga: ${dates.length} sessioni, massimo ${MAX_RECURRENCE_SLOTS}. Accorcia il periodo e prolungala in seguito.`)
+  }
 
-  // Suddivide in batch da max MAX_PER_BATCH operazioni
-  // Primo batch include la ricorrenza stessa
-  const allBatches = []
-  let currentBatch  = db.batch()
-  let opsInCurrent  = 0
-
-  currentBatch.set(recRef, {
+  // Un solo batch (ricorrenza + slot): tutto o niente. Prima, oltre ~490 slot,
+  // più batch in sequenza lasciavano ricorrenze parziali se uno falliva.
+  const batch = db.batch()
+  batch.set(recRef, {
     clientIds, groupIds, days,
     startDate, endDate, startTime, endTime,
     status: 'active',
     createdAt,
   })
-  opsInCurrent++
 
   for (const date of dates) {
-    if (opsInCurrent >= MAX_PER_BATCH) {
-      allBatches.push(currentBatch)
-      currentBatch = db.batch()
-      opsInCurrent = 0
-    }
-    const slotRef = db.collection(`organizations/${orgId}/slots`).doc()
-    currentBatch.set(slotRef, {
+    batch.set(db.collection(`organizations/${orgId}/slots`).doc(), {
       date, startTime, endTime,
       clientIds,
       groupIds,
@@ -53,14 +55,8 @@ export const aggiungiRicorrenza = onCall({ region: REGION }, async (request) => 
       absentees:    [],
       createdAt,
     })
-    opsInCurrent++
   }
 
-  allBatches.push(currentBatch)
-
-  for (const batch of allBatches) {
-    await batch.commit()
-  }
-
-  return { id: recId }
+  await batch.commit()
+  return { id: recId, slots: dates.length }
 })

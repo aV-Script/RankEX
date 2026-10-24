@@ -66,6 +66,27 @@ export function requireValidPassword(password) {
   return password
 }
 
+export function requireDate(value, name) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value) || isNaN(new Date(value + 'T12:00'))) {
+    invalid(`${name} deve essere una data AAAA-MM-GG`)
+  }
+  return value
+}
+
+export function requireTime(value, name) {
+  if (typeof value !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(value)) invalid(`${name} deve essere un orario HH:MM`)
+  return value
+}
+
+/** Giorni della settimana 0-6 (0 = domenica), almeno uno, senza duplicati */
+export function requireDays(value) {
+  if (!Array.isArray(value) || value.length === 0 || value.length > 7 ||
+      value.some(d => !Number.isInteger(d) || d < 0 || d > 6) || new Set(value).size !== value.length) {
+    invalid('days deve contenere da 1 a 7 giorni distinti tra 0 e 6')
+  }
+  return value
+}
+
 /** Tiene solo le chiavi ammesse: impedisce di scrivere campi non previsti. */
 export function pickAllowed(data, allowedKeys) {
   if (!data || typeof data !== 'object' || Array.isArray(data)) invalid('Dati non validi')

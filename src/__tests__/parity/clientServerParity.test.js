@@ -22,6 +22,8 @@ import * as serverPlans  from '../../../functions/src/shared/plans.js'
 import * as serverGame   from '../../../functions/src/shared/gamification.js'
 import * as clientModules from '../../config/modules.config.js'
 import * as serverSoccer  from '../../../functions/src/shared/soccer.js'
+import { MAX_RECURRENCE_SLOTS as CLIENT_MAX_REC } from '../../utils/calendarUtils.js'
+import { MAX_RECURRENCE_SLOTS as SERVER_MAX_REC } from '../../../functions/src/shared/calendarUtils.js'
 
 const AGES  = Array.from({ length: 66 }, (_, i) => i + 5)   // 5..70
 const SEXES = ['M', 'F']
@@ -141,5 +143,12 @@ describe('Fasce soccer', () => {
       { categoria: null },
     ]
     for (const c of casi) expect(serverSoccer.resolveCategoria(c)).toBe(clientModules.resolveCategoria(c))
+  })
+})
+
+describe('Ricorrenze', () => {
+  it('stesso tetto di sessioni per ricorrenza', () => {
+    expect(SERVER_MAX_REC).toBe(CLIENT_MAX_REC)
+    expect(SERVER_MAX_REC + 1).toBeLessThanOrEqual(499)   // ricorrenza + slot in un solo batch
   })
 })

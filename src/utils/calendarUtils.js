@@ -2,6 +2,15 @@
 export const HOUR_HEIGHT_PX = 60
 
 /** Altezza minima in px di uno slot breve, uniforme tra WeekView e DayView (prima 30 vs 40). */
+/**
+ * Massimo di sessioni future per ricorrenza. Con questo tetto ricorrenza e slot
+ * stanno sempre in un unico batch Firestore (limite 500 operazioni), quindi
+ * creazione, estensione, cancellazione e modifiche sono atomiche: prima oltre
+ * ~490 slot si scriveva in più batch e un errore a metà lasciava sessioni parziali.
+ * 450 = più di un anno a 7 giorni su 7. Speculare a functions/src/shared/calendarUtils.js.
+ */
+export const MAX_RECURRENCE_SLOTS = 450
+
 export const MIN_EVENT_HEIGHT_PX = 40
 
 /**
