@@ -434,16 +434,50 @@ export const RUNBOOK_SUITES = [
         preconditions: 'Cliente con almeno una sessione chiusa e un campionamento.',
         steps: [
           'Tab Trofei → verificare badge automatici già assegnati (es. prima sessione)',
-          'Raggiungere una condizione per un nuovo badge automatico (es. streak x5) → verificare assegnazione al prossimo cambio dati',
+          'Chiudere una sessione che porta il cliente a 5 presenze → verificare il badge striscia_5 subito, senza aprire la scheda del cliente',
           'Come trainer: assegnare un badge manuale (es. "Campione") con una nota libera',
           'Verificare che readonly (staff_readonly) non possa assegnare/revocare badge',
           'Fissare fino a 5 badge in "showcase" → verificare visibili sul profilo',
           'Revocare un badge manuale → verificare rimozione',
         ],
         expected: [
-          'checkAutoBadges assegna i badge mancanti a ogni cambio dati (non readonly)',
+          'I badge automatici li assegnano chiudiSessione/salvaCampionamento (server), una volta sola',
           'Assegnazione manuale solo trainer/org_admin',
           'Showcase max 5 badge',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'athlete-oct26', label: 'Atleta: obiettivi, dati, scheda ↔ calendario', cases: [
+      {
+        id: 'TP-045', usId: 'STORY-028', severity: 'important', title: 'Obiettivi e download dei propri dati (vista atleta)',
+        preconditions: 'Cliente con profilo test e almeno un obiettivo fissato dal trainer.',
+        steps: [
+          'Login come cliente → hub → Test → sotto-tab Obiettivi',
+          'Verificare che compaiano gli obiettivi (attivi, raggiunti, scaduti) senza bottoni di modifica',
+          'Profilo → Account → "Scarica i miei dati" → aprire il file JSON scaricato',
+        ],
+        expected: [
+          'Obiettivi in sola lettura, gli stessi visti dal trainer',
+          'Il file contiene profilo, obiettivi, note, schede e notifiche del solo cliente loggato',
+          'Nel file non ci sono fcmTokens né token wearable',
+        ],
+      },
+      {
+        id: 'TP-046', usId: null, severity: 'important', title: 'Scheda collegata al calendario e bonus a fine scheda',
+        preconditions: 'Cliente con scheda attiva di 2 giorni e "Sessioni previste" = 2.',
+        steps: [
+          'Calendario → chiudere una sessione con il cliente presente',
+          'Dashboard cliente (trainer) → Allenamento: verificare "Sessione 1 di 2" e "Prossimo: Giorno 2"',
+          'Chiudere una seconda sessione con il cliente presente',
+          'Verificare scheda completata, log "Scheda completata" (+100 XP) e notifica al cliente',
+          'Chiudere una terza sessione: il bonus non deve ripetersi',
+        ],
+        expected: [
+          'Ogni presenza fa avanzare la scheda attiva, le assenze no',
+          'Bonus +100 XP una sola volta, al raggiungimento delle sessioni previste',
+          "L'atleta vede lo stesso avanzamento e apre direttamente il giorno consigliato",
         ],
       },
     ],

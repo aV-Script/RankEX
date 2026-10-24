@@ -2,7 +2,8 @@
 
 ## Stack
 - React 18 + Vite
-- Firebase (Auth + Firestore + Hosting multisito)
+- Firebase JS SDK 12 (Auth + Firestore + Hosting multisito) — `@grpc/grpc-js` forzato a
+  1.14.6 via `overrides` in package.json: anche firebase 13 lo fissa a ~1.9, vulnerabile
 - Tailwind CSS v4
 - React Router v6
 - Recharts (grafici)
@@ -251,9 +252,20 @@ La cancellazione a cascata (nota root + suoi commenti) la fa la Cloud Function `
     }
   ],
   status:    'active'|'archived',
+  targetSessions,     // sessioni previste (1-200) o null — scelte dal trainer
+  completedSessions,  // presenze registrate da chiudiSessione — mai dal client
+  completedAt,        // scritto da chiudiSessione al raggiungimento di targetSessions
   createdAt, updatedAt,
 }
 ```
+**Collegamento al calendario (ott 2026):** ogni sessione chiusa con presenza fa avanzare di
+uno la scheda `active` dell'atleta, nella stessa transazione di `chiudiSessione`. Raggiunte
+le `targetSessions`, la scheda è completata e l'atleta riceve `PLAN_COMPLETION_XP` (100,
+speculare in `constants/index.js` e `functions/src/shared/constants.js`) una volta sola,
+con voce di log e notifica. Il giorno consigliato ruota sui giorni della scheda
+(`getPlanProgress` in `utils/workoutPlans.js`, UI `PlanProgress.jsx` per trainer e atleta).
+`aggiornaSchedaAllenamento` accetta `targetSessions` ma non `completedSessions`/`completedAt`.
+L'anteprima XP di `CloseSessionModal` non include il bonus scheda.
 `days` è un array di giorni (max 7), ogni giorno ha un array di esercizi.
 Backward compat: vecchi documenti con `exercises[]` flat vengono normalizzati
 a `[{ label: 'Giorno 1', exercises }]` lato client.
@@ -487,7 +499,8 @@ src/
 │   │       ├── clientDashboardIcons.jsx  ← icone tab/azioni estratte (RX-07)
 │   │       ├── DeleteDialog.jsx
 │   │       ├── NotesSection.jsx          ← thread note + commenti (trainer+client)
-│   │       ├── GoalsSection.jsx          ← obiettivi (target percentile+scadenza): CRUD (solo vista trainer, vedi Roadmap)
+│   │       ├── GoalsSection.jsx          ← obiettivi (target percentile+scadenza): CRUD trainer, readonly atleta
+│   │       ├── PlanProgress.jsx          ← avanzamento scheda (sessioni, giorno consigliato) — trainer + atleta
 │   │       ├── WorkoutPlanSection.jsx    ← schede allenamento (trainer): CRUD + storico
 │   │       ├── ClientWorkoutSection.jsx  ← scheda allenamento read-only (client)
 │   │       ├── MisureSection.jsx         ← tab Misure: storico peso+altezza con trend inline
@@ -629,7 +642,8 @@ src/
 │   ├── useNotes.js             ← useNotes(orgId, clientId, author) → threads
 │   ├── useGoals.js             ← useGoals(orgId, clientId) → { goals, handleAddGoal, handleCancelGoal }
 │   ├── useRunbook.js           ← useRunbook() → { runs, handleSaveRun } (super_admin)
-│   ├── useBadges.js            ← useBadges(orgId, clientId, client, { readonly }) — auto-award + manuale
+│   ├── useBadges.js            ← useBadges(orgId, clientId, client) — lettura + manuale (auto: server)
+│   ├── useClientExport.js      ← "Scarica i miei dati" dell'atleta (STORY-028) → utils/clientExport.js
 │   ├── useWearable.js          ← useWearable (trainer, solo enable/disable/sync) — link client rimosso, vedi sezione dedicata
 │   ├── useVersionCheck.js      ← rileva nuova build disponibile, mostra banner ricarica
 │   ├── useFocusTrap.js         ← focus trap da tastiera per dialog/modal (Tab/Shift+Tab)
@@ -1451,7 +1465,8 @@ Struttura: `clients/{clientId}/goals/{goalId}` (subcollection del cliente).
 - Usecases: `addGoalUseCase.js` (→ `aggiungiObiettivo`), `cancelGoalUseCase.js` (→ `annullaObiettivo`)
 - Hook: `useGoals(orgId, clientId)` in `hooks/useGoals.js`
 - UI trainer: `GoalsSection` integrata in `ClientDashboard` (tab OBIETTIVI)
-- UI client: non ancora — vedi nota fast-follow in Roadmap futura → "Obiettivi trainer"
+- UI client: hub → Test → sotto-tab "Obiettivi" (`ClientDashboardPage.jsx`), stessa
+  `GoalsSection` in `readonly` (ott 2026)
 - Achievement: mai lato client — rilevato server-side in `salvaCampionamento.js`
   confrontando il percentile appena calcolato con `targetPercentile`
 - Rules: `firestore.rules` — create/update solo `canWrite(orgId)` (trainer/org_admin),
@@ -1684,6 +1699,11 @@ Entrambi gitignored. Template: `.env.example`.
 non era letta da nessun file sorgente, confermato senza flusso OAuth diretto pianificato
 che la usi. La feature Wearable/Google Fit (vedi sotto) autentica comunque tramite
 `GoogleAuthProvider` di Firebase Auth, non un client ID separato.
+
+`VITE_FIREBASE_MEASUREMENT_ID` — **rimossa (ott 2026, STORY-027)** da `.env.example`,
+`firebase/config.js` e dai tre workflow: Analytics non è mai stato usato. Se si
+reintroduce, serve prima un banner di consenso cookie. I secret GitHub
+`VITE_FIREBASE_MEASUREMENT_ID(_DEV)` non sono più letti e si possono cancellare.
 
 ### Hosting Firebase — multisito
 ```
@@ -1929,14 +1949,18 @@ Badge / Achievement    → IMPLEMENTATO — lug 2026
                          assegnabili dal trainer (es. "Campione") con nota libera.
                          Tier: Bronzo/Argento/Oro/Platino — config in config/badges.config.js
                          Showcase: il cliente fissa fino a 5 badge in evidenza sul profilo.
-                         Hook: hooks/useBadges.js — checkAutoBadges gira ad ogni
-                         cambio dati cliente (non readonly) e assegna i mancanti.
+                         Assegnazione automatica SERVER-SIDE (ott 2026): chiudiSessione
+                         e salvaCampionamento aggiungono i badge maturati nella stessa
+                         transazione (functions/src/shared/badges.js → autoBadgeFields,
+                         copia di utils/badges.js coperta dal test di parità). Prima la
+                         faceva hooks/useBadges.js nel browser del trainer, solo aprendo
+                         la scheda: in prod 10+ atleti VDP5 non avevano trofei maturati
+                         (sistemati con scripts/backfill-badges.mjs).
                          Service: firebase/services/badges.js — awardBadge/revokeBadge/
                          updateBadgeShowcase. Dati su clients/{clientId}.badges{} +
                          .badgeShowcase[].
                          UI: client-dashboard/TrophiesSection.jsx (tab TROFEI,
-                         trainer + client). Rules: assegnazione automatica lato
-                         client (system), manuale solo trainer/org_admin.
+                         trainer + client). Rules: manuale solo trainer/org_admin.
 Streak presenze        → IMPLEMENTATO (verificato set 2026 — sezione corretta, era
                          rimasta come "da fare" dopo che il lavoro era già stato fatto)
                          Non a settimane come originariamente descritto qui, ma per
@@ -1966,15 +1990,10 @@ Obiettivi trainer      → IMPLEMENTATO — set 2026 (Sprint #2)
                          campionamento (salvaCampionamento), mai dal client. Notifica
                          al cliente al raggiungimento. 'missed' calcolato al volo
                          (nessun cron). UI: client-dashboard/GoalsSection.jsx (tab
-                         OBIETTIVI, solo vista trainer per ora — vedi nota sotto).
+                         OBIETTIVI) + vista atleta in sola lettura (hub → Test →
+                         Obiettivi, ott 2026).
                          Modello dati: vedi sezione "Obiettivo" più sopra.
                          Callable: aggiungiObiettivo / annullaObiettivo.
-                         Non ancora fatto (fast-follow, non bloccante): visibilità
-                         dell'obiettivo nella dashboard client stessa (oggi il client
-                         riceve solo la notifica di achievement, non vede la lista
-                         obiettivi attivi/scaduti come fa il trainer) — richiede un
-                         punto di ingresso nel Pentagon Nav client, non nella tab bar
-                         trainer-style già usata per il resto di questa feature.
 ```
 
 ### Gestione allenamento
@@ -1987,5 +2006,6 @@ Scheda Allenamento     → IMPLEMENTATO — apr 2026
                          Struttura: organizations/{orgId}/workoutPlans/{planId}
                          Schema: days: [{ label, exercises[] }]
                          Status: 'active' | 'archived'
-                         Roadmap: integrazione calendario + bonus XP al completamento
+                         Calendario + bonus XP: IMPLEMENTATO ott 2026 — vedi
+                         "Scheda Allenamento" nei Modelli dati
 ```
