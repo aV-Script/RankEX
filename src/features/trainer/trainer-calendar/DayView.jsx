@@ -10,7 +10,7 @@ const HOURS_COLUMN_WIDTH = 52  // px larghezza colonna ore
 /**
  * Vista giorno — colonna oraria singola.
  */
-export function DayView({ currentDate, slots, clients, today, onSlotClick, onEmptyClick }) {
+export function DayView({ currentDate, slots, clients, today, terminology, onSlotClick, onEmptyClick }) {
   const scrollRef = useRef(null)
 
   useEffect(() => {
@@ -44,7 +44,7 @@ export function DayView({ currentDate, slots, clients, today, onSlotClick, onEmp
           </div>
           <button
             onClick={() => onEmptyClick(currentDate, '09:00')}
-            aria-label={`Aggiungi sessione il ${currentDate}`}
+            aria-label={`Aggiungi ${terminology.session.toLowerCase()} il ${currentDate}`}
             className="mt-1 w-5 h-5 flex items-center justify-center rounded-full mx-auto cursor-pointer border-none bg-transparent text-white/25 hover:text-white/60 transition-colors"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -115,6 +115,7 @@ export function DayView({ currentDate, slots, clients, today, onSlotClick, onEmp
                   key={slot.id}
                   slot={slot}
                   clients={clients}
+                  terminology={terminology}
                   onSelect={onSlotClick}
                   style={{ top, height, left, width, right: 'auto' }}
                 />

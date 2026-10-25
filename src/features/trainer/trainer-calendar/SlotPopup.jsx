@@ -4,12 +4,13 @@ import { IconClose }     from '../../../components/ui/icons'
 import { useFocusTrap }  from '../../../hooks/useFocusTrap'
 import { toLocalDateStr } from '../../../utils/calendarUtils'
 import { useEscapeKey } from '../../../hooks/useEscapeKey'
+import { bySessionGender } from '../../../config/modules.config'
 
 /**
  * Popup dettaglio slot — appare al click su un evento.
  * Mostra info slot e azioni rapide.
  */
-export function SlotPopup({ slot, clients, position, hasGamification, onClose, onDelete, onSkip, onCloseSession, onViewRecurrence }) {
+export function SlotPopup({ slot, clients, position, hasGamification, terminology, onClose, onDelete, onSkip, onCloseSession, onViewRecurrence }) {
   const ref = useRef(null)
   useFocusTrap(ref, true)
 
@@ -29,10 +30,13 @@ export function SlotPopup({ slot, clients, position, hasGamification, onClose, o
     .map(id => clients.find(c => c.id === id))
     .filter(Boolean)
 
+  // Participi accordati al genere del termine (la sessione / l'appuntamento)
+  const sessionLabel = terminology.session.toUpperCase()
+
   const statusLabel = {
-    [SLOT_STATUS.PLANNED]:   { text: 'PIANIFICATA', color: '#00c8ff' },
-    [SLOT_STATUS.COMPLETED]: { text: 'COMPLETATA',  color: '#34d399' },
-    [SLOT_STATUS.SKIPPED]:   { text: 'SALTATA',     color: '#6b7280' },
+    [SLOT_STATUS.PLANNED]:   { text: bySessionGender(terminology, 'PIANIFICATO', 'PIANIFICATA'), color: '#00c8ff' },
+    [SLOT_STATUS.COMPLETED]: { text: bySessionGender(terminology, 'COMPLETATO', 'COMPLETATA'),   color: '#34d399' },
+    [SLOT_STATUS.SKIPPED]:   { text: bySessionGender(terminology, 'SALTATO', 'SALTATA'),         color: '#6b7280' },
   }[slot.status ?? SLOT_STATUS.PLANNED]
 
   const isPast      = slot.date < toLocalDateStr()
@@ -44,7 +48,7 @@ export function SlotPopup({ slot, clients, position, hasGamification, onClose, o
       ref={ref}
       role="dialog"
       aria-modal="true"
-      aria-label="Dettaglio sessione"
+      aria-label={`Dettaglio ${terminology.session.toLowerCase()}`}
       className="fixed z-50 w-72 rounded-[4px] p-4 shadow-2xl"
       style={{
         background: 'var(--rx-surface)',
@@ -124,7 +128,7 @@ export function SlotPopup({ slot, clients, position, hasGamification, onClose, o
           style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.15)' }}
         >
           <span className="font-display text-[10px] text-purple-400 flex-1">
-            ↺ Sessione ricorrente
+            ↺ {terminology.session} ricorrente
           </span>
           <span className="font-display text-[9px] text-purple-400/50">
             GESTISCI →
@@ -140,7 +144,7 @@ export function SlotPopup({ slot, clients, position, hasGamification, onClose, o
             className="w-full py-2.5 rounded-[3px] font-display text-[11px] tracking-widest cursor-pointer border-0 transition-opacity hover:opacity-85"
             style={{ background: 'color-mix(in srgb, var(--rx-accent) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-accent) 35%, transparent)', color: 'var(--rx-accent)' }}
           >
-            CHIUDI SESSIONE
+            CHIUDI {sessionLabel}
           </button>
         )}
 
@@ -150,7 +154,7 @@ export function SlotPopup({ slot, clients, position, hasGamification, onClose, o
             className="w-full py-2.5 rounded-[3px] font-display text-[11px] cursor-pointer border bg-transparent transition-all hover:opacity-85"
             style={{ borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' }}
           >
-            SEGNA COME SALTATA
+            SEGNA COME {bySessionGender(terminology, 'SALTATO', 'SALTATA')}
           </button>
         )}
 

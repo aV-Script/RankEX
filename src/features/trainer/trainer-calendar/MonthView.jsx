@@ -3,7 +3,7 @@ import { SLOT_STATUS, SLOT_STATUS_COLORS as STATUS_COLOR } from '../../../consta
 
 const DAY_NAMES = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
 
-const MonthCell = memo(function MonthCell({ cell, clients, today, onSlotClick, onEmptyClick }) {
+const MonthCell = memo(function MonthCell({ cell, clients, today, terminology, onSlotClick, onEmptyClick }) {
   const isToday = cell.dateStr === today
   return (
     // Il click su area vuota resta un'affordance mouse-only: l'accesso da
@@ -27,7 +27,7 @@ const MonthCell = memo(function MonthCell({ cell, clients, today, onSlotClick, o
         </span>
         <button
           onClick={(e) => { e.stopPropagation(); onEmptyClick(cell.dateStr, '09:00') }}
-          aria-label={`Aggiungi sessione il ${cell.dateStr}`}
+          aria-label={`Aggiungi ${terminology.session.toLowerCase()} il ${cell.dateStr}`}
           className="w-5 h-5 flex items-center justify-center rounded-full cursor-pointer border-none bg-transparent text-white/25 hover:text-white/60 transition-colors"
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -39,7 +39,7 @@ const MonthCell = memo(function MonthCell({ cell, clients, today, onSlotClick, o
           const clientNames = slot.clientIds
             .map(id => clients.find(c => c.id === id)?.name)
             .filter(Boolean)
-          const label = clientNames.length === 1 ? clientNames[0] : `${clientNames.length} clienti`
+          const label = clientNames.length === 1 ? clientNames[0] : `${clientNames.length} ${terminology.clients.toLowerCase()}`
           return (
             <button
               key={slot.id}
@@ -64,7 +64,7 @@ const MonthCell = memo(function MonthCell({ cell, clients, today, onSlotClick, o
 /**
  * Vista mese — griglia con eventi visibili nelle celle.
  */
-export function MonthView({ currentDate, slots, clients, today, onSlotClick, onEmptyClick }) {
+export function MonthView({ currentDate, slots, clients, today, terminology, onSlotClick, onEmptyClick }) {
   const d     = new Date(currentDate + 'T12:00')
   const year  = d.getFullYear()
   const month = d.getMonth()
@@ -110,6 +110,7 @@ export function MonthView({ currentDate, slots, clients, today, onSlotClick, onE
               cell={cell}
               clients={clients}
               today={today}
+              terminology={terminology}
               onSlotClick={onSlotClick}
               onEmptyClick={onEmptyClick}
             />

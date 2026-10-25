@@ -3,17 +3,13 @@ import { Modal, Field, Input, Button } from '../../../components/ui'
 import { createMemberUseCase }   from '../../../usecases/createMemberUseCase'
 import { getFirebaseErrorMessage, isEmailTakenError } from '../../../utils/firebaseErrors'
 import { validateRequired }      from '../../../utils/validation'
-
-const ROLE_OPTIONS = [
-  { value: 'trainer',        label: 'Trainer' },
-  { value: 'staff_readonly', label: 'Solo lettura' },
-  { value: 'org_admin',      label: 'Admin' },
-]
+import { DEFAULT_TERMINOLOGY, getMemberRoleOptions } from '../../../config/modules.config'
 
 /**
  * Flusso: crea membro via Cloud Function (creaMembroTeam) — Auth + Firestore in atomico.
  */
-export function CreateMemberForm({ orgId, onClose, onCreated }) {
+export function CreateMemberForm({ orgId, terminology = DEFAULT_TERMINOLOGY, onClose, onCreated }) {
+  const roleOptions = getMemberRoleOptions(terminology)
   const [form,   setForm]   = useState({ name: '', email: '', password: '', role: 'trainer' })
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState({})
@@ -86,7 +82,7 @@ export function CreateMemberForm({ orgId, onClose, onCreated }) {
               value={form.role}
               onChange={e => setForm(p => ({ ...p, role: e.target.value }))}
             >
-              {ROLE_OPTIONS.map(opt => (
+              {roleOptions.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>

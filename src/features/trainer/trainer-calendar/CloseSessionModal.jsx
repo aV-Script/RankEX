@@ -4,7 +4,7 @@ import { useFocusTrap } from '../../../hooks/useFocusTrap'
 import { Button } from '../../../components/ui'
 import { useEscapeKey } from '../../../hooks/useEscapeKey'
 
-export function CloseSessionModal({ slot, clients, hasGamification, onClose, onConfirm }) {
+export function CloseSessionModal({ slot, clients, hasGamification, terminology, onClose, onConfirm }) {
   const slotClients = slot.clientIds
     .map(id => clients.find(c => c.id === id))
     .filter(Boolean)
@@ -67,7 +67,7 @@ export function CloseSessionModal({ slot, clients, hasGamification, onClose, onC
         {/* Header */}
         <div className="mb-5">
           <h3 id="close-session-title" className="font-display font-black text-[16px] text-white mb-1">
-            Chiudi sessione
+            Chiudi {terminology.session.toLowerCase()}
           </h3>
           <p className="font-body text-[13px] text-white/40 m-0">
             {slot.date} · {slot.startTime}
@@ -164,7 +164,7 @@ export function CloseSessionModal({ slot, clients, hasGamification, onClose, onC
             loading={saving}
             disabled={presentCount === 0 && slotClients.length > 0}
           >
-            CHIUDI SESSIONE
+            CHIUDI {terminology.session.toUpperCase()}
           </Button>
         </div>
       </div>

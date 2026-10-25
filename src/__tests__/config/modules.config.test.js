@@ -11,6 +11,16 @@ import {
   MODULE_CAPABILITIES,
   CAPABILITY_KEYS,
   TERMINOLOGY_VARIANTS_BY_MODULE,
+  TERMINOLOGIES,
+  TERMINOLOGY_KEYS,
+  DEFAULT_TERMINOLOGY,
+  byGender,
+  bySessionGender,
+  byClientGender,
+  byGroupGender,
+  capitalize,
+  getMemberRoleOptions,
+  getNoteRoleLabels,
 } from '../../config/modules.config.js'
 
 // ── US-071 — Fascia d'età automatica ──────────────────────────────────────────
@@ -213,6 +223,145 @@ describe('getTerminology', () => {
   it('modulo sconosciuto → fallback personal_training', () => {
     const t = getTerminology('unknown_module')
     expect(t.client).toBe('Cliente')
+  })
+})
+
+// ── BUG-002 — forme grammaticali della terminologia ───────────────────────────
+// Le frasi sono composte come nei componenti (CalendarHeader, AddSlotModal,
+// SlotPopup, TrainerCalendar, GroupsPage, GroupManageTab…): per PT devono
+// restare identiche ai testi fissi di prima, per lipedema accordate ad
+// "appuntamento", per soccer/GYM a "squadra"/"classe" femminili.
+
+const newSession    = terminology => `${bySessionGender(terminology, 'Nuovo', 'Nuova')} ${terminology.session.toLowerCase()}`
+const noSession     = terminology => `${bySessionGender(terminology, 'Nessun', 'Nessuna')} ${terminology.session.toLowerCase()}`
+const closeSession  = terminology => `Chiudi ${terminology.session.toLowerCase()}`
+const closedSession = terminology => `${terminology.session} ${bySessionGender(terminology, 'chiuso', 'chiusa')}`
+const deleteSession = terminology => `Eliminare ${terminology.theSession}?`
+const willCreate    = (terminology, n) => `Verranno ${bySessionGender(terminology, 'creati', 'create')} ${n} ${terminology.sessions.toLowerCase()}`
+const backToClients = terminology => `Torna ${terminology.toTheClients}`
+const allInGroup    = terminology => `Tutti ${terminology.theAthletes} sono già in ${terminology.thisGroup}.`
+const noGroup       = terminology => `${byGroupGender(terminology, 'Nessun', 'Nessuna')} ${terminology.group.toLowerCase()}`
+const firstGroup    = terminology => `Crea ${byGroupGender(terminology, 'il primo', 'la prima')} ${terminology.group.toLowerCase()} per organizzare ${terminology.theClients}.`
+const noClient      = terminology => `${byClientGender(terminology, 'Nessun', 'Nessuna')} ${terminology.client.toLowerCase()}`
+
+describe('TERMINOLOGIES — forme grammaticali (BUG-002)', () => {
+  const variants = Object.entries(TERMINOLOGIES)
+
+  it('ogni variante (pt, gym, soccer, lipedema) ha tutte le chiavi, non vuote', () => {
+    expect(variants.map(([name]) => name)).toEqual(['personal_training', 'gym', 'soccer_academy', 'lipedema'])
+    for (const [, terminology] of variants) {
+      for (const key of TERMINOLOGY_KEYS) {
+        expect(typeof terminology[key]).toBe('string')
+        expect(terminology[key].length).toBeGreaterThan(0)
+      }
+    }
+  })
+
+  it('i generi sono solo "m" o "f"', () => {
+    for (const [, terminology] of variants) {
+      expect(['m', 'f']).toContain(terminology.clientGender)
+      expect(['m', 'f']).toContain(terminology.sessionGender)
+      expect(['m', 'f']).toContain(terminology.groupGender)
+    }
+  })
+
+  it('le forme con articolo/preposizione contengono il termine minuscolo', () => {
+    for (const [, terminology] of variants) {
+      const clients = terminology.clients.toLowerCase()
+      const group   = terminology.group.toLowerCase()
+      expect(terminology.theClient.endsWith(terminology.client.toLowerCase())).toBe(true)
+      expect(terminology.theClients.endsWith(clients)).toBe(true)
+      expect(terminology.toTheClients.endsWith(clients)).toBe(true)
+      expect(terminology.theSession.endsWith(terminology.session.toLowerCase())).toBe(true)
+      expect(terminology.theSessions.endsWith(terminology.sessions.toLowerCase())).toBe(true)
+      expect(terminology.theAthletes.endsWith(terminology.athletes.toLowerCase())).toBe(true)
+      for (const key of ['theGroup', 'thisGroup', 'inTheGroup', 'ofTheGroup', 'toTheGroup', 'fromTheGroup']) {
+        expect(terminology[key].endsWith(group)).toBe(true)
+      }
+      expect(terminology.toTheGroups.endsWith(terminology.groups.toLowerCase())).toBe(true)
+    }
+  })
+
+  it('DEFAULT_TERMINOLOGY è quella PT', () => {
+    expect(DEFAULT_TERMINOLOGY).toBe(TERMINOLOGIES.personal_training)
+  })
+
+  it('byGender, helper per termine e capitalize', () => {
+    expect(byGender('f', 'Nuovo', 'Nuova')).toBe('Nuova')
+    expect(byGender('m', 'Nuovo', 'Nuova')).toBe('Nuovo')
+    const soccer = getTerminology('soccer_academy')
+    expect(bySessionGender(soccer, 'm', 'f')).toBe('m')
+    expect(byClientGender(soccer, 'm', 'f')).toBe('m')
+    expect(byGroupGender(soccer, 'm', 'f')).toBe('f')
+    expect(capitalize("l'appuntamento")).toBe("L'appuntamento")
+    expect(capitalize('')).toBe('')
+  })
+
+  it('PT: frasi identiche ai testi fissi di prima', () => {
+    const terminology = getTerminology('personal_training')
+    expect(newSession(terminology)).toBe('Nuova sessione')
+    expect(noSession(terminology)).toBe('Nessuna sessione')
+    expect(closeSession(terminology)).toBe('Chiudi sessione')
+    expect(closedSession(terminology)).toBe('Sessione chiusa')
+    expect(deleteSession(terminology)).toBe('Eliminare la sessione?')
+    expect(willCreate(terminology, 8)).toBe('Verranno create 8 sessioni')
+    expect(backToClients(terminology)).toBe('Torna ai clienti')
+    expect(allInGroup(terminology)).toBe('Tutti gli atleti sono già in questo gruppo.')
+    expect(noGroup(terminology)).toBe('Nessun gruppo')
+    expect(firstGroup(terminology)).toBe('Crea il primo gruppo per organizzare i clienti.')
+    expect(noClient(terminology)).toBe('Nessun cliente')
+    expect(terminology.inTheGroup).toBe('nel gruppo')
+    expect(terminology.ofTheGroup).toBe('del gruppo')
+    expect(terminology.athlete).toBe('Atleta')
+    expect(terminology.trainers).toBe('Trainer')
+  })
+
+  it('lipedema: Appuntamento al maschile, Paziente, Professionisti', () => {
+    const terminology = getTerminology('lipedema', 'lipedema')
+    expect(newSession(terminology)).toBe('Nuovo appuntamento')
+    expect(noSession(terminology)).toBe('Nessun appuntamento')
+    expect(closeSession(terminology)).toBe('Chiudi appuntamento')
+    expect(closedSession(terminology)).toBe('Appuntamento chiuso')
+    expect(deleteSession(terminology)).toBe("Eliminare l'appuntamento?")
+    expect(capitalize(terminology.theSession)).toBe("L'appuntamento")
+    expect(willCreate(terminology, 8)).toBe('Verranno creati 8 appuntamenti')
+    expect(backToClients(terminology)).toBe('Torna ai pazienti')
+    expect(allInGroup(terminology)).toBe('Tutti i pazienti sono già in questo gruppo.')
+    expect(firstGroup(terminology)).toBe('Crea il primo gruppo per organizzare i pazienti.')
+    expect(terminology.athlete).toBe('Paziente')
+    expect(terminology.trainers).toBe('Professionisti')
+  })
+
+  it('soccer e GYM: Allenamento al maschile, Squadra/Classe al femminile', () => {
+    const soccer = getTerminology('soccer_academy')
+    expect(newSession(soccer)).toBe('Nuovo allenamento')
+    expect(deleteSession(soccer)).toBe("Eliminare l'allenamento?")
+    expect(backToClients(soccer)).toBe('Torna agli allievi')
+    expect(noGroup(soccer)).toBe('Nessuna squadra')
+    expect(firstGroup(soccer)).toBe('Crea la prima squadra per organizzare gli allievi.')
+    expect(allInGroup(soccer)).toBe('Tutti gli atleti sono già in questa squadra.')
+    expect(soccer.ofTheGroup).toBe('della squadra')
+    expect(soccer.toTheGroups).toBe('alle squadre')
+    expect(soccer.theClient).toBe("l'allievo")
+    expect(soccer.trainers).toBe('Coach')
+
+    const gym = getTerminology('personal_training', 'gym')
+    expect(closedSession(gym)).toBe('Allenamento chiuso')
+    expect(backToClients(gym)).toBe('Torna ai membri')
+    expect(noGroup(gym)).toBe('Nessuna classe')
+    expect(gym.inTheGroup).toBe('nella classe')
+    expect(gym.theClient).toBe('il membro')
+  })
+})
+
+describe('ruoli dei membri (BUG-002)', () => {
+  it('il ruolo trainer prende il nome del modulo, gli altri restano fissi', () => {
+    expect(getMemberRoleOptions(getTerminology('personal_training')).map(opt => opt.label))
+      .toEqual(['Trainer', 'Solo lettura', 'Admin'])
+    expect(getMemberRoleOptions(getTerminology('lipedema'))[0].label).toBe('Professionista')
+    expect(getNoteRoleLabels(getTerminology('personal_training')))
+      .toEqual({ trainer: 'Trainer', org_admin: 'Admin', staff_readonly: 'Staff', client: 'Atleta' })
+    expect(getNoteRoleLabels(getTerminology('soccer_academy')).trainer).toBe('Coach')
   })
 })
 

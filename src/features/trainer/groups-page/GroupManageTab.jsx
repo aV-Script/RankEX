@@ -1,5 +1,6 @@
 import { Pagination } from '../../../components/common/Pagination'
 import { EmptyState, SectionLabel } from '../../../components/ui'
+import { byClientGender, capitalize } from '../../../config/modules.config'
 
 const ICON_EMPTY_CLIENTS = (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
@@ -15,6 +16,9 @@ export function GroupManageTab({
   inGroupPagination, notInGroupPagination,
   toggling, onRequestToggle, hasGroupRanking, hasRank, terminology,
 }) {
+  const athleteLabel  = terminology.athlete.toLowerCase()
+  const athletesLabel = terminology.athletes.toLowerCase()
+  const inTheGroup    = capitalize(terminology.inTheGroup)
   return (
     <div className="px-4 sm:px-6 pt-4 pb-12 flex flex-col gap-4">
 
@@ -24,13 +28,13 @@ export function GroupManageTab({
         {/* Col 1: Nel gruppo */}
         <div className="rounded-[4px] p-5 rx-card">
           <SectionLabel className="mb-5">
-            ◈ Nel gruppo <span className="text-white/60 ml-1">({clientsInGroup.length})</span>
+            ◈ {inTheGroup} <span className="text-white/60 ml-1">({clientsInGroup.length})</span>
           </SectionLabel>
           {inGroupPagination.paginatedItems.length === 0 ? (
             <EmptyState
               icon={ICON_EMPTY_CLIENTS}
-              title={clientSearch ? 'Nessun risultato' : 'Nessun atleta nel gruppo'}
-              description={clientSearch ? undefined : 'Aggiungi atleti dalla colonna destra.'}
+              title={clientSearch ? 'Nessun risultato' : `${byClientGender(terminology, 'Nessun', 'Nessuna')} ${athleteLabel} ${terminology.inTheGroup}`}
+              description={clientSearch ? undefined : `Aggiungi ${athletesLabel} dalla colonna destra.`}
             />
           ) : (
             <>
@@ -48,7 +52,7 @@ export function GroupManageTab({
         <div className="rounded-[4px] p-5 rx-card">
           <SectionLabel className="mb-5">◈ Riepilogo</SectionLabel>
           <div className="flex flex-col gap-2 mb-4">
-            <ManageStat label="Nel gruppo"    value={clientsInGroup.length}                 color="var(--rx-accent)" />
+            <ManageStat label={inTheGroup}    value={clientsInGroup.length}                 color="var(--rx-accent)" />
             <ManageStat label="Disponibili"   value={totalClients - clientsInGroup.length}  />
             <ManageStat label={`Totale ${terminology.clients.toLowerCase()}`} value={totalClients} />
           </div>
@@ -73,14 +77,14 @@ export function GroupManageTab({
             value={clientSearch}
             onChange={e => onSearchChange(e.target.value)}
             placeholder="Cerca per nome..."
-            aria-label="Cerca atleta da aggiungere"
+            aria-label={`Cerca ${athleteLabel} da aggiungere`}
             className="input-base w-full mb-4"
           />
           {notInGroupPagination.paginatedItems.length === 0 ? (
             <EmptyState
               icon={ICON_EMPTY_CLIENTS}
-              title={clientSearch ? 'Nessun risultato' : 'Tutti nel gruppo'}
-              description={clientSearch ? undefined : 'Tutti gli atleti sono già in questo gruppo.'}
+              title={clientSearch ? 'Nessun risultato' : `Tutti ${terminology.inTheGroup}`}
+              description={clientSearch ? undefined : `Tutti ${terminology.theAthletes} sono già in ${terminology.thisGroup}.`}
             />
           ) : (
             <>

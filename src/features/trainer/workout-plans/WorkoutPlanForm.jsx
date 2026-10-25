@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { PLAN_COMPLETION_XP, MAX_PLAN_SESSIONS } from '../../../constants'
 import { ConfirmDialog }         from '../../../components/common/ConfirmDialog'
 import { IconChevronLeft }       from '../../../components/ui/icons'
+import { bySessionGender } from '../../../config/modules.config'
 
 const EMPTY_EXERCISE = { name: '', sets: '', reps: '', restSeconds: '', notes: '' }
 const MAX_DAYS = 7
@@ -39,7 +40,7 @@ function initDays(initialData) {
  *   showXP       — false nei moduli senza gamification: niente bonus XP nel testo
  */
 export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBack, terminology, showXP = true }) {
-  const clientLabel = terminology?.client ?? 'Cliente'
+  const clientLabel = terminology.client
   const [title,        setTitle]        = useState(initialData?.title       ?? '')
   const [description,  setDescription]  = useState(initialData?.description ?? '')
   const [selClientId,  setSelClientId]  = useState(initialData?.clientId    ?? '')
@@ -206,7 +207,7 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="plan-target-sessions" className="font-display text-[11px] tracking-[2px] text-white/40">SESSIONI PREVISTE</label>
+            <label htmlFor="plan-target-sessions" className="font-display text-[11px] tracking-[2px] text-white/40">{terminology.sessions.toUpperCase()} {bySessionGender(terminology, 'PREVISTI', 'PREVISTE')}</label>
             <input
               id="plan-target-sessions"
               type="number"
@@ -220,7 +221,7 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
               style={{ maxWidth: 200 }}
             />
             <span className="font-body text-[11px] text-white/35">
-              Ogni presenza registrata in calendario conta una sessione. Raggiunto il numero, la scheda è completata
+              Ogni presenza registrata in calendario conta {bySessionGender(terminology, 'un', 'una')} {terminology.session.toLowerCase()}. Raggiunto il numero, la scheda è completata
               {showXP ? <> e l&apos;atleta riceve +{PLAN_COMPLETION_XP} XP.</> : '.'}
             </span>
             {errors.targetSessions && <span className="text-red-400 text-[11px]">{errors.targetSessions}</span>}

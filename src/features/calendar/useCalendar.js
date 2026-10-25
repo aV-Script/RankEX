@@ -12,6 +12,7 @@ import { skipSlotUseCase }        from '../../usecases/skipSlotUseCase'
 import { addRecurrenceUseCase }   from '../../usecases/addRecurrenceUseCase'
 import { SLOT_STATUS } from '../../constants/slotStatus'
 import { useToast } from '../../hooks/useToast'
+import { useTrainerState } from '../../context/TrainerContext'
 
 export { calcMonthlyCompletion, getMonthRange, getWeekRange } from '../../utils/calendarUtils'
 
@@ -21,6 +22,9 @@ export function useCalendar(orgId) {
   const [currentDate, setCurrentDate] = useState(toLocalDateStr())
   const [view, setView]             = useState('week') // 'month' | 'week' | 'day'
   const { error: toastError } = useToast()
+  // Termine del modulo nei toast (la sessione / l'allenamento / l'appuntamento)
+  const { terminology } = useTrainerState()
+  const { theSession, theSessions, ofTheGroup } = terminology
   const initialLoadDone = useRef(false)
 
   // ── Calcola il range in base alla vista ────────────────────────────────
@@ -48,9 +52,9 @@ export function useCalendar(orgId) {
         setSlots(data)
         initialLoadDone.current = true
       })
-      .catch(() => { if (requestId === lastRequest.current) toastError('Impossibile caricare le sessioni') })
+      .catch(() => { if (requestId === lastRequest.current) toastError(`Impossibile caricare ${theSessions}`) })
       .finally(() => { if (requestId === lastRequest.current) setLoading(false) })
-  }, [orgId, from, to, toastError])
+  }, [orgId, from, to, theSessions, toastError])
 
   useEffect(() => { fetchSlots() }, [fetchSlots])
 
@@ -90,10 +94,10 @@ export function useCalendar(orgId) {
     } catch {
       // Rimuovi lo slot temporaneo in caso di errore
       setSlots(prev => prev.filter(s => s.id !== tempId))
-      toastError('Impossibile aggiungere la sessione')
+      toastError(`Impossibile aggiungere ${theSession}`)
       return null
     }
-  }, [orgId, toastError])
+  }, [orgId, theSession, toastError])
 
   // ── Add recurrence ─────────────────────────────────────────────────────
   const handleAddRecurrence = useCallback(async ({
@@ -132,10 +136,10 @@ export function useCalendar(orgId) {
       return true
     } catch {
       setSlots(prev => prev.map(s => s.id === slotId ? snapshot : s))
-      toastError('Impossibile chiudere la sessione')
+      toastError(`Impossibile chiudere ${theSession}`)
       return false
     }
-  }, [orgId, slots, toastError])
+  }, [orgId, slots, theSession, toastError])
 
   // ── Skip slot ──────────────────────────────────────────────────────────
   const handleSkipSlot = useCallback(async (slotId) => {
@@ -147,9 +151,9 @@ export function useCalendar(orgId) {
       await skipSlotUseCase(orgId, slotId)
     } catch {
       setSlots(prev => prev.map(s => s.id === slotId ? snapshot : s))
-      toastError('Impossibile saltare la sessione')
+      toastError(`Impossibile saltare ${theSession}`)
     }
-  }, [orgId, slots, toastError])
+  }, [orgId, slots, theSession, toastError])
 
   // ── Delete slot ────────────────────────────────────────────────────────
   const handleDeleteSlot = useCallback(async (slotId) => {
@@ -159,9 +163,9 @@ export function useCalendar(orgId) {
       await deleteSlotUseCase(orgId, slotId)
     } catch {
       if (snapshot) setSlots(prev => [...prev, snapshot])
-      toastError('Impossibile eliminare la sessione')
+      toastError(`Impossibile eliminare ${theSession}`)
     }
-  }, [orgId, slots, toastError])
+  }, [orgId, slots, theSession, toastError])
 
   // ── Group handlers ─────────────────────────────────────────────────────
   const handleAddClientToGroupSlots = useCallback(async (groupId, clientId) => {
@@ -169,18 +173,18 @@ export function useCalendar(orgId) {
       await addClientToGroupSlots(orgId, groupId, clientId)
       fetchSlots()
     } catch {
-      toastError('Impossibile aggiornare le sessioni del gruppo')
+      toastError(`Impossibile aggiornare ${theSessions} ${ofTheGroup}`)
     }
-  }, [orgId, fetchSlots, toastError])
+  }, [orgId, fetchSlots, theSessions, ofTheGroup, toastError])
 
   const handleRemoveClientFromGroupSlots = useCallback(async (groupId, clientId) => {
     try {
       await removeClientFromGroupSlots(orgId, groupId, clientId)
       fetchSlots()
     } catch {
-      toastError('Impossibile aggiornare le sessioni del gruppo')
+      toastError(`Impossibile aggiornare ${theSessions} ${ofTheGroup}`)
     }
-  }, [orgId, fetchSlots, toastError])
+  }, [orgId, fetchSlots, theSessions, ofTheGroup, toastError])
 
   // ── Controllo max sessioni mensili per un cliente ──────────────────────
   const isClientOverMonthlyLimit = useCallback((client, date) => {

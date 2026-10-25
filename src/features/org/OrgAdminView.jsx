@@ -11,6 +11,7 @@ import { PAGES }           from '../trainer/trainer.config'
 import { OrgDashboard }    from './org-pages/OrgDashboard'
 import { MembersPage }     from './org-pages/MembersPage'
 import { OrgSettingsPage } from './org-pages/OrgSettingsPage'
+import { getTerminology }  from '../../config/modules.config'
 
 // Pagine aggiuntive per org_admin
 const ORG_PAGES = {
@@ -29,7 +30,7 @@ export default function OrgAdminView({ user, profile, org, terminology }) {
     <TrainerProvider
       orgId={orgId}
       moduleType={moduleType}
-      terminology={terminology}
+      terminology={terminology ?? getTerminology(moduleType, org?.terminologyVariant)}
       userRole={userRole}
       orgPlan={org?.plan ?? 'free'}
     >

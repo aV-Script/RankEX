@@ -1,14 +1,16 @@
 import { useState, useCallback } from 'react'
 import { updateOrganization }    from '../../../firebase/services/org'
 import { useToast }              from '../../../hooks/useToast'
-import { getPlanLimits }         from '../../../config/plans.config'
+import { useTrainerState }       from '../../../context/TrainerContext'
 import { Button, PageTitle }     from '../../../components/ui'
+import { getPlanLimits }         from '../../../config/plans.config'
 import { getModuleLabel }        from '../../../config/modules.config'
 
 export function OrgSettingsPage({ org, orgId }) {
   const [name,   setName]   = useState(org?.name ?? '')
   const [saving, setSaving] = useState(false)
   const toast = useToast()
+  const { terminology } = useTrainerState()
 
   const plan   = org?.plan ?? 'free'
   const limits = getPlanLimits(plan)
@@ -63,8 +65,8 @@ export function OrgSettingsPage({ org, orgId }) {
           </div>
           <div className="font-body text-[11px] text-white/60 mt-1.5">
             {limits.trainers === Infinity
-              ? 'Trainer e clienti illimitati'
-              : `Max ${limits.trainers} trainer · Max ${limits.clients} clienti`
+              ? `${terminology.trainers} e ${terminology.clients.toLowerCase()} illimitati`
+              : `Max ${limits.trainers} ${terminology.trainers.toLowerCase()} · Max ${limits.clients} ${terminology.clients.toLowerCase()}`
             }
             {' — '}solo il super admin può cambiare il piano.
           </div>

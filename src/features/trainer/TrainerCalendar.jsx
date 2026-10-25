@@ -13,11 +13,12 @@ import { RecurrenceModal }                 from './trainer-calendar/RecurrenceMo
 import { useGroups }                       from '../../hooks/useGroups'
 import { toLocalDateStr } from '../../utils/calendarUtils'
 import { useTrainerState }                 from '../../context/TrainerContext'
-import { getModule }                       from '../../config/modules.config'
+import { bySessionGender, getModule, capitalize } from '../../config/modules.config'
 import { useToast }                        from '../../hooks/useToast'
 
 export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavigate }) {
-  const { moduleType } = useTrainerState()
+  const { moduleType, terminology } = useTrainerState()
+  const sessionLabel = terminology.session.toLowerCase()
   const { hasGamification } = getModule(moduleType)
   const { success: toastSuccess } = useToast()
   const {
@@ -59,10 +60,11 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
   const handleConfirmClose = useCallback(async (attendeeIds) => {
     const isClosed = await handleCloseSlot(closeModal.id, attendeeIds)
     // Senza gamification la chiusura non assegna XP (ADR-008): il messaggio non lo promette
-    if (isClosed) toastSuccess(hasGamification ? 'Sessione chiusa · +XP assegnata' : 'Sessione chiusa')
+    const closedLabel = `${terminology.session} ${bySessionGender(terminology, 'chiuso', 'chiusa')}`
+    if (isClosed) toastSuccess(hasGamification ? `${closedLabel} · +XP assegnata` : closedLabel)
     setCloseModal(null)
     onRefreshClients?.()
-  }, [closeModal, handleCloseSlot, hasGamification, toastSuccess, onRefreshClients])
+  }, [closeModal, handleCloseSlot, hasGamification, terminology, toastSuccess, onRefreshClients])
 
   const handleSkip = useCallback(async (slotId) => {
     setPopup(null)
@@ -99,6 +101,7 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
     today,
     onSlotClick:  handleSlotClick,
     onEmptyClick: handleEmptyClick,
+    terminology,
   }
 
   return (
@@ -112,6 +115,7 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
         onViewChange={setView}
         onAddSession={() => setAddModal({ date: today, startTime: '09:00' })}
         onAddRecurrence={() => setRecurrenceModal(true)}
+        terminology={terminology}
       />
 
       {pastPlannedCount > 0 && (
@@ -122,11 +126,9 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
           <span>⚠</span>
           <span>
             {pastPlannedCount === 1
-              ? '1 sessione passata non chiusa'
-              : `${pastPlannedCount} sessioni passate non chiuse`}
-            {hasGamification
-              ? ' — chiudile per assegnare XP agli atleti.'
-              : ' — chiudile per registrare le presenze.'}
+              ? `1 ${sessionLabel} ${bySessionGender(terminology, 'passato non chiuso', 'passata non chiusa')} — ${bySessionGender(terminology, 'chiudilo', 'chiudila')} per `
+              : `${pastPlannedCount} ${terminology.sessions.toLowerCase()} ${bySessionGender(terminology, 'passati non chiusi', 'passate non chiuse')} — ${bySessionGender(terminology, 'chiudili', 'chiudile')} per `}
+            {hasGamification ? 'assegnare XP agli atleti.' : 'registrare le presenze.'}
           </span>
         </div>
       )}
@@ -150,6 +152,7 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
           clients={clients}
           position={{ x: popup.x, y: popup.y }}
           hasGamification={hasGamification}
+          terminology={terminology}
           onClose={() => setPopup(null)}
           onCloseSession={() => handleCloseSession(popup.slot)}
           onSkip={() => handleSkip(popup.slot.id)}
@@ -162,8 +165,8 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
       {pendingDeleteId && (
         <ConfirmDialog
           variant="danger"
-          title="Eliminare la sessione?"
-          description="La sessione verrà eliminata definitivamente. L'operazione non può essere annullata."
+          title={`Eliminare ${terminology.theSession}?`}
+          description={`${capitalize(terminology.theSession)} ${bySessionGender(terminology, 'verrà eliminato', 'verrà eliminata')} definitivamente. L'operazione non può essere annullata.`}
           confirmLabel="ELIMINA"
           loading={deleting}
           onConfirm={handleConfirmDelete}
@@ -177,6 +180,7 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
           slot={closeModal}
           clients={clients}
           hasGamification={hasGamification}
+          terminology={terminology}
           onClose={() => setCloseModal(null)}
           onConfirm={handleConfirmClose}
         />
@@ -190,6 +194,7 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
           clients={clients}
           groups={groups}
           slots={slots}
+          terminology={terminology}
           onClose={() => setAddModal(null)}
           onSave={async (data) => { const slot = await handleAddSlot(data); if (slot) setAddModal(null) }}
         />
@@ -200,6 +205,7 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
         <RecurrenceModal
           clients={clients}
           groups={groups}
+          terminology={terminology}
           onClose={() => setRecurrenceModal(false)}
           onSave={async (data) => { const id = await handleAddRecurrence(data); if (id) setRecurrenceModal(false) }}
         />

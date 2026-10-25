@@ -25,7 +25,7 @@ import { getCategoriaById, CATEGORIE }       from '../../constants'
 import { calcBiaScore, getBiaRankFromScore } from '../../utils/bia'
 import { calcAge }                           from '../../utils/validation'
 import { resetPassword }                     from '../../firebase/services/auth'
-import { PLAYER_ROLES, getModule }           from '../../config/modules.config'
+import { bySessionGender, PLAYER_ROLES, getModule, capitalize } from '../../config/modules.config'
 import { TrophiesSection }                   from './client-dashboard/TrophiesSection'
 import { useBadges }                         from '../../hooks/useBadges'
 import { getAuth }                           from 'firebase/auth'
@@ -109,8 +109,11 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
 
   const trainerAuthor = {
     role: userRole,
-    name: getAuth(app).currentUser?.email ?? 'Trainer',
+    name: getAuth(app).currentUser?.email ?? terminology.trainer,
   }
+
+  // staff_readonly (BUG-004): dal menu ⋮ niente azioni che scrivono o mandano email
+  const canResetPassword = !readonly && capabilities.hasClientLogin && Boolean(client.clientAuthUid && client.email)
 
   const defaultTab = 'atleta'
   const tab        = activeTab ?? defaultTab
@@ -175,8 +178,10 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
         tab={tab}
         onSelectTab={handleSelectTab}
         visibleTabIds={visibleTabIds}
+        terminology={terminology}
         canExportPdf={capabilities.hasRank}
-        canResetPassword={capabilities.hasClientLogin && Boolean(client.clientAuthUid && client.email)}
+        canResetPassword={canResetPassword}
+        canDelete={!readonly}
         showActions={showActions}
         onToggleActions={handleToggleActions}
         onExportPdf={handleExportPdf}
@@ -203,8 +208,9 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
       )}
       <div className={`flex-1 flex flex-col min-w-0 ${view !== 'dashboard' ? 'hidden' : ''}`}>
 
-        {/* Banner upgrade — solo per bia_only (manca i test); il caso tests_only è gestito nel tab BIA */}
-        {capabilities.hasProfileTypes && profileType === 'bia_only' && (
+        {/* Banner upgrade — solo per bia_only (manca i test); il caso tests_only è gestito nel tab BIA.
+            Nascosto in readonly: l'upgrade scrive sul profilo del cliente (BUG-006) */}
+        {!readonly && capabilities.hasProfileTypes && profileType === 'bia_only' && (
           <div className="px-4 pt-3">
             <UpgradeCategoryBanner client={client} color={brandGreen} onUpgrade={handleUpgradeProfile} />
           </div>
@@ -219,7 +225,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
             <span className="font-display text-[9px] tracking-[2px] uppercase mr-2 align-middle" style={{ color: 'var(--rx-accent)' }}>
               Inizia
             </span>
-            Esegui il primo campionamento per calcolare il rank dell'atleta. Le sessioni chiuse aggiungono XP e fanno salire di livello.
+            Esegui il primo campionamento per calcolare il rank dell'atleta. {capitalize(terminology.theSessions)} {bySessionGender(terminology, 'chiusi', 'chiuse')} aggiungono XP e fanno salire di livello.
           </div>
         )}
 
@@ -291,7 +297,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
                   </ErrorBoundary>
                 </div>
               </section>
-            ) : (
+            ) : !readonly && (
               <div className="px-4 pt-6">
                 <UpgradeCategoryBanner client={client} color={brandGreen} onUpgrade={handleUpgradeProfile} />
               </div>
@@ -299,7 +305,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
           )}
 
           {tab === 'allenamento' && (
-            <WorkoutPlanSection orgId={orgId} clientId={client.id} color={brandGreen} readonly={readonly} hasGamification={capabilities.hasGamification} />
+            <WorkoutPlanSection orgId={orgId} clientId={client.id} color={brandGreen} readonly={readonly} hasGamification={capabilities.hasGamification} terminology={terminology} />
           )}
 
           {tab === 'obiettivi' && capabilities.hasGoals && (
@@ -309,14 +315,14 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
           {tab === 'calendario' && (
             <section className="px-4 pt-6">
               <div className="rounded-[4px] p-5 rx-card">
-                <div className="font-display text-[10px] tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-accent)' }}>◈ Calendario allenamenti</div>
-                <ClientCalendar clientId={client.id} orgId={orgId} />
+                <div className="font-display text-[10px] tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-accent)' }}>◈ Calendario {terminology.sessions.toLowerCase()}</div>
+                <ClientCalendar clientId={client.id} orgId={orgId} terminology={terminology} />
               </div>
             </section>
           )}
 
           {tab === 'note' && (
-            <NotesSection orgId={orgId} clientId={client.id} color={brandGreen} author={trainerAuthor} readonly={readonly} />
+            <NotesSection orgId={orgId} clientId={client.id} color={brandGreen} author={trainerAuthor} readonly={readonly} terminology={terminology} />
           )}
 
           {tab === 'attivita' && capabilities.hasGamification && (

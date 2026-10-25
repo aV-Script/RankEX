@@ -1,4 +1,4 @@
-// Icone tab + config TABS di GroupDetailView.jsx — estratte per ridurre le
+// Icone tab dell'hub gruppo (GroupDetailHeader.jsx) — estratte per ridurre le
 // dimensioni del componente (RX-07: spostamento puro, nessuna modifica
 // comportamentale).
 import { IconChevronLeft, IconPdf, IconDelete } from '../../../components/ui/icons'
@@ -12,7 +12,7 @@ export const ICON_MANAGE = (
   </svg>
 )
 
-// Parametrizzate su `size` — servono sia nella tab bar (13px, TABS sotto)
+// Parametrizzate su `size` — servono sia nella tab bar (13px, GroupDetailHeader)
 // sia negli EmptyState "servono almeno 2 atleti" di GroupDetailView (20px)
 // e nella classifica standalone di GroupLeaderboard (20px). Prima duplicate
 // a mano in ognuno dei 3 punti.
@@ -64,16 +64,3 @@ export const ICON_RENAME = (
 export const ICON_PDF = <IconPdf size={13} />
 export const ICON_DELETE = <IconDelete size={13} />
 export const ICON_BACK = <IconChevronLeft />
-
-export const TABS = [
-  { id: '__back__',    label: 'Gruppi',    icon: ICON_BACK        },
-  { id: 'manage',     label: 'Gestione',  icon: ICON_MANAGE      },
-  { id: 'leaderboard', label: 'Classifica',icon: ICON_LEADERBOARD },
-  { id: 'analysis',   label: 'Analisi',   icon: ICON_ANALYSIS    },
-  { id: 'comparison', label: 'Confronto', icon: ICON_COMPARE     },
-  { id: 'sessions',   label: 'Sessioni',  icon: ICON_SESSIONS    },
-  { id: 'notes',      label: 'Note',      icon: ICON_NOTES       },
-  { id: '__rename__', label: 'Rinomina',  icon: ICON_RENAME      },
-  { id: '__pdf__',    label: 'PDF',       icon: ICON_PDF         },
-  { id: '__delete__', label: 'Elimina',   icon: ICON_DELETE, isDanger: true },
-]

@@ -13,9 +13,8 @@ import { getTerminology }   from '../../config/modules.config'
 export default function TrainerView({ user, profile, org, terminology }) {
   const orgId      = profile?.orgId ?? user.uid
   const moduleType = org?.moduleType ?? 'personal_training'
-  const resolvedTerminology = org
-    ? (terminology ?? getTerminology(moduleType, org?.terminologyVariant))
-    : undefined
+  // Sempre definita: senza org (legacy / org non raggiungibile) vale quella PT
+  const resolvedTerminology = terminology ?? getTerminology(moduleType, org?.terminologyVariant)
   const userRole   = profile?.role ?? 'trainer'
   const readonly   = userRole === 'staff_readonly'
 

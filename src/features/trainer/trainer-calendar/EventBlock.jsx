@@ -5,7 +5,7 @@ import { SLOT_STATUS, SLOT_STATUS_COLORS } from '../../../constants/slotStatus'
  * Blocco evento nelle viste settimana e giorno.
  * Memoizzato — si aggiorna solo se slot, clients o onSelect cambiano.
  */
-export const EventBlock = memo(function EventBlock({ slot, clients, onSelect, style }) {
+export const EventBlock = memo(function EventBlock({ slot, clients, terminology, onSelect, style }) {
   const status = slot.status ?? SLOT_STATUS.PLANNED
 
   const statusColor = SLOT_STATUS_COLORS[status]
@@ -22,7 +22,7 @@ export const EventBlock = memo(function EventBlock({ slot, clients, onSelect, st
 
   const label = clientNames.length === 1
     ? clientNames[0]
-    : `${clientNames.length} clienti`
+    : `${clientNames.length} ${terminology.clients.toLowerCase()}`
 
   return (
     <button

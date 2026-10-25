@@ -28,7 +28,7 @@ Formato:
 ## [BUG-002] Lipedema: termini "Sessione/Clienti/Trainer/Allenamenti" hardcoded in calendario, gruppi, note, team
 **Severity:** P2
 **Modulo/Ruolo:** lipedema — trainer, org_admin, staff_readonly (gli stessi testi fissi valgono anche per soccer/GYM, ma l'AC di STORY-030 li vieta esplicitamente nel modulo Lipedema)
-**Status:** OPEN
+**Status:** OPEN — fix implementato, da verificare in QA (25/10/2026, non committato)
 **Reproduction steps:**
 1. Org `lipedema` su rankex-dev, login come trainer → Calendario.
 2. Guardare l'header, aprire "+ Sessione", creare uno slot con un paziente, aprirlo e chiuderlo.
@@ -47,6 +47,7 @@ Formato:
 - `ProfilePage.jsx` mostra "Trainer" come nome: il fallback `memberName ?? 'Trainer'` scatta anche se il membro ha un nome ("QA Lip Trainer"). Da verificare se succede anche in PT (getMember che fallisce o non viene risolto)
 - Tab "Atleta" della dashboard paziente (`ClientDashboardHeader.jsx`): non nella lista vietata dell'AC, ma resta un termine sportivo per una paziente
 **Suggested fix:** aggiungere a `TERMINOLOGIES` le chiavi mancanti dove servono (es. `trainer` già c'è, usarla in MembersPage/NotesSection/ProfilePage) e sostituire i testi fissi con `terminology.session(s)`/`client(s)`; per "Calendario allenamenti" usare `Calendario ${terminology.sessions.toLowerCase()}`. Sono tutti già raggiungibili via `useTrainerState().terminology`. Aggiungere al runbook un controllo testi per il modulo.
+**Fix:** `TERMINOLOGIES` estese con genere (`clientGender`/`sessionGender`/`groupGender` + `byClientGender`/`bySessionGender`/`byGroupGender`), forme con articolo e preposizione (`theClient(s)`, `toTheClients`, `theSession(s)`, `theAthletes`, `theGroup`, `thisGroup`, `inTheGroup`, `ofTheGroup`, `toTheGroup`, `fromTheGroup`, `toTheGroups`), `athlete(s)` e `trainers`; helper ruoli `getMemberRoleOptions`/`getNoteRoleLabels`. Testi di calendario, ricorrenze, gruppi, schede, note, Team, impostazioni org, dashboard paziente e toast di `useCalendar`/`useRecurrences`/`useGroups` presi dalla terminologia, risolta una sola volta in `TrainerProvider` (fallback PT). ProfilePage: solo org_admin legge `members/` (le rules lo vietano agli altri); gli altri ruoli usano `users/{uid}.name` / `displayName` Auth — prima un trainer vedeva sempre "Trainer", in tutti i moduli. Test in `modules.config.test.js`. Da verificare: anche soccer/GYM ora vedono i propri termini (es. "Nuovo allenamento", "Allievi", "Nessuna squadra") dove prima c'erano "Sessione"/"Clienti"/"Nessun squadra".
 
 ## [BUG-003] Lipedema: un trainer può assegnare badge al paziente con scrittura Firestore diretta
 **Severity:** P3
@@ -62,13 +63,14 @@ Formato:
 ## [BUG-004] staff_readonly vede "Elimina" nel menu ⋮ della dashboard cliente/paziente
 **Severity:** P3
 **Modulo/Ruolo:** tutti i moduli — staff_readonly (preesistente, non introdotto da f71f73c)
-**Status:** OPEN
+**Status:** OPEN — fix implementato, da verificare in QA (25/10/2026, non committato)
 **Reproduction steps:**
 1. Login staff_readonly → apri un cliente/paziente → menu ⋮.
 2. ELIMINA → conferma.
 **Expected:** azione nascosta in readonly (ReadonlyGuard), come gli altri controlli di modifica.
 **Actual:** la voce ELIMINA è visibile e il dialog si apre; la Cloud Function rifiuta (toast "Permessi insufficienti", 403), nessun dato toccato.
 **Suggested fix:** in `ClientDashboard.jsx` non passare `onRequestDelete` (o nascondere il menu) quando `readonly`; per i moduli senza PDF/reset il menu ⋮ può sparire del tutto.
+**Fix:** `ClientDashboard` passa `canDelete={!readonly}` e `canResetPassword` solo se non readonly; `ClientDashboardHeader` nasconde Elimina e, senza nessuna azione (es. staff_readonly in lipedema, che non ha PDF), l'intero menu ⋮. In readonly resta solo "Esporta PDF" dove il modulo ha il rank.
 
 ## [BUG-005] Soccer: tab BIA visibile nella dashboard allievo nonostante `hasBia: false`
 **Severity:** P3
@@ -78,3 +80,31 @@ Formato:
 **Expected:** nessuna tab BIA (CLAUDE.md: "Soccer academy: solo `tests_only`. BIA non supportata"; `MODULE_CAPABILITIES.soccer_academy.hasBia = false`).
 **Actual:** tab BIA presente (ATLETA, TEST, BIA, ALLENAMENTO, …). Era così anche prima del commit.
 **Suggested fix:** in `dashboardTabs.js` dare a `bia` `capability: 'hasBia'` e aggiornare `clientDashboardTabs.test.js`.
+
+## [BUG-006] staff_readonly può aggiornare il profilo cliente dal banner "upgrade" (PT)
+**Severity:** P3
+**Modulo/Ruolo:** personal_training — staff_readonly (preesistente, trovato in code review di BUG-002/004)
+**Status:** OPEN — fix implementato, da verificare in QA (25/10/2026, non committato)
+**Reproduction steps:** login staff_readonly in un'org PT → cliente `bia_only` (banner sopra le tab) oppure cliente `tests_only` → tab BIA → bottone di upgrade al profilo Completo.
+**Expected:** banner nascosto in readonly, come gli altri controlli di modifica.
+**Actual:** `UpgradeCategoryBanner` non controlla readonly: il bottone è visibile e chiama `aggiornaProfiloCliente`.
+**Suggested fix:** in `ClientDashboard.jsx` aggiungere `!readonly &&` alle due condizioni che montano il banner.
+**Fix:** fatto come suggerito; in readonly la tab BIA di un cliente senza BIA resta vuota.
+
+## [BUG-007] Calendario in readonly espone le azioni di scrittura
+**Severity:** P3
+**Modulo/Ruolo:** tutti i moduli — staff_readonly (preesistente, trovato in code review di BUG-002/004)
+**Status:** OPEN
+**Reproduction steps:** login staff_readonly → Calendario.
+**Expected:** nessuna azione di creazione/modifica in readonly.
+**Actual:** sono visibili e cliccabili "+ Sessione" / "+ Ricorrenza" in `CalendarHeader`, il "+" delle celle (`WeekView`/`DayView`/`MonthView`, anche il click sull'area vuota) e le azioni di `SlotPopup` (Chiudi sessione, Segna come saltata, Elimina). Il server rifiuta (le callable controllano il ruolo), nessun dato toccato, ma l'utente vede un errore.
+**Suggested fix:** in `TrainerCalendar.jsx` leggere `useReadonly()` e, se readonly, non passare `onAddSession`/`onAddRecurrence` a `CalendarHeader` (già condizionali), non rendere il "+" delle celle né agganciare `onEmptyClick`, e in `SlotPopup` nascondere le azioni lasciando solo i dettagli e "Gestisci" ricorrenza; aggiungere un caso al runbook.
+
+## [BUG-008] Area cliente (atleta) con terminologia PT fissa
+**Severity:** P3
+**Modulo/Ruolo:** soccer_academy / GYM — client (preesistente, trovato in code review di BUG-002/004)
+**Status:** OPEN
+**Reproduction steps:** login come allievo di un'org soccer → hub → Scheda / Calendario / Profilo › Note.
+**Expected:** termini del modulo (Coach, Allenamento…).
+**Actual:** `ClientView` non riceve `terminology`, quindi `ClientDashboardPage`, `ClientWorkoutSection` ("Il tuo trainer non ha ancora assegnato…"), `NotesSection` (badge "Trainer"), `PlanProgress` ("Sessione N di M") e `ClientCalendar` usano il default PT: l'allievo soccer vede "Trainer"/"Sessione".
+**Suggested fix:** passare la terminologia risolta da `useAuth` (già disponibile in `AppRouter`) a `ClientView` e da lì ai componenti dell'area cliente, che accettano già la prop `terminology`.

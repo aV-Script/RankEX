@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback }              from 'react'
 import { useAuth }                                       from '../auth/useAuth'
+import { useTrainerState }                               from '../../context/TrainerContext'
 import { logout, changeTrainerPassword, changeUserEmail } from '../../firebase/services/auth'
 import { getMember }                                     from '../../firebase/services/org'
 import { Field }                                         from '../../components/ui'
@@ -10,12 +11,17 @@ import { validatePassword }                              from '../../utils/valid
 
 export function ProfilePage() {
   const { user, profile } = useAuth()
+  const { terminology, userRole } = useTrainerState()
 
+  // members/{uid} lo legge solo org_admin (rules): gli altri ruoli non lo chiedono
+  // nemmeno e prendono il nome dal proprio profilo o dall'account Auth (BUG-002)
+  const canReadMember = userRole === 'org_admin'
   const [memberName, setMemberName] = useState(null)
   useEffect(() => {
-    if (!user?.uid || !profile?.orgId) return
+    if (!canReadMember || !user?.uid || !profile?.orgId) return
     getMember(profile.orgId, user.uid).then(m => setMemberName(m?.name ?? null)).catch(() => {})
-  }, [user?.uid, profile?.orgId])
+  }, [canReadMember, user?.uid, profile?.orgId])
+  const accountName = memberName ?? profile?.name ?? user?.displayName ?? terminology.trainer
 
   // — Password change
   const [open,    setOpen]    = useState(false)
@@ -103,7 +109,7 @@ export function ProfilePage() {
             </span>
           </div>
           <div>
-            <div className="font-display font-black text-[18px] text-white">{memberName ?? 'Trainer'}</div>
+            <div className="font-display font-black text-[18px] text-white">{accountName}</div>
             <div className="font-body text-[13px] text-white/40 mt-0.5">{user?.email ?? '—'}</div>
           </div>
         </div>

@@ -4,9 +4,12 @@ import { Pagination }     from '../../../components/common/Pagination'
 import { EmptyState, SectionLabel } from '../../../components/ui'
 import { SLOT_STATUS }    from '../../../constants/slotStatus'
 import { toLocalDateStr } from '../../../utils/calendarUtils'
+import { bySessionGender, capitalize } from '../../../config/modules.config'
 
-export function GroupSessionsPanel({ slots, loading }) {
+export function GroupSessionsPanel({ slots, loading, terminology }) {
   const today = toLocalDateStr()
+  // Etichette accordate al genere del termine (sessioni completate / appuntamenti completati)
+  const sectionTitle = `◈ ${terminology.sessions}`
 
   const upcoming = useMemo(() =>
     slots
@@ -50,7 +53,7 @@ export function GroupSessionsPanel({ slots, loading }) {
 
   if (loading) return (
     <div className="rounded-[4px] p-5 rx-card">
-      <SectionLabel className="mb-4">◈ Sessioni</SectionLabel>
+      <SectionLabel className="mb-4">{sectionTitle}</SectionLabel>
       <div className="flex flex-col gap-2">
         {[...Array(3)].map((_, i) => (
           <div key={i} className="bg-white/[.06] rounded-[3px] animate-pulse h-10" />
@@ -63,10 +66,10 @@ export function GroupSessionsPanel({ slots, loading }) {
 
   return (
     <div className="rounded-[4px] p-5 rx-card">
-      <SectionLabel className="mb-4">◈ Sessioni</SectionLabel>
+      <SectionLabel className="mb-4">{sectionTitle}</SectionLabel>
 
       <div className="grid grid-cols-3 gap-2 mb-5">
-        <SessionStat label="COMPLETATE (30GG)" value={stats.completedLast30} />
+        <SessionStat label={`${bySessionGender(terminology, 'COMPLETATI', 'COMPLETATE')} (30GG)`} value={stats.completedLast30} />
         <SessionStat label="IN PROGRAMMA"      value={stats.plannedCount} />
         <SessionStat
           label="PRESENZE MEDIE"
@@ -78,15 +81,15 @@ export function GroupSessionsPanel({ slots, loading }) {
       {isEmpty ? (
         <EmptyState
           icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>}
-          title="Nessuna sessione"
-          description="Le sessioni del gruppo appariranno qui dopo la chiusura dal calendario."
+          title={`${bySessionGender(terminology, 'Nessun', 'Nessuna')} ${terminology.session.toLowerCase()}`}
+          description={`${capitalize(terminology.theSessions)} ${terminology.ofTheGroup} appariranno qui dopo la chiusura dal calendario.`}
         />
       ) : (
         <div className="flex flex-col lg:flex-row gap-4">
           {upcoming.length > 0 && (
             <div className="flex-1">
               <div className="font-display text-[10px] tracking-[1.5px] text-white/30 mb-2">
-                PROSSIME ({upcoming.length})
+                {bySessionGender(terminology, 'PROSSIMI', 'PROSSIME')} ({upcoming.length})
               </div>
               <div className="rounded-[3px] overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
                 {upcomingPagination.paginatedItems.map((slot, i) => (

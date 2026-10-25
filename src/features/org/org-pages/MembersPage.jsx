@@ -8,15 +8,14 @@ import { getPlanLimits }                    from '../../../config/plans.config'
 import { EmptyState, PageTitle }            from '../../../components/ui'
 import { auditLog, AUDIT_ACTIONS }          from '../../../utils/auditLog'
 import { useToast }                         from '../../../hooks/useToast'
-
-const ROLE_OPTIONS = [
-  { value: 'trainer',        label: 'Trainer' },
-  { value: 'staff_readonly', label: 'Solo lettura' },
-  { value: 'org_admin',      label: 'Admin' },
-]
+import { useTrainerState }                  from '../../../context/TrainerContext'
+import { getMemberRoleOptions }             from '../../../config/modules.config'
 
 export function MembersPage({ orgId, org, onNavigate }) {
   const { success: toastSuccess, error: toastError } = useToast()
+  const { terminology } = useTrainerState()
+  const roleOptions   = getMemberRoleOptions(terminology)
+  const trainersLabel = terminology.trainers.toLowerCase()
   const [members,    setMembers]    = useState([])
   const [loading,    setLoading]    = useState(true)
   const [showCreate, setShowCreate] = useState(false)
@@ -106,7 +105,7 @@ export function MembersPage({ orgId, org, onNavigate }) {
             </div>
             <div className="font-body text-[12px] text-white/40">
               Il piano <span className="text-white/60">{(org?.plan ?? 'free').toUpperCase()}</span> consente
-              massimo <span className="text-white/60">{planLimits.trainers} trainer</span>.
+              massimo <span className="text-white/60">{planLimits.trainers} {trainersLabel}</span>.
               Aggiorna il piano per aggiungere altri membri.
             </div>
           </div>
@@ -129,7 +128,7 @@ export function MembersPage({ orgId, org, onNavigate }) {
       {/* Info utilizzo */}
       {!atTrainerLimit && planLimits.trainers !== Infinity && (
         <div className="font-body text-[11px] text-white/60 mb-5">
-          {members.length} / {planLimits.trainers} trainer · piano {(org?.plan ?? 'free').toUpperCase()}
+          {members.length} / {planLimits.trainers} {trainersLabel} · piano {(org?.plan ?? 'free').toUpperCase()}
         </div>
       )}
 
@@ -169,7 +168,7 @@ export function MembersPage({ orgId, org, onNavigate }) {
                 className="input-base text-[11px] py-1.5 px-2 mr-2"
                 style={{ width: 'auto', minWidth: 100 }}
               >
-                {ROLE_OPTIONS.map(opt => (
+                {roleOptions.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
               </select>
@@ -188,6 +187,7 @@ export function MembersPage({ orgId, org, onNavigate }) {
       {showCreate && (
         <CreateMemberForm
           orgId={orgId}
+          terminology={terminology}
           onClose={() => setShowCreate(false)}
           onCreated={(member) => {
             setMembers(prev => [member, ...prev])
@@ -199,7 +199,7 @@ export function MembersPage({ orgId, org, onNavigate }) {
       {confirmRoleChange && (
         <ConfirmDialog
           title="Cambia ruolo"
-          description={`Vuoi assegnare il ruolo "${ROLE_OPTIONS.find(r => r.value === confirmRoleChange.newRole)?.label}" a ${confirmRoleChange.member.name ?? confirmRoleChange.member.email}?`}
+          description={`Vuoi assegnare il ruolo "${roleOptions.find(r => r.value === confirmRoleChange.newRole)?.label}" a ${confirmRoleChange.member.name ?? confirmRoleChange.member.email}?`}
           confirmLabel="CONFERMA"
           onConfirm={() => { handleRoleChange(confirmRoleChange.member, confirmRoleChange.newRole); setConfirmRoleChange(null) }}
           onCancel={() => setConfirmRoleChange(null)}

@@ -4,12 +4,14 @@ import { addGroupUseCase }       from '../usecases/addGroupUseCase'
 import { updateGroupUseCase }    from '../usecases/updateGroupUseCase'
 import { deleteGroupUseCase }    from '../usecases/deleteGroupUseCase'
 import { useToast }              from './useToast'
+import { useTrainerState }       from '../context/TrainerContext'
 
 export function useGroups(orgId) {
   const [groups,  setGroups]  = useState([])
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState(null)
   const { error: toastError } = useToast()
+  const { theGroup } = useTrainerState().terminology
 
   useEffect(() => {
     if (!orgId) return
@@ -35,9 +37,9 @@ export function useGroups(orgId) {
       return realGroup
     } catch {
       setGroups(prev => prev.filter(g => g.id !== tempId))
-      toastError('Impossibile creare il gruppo')
+      toastError(`Impossibile creare ${theGroup}`)
     }
-  }, [orgId, toastError])
+  }, [orgId, theGroup, toastError])
 
   // ── Rename group — ottimistico con rollback ───────────────────────────────
   const handleRenameGroup = useCallback(async (id, name) => {
@@ -51,9 +53,9 @@ export function useGroups(orgId) {
       if (oldName !== undefined) {
         setGroups(prev => prev.map(g => g.id === id ? { ...g, name: oldName } : g))
       }
-      toastError('Impossibile rinominare il gruppo')
+      toastError(`Impossibile rinominare ${theGroup}`)
     }
-  }, [orgId, groups, toastError])
+  }, [orgId, groups, theGroup, toastError])
 
   // ── Toggle client — ottimistico con rollback ──────────────────────────────
   // Non mostra un proprio toast: il chiamante (GroupDetailView) avvolge questa

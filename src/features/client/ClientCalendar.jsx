@@ -3,12 +3,14 @@ import { getClientSlots } from '../../firebase/services/calendar'
 import { getMonthRange, calcMonthlyCompletion } from '../calendar/useCalendar'
 import { calcStreakPreview, calcSessionXP } from '../../utils/gamification'
 import { toLocalDateStr } from '../../utils/calendarUtils'
+import { bySessionGender, DEFAULT_TERMINOLOGY } from '../../config/modules.config'
 
 const MONTH_NAMES = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
   'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
 const DAY_NAMES = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom']
 
-export function ClientCalendar({ clientId, orgId, clients }) {
+// terminology: del modulo (vista trainer); l'area cliente usa il default
+export function ClientCalendar({ clientId, orgId, clients, terminology = DEFAULT_TERMINOLOGY }) {
   const [slots,        setSlots]        = useState([])
   const [currentYear,  setCurrentYear]  = useState(new Date().getFullYear())
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1)
@@ -128,11 +130,11 @@ export function ClientCalendar({ clientId, orgId, clients }) {
       <div className="flex gap-4">
         <div className="flex items-center gap-1.5">
           <div className="w-2 h-2 rounded-full bg-emerald-400" />
-          <span className="font-display font-bold text-[11px] text-white/30">Completata</span>
+          <span className="font-display font-bold text-[11px] text-white/30">{bySessionGender(terminology, 'Completato', 'Completata')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-2 h-2 rounded-full bg-blue-400 opacity-60" />
-          <span className="font-display font-bold text-[11px] text-white/30">Pianificata</span>
+          <span className="font-display font-bold text-[11px] text-white/30">{bySessionGender(terminology, 'Pianificato', 'Pianificata')}</span>
         </div>
       </div>
     </div>

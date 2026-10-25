@@ -10,15 +10,13 @@ import { deleteWorkoutPlanUseCase }      from '../../../usecases/deleteWorkoutPl
 import { useToast }                      from '../../../hooks/useToast'
 import { normalizePlanDays }             from '../../../utils/workoutPlans'
 import { PlanProgress }                  from './PlanProgress'
-import { useTrainerState }               from '../../../context/TrainerContext'
 
 /**
  * Sezione schede allenamento nella dashboard trainer.
  * Gestisce creazione / modifica / archivio per un cliente specifico.
  */
-export function WorkoutPlanSection({ orgId, clientId, color, readonly, hasGamification }) {
+export function WorkoutPlanSection({ orgId, clientId, color, readonly, hasGamification, terminology }) {
   const { error: toastError } = useToast()
-  const { terminology } = useTrainerState()
   const [plans,      setPlans]      = useState([])
   const [loading,    setLoading]    = useState(true)
   const [view,       setView]       = useState('read')   // 'read' | 'form'
@@ -174,7 +172,7 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly, hasGamifi
             color={color}
             icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4v6a6 6 0 0 0 12 0V4"/><line x1="6" y1="20" x2="18" y2="20"/></svg>}
             title="Nessuna scheda attiva"
-            description="Crea una scheda per assegnarla a questo cliente."
+            description={`Crea una scheda per assegnarla a questo ${terminology.client.toLowerCase()}.`}
           />
         )}
 
@@ -187,6 +185,7 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly, hasGamifi
             onDayChange={setActiveDay}
             readonly={readonly}
             showXP={hasGamification}
+            terminology={terminology}
             onArchive={() => setPendingArchive(activePlan)}
           />
         )}
@@ -247,7 +246,7 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly, hasGamifi
 
 // ── Sottocomponenti ───────────────────────────────────────────────────────────
 
-function PlanDisplay({ plan, color, activeDay, onDayChange, readonly, showXP, onArchive }) {
+function PlanDisplay({ plan, color, activeDay, onDayChange, readonly, showXP, terminology, onArchive }) {
   const days = normalizePlanDays(plan)
 
   const safeDay  = Math.min(activeDay, days.length - 1)
@@ -264,7 +263,7 @@ function PlanDisplay({ plan, color, activeDay, onDayChange, readonly, showXP, on
         </p>
       )}
 
-      <PlanProgress plan={plan} color={color} showXP={showXP} />
+      <PlanProgress plan={plan} color={color} showXP={showXP} terminology={terminology} />
 
       {/* Tab giorni — solo se più di uno */}
       {days.length > 1 && (

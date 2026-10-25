@@ -1,4 +1,5 @@
 import { toLocalDateStr } from '../../../utils/calendarUtils'
+import { byClientGender } from '../../../config/modules.config'
 const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
 
 function dateFmt(str) {
@@ -13,7 +14,7 @@ const STATUS_COLORS = {
   cancelled: '#f87171',
 }
 
-export function RecurrenceCard({ recurrence, clients, onClick }) {
+export function RecurrenceCard({ recurrence, clients, terminology, onClick }) {
   const status      = recurrence.status ?? 'active'
   const statusColor = STATUS_COLORS[status]
 
@@ -54,7 +55,7 @@ export function RecurrenceCard({ recurrence, clients, onClick }) {
         <div className="font-display font-bold text-[12px] text-white/50">
           {clientNames.length > 0
             ? clientNames.join(', ') + (recurrence.clientIds.length > 3 ? ` +${recurrence.clientIds.length - 3}` : '')
-            : 'Nessun cliente'
+            : `${byClientGender(terminology, 'Nessun', 'Nessuna')} ${terminology.client.toLowerCase()}`
           }
         </div>
 

@@ -3,6 +3,7 @@ import { generateRecurrenceDates, toLocalDateStr, MAX_RECURRENCE_SLOTS } from '.
 import { useFocusTrap } from '../../../hooks/useFocusTrap'
 import { IconClose }    from '../../../components/ui/icons'
 import { useEscapeKey } from '../../../hooks/useEscapeKey'
+import { bySessionGender } from '../../../config/modules.config'
 
 const WEEK_DAYS = [
   { value: 1, label: 'Lun' }, { value: 2, label: 'Mar' }, { value: 3, label: 'Mer' },
@@ -13,7 +14,8 @@ const WEEK_DAYS = [
 /**
  * Modal per la creazione di una ricorrenza settimanale.
  */
-export function RecurrenceModal({ clients, groups, onClose, onSave }) {
+export function RecurrenceModal({ clients, groups, terminology, onClose, onSave }) {
+  const sessionsLabel = terminology.sessions.toLowerCase()
   const today    = toLocalDateStr()
   const inAMonth = toLocalDateStr(new Date(Date.now() + 28 * 24 * 60 * 60 * 1000))
 
@@ -139,8 +141,8 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
           >
             <span className="font-display text-[11px]" style={{ color: 'var(--rx-accent)' }}>
               {tooLong
-                ? `${previewCount} sessioni: il massimo è ${MAX_RECURRENCE_SLOTS}. Accorcia il periodo e prolungala in seguito.`
-                : `Verranno create ${previewCount} sessioni`}
+                ? `${previewCount} ${sessionsLabel}: il massimo è ${MAX_RECURRENCE_SLOTS}. Accorcia il periodo e prolungala in seguito.`
+                : `Verranno ${bySessionGender(terminology, 'creati', 'create')} ${previewCount} ${sessionsLabel}`}
             </span>
           </div>
         )}
@@ -148,7 +150,7 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
         {/* Gruppi */}
         {groups.length > 0 && (
           <div className="mb-4">
-            <label className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] block mb-2">GRUPPO</label>
+            <label className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] block mb-2">{terminology.group.toUpperCase()}</label>
             <div className="flex flex-wrap gap-2">
               {groups.map(g => (
                 <button
@@ -169,7 +171,7 @@ export function RecurrenceModal({ clients, groups, onClose, onSave }) {
         {/* Clienti */}
         <div className="mb-5">
           <div className="flex items-center justify-between mb-2">
-            <label className="font-display text-[11px] font-semibold text-white/30 tracking-[2px]">CLIENTI</label>
+            <label className="font-display text-[11px] font-semibold text-white/30 tracking-[2px]">{terminology.clients.toUpperCase()}</label>
             <button
               onClick={() => setSelectedClients(clients.map(c => c.id))}
               className="font-display text-[10px] text-white/30 cursor-pointer hover:text-white/50 bg-transparent border-none p-0"

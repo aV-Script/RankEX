@@ -11,7 +11,7 @@ const HOURS_COLUMN_WIDTH = 52  // px larghezza colonna ore
 /**
  * Vista settimana — colonne orarie con eventi come blocchi posizionati.
  */
-export function WeekView({ currentDate, slots, clients, today, onSlotClick, onEmptyClick }) {
+export function WeekView({ currentDate, slots, clients, today, terminology, onSlotClick, onEmptyClick }) {
   const scrollRef = useRef(null)
 
   // Scroll all'ora corrente al mount
@@ -75,7 +75,7 @@ export function WeekView({ currentDate, slots, clients, today, onSlotClick, onEm
               </div>
               <button
                 onClick={() => onEmptyClick(dateStr, '09:00')}
-                aria-label={`Aggiungi sessione il ${dateStr}`}
+                aria-label={`Aggiungi ${terminology.session.toLowerCase()} il ${dateStr}`}
                 className="mt-1 w-5 h-5 flex items-center justify-center rounded-full mx-auto cursor-pointer border-none bg-transparent text-white/25 hover:text-white/60 transition-colors"
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -177,6 +177,7 @@ export function WeekView({ currentDate, slots, clients, today, onSlotClick, onEm
                       key={slot.id}
                       slot={slot}
                       clients={clients}
+                      terminology={terminology}
                       onSelect={onSlotClick}
                       style={{ top, height, left, width, right: 'auto' }}
                     />

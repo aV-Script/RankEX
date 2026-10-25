@@ -1,5 +1,6 @@
 import { SectionLabel, EmptyState } from '../../../components/ui'
 import { sectionStyle } from './recurrenceDetailShared'
+import { byClientGender } from '../../../config/modules.config'
 
 const ICON_CLIENTS = (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -9,15 +10,16 @@ const ICON_CLIENTS = (
 
 export function RecurrenceClientsSection({
   recurrenceId, isActive, recurrenceClients, hasCandidates, availableClients,
-  clientSearch, onSearchChange, onAddClient, onRemoveClient,
+  clientSearch, onSearchChange, onAddClient, onRemoveClient, terminology,
 }) {
+  const clientLabel = terminology.client.toLowerCase()
   return (
     <section className="p-5" style={sectionStyle}>
-      <SectionLabel>CLIENTI ({recurrenceClients.length})</SectionLabel>
+      <SectionLabel>{terminology.clients.toUpperCase()} ({recurrenceClients.length})</SectionLabel>
 
       <div className="flex flex-col gap-1.5 mb-4">
         {recurrenceClients.length === 0 ? (
-          <EmptyState icon={ICON_CLIENTS} title="Nessun cliente" description="Aggiungi un cliente a questa ricorrenza." />
+          <EmptyState icon={ICON_CLIENTS} title={`${byClientGender(terminology, 'Nessun', 'Nessuna')} ${clientLabel}`} description={`Aggiungi ${byClientGender(terminology, 'un', 'una')} ${clientLabel} a questa ricorrenza.`} />
         ) : recurrenceClients.map(c => (
           <div
             key={c.id}
@@ -51,13 +53,13 @@ export function RecurrenceClientsSection({
       {isActive && hasCandidates && (
         <div>
           <div className="font-display text-[11px] font-semibold tracking-[2px] mb-2" style={{ color: 'rgba(255,255,255,0.2)' }}>
-            AGGIUNGI CLIENTE
+            AGGIUNGI {terminology.client.toUpperCase()}
           </div>
           <input
             value={clientSearch}
             onChange={e => onSearchChange(e.target.value)}
             placeholder="Cerca per nome..."
-            aria-label="Cerca cliente da aggiungere alla ricorrenza"
+            aria-label={`Cerca ${clientLabel} da aggiungere alla ricorrenza`}
             className="input-base w-full mb-2"
             style={{ fontSize: 12 }}
           />

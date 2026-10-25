@@ -1,6 +1,6 @@
 import { InfoChip, sectionStyle, dateFmt } from './recurrenceDetailShared'
 
-export function RecurrenceSummaryBar({ recurrence, clientsCount, weeks, statusInfo }) {
+export function RecurrenceSummaryBar({ recurrence, clientsCount, weeks, statusInfo, terminology }) {
   return (
     <div
       className="px-5 py-4 flex flex-wrap gap-x-8 gap-y-3 rounded-[4px]"
@@ -15,7 +15,7 @@ export function RecurrenceSummaryBar({ recurrence, clientsCount, weeks, statusIn
           <span className="font-body text-[11px] text-white/30 ml-2">({weeks} sett.)</span>
         )}
       </InfoChip>
-      <InfoChip label="CLIENTI">
+      <InfoChip label={terminology.clients.toUpperCase()}>
         <span style={{ color: 'var(--rx-accent)' }}>{clientsCount}</span>
       </InfoChip>
     </div>

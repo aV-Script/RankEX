@@ -5,12 +5,13 @@ import {
 } from './groupDetailIcons'
 
 // `isRanking`: tab basate su percentili/rank, assenti senza `hasGroupRanking`
+// `labelKey`:  etichetta presa dalla terminologia del modulo invece di `label`
 const SUB_TABS = [
   { id: 'manage',      label: 'Gestione',   icon: ICON_MANAGE      },
   { id: 'leaderboard', label: 'Classifica', icon: ICON_LEADERBOARD, isRanking: true },
   { id: 'analysis',    label: 'Analisi',    icon: ICON_ANALYSIS,    isRanking: true },
   { id: 'comparison',  label: 'Confronto',  icon: ICON_COMPARE,     isRanking: true },
-  { id: 'sessions',    label: 'Sessioni',   icon: ICON_SESSIONS    },
+  { id: 'sessions',    labelKey: 'sessions', icon: ICON_SESSIONS    },
   { id: 'notes',       label: 'Note',       icon: ICON_NOTES       },
 ]
 
@@ -37,7 +38,7 @@ export function GroupDetailHeader({
       {/* ← Back */}
       <button
         onClick={onBack}
-        aria-label={`Torna a ${terminology.groups}`}
+        aria-label={`Torna ${terminology.toTheGroups}`}
         className="w-10 flex items-center justify-center shrink-0 bg-transparent border-none text-white/40 hover:text-white/70 transition-colors cursor-pointer"
       >
         {ICON_BACK}
@@ -80,7 +81,7 @@ export function GroupDetailHeader({
                 <span style={{ display: 'flex', filter: subView === t.id ? 'drop-shadow(0 0 4px color-mix(in srgb, var(--rx-accent) 50%, transparent))' : 'none' }}>
                   {t.icon}
                 </span>
-                <span className="font-display text-[9px] tracking-[1px] uppercase whitespace-nowrap">{t.label}</span>
+                <span className="font-display text-[9px] tracking-[1px] uppercase whitespace-nowrap">{t.labelKey ? terminology[t.labelKey] : t.label}</span>
               </button>
             ))}
           </div>

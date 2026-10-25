@@ -8,6 +8,7 @@ import { addClientToRecurrenceUseCase }       from '../../usecases/addClientToRe
 import { removeClientFromRecurrenceUseCase }  from '../../usecases/removeClientFromRecurrenceUseCase'
 import { cancelRecurrenceUseCase }            from '../../usecases/cancelRecurrenceUseCase'
 import { useToast }                           from '../../hooks/useToast'
+import { useTrainerState }                    from '../../context/TrainerContext'
 
 /**
  * Hook per la gestione completa delle ricorrenze.
@@ -17,6 +18,8 @@ export function useRecurrences(orgId) {
   const [loading,     setLoading]     = useState(false)
   const [error,       setError]       = useState(null)
   const { error: toastError } = useToast()
+  const { terminology } = useTrainerState()
+  const theClient = terminology.theClient
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
   const refresh = useCallback(() => {
@@ -119,9 +122,9 @@ export function useRecurrences(orgId) {
       setRecurrences(prev => prev.map(r =>
         r.id === recurrenceId ? snapshot : r
       ))
-      toastError('Impossibile aggiungere il cliente')
+      toastError(`Impossibile aggiungere ${theClient}`)
     }
-  }, [orgId, recurrences, toastError])
+  }, [orgId, recurrences, theClient, toastError])
 
   // ── Rimuovi cliente ────────────────────────────────────────────────────────
   const handleRemoveClient = useCallback(async (recurrenceId, clientId) => {
@@ -139,9 +142,9 @@ export function useRecurrences(orgId) {
       setRecurrences(prev => prev.map(r =>
         r.id === recurrenceId ? snapshot : r
       ))
-      toastError('Impossibile rimuovere il cliente')
+      toastError(`Impossibile rimuovere ${theClient}`)
     }
-  }, [orgId, recurrences, toastError])
+  }, [orgId, recurrences, theClient, toastError])
 
   // ── Cancella ricorrenza ────────────────────────────────────────────────────
   // Non mostra un proprio toast: rilancia l'errore così il chiamante

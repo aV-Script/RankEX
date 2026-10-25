@@ -3,6 +3,7 @@ import { getGroupTogglePreview } from '../../../features/calendar/calendarGroupU
 import { useFocusTrap }          from '../../../hooks/useFocusTrap'
 import { Button }                from '../../../components/ui'
 import { useEscapeKey } from '../../../hooks/useEscapeKey'
+import { bySessionGender } from '../../../config/modules.config'
 
 const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
 
@@ -15,6 +16,7 @@ export function GroupToggleDialog({
   group,
   orgId,
   isRemoving,
+  terminology,
   onConfirm,
   onCancel,
 }) {
@@ -64,7 +66,7 @@ export function GroupToggleDialog({
       >
         {/* Titolo */}
         <h3 id="group-toggle-title" className="font-display font-black text-[16px] text-white mb-1">
-          {isRemoving ? 'Rimuovi dal gruppo' : 'Aggiungi al gruppo'}
+          {isRemoving ? `Rimuovi ${terminology.fromTheGroup}` : `Aggiungi ${terminology.toTheGroup}`}
         </h3>
         <p className="font-body text-[12px] text-white/40 mb-5">
           Rivedi l'operazione prima di confermare
@@ -76,11 +78,11 @@ export function GroupToggleDialog({
           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '3px' }}
         >
           <div className="flex items-center justify-between">
-            <span className="font-display text-[11px] font-semibold text-white/40">Allievo</span>
+            <span className="font-display text-[11px] font-semibold text-white/40">{terminology.client}</span>
             <span className="font-display text-[13px] text-white">{client.name}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="font-display text-[11px] font-semibold text-white/40">Gruppo</span>
+            <span className="font-display text-[11px] font-semibold text-white/40">{terminology.group}</span>
             <span className="font-display text-[13px] text-white">{group.name}</span>
           </div>
           <div className="flex items-center justify-between">
@@ -109,7 +111,7 @@ export function GroupToggleDialog({
           ) : preview ? (
             <div className="flex flex-col gap-2.5">
               <div className="flex items-center justify-between">
-                <span className="font-display font-bold text-[12px] text-white/55">Sessioni future</span>
+                <span className="font-display font-bold text-[12px] text-white/55">{terminology.sessions} {bySessionGender(terminology, 'futuri', 'future')}</span>
                 <div className="flex items-center gap-1.5">
                   <span
                     className="font-display font-black text-[14px]"
@@ -154,7 +156,7 @@ export function GroupToggleDialog({
 
               {preview.futureSlots === 0 && preview.recurrences.length === 0 && (
                 <p className="font-body text-[12px] text-white/60 text-center py-1">
-                  Nessuna sessione futura da aggiornare
+                  {bySessionGender(terminology, 'Nessun', 'Nessuna')} {terminology.session.toLowerCase()} {bySessionGender(terminology, 'futuro', 'futura')} da aggiornare
                 </p>
               )}
             </div>

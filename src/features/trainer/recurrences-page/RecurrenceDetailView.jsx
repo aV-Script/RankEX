@@ -9,7 +9,7 @@ import { RecurrenceClientsSection }       from './RecurrenceClientsSection'
 import { STATUS_INFO, weeksBetween }      from './recurrenceDetailShared'
 
 export function RecurrenceDetailView({
-  recurrence, clients,
+  recurrence, clients, terminology,
   onBack, onUpdateTime, onUpdateDays,
   onExtendPeriod, onAddClient, onRemoveClient, onCancel,
 }) {
@@ -94,6 +94,7 @@ export function RecurrenceDetailView({
           clientsCount={recurrenceClients.length}
           weeks={weeks}
           statusInfo={statusInfo}
+          terminology={terminology}
         />
 
         <RecurrenceScheduleSection
@@ -139,6 +140,7 @@ export function RecurrenceDetailView({
           onSearchChange={setClientSearch}
           onAddClient={onAddClient}
           onRemoveClient={onRemoveClient}
+          terminology={terminology}
         />
       </div>
 

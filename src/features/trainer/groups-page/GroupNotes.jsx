@@ -8,19 +8,15 @@ import { useToast }                          from '../../../hooks/useToast'
 import { Button, EmptyState, SectionLabel }  from '../../../components/ui'
 import { ConfirmDialog }                     from '../../../components/common/ConfirmDialog'
 import { IconDocument }                      from '../../../components/ui/icons'
+import { getNoteRoleLabels }                 from '../../../config/modules.config'
 
 const ICON_NOTES = <IconDocument size={20} />
 
 const NOTES_PAGE_SIZE = 8
 
-const ROLE_LABELS = {
-  trainer:        'Trainer',
-  org_admin:      'Admin',
-  staff_readonly: 'Staff',
-}
-
-export function GroupNotes({ orgId, groupId }) {
+export function GroupNotes({ orgId, groupId, terminology }) {
   const { userRole } = useTrainerState()
+  const roleLabels  = getNoteRoleLabels(terminology)
   const toast = useToast()
   const [notes,       setNotes]       = useState([])
   const [loading,     setLoading]     = useState(true)
@@ -38,11 +34,11 @@ export function GroupNotes({ orgId, groupId }) {
     try {
       setNotes(await getGroupNotes(orgId, groupId))
     } catch {
-      toastError('Impossibile caricare le note del gruppo')
+      toastError(`Impossibile caricare le note ${terminology.ofTheGroup}`)
     } finally {
       setLoading(false)
     }
-  }, [orgId, groupId, toastError])
+  }, [orgId, groupId, terminology.ofTheGroup, toastError])
 
   useEffect(() => { fetchNotes() }, [fetchNotes])
 
@@ -58,14 +54,14 @@ export function GroupNotes({ orgId, groupId }) {
       const doc = await addGroupNote(orgId, groupId, {
         text:       trimmed,
         authorId:   user.uid,
-        authorName: user.displayName ?? user.email ?? 'Trainer',
+        authorName: user.displayName ?? user.email ?? terminology.trainer,
         authorRole: userRole ?? 'trainer',
       })
       setNotes(prev => [{
         id:         doc.id,
         text:       trimmed,
         authorId:   user.uid,
-        authorName: user.displayName ?? user.email ?? 'Trainer',
+        authorName: user.displayName ?? user.email ?? terminology.trainer,
         authorRole: userRole ?? 'trainer',
         createdAt:  new Date().toISOString(),
       }, ...prev])
@@ -99,7 +95,7 @@ export function GroupNotes({ orgId, groupId }) {
 
   return (
     <div className="rounded-[4px] p-5 rx-card">
-      <SectionLabel className="mb-5">◈ Note di gruppo</SectionLabel>
+      <SectionLabel className="mb-5">◈ Note di {terminology.group.toLowerCase()}</SectionLabel>
 
       {/* Composer */}
       <div className="mb-5">
@@ -107,7 +103,7 @@ export function GroupNotes({ orgId, groupId }) {
           value={text}
           onChange={e => setText(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSubmit() }}
-          placeholder="Scrivi un annuncio o una nota per il gruppo… (Ctrl+↵ per inviare)"
+          placeholder={`Scrivi un annuncio o una nota per ${terminology.theGroup}… (Ctrl+↵ per inviare)`}
           rows={3}
           className="input-base w-full resize-none font-body text-[13px]"
           style={{ lineHeight: 1.6 }}
@@ -128,7 +124,7 @@ export function GroupNotes({ orgId, groupId }) {
         <EmptyState
           icon={ICON_NOTES}
           title="Nessuna nota"
-          description="Pubblica la prima nota o annuncio per questo gruppo."
+          description={`Pubblica la prima nota o annuncio per ${terminology.thisGroup}.`}
         />
       ) : (
         <>
@@ -139,6 +135,7 @@ export function GroupNotes({ orgId, groupId }) {
                 note={note}
                 currentUserId={currentUserId}
                 userRole={userRole}
+                roleLabel={roleLabels[note.authorRole] ?? note.authorRole}
                 deleting={deletingId === note.id}
                 onDelete={() => setConfirmDelete(note)}
               />
@@ -151,7 +148,7 @@ export function GroupNotes({ orgId, groupId }) {
       {confirmDelete && (
         <ConfirmDialog
           title="Eliminare la nota?"
-          description="La nota verrà rimossa definitivamente dal gruppo."
+          description={`La nota verrà rimossa definitivamente ${terminology.fromTheGroup}.`}
           confirmLabel="ELIMINA"
           variant="danger"
           loading={deletingId === confirmDelete.id}
@@ -163,7 +160,7 @@ export function GroupNotes({ orgId, groupId }) {
   )
 }
 
-function NoteCard({ note, currentUserId, userRole, deleting, onDelete }) {
+function NoteCard({ note, currentUserId, userRole, roleLabel, deleting, onDelete }) {
   const canDelete = currentUserId === note.authorId || userRole === 'org_admin'
   const dateLabel = note.createdAt
     ? new Date(note.createdAt).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -190,7 +187,7 @@ function NoteCard({ note, currentUserId, userRole, deleting, onDelete }) {
               className="ml-2 font-display text-[10px] font-semibold tracking-[1px] px-1.5 py-0.5 rounded-[2px]"
               style={{ background: 'color-mix(in srgb, var(--rx-accent) 8%, transparent)', color: 'color-mix(in srgb, var(--rx-accent) 40%, transparent)' }}
             >
-              {ROLE_LABELS[note.authorRole] ?? note.authorRole}
+              {roleLabel}
             </span>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { createContext, useContext, useReducer } from 'react'
+import { DEFAULT_TERMINOLOGY } from '../config/modules.config'
 
 // ── Azioni ────────────────────────────────────────────────────────────────────
 export const ACTIONS = Object.freeze({
@@ -44,7 +45,8 @@ export function TrainerProvider({ orgId, moduleType, terminology, userRole, orgP
     ...initialState,
     orgId,
     moduleType,
-    terminology,
+    // Unico punto di fallback: i consumer leggono sempre una terminologia valida
+    terminology: terminology ?? DEFAULT_TERMINOLOGY,
     userRole,
     orgPlan: orgPlan ?? 'free',
   })

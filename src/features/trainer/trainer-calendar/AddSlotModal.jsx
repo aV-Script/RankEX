@@ -1,12 +1,15 @@
 import { useState, useMemo } from 'react'
 import { Modal }        from '../../../components/ui'
 import { toLocalDateStr } from '../../../utils/calendarUtils'
+import { byClientGender, bySessionGender } from '../../../config/modules.config'
 
 /**
- * Modal per la creazione di una nuova sessione.
+ * Modal per la creazione di una nuova sessione (slot di calendario).
  */
-export function AddSlotModal({ date, clients, groups, slots, onClose, onSave }) {
+export function AddSlotModal({ date, clients, groups, slots, terminology, onClose, onSave }) {
   const today = toLocalDateStr()
+  const clientLabel  = terminology.client.toLowerCase()
+  const clientsLabel = terminology.clients.toLowerCase()
 
   const [selectedDate,    setSelectedDate]    = useState(date)
   const [startTime,       setStartTime]       = useState('09:00')
@@ -51,7 +54,7 @@ export function AddSlotModal({ date, clients, groups, slots, onClose, onSave }) 
   const canSave = selectedClients.length > 0 && overLimitClients.length === 0
 
   return (
-    <Modal title="Nuova sessione" onClose={onClose} size="default">
+    <Modal title={`${bySessionGender(terminology, 'Nuovo', 'Nuova')} ${terminology.session.toLowerCase()}`} onClose={onClose} size="default">
         {/* Data */}
         <div className="mb-4">
           <label htmlFor="add-slot-date" className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] block mb-1.5">DATA</label>
@@ -80,7 +83,7 @@ export function AddSlotModal({ date, clients, groups, slots, onClose, onSave }) 
         {/* Gruppi */}
         {groups.length > 0 && (
           <div className="mb-4">
-            <label className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] block mb-2">GRUPPO</label>
+            <label className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] block mb-2">{terminology.group.toUpperCase()}</label>
             <div className="flex flex-wrap gap-2">
               {groups.map(g => (
                 <button
@@ -101,7 +104,7 @@ export function AddSlotModal({ date, clients, groups, slots, onClose, onSave }) 
         {/* Clienti */}
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
-            <label className="font-display text-[11px] font-semibold text-white/30 tracking-[2px]">CLIENTI</label>
+            <label className="font-display text-[11px] font-semibold text-white/30 tracking-[2px]">{terminology.clients.toUpperCase()}</label>
             <div className="flex gap-2">
               <button
                 onClick={() => setSelectedClients(clients.map(c => c.id))}
@@ -155,7 +158,7 @@ export function AddSlotModal({ date, clients, groups, slots, onClose, onSave }) 
 
         {overLimitClients.length > 0 && (
           <p role="alert" className="font-body text-[12px] text-red-400/80 mb-4 m-0">
-            {overLimitClients.length === 1 ? '1 cliente ha' : `${overLimitClients.length} clienti hanno`} raggiunto il massimale mensile.
+            {overLimitClients.length === 1 ? `1 ${clientLabel} ha` : `${overLimitClients.length} ${clientsLabel} hanno`} raggiunto il massimale mensile.
           </p>
         )}
 
@@ -165,7 +168,9 @@ export function AddSlotModal({ date, clients, groups, slots, onClose, onSave }) 
           className="w-full py-3 font-display text-[12px] tracking-widest border-0 transition-opacity"
           style={{ background: 'color-mix(in srgb, var(--rx-accent) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-accent) 35%, transparent)', borderRadius: '3px', color: 'var(--rx-accent)', fontWeight: 700, opacity: canSave ? 1 : 0.4, cursor: canSave ? 'pointer' : 'not-allowed' }}
         >
-          {selectedClients.length === 0 ? 'SELEZIONA ALMENO UN CLIENTE' : `CREA SESSIONE (${selectedClients.length} clienti)`}
+          {selectedClients.length === 0
+            ? `SELEZIONA ALMENO ${byClientGender(terminology, 'UN', 'UNA')} ${terminology.client.toUpperCase()}`
+            : `CREA ${terminology.session.toUpperCase()} (${selectedClients.length} ${clientsLabel})`}
         </button>
     </Modal>
   )

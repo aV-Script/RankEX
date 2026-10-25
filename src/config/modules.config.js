@@ -91,47 +91,208 @@ const MODULES_WITH_INCOMPATIBLE_DATA = [MODULES.LIPEDEMA]
 
 // ── Terminologie ──────────────────────────────────────────────────────────────
 // Ogni variante mappa i concetti generici al termine di dominio corretto.
+//
+// Concordanza grammaticale (BUG-002): i termini cambiano genere da un modulo
+// all'altro ("la sessione" / "l'appuntamento"), quindi le frasi non si possono
+// comporre con un aggettivo fisso. Ogni variante dichiara, oltre ai nomi:
+//   clientGender / sessionGender / groupGender
+//                                → 'm' | 'f', per nuovo/a, nessun/a, chiuso/a,
+//                                  creati/e… via byClientGender / bySessionGender
+//                                  / byGroupGender
+//   theClient, theClients, theSession, theSessions, theAthletes, theGroup
+//                                → il termine minuscolo con l'articolo
+//                                  determinativo già giusto (il/l'/la/i/gli/le)
+//   toTheClients, toTheGroups    → con la preposizione "a" articolata (ai/agli/alle)
+//   thisGroup, inTheGroup, ofTheGroup, toTheGroup, fromTheGroup
+//                                → questo/a, nel/nella, del/della, al/alla, dal/dalla
+//   athlete / athletes           → chi viene allenato nei testi sportivi già
+//                                  esistenti (tab "Atleta", gruppi): "Atleta"
+//                                  nei moduli con gamification, il paziente in
+//                                  lipedema
+//   trainers                     → plurale di trainer (contatori del team)
+// Le forme sono scritte per esteso invece di essere derivate da regole: i
+// termini sono pochi e così ogni frase si legge direttamente qui.
+
+export const TERMINOLOGY_KEYS = [
+  'trainer', 'trainers', 'client', 'clients', 'group', 'groups', 'session', 'sessions',
+  'athlete', 'athletes', 'clientGender', 'sessionGender', 'groupGender',
+  'theClient', 'theClients', 'toTheClients', 'theSession', 'theSessions', 'theAthletes',
+  'theGroup', 'thisGroup', 'inTheGroup', 'ofTheGroup', 'toTheGroup', 'fromTheGroup', 'toTheGroups',
+]
 
 export const TERMINOLOGIES = {
   personal_training: {
     trainer:   'Trainer',
+    trainers:  'Trainer',
     client:    'Cliente',
     clients:   'Clienti',
     group:     'Gruppo',
     groups:    'Gruppi',
     session:   'Sessione',
     sessions:  'Sessioni',
+    athlete:   'Atleta',
+    athletes:  'Atleti',
+    clientGender:  'm',
+    sessionGender: 'f',
+    theClient:     'il cliente',
+    theClients:    'i clienti',
+    toTheClients:  'ai clienti',
+    theSession:    'la sessione',
+    theSessions:   'le sessioni',
+    theAthletes:   'gli atleti',
+    groupGender:   'm',
+    theGroup:      'il gruppo',
+    thisGroup:     'questo gruppo',
+    inTheGroup:    'nel gruppo',
+    ofTheGroup:    'del gruppo',
+    toTheGroup:    'al gruppo',
+    fromTheGroup:  'dal gruppo',
+    toTheGroups:   'ai gruppi',
   },
   gym: {
     trainer:  'Personal Trainer',
+    trainers: 'Personal Trainer',
     client:   'Membro',
     clients:  'Membri',
     group:    'Classe',
     groups:   'Classi',
     session:  'Allenamento',
     sessions: 'Allenamenti',
+    athlete:  'Atleta',
+    athletes: 'Atleti',
+    clientGender:  'm',
+    sessionGender: 'm',
+    theClient:     'il membro',
+    theClients:    'i membri',
+    toTheClients:  'ai membri',
+    theSession:    "l'allenamento",
+    theSessions:   'gli allenamenti',
+    theAthletes:   'gli atleti',
+    groupGender:   'f',
+    theGroup:      'la classe',
+    thisGroup:     'questa classe',
+    inTheGroup:    'nella classe',
+    ofTheGroup:    'della classe',
+    toTheGroup:    'alla classe',
+    fromTheGroup:  'dalla classe',
+    toTheGroups:   'alle classi',
   },
   soccer_academy: {
     trainer:  'Coach',
+    trainers: 'Coach',
     client:   'Allievo',
     clients:  'Allievi',
     group:    'Squadra',
     groups:   'Squadre',
     session:  'Allenamento',
     sessions: 'Allenamenti',
+    athlete:  'Atleta',
+    athletes: 'Atleti',
+    clientGender:  'm',
+    sessionGender: 'm',
+    theClient:     "l'allievo",
+    theClients:    'gli allievi',
+    toTheClients:  'agli allievi',
+    theSession:    "l'allenamento",
+    theSessions:   'gli allenamenti',
+    theAthletes:   'gli atleti',
+    groupGender:   'f',
+    theGroup:      'la squadra',
+    thisGroup:     'questa squadra',
+    inTheGroup:    'nella squadra',
+    ofTheGroup:    'della squadra',
+    toTheGroup:    'alla squadra',
+    fromTheGroup:  'dalla squadra',
+    toTheGroups:   'alle squadre',
   },
   lipedema: {
     trainer:     'Professionista',
+    trainers:    'Professionisti',
     client:      'Paziente',
     clients:     'Pazienti',
     group:       'Gruppo',
     groups:      'Gruppi',
     session:     'Appuntamento',
     sessions:    'Appuntamenti',
+    athlete:     'Paziente',
+    athletes:    'Pazienti',
+    clientGender:  'm',
+    sessionGender: 'm',
+    theClient:     'il paziente',
+    theClients:    'i pazienti',
+    toTheClients:  'ai pazienti',
+    theSession:    "l'appuntamento",
+    theSessions:   'gli appuntamenti',
+    theAthletes:   'i pazienti',
+    groupGender:   'm',
+    theGroup:      'il gruppo',
+    thisGroup:     'questo gruppo',
+    inTheGroup:    'nel gruppo',
+    ofTheGroup:    'del gruppo',
+    toTheGroup:    'al gruppo',
+    fromTheGroup:  'dal gruppo',
+    toTheGroups:   'ai gruppi',
     // Solo il record dei test (STORY-033), mai uno slot di calendario (ADR-015 §5)
     assessment:  'Valutazione',
     assessments: 'Valutazioni',
   },
+}
+
+// Fallback quando l'org non è caricata: risolto una volta in TrainerProvider; i
+// componenti montati anche nell'area cliente (senza provider) lo usano come default
+export const DEFAULT_TERMINOLOGY = TERMINOLOGIES.personal_training
+
+/**
+ * Sceglie la forma maschile o femminile secondo il genere di un termine.
+ * @example byGender(t.sessionGender, 'Nuovo', 'Nuova') + ' ' + t.session.toLowerCase()
+ * @param {'m'|'f'} gender — clientGender / sessionGender della terminologia
+ * @param {string} masculine
+ * @param {string} feminine
+ */
+export function byGender(gender, masculine, feminine) {
+  return gender === 'f' ? feminine : masculine
+}
+
+/** byGender sul genere di session/sessions: bySessionGender(t, 'Nuovo', 'Nuova') */
+export function bySessionGender(terminology, masculine, feminine) {
+  return byGender(terminology.sessionGender, masculine, feminine)
+}
+
+/** byGender sul genere di client/clients: byClientGender(t, 'Nessun', 'Nessuna') */
+export function byClientGender(terminology, masculine, feminine) {
+  return byGender(terminology.clientGender, masculine, feminine)
+}
+
+/** byGender sul genere di group/groups: byGroupGender(t, 'il primo', 'la prima') */
+export function byGroupGender(terminology, masculine, feminine) {
+  return byGender(terminology.groupGender, masculine, feminine)
+}
+
+/** Prima lettera maiuscola, per le forme con articolo a inizio frase ("L'appuntamento…"). */
+export function capitalize(text) {
+  return text ? text.charAt(0).toUpperCase() + text.slice(1) : text
+}
+
+// ── Ruoli dei membri dell'org ─────────────────────────────────────────────────
+// Il ruolo `trainer` prende il nome del modulo (Trainer / Coach / Professionista…).
+
+/** Opzioni del select ruolo (Team, nuovo membro). */
+export function getMemberRoleOptions(terminology) {
+  return [
+    { value: 'trainer',        label: terminology.trainer },
+    { value: 'staff_readonly', label: 'Solo lettura' },
+    { value: 'org_admin',      label: 'Admin' },
+  ]
+}
+
+/** Etichette del badge autore nelle note (cliente e gruppo). */
+export function getNoteRoleLabels(terminology) {
+  return {
+    trainer:        terminology.trainer,
+    org_admin:      'Admin',
+    staff_readonly: 'Staff',
+    client:         terminology.athlete,
+  }
 }
 
 // ── Ruoli soccer (etichetta visiva) ───────────────────────────────────────────
@@ -201,7 +362,7 @@ export function resolveCategoria(client) {
  */
 export function getTerminology(moduleType, variant) {
   if (variant && TERMINOLOGIES[variant]) return TERMINOLOGIES[variant]
-  return TERMINOLOGIES[moduleType] ?? TERMINOLOGIES.personal_training
+  return TERMINOLOGIES[moduleType] ?? DEFAULT_TERMINOLOGY
 }
 
 /**

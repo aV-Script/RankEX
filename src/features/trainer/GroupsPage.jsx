@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback } from 'react'
 import { useGroups }                      from '../../hooks/useGroups'
 import { usePagination }                  from '../../hooks/usePagination'
 import { useTrainerState }                from '../../context/TrainerContext'
-import { getModule }                      from '../../config/modules.config'
+import { getModule, byGroupGender }       from '../../config/modules.config'
 import { Pagination }                     from '../../components/common/Pagination'
 import { GroupCard }                      from './groups-page/GroupCard'
 import { GroupDetailView }                from './groups-page/GroupDetailView'
@@ -98,7 +98,7 @@ export function GroupsPage({ orgId, clients = [] }) {
             onClick={() => setShowNew(true)}
             className="rx-btn-primary font-display text-[10px] tracking-[1.5px] py-1.5 px-3 rounded-[3px] cursor-pointer shrink-0"
           >
-            + NUOVO
+            + {byGroupGender(terminology, 'NUOVO', 'NUOVA')}
           </button>
         </div>
       </div>
@@ -138,9 +138,9 @@ export function GroupsPage({ orgId, clients = [] }) {
         ) : filteredGroups.length === 0 ? (
           <EmptyState
             icon={ICON_NEW_GROUP}
-            title={groups.length === 0 ? `Nessun ${terminology.group.toLowerCase()}` : 'Nessun risultato'}
+            title={groups.length === 0 ? `${byGroupGender(terminology, 'Nessun', 'Nessuna')} ${terminology.group.toLowerCase()}` : 'Nessun risultato'}
             description={groups.length === 0
-              ? `Crea il primo ${terminology.group.toLowerCase()} per organizzare i ${terminology.clients.toLowerCase()}.`
+              ? `Crea ${byGroupGender(terminology, 'il primo', 'la prima')} ${terminology.group.toLowerCase()} per organizzare ${terminology.theClients}.`
               : 'Prova a cambiare il termine di ricerca.'
             }
             action={groups.length === 0 ? { label: `Crea ${terminology.group.toLowerCase()}`, onClick: () => setShowNew(true) } : undefined}
@@ -153,6 +153,7 @@ export function GroupsPage({ orgId, clients = [] }) {
                   key={group.id}
                   group={group}
                   clients={clients}
+                  terminology={terminology}
                   onClick={() => handleSelectGroup(group)}
                 />
               ))}

@@ -4,13 +4,7 @@ import { Skeleton }                  from '../../../components/common/Skeleton'
 import { ConfirmDialog }             from '../../../components/common/ConfirmDialog'
 import { IconDocument }              from '../../../components/ui/icons'
 import { useNotes }                  from '../../../hooks/useNotes'
-
-const ROLE_LABELS = {
-  trainer:      'Trainer',
-  org_admin:    'Admin',
-  staff_readonly: 'Staff',
-  client:       'Atleta',
-}
+import { DEFAULT_TERMINOLOGY, getNoteRoleLabels } from '../../../config/modules.config'
 
 /**
  * Sezione Note e Commenti nel profilo cliente.
@@ -20,8 +14,10 @@ const ROLE_LABELS = {
  * @param {string}  color         — colore accent del profilo
  * @param {{ role, name }} author — utente corrente (trainer o client)
  * @param {boolean} readonly      — true per staff_readonly
+ * @param {object}  [terminology] — del modulo; l'area cliente non ce l'ha e usa il default
  */
-export function NotesSection({ orgId, clientId, color, author, readonly = false }) {
+export function NotesSection({ orgId, clientId, color, author, readonly = false, terminology = DEFAULT_TERMINOLOGY }) {
+  const roleLabels = getNoteRoleLabels(terminology)
   const { threads, loading, handleAddThread, handleAddComment, handleDelete } =
     useNotes(orgId, clientId, author)
 
@@ -99,6 +95,7 @@ export function NotesSection({ orgId, clientId, color, author, readonly = false 
                 key={thread.id}
                 thread={thread}
                 color={color}
+                roleLabels={roleLabels}
                 expanded={expandedIds.has(thread.id)}
                 replyText={replyTexts[thread.id] ?? ''}
                 replyLoading={!!replyLoading[thread.id]}
@@ -154,7 +151,7 @@ export function NotesSection({ orgId, clientId, color, author, readonly = false 
 }
 
 function ThreadCard({
-  thread, color, expanded, replyText, replyLoading, readonly, deleting,
+  thread, color, roleLabels, expanded, replyText, replyLoading, readonly, deleting,
   onToggle, onReplyChange, onReplySubmit, onDelete,
 }) {
   const commentCount = thread.comments.length
@@ -170,7 +167,7 @@ function ThreadCard({
           <span className="font-display font-bold text-[12px] text-white/80">
             {thread.authorName}
           </span>
-          <RoleBadge role={thread.authorRole} color={color} />
+          <RoleBadge label={roleLabels[thread.authorRole] ?? thread.authorRole} color={color} />
           <span className="font-body text-[10px] text-white/60">
             {formatDate(thread.createdAt)}
           </span>
@@ -211,7 +208,7 @@ function ThreadCard({
                 <span className="font-display font-bold text-[11px] text-white/70">
                   {comment.authorName}
                 </span>
-                <RoleBadge role={comment.authorRole} color={color} small />
+                <RoleBadge label={roleLabels[comment.authorRole] ?? comment.authorRole} color={color} small />
                 <span className="font-body text-[10px] text-white/60">
                   {formatDate(comment.createdAt)}
                 </span>
@@ -249,8 +246,7 @@ function ThreadCard({
   )
 }
 
-function RoleBadge({ role, color, small = false }) {
-  const label = ROLE_LABELS[role] ?? role
+function RoleBadge({ label, color, small = false }) {
   const size  = small ? 'text-[9px] px-1.5 py-0' : 'text-[10px] px-2 py-0.5'
   return (
     <span

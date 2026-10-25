@@ -6,6 +6,7 @@ import { usePagination }                 from '../../hooks/usePagination'
 import { Pagination }                    from '../../components/common/Pagination'
 import { EmptyState, PageTitle }         from '../../components/ui'
 import { IconChevronDown }               from '../../components/ui/icons'
+import { useTrainerState }               from '../../context/TrainerContext'
 
 export function RecurrencesPage({ orgId, clients = [], initialRecurrenceId, onNavigate }) {
   const {
@@ -13,7 +14,7 @@ export function RecurrencesPage({ orgId, clients = [], initialRecurrenceId, onNa
     handleUpdateTime, handleUpdateDays, handleExtendPeriod,
     handleAddClient, handleRemoveClient, handleCancel,
   } = useRecurrences(orgId)
-
+  const { terminology } = useTrainerState()
 
   const [showArchive, setShowArchive] = useState(false)
   const [selectedId,  setSelectedId]  = useState(initialRecurrenceId ?? null)
@@ -30,6 +31,7 @@ export function RecurrencesPage({ orgId, clients = [], initialRecurrenceId, onNa
       <RecurrenceDetailView
         recurrence={selected}
         clients={clients}
+        terminology={terminology}
         onBack={() => setSelectedId(null)}
         onUpdateTime={handleUpdateTime}
         onUpdateDays={handleUpdateDays}
@@ -98,6 +100,7 @@ export function RecurrencesPage({ orgId, clients = [], initialRecurrenceId, onNa
                   key={rec.id}
                   recurrence={rec}
                   clients={clients}
+                  terminology={terminology}
                   onClick={() => setSelectedId(rec.id)}
                 />
               ))}
@@ -118,6 +121,7 @@ export function RecurrencesPage({ orgId, clients = [], initialRecurrenceId, onNa
                   key={rec.id}
                   recurrence={rec}
                   clients={clients}
+                  terminology={terminology}
                   onClick={() => setSelectedId(rec.id)}
                 />
               ))}

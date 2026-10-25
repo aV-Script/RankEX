@@ -1,3 +1,4 @@
+
 const MONTH_NAMES = [
   'Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
   'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'
@@ -12,7 +13,7 @@ const VIEW_OPTS = [
 /**
  * Header del calendario con navigazione, switcher vista e bottoni azioni.
  */
-export function CalendarHeader({ currentDate, view, onNavigate, onToday, onViewChange, onAddSession, onAddRecurrence }) {
+export function CalendarHeader({ currentDate, view, onNavigate, onToday, onViewChange, onAddSession, onAddRecurrence, terminology }) {
   const d     = new Date(currentDate + 'T12:00')
   const year  = d.getFullYear()
   const month = d.getMonth()
@@ -80,7 +81,7 @@ export function CalendarHeader({ currentDate, view, onNavigate, onToday, onViewC
         {onAddSession && (
           <button
             onClick={onAddSession}
-            aria-label="Aggiungi sessione"
+            aria-label={`Aggiungi ${terminology.session.toLowerCase()}`}
             className="px-3 py-1.5 rounded-[3px] font-display text-[10px] tracking-[1.5px] uppercase cursor-pointer transition-all border"
             style={{
               background:   'color-mix(in srgb, var(--rx-accent) 12%, transparent)',
@@ -88,7 +89,7 @@ export function CalendarHeader({ currentDate, view, onNavigate, onToday, onViewC
               color:        'var(--rx-accent)',
             }}
           >
-            + Sessione
+            + {terminology.session}
           </button>
         )}
 

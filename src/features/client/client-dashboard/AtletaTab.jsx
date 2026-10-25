@@ -80,7 +80,7 @@ export function AtletaTab({ client, orgId, campCount, rankObj, ruoloObj, categor
         {/* Stats strip — dentro la stessa card */}
         <StatsStrip items={[
           { label: 'Campionamenti', value: campCount },
-          { label: 'Sessioni / sett.', value: client.sessionsPerWeek ?? '—' },
+          { label: `${terminology.sessions} / sett.`, value: client.sessionsPerWeek ?? '—' },
           profileType !== 'tests_only' && { label: 'BIA', value: biaRankObj?.label ?? '—' },
         ]} />
       </div>
