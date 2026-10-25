@@ -4,12 +4,14 @@ import { getOrganizations }             from '../../../firebase/services/org'
 import { functions }                    from '../../../firebase/config'
 import { ADMIN_COLOR }                  from '../../../config/app.config'
 import { StatCard }                     from '../../../components/ui'
+import { MODULES, MODULE_OPTIONS, getModuleLabel } from '../../../config/modules.config'
 
 const _recalcola = httpsCallable(functions, 'recalcolaCampionamenti')
 
-const MODULE_LABELS = {
-  personal_training: 'Personal Training',
-  soccer_academy:    'Soccer Academy',
+const MODULE_COLORS = {
+  [MODULES.PERSONAL_TRAINING]: '#60a5fa',
+  [MODULES.SOCCER_ACADEMY]:    '#f59e0b',
+  [MODULES.LIPEDEMA]:          '#f472b6',
 }
 
 const STATUS_COLORS = {
@@ -53,13 +55,15 @@ export function AdminDashboard({ onSelectOrg }) {
 
   const stats = useMemo(() => {
     const active    = orgs.filter(o => (o.status ?? 'active') === 'active').length
-    const pt        = orgs.filter(o => o.moduleType === 'personal_training').length
-    const soccer    = orgs.filter(o => o.moduleType === 'soccer_academy').length
+    const byModule  = Object.fromEntries(
+      // moduleType assente = org legacy PT (ADR-007 §2)
+      MODULE_OPTIONS.map(opt => [opt.value, orgs.filter(org => (org.moduleType ?? MODULES.PERSONAL_TRAINING) === opt.value).length])
+    )
     const suspended = orgs.filter(o => o.status === 'suspended').length
     const free       = orgs.filter(o => (o.plan ?? 'free') === 'free').length
     const pro        = orgs.filter(o => o.plan === 'pro').length
     const enterprise = orgs.filter(o => o.plan === 'enterprise').length
-    return { active, pt, soccer, suspended, free, pro, enterprise }
+    return { active, byModule, suspended, free, pro, enterprise }
   }, [orgs])
 
   const recentOrgs = useMemo(() =>
@@ -73,9 +77,9 @@ export function AdminDashboard({ onSelectOrg }) {
     return (
       <div className="px-6 py-8">
         <div className="font-display text-[10px] tracking-[3px] text-white/20 mb-6">DASHBOARD</div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-          {[1,2,3,4].map(i => (
-            <div key={i} className="h-24 rounded-[4px] animate-pulse" style={{ background: 'rgba(255,255,255,0.03)' }} />
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+          {[1,2,3,4,5].map(placeholder => (
+            <div key={placeholder} className="h-24 rounded-[4px] animate-pulse" style={{ background: 'rgba(255,255,255,0.03)' }} />
           ))}
         </div>
         <div className="grid grid-cols-3 gap-4 mb-8">
@@ -92,11 +96,12 @@ export function AdminDashboard({ onSelectOrg }) {
       <div className="font-display text-[10px] tracking-[3px] text-white/20 mb-6">DASHBOARD</div>
 
       {/* Stat principali */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
         <StatCard label="Organizzazioni" value={orgs.length}        color={ADMIN_COLOR} />
         <StatCard label="Attive"          value={stats.active}       color="#34d399" />
-        <StatCard label="Personal Tr."    value={stats.pt}           color="#60a5fa" />
-        <StatCard label="Soccer Academy"  value={stats.soccer}       color="#f59e0b" />
+        {MODULE_OPTIONS.map(opt => (
+          <StatCard key={opt.value} label={opt.label} value={stats.byModule[opt.value]} color={MODULE_COLORS[opt.value]} />
+        ))}
       </div>
 
       {/* Piano breakdown */}
@@ -127,7 +132,7 @@ export function AdminDashboard({ onSelectOrg }) {
                   <div className="min-w-0">
                     <div className="font-display text-[13px] text-white truncate">{org.name}</div>
                     <div className="font-body text-[11px] text-white/30 mt-0.5">
-                      {MODULE_LABELS[org.moduleType] ?? org.moduleType} · {org.id}
+                      {getModuleLabel(org.moduleType)} · {org.id}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0 ml-4">

@@ -13,7 +13,7 @@
 ## Prodotto
 
 RankEX è una piattaforma SaaS multi-tenant per il tracking
-delle performance atletiche. Supporta due moduli di dominio
+delle performance atletiche. Supporta tre moduli di dominio
 con terminologie, test e comportamenti UI diversi.
 
 ### Moduli
@@ -47,6 +47,34 @@ con terminologie, test e comportamenti UI diversi.
   `config/modules.config.js` + server in `functions/src/shared/soccer.js`, che la salva):
   prima restava quella della creazione. Riallineamento dati: `scripts/sync-fasce-soccer.mjs`.
 
+**lipedema** — RankEX Lipedema Edition (EPIC-010, in sviluppo da ott 2026)
+- Nessun rank, percentile né gamification (XP, livelli, badge, Monete, streak, obiettivi):
+  solo storicizzazione dei risultati di 5 test (2MWT, 30s Sit-to-Stand, Handgrip,
+  Handheld Dynamometry quadricipite, One-Leg Standing) — protocolli in `lipidemia/*.docx`
+  (non tracciati), decisioni in `docs/DECISIONS.md` → ADR-006…015
+- Terminologia: Professionista / Paziente / Gruppo / Appuntamento / Valutazione
+- Paziente **senza account**: `creaCliente` non crea Auth né `/users/{uid}`, email
+  facoltativa, nessun campo di gamification sul doc; il paziente non accede all'app (v1)
+- Tutto il modulo è dato sanitario (art. 9(2)(h) GDPR): l'audit `CLIENT_CREATED` non
+  contiene il nome
+- Cambio di `moduleType` da/verso `lipedema` bloccato se l'org ha clienti
+  (`isAllowedModuleChange` in `firestore.rules` + `OrgDetailView`)
+- Valutazioni (subcollection `assessments`), informativa e storico: STORY-029/033-040, non
+  ancora implementate
+
+### Capability per modulo
+`getModule(moduleType)` (`config/modules.config.js`) restituisce flag espliciti per ogni
+modulo (`hasRank`, `hasGamification`, `hasPercentileTests`, `hasBia`, `hasGoals`,
+`hasClientLogin`, `hasCategories`, `hasPlayerRoles`, `hasProfileTypes`, `hasGroupRanking`,
+`hasWearable`, `hasAssessments`). Un `moduleType` sconosciuto riceve tutto `false`; il
+legacy `null` va mappato a PT nei punti di ingresso (`TrainerView`, `OrgAdminView`), non
+dentro `getModule`. **Ramificare sempre sulle capability**, mai su `!isSoccer` per dire
+"è PT": `isSoccer` resta solo per ciò che è davvero soccer (fasce, ruoli).
+Lato server le callable leggono il modulo dall'org con `getOrgCapabilities(db, orgId)`
+(`functions/src/shared/orgModule.js`, flag in `shared/modules.js` — copia speculare
+coperta da `clientServerParity.test.js`) e rifiutano XP/campionamento/obiettivi/avatar
+per i moduli senza gamification; `chiudiSessione` e `salvaBia` non danno XP.
+
 ### Profili cliente (`profileType`)
 ```
 tests_only → solo test, ha rank                     (tutti i moduli)
@@ -72,7 +100,8 @@ client           → solo i propri dati
 ```
 
 ### Documento utente in Firestore
-Tutti gli utenti hanno un documento `/users/{uid}`, creato sempre dall'Admin SDK
+Tutti gli utenti con accesso hanno un documento `/users/{uid}` (i pazienti del modulo
+`lipedema` non ne hanno: nessun account, `clientAuthUid: null`), creato sempre dall'Admin SDK
 (`creaCliente` / `creaMembroTeam`: le rules non permettono di crearlo dal client).
 I client lo hanno con `role: 'client'`, ma i loro dati operativi (stats,
 campionamenti, ecc.) stanno in
@@ -824,9 +853,9 @@ diretto, non richiamare `useTrainerState()` per lo stesso valore.
 ## Comportamento UI per modulo
 
 Il `moduleType` è disponibile in tutta l'area trainer tramite
-`useTrainerState()` → `{ moduleType, orgPlan }`. Il flag booleano
-`getModule(moduleType).isSoccer` è la fonte di verità per
-qualsiasi ramificazione condizionale.
+`useTrainerState()` → `{ moduleType, orgPlan }`. Le capability di
+`getModule(moduleType)` (vedi "Capability per modulo") sono la fonte di verità per
+qualsiasi ramificazione condizionale; `isSoccer` solo per fasce e ruoli.
 
 ### ClientsPage — differenze soccer vs PT
 | Aspetto               | personal_training        | soccer_academy                      |
@@ -847,10 +876,11 @@ sono allievi sia Senior che Piccoli (cioè `fasce.length > 1`). Gestito in `useC
 | `categoria` salvato  | valore selezionato         | `getCategoriaFromEta(calcAge(dataNascita))` |
 | `profileType`        | select (tests/bia/complete)| sempre `'tests_only'`        |
 
-Wizard soccer: **3 step fissi** (anagrafica → ruolo → account).
-`TOTAL_STEPS_MAP.soccer = 3` in `wizard.config.js`.
+Gli step li costruisce `getWizardSteps(capabilities, profileType)` in `wizard.config.js`:
+- PT: anagrafica → profilo → categoria (assente se `bia_only`) → account
+- Soccer: anagrafica → ruolo → account
+- Lipedema (e modulo sconosciuto): anagrafica → contatto (email facoltativa, nessun account)
 La `categoria` (fascia d'età) viene derivata automaticamente dalla data di nascita al momento del submit.
-`isSoccer` viene da `useTrainerState()` → `getModule(moduleType).isSoccer`.
 
 **Blocco piano:** se `clients.length >= getPlanLimits(orgPlan).clients`,
 NewClientView mostra una schermata di blocco invece del wizard.

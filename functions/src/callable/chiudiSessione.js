@@ -8,6 +8,9 @@
  *   - XP + streak + Monete (spike EPIC-005) per ogni attendee
  *   - streak reset per ogni assente
  *   - notifiche per tutti
+ * Nei moduli senza gamification (lipedema, ADR-008) solo slot e avanzamento
+ * della scheda: il doc del paziente non viene toccato (niente XP, livello, log,
+ * streak, sessionCount, Monete, trofei, bonus scheda) e nessuna notifica.
  *
  * Chiamata dal client:
  *   const fn = httpsCallable(functions, 'chiudiSessione')
@@ -20,6 +23,7 @@ import { requireOrgAccess }  from '../shared/auth.js'
 import { buildSessionUpdate, buildXPUpdate } from '../shared/gamification.js'
 import { PLAN_COMPLETION_XP } from '../shared/constants.js'
 import { autoBadgeFields }    from '../shared/badges.js'
+import { getOrgCapabilities } from '../shared/orgModule.js'
 
 const REGION = 'europe-west1'
 
@@ -44,6 +48,7 @@ export const chiudiSessione = onCall({ region: REGION }, async (request) => {
   const notifCol   = db.collection(`organizations/${orgId}/notifications`)
   const plansCol   = db.collection(`organizations/${orgId}/workoutPlans`)
   const today      = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
+  const { hasGamification } = await getOrgCapabilities(db, orgId)
 
   // Transazione, non batch: il controllo "già chiusa" deve stare nella stessa
   // unità delle scritture. Con un batch due chiamate ravvicinate (doppio tap,
@@ -87,6 +92,23 @@ export const chiudiSessione = onCall({ region: REGION }, async (request) => {
       absentees: absenteeIds,
     })
 
+    const result = {
+      ok:        true,
+      attendees: presentIds.length,
+      absentees: absenteeIds.length,
+      ignored:   attendeeIds.length - presentIds.length,
+    }
+
+    // ── Senza gamification: solo tracciamento della scheda ────────────────
+    if (!hasGamification) {
+      for (const clientId of presentIds) {
+        const plan = activePlans[clientId]
+        if (!clientMap[clientId] || !plan) continue
+        tx.update(plan.ref, buildPlanProgress(plan).planUpdate)
+      }
+      return result
+    }
+
     // ── Presenti: XP + streak + sessionCount ───────────────────────────────
     for (const clientId of presentIds) {
       const client = clientMap[clientId]
@@ -101,16 +123,14 @@ export const chiudiSessione = onCall({ region: REGION }, async (request) => {
       const plan = activePlans[clientId]
       let planCompleted = false
       if (plan) {
-        const completedSessions = (plan.completedSessions ?? 0) + 1
-        const planUpdate = { completedSessions, updatedAt: new Date().toISOString() }
-        if (plan.targetSessions && completedSessions >= plan.targetSessions && !plan.completedAt) {
-          planUpdate.completedAt = planUpdate.updatedAt
+        const progress = buildPlanProgress(plan)
+        if (progress.isCompletedNow) {
           planCompleted = true
           const bonus = buildXPUpdate({ ...client, ...update }, PLAN_COMPLETION_XP, `Scheda completata: ${plan.title} (+${PLAN_COMPLETION_XP} XP)`)
           update  = { ...update, ...bonus.update }
           xpGain += PLAN_COMPLETION_XP
         }
-        tx.update(plan.ref, planUpdate)
+        tx.update(plan.ref, progress.planUpdate)
       }
       // Monete negozio avatar — unica fonte di guadagno implementata nello spike
       // EPIC-005 (vedi docs/DECISIONS.md → ADR-002). Importo provvisorio, non
@@ -154,11 +174,18 @@ export const chiudiSessione = onCall({ region: REGION }, async (request) => {
       }
     }
 
-    return {
-      ok:        true,
-      attendees: presentIds.length,
-      absentees: absenteeIds.length,
-      ignored:   attendeeIds.length - presentIds.length,
-    }
+    return result
   })
 })
+
+/**
+ * +1 sessione sulla scheda attiva; raggiunte quelle previste la scheda è
+ * completata (una volta sola: completedAt).
+ */
+function buildPlanProgress(plan) {
+  const completedSessions = (plan.completedSessions ?? 0) + 1
+  const planUpdate        = { completedSessions, updatedAt: new Date().toISOString() }
+  const isCompletedNow    = Boolean(plan.targetSessions) && completedSessions >= plan.targetSessions && !plan.completedAt
+  if (isCompletedNow) planUpdate.completedAt = planUpdate.updatedAt
+  return { planUpdate, isCompletedNow }
+}

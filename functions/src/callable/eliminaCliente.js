@@ -22,13 +22,24 @@ export const eliminaCliente = onCall({ region: REGION }, async (request) => {
   const clientRef = db.doc(`organizations/${orgId}/clients/${clientId}`)
   const clientDoc = await clientRef.get()
 
-  if (!clientDoc.exists) {
-    throw new HttpsError('not-found', 'Cliente non trovato')
+  // Doc assente = retry di una cancellazione interrotta dopo il batch core (o id già
+  // cancellato): si ripete solo la pulizia, idempotente, senza toccare di nuovo
+  // clientCount, users/ o Auth — il batch core è già stato applicato.
+  const isRetry = !clientDoc.exists
+  if (!isRetry) {
+    await deleteClientCore(db, orgId, clientRef, clientDoc.data().clientAuthUid ?? null)
   }
 
-  const clientData    = clientDoc.data()
-  const clientAuthUid = clientData.clientAuthUid ?? null
+  await cleanupClientData(db, orgId, clientId, clientRef)
 
+  return isRetry ? { ok: true, alreadyDeleted: true } : { ok: true }
+})
+
+/**
+ * Account Auth, poi batch "core": doc cliente, users/{uid} e decremento clientCount.
+ * Va per primo, prima della pulizia, per i motivi sotto.
+ */
+async function deleteClientCore(db, orgId, clientRef, clientAuthUid) {
   // ── Cascade delete completo (STORY-016/EPIC-007) ──────────────────────────
   // Diritto alla cancellazione: nessun dato personale orfano dopo l'eliminazione
   // di un cliente (note libere, obiettivi, riferimenti in slot/ricorrenze/
@@ -42,6 +53,21 @@ export const eliminaCliente = onCall({ region: REGION }, async (request) => {
   // riferimento residuo in slot/notifiche" — non l'opposto ("cliente ancora
   // presente ma note/obiettivi già spariti per sempre"), che è il vero rischio
   // per un'operazione il cui scopo è il diritto alla cancellazione.
+  //
+  // L'account Auth va cancellato PRIMA del batch: finché il doc cliente esiste, un
+  // retry conosce ancora l'uid. Un errore diverso da "utente non trovato" interrompe
+  // tutto prima di cancellare qualunque dato, così l'account non resta mai attivo
+  // dopo che users/{uid} è sparito.
+  if (clientAuthUid) {
+    try {
+      await getAuth().deleteUser(clientAuthUid)
+    } catch (err) {
+      if (err?.code !== 'auth/user-not-found') {
+        throw new HttpsError('internal', 'Eliminazione account non riuscita, riprova')
+      }
+    }
+  }
+
   const coreBatch = db.batch()
   coreBatch.delete(clientRef)
   if (clientAuthUid) {
@@ -51,11 +77,19 @@ export const eliminaCliente = onCall({ region: REGION }, async (request) => {
     clientCount: FieldValue.increment(-1),
   })
   await coreBatch.commit()
+}
 
-  // notes/ e goals/ sono interamente del cliente — recursiveDelete gestisce
-  // internamente dimensioni arbitrarie (BulkWriter), nessun limite 500.
-  await db.recursiveDelete(clientRef.collection('notes'))
-  await db.recursiveDelete(clientRef.collection('goals'))
+/**
+ * Tutto ciò che resta dopo il core, idempotente: si può rilanciare finché non va a
+ * buon fine (eliminaCliente con il doc già assente).
+ */
+async function cleanupClientData(db, orgId, clientId, clientRef) {
+  // Tutte le subcollection del cliente (notes, goals, assessments e qualunque
+  // futura, anche annidate), senza elencarle per nome: una dimenticata resterebbe
+  // orfana con dati personali o sanitari (ADR-009, ADR-015 §4). recursiveDelete sul
+  // doc funziona anche se il doc è già stato cancellato, e gestisce dimensioni
+  // arbitrarie (BulkWriter), nessun limite 500.
+  await db.recursiveDelete(clientRef)
 
   // Rimuove il cliente da tutti i gruppi
   const groupsSnap = await db.collection(`organizations/${orgId}/groups`).get()
@@ -138,15 +172,4 @@ export const eliminaCliente = onCall({ region: REGION }, async (request) => {
     })
     await batch.commit()
   }
-
-  // Elimina l'account Firebase Auth (fire and forget con try/catch)
-  if (clientAuthUid) {
-    try {
-      await getAuth().deleteUser(clientAuthUid)
-    } catch {
-      // Ignora se l'utente non esiste in Auth
-    }
-  }
-
-  return { ok: true }
-})
+}

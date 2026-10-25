@@ -2,6 +2,7 @@ import { onCall, HttpsError }        from 'firebase-functions/v2/https'
 import { getFirestore }              from 'firebase-admin/firestore'
 import { requireOrgMemberOrClient }  from '../shared/auth.js'
 import { getUnlockRuleForAvatarId }  from '../shared/avatarUnlocks.js'
+import { getOrgCapabilities, requireCapability } from '../shared/orgModule.js'
 
 const REGION = 'europe-west1'
 
@@ -30,6 +31,9 @@ export const acquistaAvatar = onCall({ region: REGION }, async (request) => {
   }
 
   const db        = getFirestore()
+  // Monete e negozio fanno parte della gamification (ADR-008): oggi un paziente
+  // lipedema non ha login, il controllo protegge il giorno in cui lo avrà
+  requireCapability(await getOrgCapabilities(db, orgId), 'hasGamification')
   const clientRef = db.doc(`organizations/${orgId}/clients/${clientId}`)
 
   return db.runTransaction(async (tx) => {

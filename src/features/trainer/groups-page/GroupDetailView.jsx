@@ -33,8 +33,8 @@ const SOCCER_CATS = ['soccer_youth', 'soccer_junior', 'soccer']
 
 // ── Componente principale ─────────────────────────────────────────────────────
 
-export function GroupDetailView({ group, clients, orgId, onToggleClient, onRename, onDelete, onBack, terminology }) {
-  const toast = useToast()
+export function GroupDetailView({ group, clients, orgId, onToggleClient, onRename, onDelete, onBack, terminology, hasGroupRanking, hasRank }) {
+  const { error: toastError } = useToast()
   const [subView,      setSubView]      = useState('manage')
   const [clientSearch, setClientSearch] = useState('')
   const [isEditing,    setIsEditing]    = useState(false)
@@ -96,11 +96,11 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
         await addClientToGroupSlots(orgId, group.id, client.id)
       }
     } catch {
-      toast.error(`Aggiornamento ${terminology.group.toLowerCase()} non riuscito`)
+      toastError(`Aggiornamento ${terminology.group.toLowerCase()} non riuscito`)
     } finally {
       setToggling(null)
     }
-  }, [toggleDialog, group.id, onToggleClient, orgId, toast, terminology.group])
+  }, [toggleDialog, group.id, onToggleClient, orgId, toastError, terminology.group])
 
   const handleRename = useCallback(async () => {
     if (!editingName.trim() || editingName === group.name) { setIsEditing(false); return }
@@ -115,12 +115,12 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
       await onDelete(group.id)
       onBack()   // naviga via solo se l'eliminazione è riuscita davvero
     } catch {
-      toast.error(`Eliminazione ${terminology.group.toLowerCase()} non riuscita`)
+      toastError(`Eliminazione ${terminology.group.toLowerCase()} non riuscita`)
       setShowDelete(false)
     } finally {
       setDeleting(false)
     }
-  }, [deleting, group.id, onDelete, onBack, toast, terminology.group])
+  }, [deleting, group.id, onDelete, onBack, toastError, terminology.group])
 
   const handleCancelRename = useCallback(() => {
     setIsEditing(false)
@@ -154,6 +154,8 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
         terminology={terminology}
         subView={subView}
         onSelectTab={setSubView}
+        hasGroupRanking={hasGroupRanking}
+        canExportPdf={hasGroupRanking}
         isEditing={isEditing}
         editingName={editingName}
         onEditingNameChange={setEditingName}
@@ -170,7 +172,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
       <div className="max-w-5xl mx-auto w-full flex flex-col flex-1">
 
         {/* ── Avviso fascia mista ── */}
-        {mixedFascia && (
+        {mixedFascia && hasGroupRanking && (
           <div className="mx-4 sm:mx-6 mt-3 px-4 py-3 rounded-[3px] font-body text-[12px] leading-relaxed"
             style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24' }}>
             ⚠ {terminology.group} con atleti di fasce d'età diverse: Classifica, Analisi e Confronto potrebbero non essere significativi.
@@ -180,7 +182,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
         {/* ── Contenuto tab ── */}
         <div key={subView} className="rx-animate-in flex-1">
 
-        {subView === 'leaderboard' && (
+        {hasGroupRanking && subView === 'leaderboard' && (
           allClientsInGroup.length < 2 ? (
             <EmptyState
               icon={<IconLeaderboard size={20} />}
@@ -198,7 +200,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
           )
         )}
 
-        {subView === 'analysis' && (
+        {hasGroupRanking && subView === 'analysis' && (
           allClientsInGroup.length < 2 ? (
             <EmptyState
               icon={<IconAnalysis size={20} />}
@@ -214,7 +216,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
           )
         )}
 
-        {subView === 'comparison' && (
+        {hasGroupRanking && subView === 'comparison' && (
           allClientsInGroup.length < 2 ? (
             <EmptyState
               icon={<IconCompare size={20} />}
@@ -241,6 +243,9 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
             notInGroupPagination={notInGroupPagination}
             toggling={toggling}
             onRequestToggle={handleRequestToggle}
+            hasGroupRanking={hasGroupRanking}
+            hasRank={hasRank}
+            terminology={terminology}
           />
         )}
 

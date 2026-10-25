@@ -8,6 +8,7 @@ import { calcPercentileEx, calcAge } from '../shared/percentile.js'
 import { applyFormula }            from '../shared/formulas.js'
 import { resolveCategoria }        from '../shared/soccer.js'
 import { autoBadgeFields }         from '../shared/badges.js'
+import { getOrgCapabilities, requireCapability } from '../shared/orgModule.js'
 
 const REGION = 'europe-west1'
 
@@ -39,6 +40,9 @@ export const salvaCampionamento = onCall({ region: REGION }, async (request) => 
   const safeLogAction = optionalString(logAction, 'logAction', 500)
 
   const db = getFirestore()
+  // Moduli senza test a percentile (lipedema): le valutazioni hanno una callable
+  // dedicata (ADR-009), qui nessun percentile/rank/XP (ADR-008)
+  requireCapability(await getOrgCapabilities(db, orgId), 'hasPercentileTests')
   const clientRef = db.doc(`organizations/${orgId}/clients/${clientId}`)
   const goalsQuery = db
     .collection(`organizations/${orgId}/clients/${clientId}/goals`)

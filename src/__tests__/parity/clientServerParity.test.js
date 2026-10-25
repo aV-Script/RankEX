@@ -22,6 +22,7 @@ import * as serverPlans  from '../../../functions/src/shared/plans.js'
 import * as serverGame   from '../../../functions/src/shared/gamification.js'
 import * as clientModules from '../../config/modules.config.js'
 import * as serverSoccer  from '../../../functions/src/shared/soccer.js'
+import * as serverModules from '../../../functions/src/shared/modules.js'
 import * as clientBadges  from '../../utils/badges.js'
 import * as serverBadges  from '../../../functions/src/shared/badges.js'
 import { MAX_RECURRENCE_SLOTS as CLIENT_MAX_REC } from '../../utils/calendarUtils.js'
@@ -171,5 +172,34 @@ describe('Ricorrenze', () => {
   it('stesso tetto di sessioni per ricorrenza', () => {
     expect(SERVER_MAX_REC).toBe(CLIENT_MAX_REC)
     expect(SERVER_MAX_REC + 1).toBeLessThanOrEqual(499)   // ricorrenza + slot in un solo batch
+  })
+})
+
+describe('Capability per modulo', () => {
+  it('stessi moduli', () => {
+    expect(serverModules.MODULES).toEqual(clientModules.MODULES)
+    expect(Object.keys(serverModules.MODULE_CAPABILITIES).sort())
+      .toEqual(Object.keys(clientModules.MODULE_CAPABILITIES).sort())
+  })
+
+  it('ogni flag server è un flag client', () => {
+    for (const key of serverModules.SERVER_CAPABILITY_KEYS) {
+      expect(clientModules.CAPABILITY_KEYS).toContain(key)
+    }
+  })
+
+  it.each(Object.keys(clientModules.MODULE_CAPABILITIES))('%s: i flag server coincidono con quelli client', (moduleType) => {
+    const client = clientModules.MODULE_CAPABILITIES[moduleType]
+    const server = serverModules.MODULE_CAPABILITIES[moduleType]
+    expect(Object.keys(server).sort()).toEqual([...serverModules.SERVER_CAPABILITY_KEYS].sort())
+    for (const key of serverModules.SERVER_CAPABILITY_KEYS) {
+      expect([key, server[key]]).toEqual([key, client[key]])
+    }
+  })
+
+  it('server: assente = PT legacy, sconosciuto = null (rifiutato dalle callable)', () => {
+    expect(serverModules.resolveModuleCapabilities(null)).toEqual(serverModules.MODULE_CAPABILITIES.personal_training)
+    expect(serverModules.resolveModuleCapabilities(undefined)).toEqual(serverModules.MODULE_CAPABILITIES.personal_training)
+    expect(serverModules.resolveModuleCapabilities('qualcosa')).toBeNull()
   })
 })

@@ -2,21 +2,7 @@ import { useState }           from 'react'
 import { createOrganization } from '../../../firebase/services/org'
 import { ADMIN_COLOR }        from '../../../config/app.config'
 import { Modal, Field, Button } from '../../../components/ui'
-
-const MODULE_OPTIONS = [
-  { value: 'personal_training', label: 'Personal Training' },
-  { value: 'soccer_academy',    label: 'Soccer Academy' },
-]
-
-const TERMINOLOGY_BY_MODULE = {
-  personal_training: [
-    { value: 'pt',  label: 'PT — Trainer / Cliente' },
-    { value: 'gym', label: 'GYM — Personal Trainer / Membro' },
-  ],
-  soccer_academy: [
-    { value: 'soccer', label: 'Soccer — Coach / Allievo' },
-  ],
-}
+import { MODULES, MODULE_OPTIONS, TERMINOLOGY_VARIANTS_BY_MODULE } from '../../../config/modules.config'
 
 const PLAN_OPTIONS = [
   { value: 'free',       label: 'Free' },
@@ -45,15 +31,15 @@ function generateOrgId(name) {
 export function CreateOrgForm({ onClose, onCreated, ownerUid }) {
   const [form,   setForm]   = useState({
     name:               '',
-    moduleType:         'personal_training',
-    terminologyVariant: 'pt',
+    moduleType:         MODULES.PERSONAL_TRAINING,
+    terminologyVariant: TERMINOLOGY_VARIANTS_BY_MODULE[MODULES.PERSONAL_TRAINING][0].value,
     plan:               'free',
   })
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState({})
 
   const handleModuleChange = (moduleType) => {
-    const variants = TERMINOLOGY_BY_MODULE[moduleType]
+    const variants = TERMINOLOGY_VARIANTS_BY_MODULE[moduleType]
     setForm(p => ({ ...p, moduleType, terminologyVariant: variants[0].value }))
   }
 
@@ -83,7 +69,7 @@ export function CreateOrgForm({ onClose, onCreated, ownerUid }) {
     }
   }
 
-  const termOptions = TERMINOLOGY_BY_MODULE[form.moduleType]
+  const termOptions = TERMINOLOGY_VARIANTS_BY_MODULE[form.moduleType]
 
   return (
     <Modal title="Nuova organizzazione" onClose={onClose} accentColor={ADMIN_COLOR}>

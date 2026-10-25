@@ -19,7 +19,11 @@ vi.mock('firebase-functions/v2/https', () => {
 })
 
 vi.mock('firebase-admin/firestore', () => {
-  const ref = path => ({ path })
+  const ref = path => ({
+    path,
+    // Lettura fuori transazione (getOrgCapabilities)
+    get: async () => ({ exists: db.docs.has(path), data: () => structuredClone(db.docs.get(path)) }),
+  })
   const collection = path => ({
     doc:   id => ref(`${path}/${id ?? `auto${++db.autoId}`}`),
     // Solo il caso usato dalla callable: where(campo, 'in', valori)
@@ -68,6 +72,7 @@ vi.mock('../src/shared/auth.js', () => ({
 
 const { chiudiSessione } = await import('../src/callable/chiudiSessione.js')
 
+const ORG     = 'organizations/org1'
 const SLOT    = 'organizations/org1/slots/s1'
 const client  = id => db.docs.get(`organizations/org1/clients/${id}`)
 const notifs  = () => [...db.docs.keys()].filter(k => k.includes('/notifications/'))
@@ -75,6 +80,7 @@ const call    = attendeeIds => chiudiSessione({ auth: { uid: 'trainer1' }, data:
 
 beforeEach(() => {
   db.docs = new Map([
+    [ORG,  { moduleType: 'personal_training' }],
     [SLOT, { date: '2026-10-23', status: 'planned', clientIds: ['a', 'b'] }],
     ['organizations/org1/clients/a', { xp: 0, xpNext: 500, level: 1, sessionStreak: 2, sessionCount: 4, log: [], coins: 0, clientAuthUid: 'uA' }],
     ['organizations/org1/clients/b', { xp: 0, xpNext: 500, level: 1, sessionStreak: 3, log: [], coins: 0 }],
@@ -170,5 +176,50 @@ describe('chiudiSessione', () => {
   it('primo conteggio sessioni per un cliente senza sessionCount', async () => {
     await call(['b'])
     expect(client('b').sessionCount).toBe(1)
+  })
+
+  it('org legacy senza moduleType: comportamento PT (XP e Monete)', async () => {
+    db.docs.set(ORG, {})
+    await call(['a'])
+    expect(client('a')).toMatchObject({ coins: 10, sessionCount: 5 })
+  })
+
+  it('moduleType sconosciuto: rifiutata senza scrivere nulla', async () => {
+    db.docs.set(ORG, { moduleType: 'boh' })
+    const prima = structuredClone([...db.docs.entries()])
+    await expect(call(['a'])).rejects.toMatchObject({ code: 'failed-precondition' })
+    expect([...db.docs.entries()]).toEqual(prima)
+  })
+
+  // ADR-008: in lipedema la chiusura non tocca il doc paziente
+  describe('modulo lipedema (senza gamification)', () => {
+    const PLAN = 'organizations/org1/workoutPlans/p1'
+
+    beforeEach(() => { db.docs.set(ORG, { moduleType: 'lipedema' }) })
+
+    it('chiude lo slot ma non cambia xp/level/log/streak/sessionCount/coins/badge, nessuna notifica', async () => {
+      const primaA = structuredClone(client('a'))
+      const primaB = structuredClone(client('b'))
+      const res = await call(['a'])
+      expect(res).toMatchObject({ ok: true, attendees: 1, absentees: 1 })
+      expect(db.docs.get(SLOT)).toMatchObject({ status: 'completed', attendees: ['a'], absentees: ['b'] })
+      expect(client('a')).toEqual(primaA)
+      expect(client('b')).toEqual(primaB)
+      expect(notifs()).toHaveLength(0)
+    })
+
+    it('la scheda attiva avanza e si completa, senza bonus XP', async () => {
+      db.docs.set(PLAN, { clientId: 'a', status: 'active', title: 'Forza', targetSessions: 2, completedSessions: 1 })
+      const primaA = structuredClone(client('a'))
+      await call(['a'])
+      expect(db.docs.get(PLAN).completedSessions).toBe(2)
+      expect(db.docs.get(PLAN).completedAt).toBeDefined()
+      expect(client('a')).toEqual(primaA)
+    })
+
+    it('resta idempotente: seconda chiusura rifiutata', async () => {
+      await call(['a'])
+      await expect(call(['a'])).rejects.toMatchObject({ code: 'failed-precondition' })
+    })
   })
 })

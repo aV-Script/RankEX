@@ -16,7 +16,7 @@ import { useTrainerState }               from '../../../context/TrainerContext'
  * Sezione schede allenamento nella dashboard trainer.
  * Gestisce creazione / modifica / archivio per un cliente specifico.
  */
-export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
+export function WorkoutPlanSection({ orgId, clientId, color, readonly, hasGamification }) {
   const { error: toastError } = useToast()
   const { terminology } = useTrainerState()
   const [plans,      setPlans]      = useState([])
@@ -124,6 +124,7 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
           onSubmit={handleSubmit}
           onBack={handleBack}
           terminology={terminology}
+          showXP={hasGamification}
         />
       </section>
     )
@@ -185,6 +186,7 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
             activeDay={activeDay}
             onDayChange={setActiveDay}
             readonly={readonly}
+            showXP={hasGamification}
             onArchive={() => setPendingArchive(activePlan)}
           />
         )}
@@ -245,7 +247,7 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly }) {
 
 // ── Sottocomponenti ───────────────────────────────────────────────────────────
 
-function PlanDisplay({ plan, color, activeDay, onDayChange, readonly, onArchive }) {
+function PlanDisplay({ plan, color, activeDay, onDayChange, readonly, showXP, onArchive }) {
   const days = normalizePlanDays(plan)
 
   const safeDay  = Math.min(activeDay, days.length - 1)
@@ -262,7 +264,7 @@ function PlanDisplay({ plan, color, activeDay, onDayChange, readonly, onArchive 
         </p>
       )}
 
-      <PlanProgress plan={plan} color={color} />
+      <PlanProgress plan={plan} color={color} showXP={showXP} />
 
       {/* Tab giorni — solo se più di uno */}
       {days.length > 1 && (

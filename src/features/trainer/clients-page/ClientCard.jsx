@@ -9,15 +9,15 @@ import { Badge }                                       from '../../../components
 
 export const ClientCard = memo(function ClientCard({ client, onSelect }) {
   const { moduleType }  = useTrainerState()
-  const isSoccer        = getModule(moduleType).isSoccer
+  const { isSoccer, hasRank, hasGamification, hasCategories, hasPlayerRoles } = getModule(moduleType)
   const { color: rankColor } = useClientRank(client)
 
   const profileType = client.profileType ?? 'tests_only'
   const biaScore    = calcBiaScore(client.lastBia, client.sesso, calcAge(client.dataNascita))
   const biaRank     = biaScore > 0 ? getBiaRankFromScore(biaScore) : null
 
-  const categoria = !isSoccer && client.categoria ? getCategoriaById(client.categoria) : null
-  const roleObj   = isSoccer && client.ruolo ? PLAYER_ROLES.find(r => r.value === client.ruolo) : null
+  const categoria = hasCategories && client.categoria ? getCategoriaById(client.categoria) : null
+  const roleObj   = hasPlayerRoles && client.ruolo ? PLAYER_ROLES.find(r => r.value === client.ruolo) : null
   const fasciaObj = isSoccer && client.categoria !== 'soccer'
     ? SOCCER_AGE_GROUPS.find(g => g.value === client.categoria)
     : null
@@ -31,8 +31,10 @@ export const ClientCard = memo(function ClientCard({ client, onSelect }) {
       onClick={() => onSelect(client)}
       className="text-left w-full p-4 cursor-pointer transition-all duration-200 flex items-start gap-3 group rx-card"
     >
-      {/* Badge rank */}
-      {profileType === 'complete' ? (
+      {/* Badge rank — senza rank nel modulo, solo l'iniziale del nome */}
+      {!hasRank ? (
+        <InitialSquare name={client.name} />
+      ) : profileType === 'complete' ? (
         <div className="flex gap-1.5 shrink-0">
           <RankSquare label={client.rank ?? 'F'} sub="TEST" color={rankColor} />
           <RankSquare label={biaRank?.label ?? 'F'} sub="BIA" color={biaRank?.color} />
@@ -52,15 +54,17 @@ export const ClientCard = memo(function ClientCard({ client, onSelect }) {
 
         <div className="flex items-center gap-2 flex-wrap">
           {/* Livello */}
-          <span
-            className="rounded-full px-2 py-0.5 text-[10px] font-display"
-            style={{
-              color:  'color-mix(in srgb, var(--rx-accent) 55%, transparent)',
-              border: '1px solid color-mix(in srgb, var(--rx-accent) 20%, transparent)',
-            }}
-          >
-            LV.{client.level}
-          </span>
+          {hasGamification && (
+            <span
+              className="rounded-full px-2 py-0.5 text-[10px] font-display"
+              style={{
+                color:  'color-mix(in srgb, var(--rx-accent) 55%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--rx-accent) 20%, transparent)',
+              }}
+            >
+              LV.{client.level}
+            </span>
+          )}
 
           {/* Badge: categoria (PT) o ruolo (Soccer) */}
           {categoria && <Badge>{categoria.label}</Badge>}
@@ -73,17 +77,19 @@ export const ClientCard = memo(function ClientCard({ client, onSelect }) {
         </div>
 
         {/* XP bar mini */}
-        <div className="flex items-center gap-2 mt-0.5">
-          <div className="flex-1 h-[3px] rounded-full overflow-hidden"
-            style={{ background: 'color-mix(in srgb, var(--rx-accent) 8%, transparent)' }}>
-            <div className="h-full rounded-full"
-              style={{ width: `${xpPct}%`, background: 'var(--rx-accent)' }} />
+        {hasGamification && (
+          <div className="flex items-center gap-2 mt-0.5">
+            <div className="flex-1 h-[3px] rounded-full overflow-hidden"
+              style={{ background: 'color-mix(in srgb, var(--rx-accent) 8%, transparent)' }}>
+              <div className="h-full rounded-full"
+                style={{ width: `${xpPct}%`, background: 'var(--rx-accent)' }} />
+            </div>
+            <span className="font-display text-[9px] shrink-0"
+              style={{ color: 'color-mix(in srgb, var(--rx-accent) 55%, transparent)' }}>
+              {xp.toLocaleString('it-IT')} XP
+            </span>
           </div>
-          <span className="font-display text-[9px] shrink-0"
-            style={{ color: 'color-mix(in srgb, var(--rx-accent) 55%, transparent)' }}>
-            {xp.toLocaleString('it-IT')} XP
-          </span>
-        </div>
+        )}
       </div>
 
       <svg className="shrink-0 text-white/20 group-hover:text-white/50 transition-colors mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -92,6 +98,19 @@ export const ClientCard = memo(function ClientCard({ client, onSelect }) {
     </button>
   )
 })
+
+function InitialSquare({ name }) {
+  return (
+    <div
+      className="w-10 h-10 rounded-[3px] flex items-center justify-center shrink-0"
+      style={{ background: 'rgba(255,255,255,0.05)', border: '2px solid rgba(255,255,255,0.08)' }}
+    >
+      <span className="font-display font-black text-[14px] text-white/50">
+        {name?.[0]?.toUpperCase()}
+      </span>
+    </div>
+  )
+}
 
 function RankSquare({ label, sub, color = 'var(--rx-accent)' }) {
   return (

@@ -1,3 +1,4 @@
+import { useMemo }                from 'react'
 import { useGroups }              from '../../hooks/useGroups'
 import { useTrainerState }        from '../../context/TrainerContext'
 import { getModule }              from '../../config/modules.config'
@@ -12,11 +13,11 @@ import { StepCategoria }          from '../../components/modals/new-client-wizar
 import { StepRuolo }              from '../../components/modals/new-client-wizard/steps/StepRuolo'
 import { StepAccount }            from '../../components/modals/new-client-wizard/steps/StepAccount'
 import { StepProfileType }        from '../../components/modals/new-client-wizard/steps/StepProfileType'
-import { TOTAL_STEPS_MAP }        from '../../components/modals/new-client-wizard/wizard.config'
+import { StepContatto }           from '../../components/modals/new-client-wizard/steps/StepContatto'
 
 export function NewClientView({ orgId, onAdd, onBack, clients = [], onNavigate }) {
   const { moduleType, orgPlan, terminology }        = useTrainerState()
-  const isSoccer                                    = getModule(moduleType).isSoccer
+  const capabilities                                = useMemo(() => getModule(moduleType), [moduleType])
   const planLimits                                  = getPlanLimits(orgPlan)
   const atClientLimit                               = clients.length >= planLimits.clients
   const { groups, handleAddGroup, handleToggleClient } = useGroups(orgId)
@@ -28,12 +29,13 @@ export function NewClientView({ orgId, onAdd, onBack, clients = [], onNavigate }
     onClose:             onBack,
     onAddGroup:          handleAddGroup,
     onToggleClientGroup: handleToggleClient,
-    isSoccer,
+    capabilities,
+    clientLabel:         terminology.client,
   })
 
-  const totalSteps = isSoccer
-    ? TOTAL_STEPS_MAP.soccer
-    : (TOTAL_STEPS_MAP[wizard.profileType] ?? TOTAL_STEPS_MAP.tests_only)
+  const confirmDescription = capabilities.hasClientLogin
+    ? `Stai per creare l'account per ${wizard.anagrafica.name}.`
+    : `Stai per registrare ${wizard.anagrafica.name}, senza account di accesso.`
 
   return (
     <div className="min-h-screen text-white">
@@ -67,7 +69,7 @@ export function NewClientView({ orgId, onAdd, onBack, clients = [], onNavigate }
           <div className="max-w-2xl mx-auto px-6 py-8 flex flex-col gap-6">
             <WizardProgress
               step={wizard.step}
-              totalSteps={totalSteps}
+              totalSteps={wizard.totalSteps}
               title={wizard.stepTitle}
               progressPct={wizard.progressPct}
             />
@@ -81,13 +83,14 @@ export function NewClientView({ orgId, onAdd, onBack, clients = [], onNavigate }
               onPrev={wizard.prev}
               onNext={wizard.next}
               onSubmit={wizard.handleRequestSubmit}
+              submitLabel={`CREA ${terminology.client.toUpperCase()}`}
             />
           </div>
 
           {wizard.showConfirm && (
             <ConfirmDialog
               title={`Creare nuovo ${terminology.client.toLowerCase()}?`}
-              description={`Stai per creare l'account per ${wizard.anagrafica.name}.`}
+              description={confirmDescription}
               confirmLabel={`CREA ${terminology.client.toUpperCase()}`}
               loading={wizard.isLoading}
               onConfirm={wizard.handleConfirmSubmit}
@@ -181,6 +184,15 @@ function StepContent({ wizard }) {
       categoria={wizard.categoria}
       rankObj={wizard.rankObj}
       media={wizard.media}
+    />
+  )
+
+  if (currentStep?.type === 'contatto') return (
+    <StepContatto
+      account={wizard.account}
+      setAccount={wizard.setAccount}
+      errors={wizard.errors}
+      anagrafica={wizard.anagrafica}
     />
   )
 

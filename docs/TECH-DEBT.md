@@ -144,3 +144,76 @@ Diventa medio se un'org lavora sistematicamente senza registrare l'informativa
 (verificabile con una query sui pazienti senza `privacyNotice`).
 **Status:** OPEN
 
+
+---
+
+## [TD-007] Soccer dichiara `hasBia`/`hasProfileTypes` false ma la UI offre la BIA
+**Data:** 2026-10-24 (STORY-030, code review)
+**Cosa si è scelto di rimandare:** `MODULE_CAPABILITIES.soccer_academy` ha
+`hasBia: false` e `hasProfileTypes: false` (ADR-007), ma la vista trainer di un
+allievo soccer mostra ancora il tab BIA con `UpgradeCategoryBanner`, che chiama
+`aggiornaProfiloCliente` e poi permette `salvaBia`. Le callable quindi **non**
+applicano questi due flag: `aggiornaProfiloCliente` controlla `hasPercentileTests`
+(rifiuta solo lipedema), `salvaBia` non controlla `hasBia`.
+**Perché:** applicare i flag lato server oggi farebbe fallire un flusso raggiungibile in
+UI per le org soccer esistenti (regressione visibile, contraria all'AC di non
+regressione di STORY-030).
+**Cosa serve per chiuderlo:** decidere (prodotto/UX) se la BIA va davvero tolta al
+soccer; se sì, nascondere tab BIA e banner per soccer, verificare che nessun allievo
+abbia dati BIA da conservare, poi gateare `aggiornaProfiloCliente` su `hasProfileTypes`
+e `salvaBia` su `hasBia`. Non gateare prima di aver allineato la UI.
+**Rischio se non risolto:** basso. Incoerenza tra capability dichiarate e comportamento
+reale; nessun dato esposto.
+**Status:** OPEN
+
+---
+
+## [TD-008] OrgDetailView non permette di scegliere `terminologyVariant`
+**Data:** 2026-10-24 (STORY-030, code review)
+**Cosa si è scelto di rimandare:** cambiando modulo in `OrgDetailView` la variante di
+terminologia viene riportata al default del nuovo modulo (necessario: un'org GYM
+passata a lipedema mostrava "Membro"/"Classe"). Ma la vista mostra la variante in sola
+lettura: un'org PT riportata da soccer a PT riparte da `pt` e non c'è modo, da UI, di
+tornare a `gym` (serve una scrittura da console).
+**Cosa serve per chiuderlo:** una select "Terminologia" in `OrgDetailView` alimentata
+da `TERMINOLOGY_VARIANTS_BY_MODULE[moduleType]` (stesso pattern di `CreateOrgForm`),
+con optimistic update.
+**Rischio se non risolto:** basso. Caso raro (cambio modulo di un'org GYM), aggirabile
+da super_admin.
+**Status:** OPEN
+
+---
+
+## [TD-009] Audit `CLIENT_DELETED` solo client-side e `CLIENT_CREATED` doppio
+**Data:** 2026-10-25 (STORY-032, code review M2)
+**Cosa si è scelto di rimandare:** `CLIENT_DELETED` è scritto solo dal browser
+(`hooks/useClients.js`), non da `eliminaCliente`: una chiamata diretta alla callable o
+un retry non lasciano traccia. `CLIENT_CREATED` è scritto due volte, da `creaCliente`
+(`env: 'functions'`) e da `usecases/createClientUseCase.js`. In STORY-032 il nome del
+paziente è omesso lato client con un criterio sul dato (`clientAuthUid` assente), non
+sul modulo come chiede ADR-015 §2.
+**Perché:** spostare gli audit nelle callable cambia il comportamento degli audit PT/
+soccer esistenti (un log in meno lato app) e va oltre lo scope di STORY-032.
+**Cosa serve per chiuderlo:** scrivere `CLIENT_DELETED` in `eliminaCliente` (nome solo
+se il modulo lo permette, letto con `getOrgCapabilities`), togliere le scritture
+client-side di `CLIENT_CREATED`/`CLIENT_DELETED` e aggiornare la tabella "Audit log" in
+CLAUDE.md.
+**Rischio se non risolto:** medio. Cancellazioni non tracciate se la callable è chiamata
+fuori dalla UI; criterio "senza nome" legato al dato e non al modulo.
+**Status:** OPEN
+
+---
+
+## [TD-010] Codice morto degli step 'test' in `useWizard`
+**Data:** 2026-10-25 (STORY-032, code review L4)
+**Cosa si è scelto di rimandare:** `wizard.config.js` non genera più step di tipo
+`'test'` (BIA e test si inseriscono dopo la creazione), ma `useWizard.js` calcola ancora
+`categoryTests`, `currentTest`, `livePercentile`, `allStats`/`media`/`rankObj` e lo
+stato `tests`, e `StepAccount` mostra un'anteprima rank sempre a media 0.
+**Perché:** rimuoverlo tocca anche `StepAccount` (anteprima rank PT/soccer), fuori
+scope di STORY-032.
+**Cosa serve per chiuderlo:** togliere il ramo 'test' da `useWizard` e decidere (UX) se
+l'anteprima rank in `StepAccount` ha ancora senso senza test inseriti nel wizard.
+**Rischio se non risolto:** basso. Calcoli inutili a ogni render e un'anteprima
+fuorviante ("Rank F · Media 0").
+**Status:** OPEN

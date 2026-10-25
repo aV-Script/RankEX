@@ -193,6 +193,69 @@ describe('organizations/{orgId} — create/delete', () => {
   })
 })
 
+// ── organizations/{orgId} — cambio modulo (ADR-015 §6, STORY-030) ───────────
+// Da o verso 'lipedema' solo con clientCount 0: i dati non sono convertibili.
+// PT ↔ soccer resta libero. org1 = PT legacy (moduleType assente) con 1 cliente,
+// org2 = 0 clienti.
+describe('organizations/{orgId} — cambio modulo', () => {
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'organizations/orgLip'), {
+        name: 'Org Lipedema', plan: 'pro', moduleType: 'lipedema', memberCount: 1, clientCount: 2,
+      })
+    })
+  })
+
+  it('super_admin: PT con clienti → lipedema rifiutato', async () => {
+    const db = ctxFor('superadmin1').firestore()
+    await assertFails(updateDoc(doc(db, 'organizations/org1'), { moduleType: 'lipedema' }))
+  })
+
+  it('super_admin: lipedema con clienti → PT o soccer rifiutato', async () => {
+    const db = ctxFor('superadmin1').firestore()
+    await assertFails(updateDoc(doc(db, 'organizations/orgLip'), { moduleType: 'personal_training' }))
+    await assertFails(updateDoc(doc(db, 'organizations/orgLip'), { moduleType: 'soccer_academy' }))
+  })
+
+  it('super_admin: PT con clienti → soccer resta permesso (non regressione)', async () => {
+    const db = ctxFor('superadmin1').firestore()
+    await assertSucceeds(updateDoc(doc(db, 'organizations/org1'), { moduleType: 'soccer_academy' }))
+  })
+
+  it('super_admin: org senza clienti → lipedema e ritorno permessi', async () => {
+    const db = ctxFor('superadmin1').firestore()
+    await assertSucceeds(updateDoc(doc(db, 'organizations/org2'), { moduleType: 'lipedema', terminologyVariant: 'lipedema' }))
+    await assertSucceeds(updateDoc(doc(db, 'organizations/org2'), { moduleType: 'personal_training', terminologyVariant: 'pt' }))
+  })
+
+  it('super_admin: altri campi di un\'org lipedema con clienti restano modificabili', async () => {
+    const db = ctxFor('superadmin1').firestore()
+    await assertSucceeds(updateDoc(doc(db, 'organizations/orgLip'), { plan: 'enterprise', name: 'Rinominata' }))
+  })
+
+  it('super_admin: org legacy senza clientCount → lipedema rifiutato (fail-closed)', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'organizations/orgLegacy'), { name: 'Org Legacy', plan: 'free' })
+    })
+    const db = ctxFor('superadmin1').firestore()
+    await assertFails(updateDoc(doc(db, 'organizations/orgLegacy'), { moduleType: 'lipedema' }))
+  })
+
+  it('super_admin: org legacy senza clientCount → PT ↔ soccer resta permesso', async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'organizations/orgLegacy'), { name: 'Org Legacy', plan: 'free' })
+    })
+    const db = ctxFor('superadmin1').firestore()
+    await assertSucceeds(updateDoc(doc(db, 'organizations/orgLegacy'), { moduleType: 'soccer_academy' }))
+    await assertSucceeds(updateDoc(doc(db, 'organizations/orgLegacy'), { moduleType: 'personal_training' }))
+  })
+
+  it('org_admin non può cambiare il modulo nemmeno senza clienti', async () => {
+    const db = ctxFor('admin2').firestore()
+    await assertFails(updateDoc(doc(db, 'organizations/org2'), { moduleType: 'lipedema' }))
+  })
+})
+
 // ── Counter memberCount/clientCount — solo Cloud Functions ───────────────────
 // creaCliente/creaMembroTeam leggono i counter per applicare il limite piano:
 // se il client potesse decrementarli, aggirerebbe il limite.

@@ -12,8 +12,14 @@ import { AddSlotModal }                    from './trainer-calendar/AddSlotModal
 import { RecurrenceModal }                 from './trainer-calendar/RecurrenceModal'
 import { useGroups }                       from '../../hooks/useGroups'
 import { toLocalDateStr } from '../../utils/calendarUtils'
+import { useTrainerState }                 from '../../context/TrainerContext'
+import { getModule }                       from '../../config/modules.config'
+import { useToast }                        from '../../hooks/useToast'
 
 export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavigate }) {
+  const { moduleType } = useTrainerState()
+  const { hasGamification } = getModule(moduleType)
+  const { success: toastSuccess } = useToast()
   const {
     slots, isLoading,
     currentDate, view,
@@ -51,10 +57,12 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
   }, [])
 
   const handleConfirmClose = useCallback(async (attendeeIds) => {
-    await handleCloseSlot(closeModal.id, attendeeIds)
+    const isClosed = await handleCloseSlot(closeModal.id, attendeeIds)
+    // Senza gamification la chiusura non assegna XP (ADR-008): il messaggio non lo promette
+    if (isClosed) toastSuccess(hasGamification ? 'Sessione chiusa · +XP assegnata' : 'Sessione chiusa')
     setCloseModal(null)
     onRefreshClients?.()
-  }, [closeModal, handleCloseSlot, onRefreshClients])
+  }, [closeModal, handleCloseSlot, hasGamification, toastSuccess, onRefreshClients])
 
   const handleSkip = useCallback(async (slotId) => {
     setPopup(null)
@@ -116,7 +124,9 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
             {pastPlannedCount === 1
               ? '1 sessione passata non chiusa'
               : `${pastPlannedCount} sessioni passate non chiuse`}
-            {' '}— chiudile per assegnare XP agli atleti.
+            {hasGamification
+              ? ' — chiudile per assegnare XP agli atleti.'
+              : ' — chiudile per registrare le presenze.'}
           </span>
         </div>
       )}
@@ -139,6 +149,7 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
           slot={popup.slot}
           clients={clients}
           position={{ x: popup.x, y: popup.y }}
+          hasGamification={hasGamification}
           onClose={() => setPopup(null)}
           onCloseSession={() => handleCloseSession(popup.slot)}
           onSkip={() => handleSkip(popup.slot.id)}
@@ -165,6 +176,7 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
         <CloseSessionModal
           slot={closeModal}
           clients={clients}
+          hasGamification={hasGamification}
           onClose={() => setCloseModal(null)}
           onConfirm={handleConfirmClose}
         />

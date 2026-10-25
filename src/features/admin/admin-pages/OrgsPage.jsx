@@ -4,6 +4,7 @@ import { CreateOrgForm }       from './CreateOrgForm'
 import { usePagination }       from '../../../hooks/usePagination'
 import { Pagination }          from '../../../components/common/Pagination'
 import { EmptyState }          from '../../../components/ui'
+import { getModuleLabel }      from '../../../config/modules.config'
 
 const ICON_ORG = (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -11,11 +12,6 @@ const ICON_ORG = (
     <line x1="9" y1="9" x2="9" y2="9.01"/><line x1="9" y1="12" x2="9" y2="12.01"/><line x1="9" y1="15" x2="9" y2="15.01"/>
   </svg>
 )
-
-const MODULE_LABELS = {
-  personal_training: 'Personal Training',
-  soccer_academy:    'Soccer Academy',
-}
 
 const STATUS_COLORS = {
   active:   'var(--rx-accent)',
@@ -110,7 +106,7 @@ export function OrgsPage({ onSelectOrg, currentUserUid }) {
                 <div>
                   <div className="font-display text-[14px] text-white">{org.name}</div>
                   <div className="font-body text-[12px] text-white/40 mt-0.5">
-                    {MODULE_LABELS[org.moduleType] ?? org.moduleType} · {org.id}
+                    {getModuleLabel(org.moduleType)} · {org.id}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

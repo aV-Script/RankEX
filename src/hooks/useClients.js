@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useTrainerDispatch, ACTIONS }      from '../context/TrainerContext'
+import { useTrainerDispatch, useTrainerState, ACTIONS } from '../context/TrainerContext'
 import { getClients, getClientById } from '../firebase/services/clients'
 import { buildCampionamentoUpdate, buildXPUpdate } from '../utils/gamification'
 import { createClientUseCase }      from '../usecases/createClientUseCase'
@@ -10,6 +10,8 @@ import { useToast }                 from './useToast'
 import { getFirebaseErrorMessage }  from '../utils/firebaseErrors'
 import { auditLog, AUDIT_ACTIONS }  from '../utils/auditLog'
 
+const DEFAULT_CLIENT_LABEL = 'Cliente'
+
 /**
  * @param {string} orgId    — ID organizzazione (subcollection path)
  * @param {string} [userId] — UID del trainer che crea i clienti (opzionale)
@@ -19,6 +21,9 @@ export function useClients(orgId, userId) {
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState(null)
   const dispatch              = useTrainerDispatch()
+  const { terminology }       = useTrainerState()
+  // Etichetta del modulo nei toast (Cliente / Membro / Allievo / Paziente)
+  const clientLabel           = terminology?.client ?? DEFAULT_CLIENT_LABEL
   const { success: toastSuccess, error: toastError } = useToast()
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
@@ -48,13 +53,13 @@ export function useClients(orgId, userId) {
     try {
       const newClient = await createClientUseCase(orgId, userId ?? orgId, formData)
       setClients(prev => [...prev, newClient])
-      toastSuccess('Cliente creato')
+      toastSuccess(`${clientLabel} creato`)
       return newClient
     } catch (err) {
-      toastError(getFirebaseErrorMessage(err, 'Impossibile creare il cliente'))
+      toastError(getFirebaseErrorMessage(err, `${clientLabel}: creazione non riuscita`))
       throw err
     }
-  }, [orgId, userId, toastSuccess, toastError])
+  }, [orgId, userId, clientLabel, toastSuccess, toastError])
 
   // ── Campionamento — ottimistico con rollback ───────────────────────────────
   const handleCampionamento = useCallback(async (client, newStats, testValues) => {
@@ -116,14 +121,18 @@ export function useClients(orgId, userId) {
 
     try {
       await deleteClientUseCase(orgId, clientId)
-      auditLog(AUDIT_ACTIONS.CLIENT_DELETED, { clientId, clientName: snapshot?.name, orgId })
-      toastSuccess('Cliente eliminato')
+      // Senza account (es. paziente lipedema) solo identificativi: dopo la
+      // cancellazione nessun dato identificativo resta nei log (ADR-015 §2/§4)
+      auditLog(AUDIT_ACTIONS.CLIENT_DELETED, snapshot?.clientAuthUid
+        ? { clientId, clientName: snapshot.name, orgId }
+        : { clientId, orgId })
+      toastSuccess(`${clientLabel} eliminato`)
     } catch (err) {
       if (snapshot) setClients(prev => [...prev, snapshot])
-      toastError(getFirebaseErrorMessage(err, 'Impossibile eliminare il cliente'))
+      toastError(getFirebaseErrorMessage(err, `${clientLabel}: eliminazione non riuscita`))
       throw err
     }
-  }, [orgId, clients, dispatch, removeLocal, toastSuccess, toastError])
+  }, [orgId, clients, clientLabel, dispatch, removeLocal, toastSuccess, toastError])
 
   return {
     clients,

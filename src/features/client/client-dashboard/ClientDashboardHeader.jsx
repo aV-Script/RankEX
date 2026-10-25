@@ -5,9 +5,10 @@ import {
   ICON_RESET_PW, ICON_DELETE_CLIENT,
 } from './clientDashboardIcons'
 
+// Ordine e capability richieste: dashboardTabs.js (getVisibleTabIds)
 const TABS = [
   { id: 'atleta',      label: 'Atleta',      icon: ICON_AVATAR },
-  { id: 'test',        label: 'Test',        icon: ICON_TEST,     requiresTests: true },
+  { id: 'test',        label: 'Test',        icon: ICON_TEST },
   { id: 'bia',         label: 'BIA',         icon: ICON_BIA },
   { id: 'allenamento', label: 'Allenamento', icon: ICON_WORKOUT },
   { id: 'obiettivi',   label: 'Obiettivi',   icon: ICON_GOALS },
@@ -24,11 +25,11 @@ const TABS = [
  * (PDF / reset password / elimina). Estratto da ClientDashboard.jsx (RX-07).
  */
 export function ClientDashboardHeader({
-  onBack, tab, onSelectTab, hasTests,
-  client, showActions, onToggleActions,
+  onBack, tab, onSelectTab, visibleTabIds,
+  canExportPdf, canResetPassword, showActions, onToggleActions,
   onExportPdf, onResetPassword, onRequestDelete,
 }) {
-  const visibleTabs = TABS.filter(t => !t.requiresTests || hasTests)
+  const visibleTabs = TABS.filter(tab => visibleTabIds.includes(tab.id))
 
   // Chiusura da tastiera per il menu overflow — l'unico modo per chiuderlo
   // era prima un click esterno su un div non focusabile.
@@ -104,17 +105,21 @@ export function ClientDashboardHeader({
               className="absolute right-0 top-full mt-1 z-50 min-w-[168px] py-1 rounded-[4px]"
               style={{ background: 'var(--rx-surface)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}
             >
-              <button onClick={onExportPdf}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-white/60 hover:text-white hover:bg-white/[.04] transition-colors cursor-pointer bg-transparent border-none text-left font-display text-[10px] tracking-[1.5px] uppercase">
-                {ICON_PDF} Esporta PDF
-              </button>
-              {client.email && (
+              {canExportPdf && (
+                <button onClick={onExportPdf}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-white/60 hover:text-white hover:bg-white/[.04] transition-colors cursor-pointer bg-transparent border-none text-left font-display text-[10px] tracking-[1.5px] uppercase">
+                  {ICON_PDF} Esporta PDF
+                </button>
+              )}
+              {canResetPassword && (
                 <button onClick={onResetPassword}
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-white/60 hover:text-white hover:bg-white/[.04] transition-colors cursor-pointer bg-transparent border-none text-left font-display text-[10px] tracking-[1.5px] uppercase">
                   {ICON_RESET_PW} Reset password
                 </button>
               )}
-              <div className="h-px my-1" style={{ background: 'rgba(255,255,255,0.06)' }} />
+              {(canExportPdf || canResetPassword) && (
+                <div className="h-px my-1" style={{ background: 'rgba(255,255,255,0.06)' }} />
+              )}
               <button onClick={onRequestDelete}
                 className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-red-900/20 transition-colors cursor-pointer bg-transparent border-none text-left font-display text-[10px] tracking-[1.5px] uppercase"
                 style={{ color: '#f87171' }}>

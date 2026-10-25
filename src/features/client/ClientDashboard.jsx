@@ -1,4 +1,4 @@
-import { useState, useCallback, lazy, Suspense } from 'react'
+import { useState, useCallback, useMemo, lazy, Suspense } from 'react'
 import { useClientRank }                    from '../../hooks/useClientRank'
 import { useReadonly }                       from '../../context/ReadonlyContext'
 import { useTrainerState }                   from '../../context/TrainerContext'
@@ -21,17 +21,18 @@ import { BiaSummary }                        from '../bia/bia-view/BiaSummary'
 import { BiaHistoryChart }                   from '../bia/bia-view/BiaHistoryChart'
 import { UpgradeCategoryBanner }             from '../bia/UpgradeCategoryBanner'
 import { getProfileCategory }                from '../../constants/bia'
-import { getCategoriaById }                  from '../../constants'
+import { getCategoriaById, CATEGORIE }       from '../../constants'
 import { calcBiaScore, getBiaRankFromScore } from '../../utils/bia'
 import { calcAge }                           from '../../utils/validation'
 import { resetPassword }                     from '../../firebase/services/auth'
-import { PLAYER_ROLES }                      from '../../config/modules.config'
+import { PLAYER_ROLES, getModule }           from '../../config/modules.config'
 import { TrophiesSection }                   from './client-dashboard/TrophiesSection'
 import { useBadges }                         from '../../hooks/useBadges'
 import { getAuth }                           from 'firebase/auth'
 import app                                   from '../../firebase/config'
 import { PrintPickerModal }                  from '../../components/common/PrintPickerModal'
 import { ClientDashboardHeader }             from './client-dashboard/ClientDashboardHeader'
+import { getVisibleTabIds }                  from './client-dashboard/dashboardTabs'
 import { AtletaTab }                         from './client-dashboard/AtletaTab'
 import { ErrorBoundary }                     from '../../components/common/ErrorBoundary'
 import { ChartErrorFallback }                from '../../components/common/ChartErrorFallback'
@@ -52,8 +53,9 @@ const ClientReportPrint = lazy(() =>
  */
 export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDelete }) {
   const { rankObj: testRankObj } = useClientRank(client)
-  const { userRole, terminology } = useTrainerState()
+  const { userRole, terminology, moduleType } = useTrainerState()
   const readonly      = useReadonly()
+  const capabilities  = useMemo(() => getModule(moduleType), [moduleType])
 
   // Verde di brand risolto dal tema attivo — mai il letterale 'var(--rx-accent)':
   // diversi componenti figli applicano l'opacità concatenando due cifre hex al
@@ -81,15 +83,24 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
 
   const profileType = client.profileType ?? 'tests_only'
   const profile     = getProfileCategory(profileType)
+  // Test percentili solo se il modulo li prevede E il profilo li include
+  const hasTests    = capabilities.hasPercentileTests && profile.hasTests
+  // Moduli senza profili cliente: la BIA dipende solo dal modulo (lipedema la ha
+  // sempre). PT invariato (profilo), soccer invariato (banner upgrade come prima).
+  const hasBiaData  = capabilities.hasProfileTypes ? profile.hasBia : (capabilities.hasBia || profile.hasBia)
+  const visibleTabIds = getVisibleTabIds(capabilities, hasTests)
 
   const biaScore   = calcBiaScore(client.lastBia, client.sesso, calcAge(client.dataNascita))
   const biaRank    = getBiaRankFromScore(biaScore)
   const biaRankObj = biaScore > 0 ? biaRank : { label: 'F', color: '#4a5568' }
   const rankObj = profileType === 'bia_only' ? biaRankObj : testRankObj
 
-  const isSoccer    = ['soccer', 'soccer_youth', 'soccer_junior'].includes(client.categoria)
-  const categoriaObj = !isSoccer ? getCategoriaById(client.categoria) : null
-  const ruoloObj     = isSoccer
+  // Solo categorie PT reali: getCategoriaById ricade su "Health" per valori ignoti
+  // (es. ex-allievi soccer con categoria 'soccer*')
+  const categoriaObj = capabilities.hasCategories && CATEGORIE.some(cat => cat.id === client.categoria)
+    ? getCategoriaById(client.categoria)
+    : null
+  const ruoloObj     = capabilities.hasPlayerRoles
     ? PLAYER_ROLES.find(r => r.value === client.ruolo) ?? null
     : null
 
@@ -163,8 +174,9 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
         onBack={onBack}
         tab={tab}
         onSelectTab={handleSelectTab}
-        hasTests={profile.hasTests}
-        client={client}
+        visibleTabIds={visibleTabIds}
+        canExportPdf={capabilities.hasRank}
+        canResetPassword={capabilities.hasClientLogin && Boolean(client.clientAuthUid && client.email)}
         showActions={showActions}
         onToggleActions={handleToggleActions}
         onExportPdf={handleExportPdf}
@@ -192,14 +204,14 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
       <div className={`flex-1 flex flex-col min-w-0 ${view !== 'dashboard' ? 'hidden' : ''}`}>
 
         {/* Banner upgrade — solo per bia_only (manca i test); il caso tests_only è gestito nel tab BIA */}
-        {profileType === 'bia_only' && (
+        {capabilities.hasProfileTypes && profileType === 'bia_only' && (
           <div className="px-4 pt-3">
             <UpgradeCategoryBanner client={client} color={brandGreen} onUpgrade={handleUpgradeProfile} />
           </div>
         )}
 
         {/* Banner primo campionamento */}
-        {campCount === 0 && !readonly && profile.hasTests && (
+        {campCount === 0 && !readonly && hasTests && (
           <div
             className="mx-4 mt-3 px-4 py-3 rounded-[4px] font-body text-[12px] text-white/50 leading-relaxed"
             style={{ background: 'color-mix(in srgb, var(--rx-accent) 4%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-accent) 14%, transparent)' }}
@@ -225,10 +237,12 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
               categoriaObj={categoriaObj}
               profileType={profileType}
               biaRankObj={biaRankObj}
+              capabilities={capabilities}
+              terminology={terminology}
             />
           )}
 
-          {tab === 'test' && profile.hasTests && (
+          {tab === 'test' && hasTests && (
             <section className="px-4 pt-6">
               <div className="rounded-[4px] p-5 rx-card">
                 <div className="flex items-center justify-between mb-4">
@@ -256,7 +270,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
           )}
 
           {tab === 'bia' && (
-            profile.hasBia ? (
+            hasBiaData ? (
               <section className="px-4 pt-6">
                 <div className="rounded-[4px] p-5 rx-card flex flex-col gap-4">
                   <div className="flex items-center justify-between">
@@ -271,7 +285,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
                       </button>
                     )}
                   </div>
-                  <BiaSummary bia={client.lastBia} prevBia={client.biaHistory?.[1] ?? null} sex={client.sesso} age={calcAge(client.dataNascita)} color={brandGreen} rank={biaRank.label} />
+                  <BiaSummary bia={client.lastBia} prevBia={client.biaHistory?.[1] ?? null} sex={client.sesso} age={calcAge(client.dataNascita)} color={brandGreen} rank={capabilities.hasRank ? biaRank.label : null} />
                   <ErrorBoundary fallback={ChartErrorFallback}>
                     <BiaHistoryChart biaHistory={client.biaHistory} color={brandGreen} />
                   </ErrorBoundary>
@@ -285,10 +299,10 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
           )}
 
           {tab === 'allenamento' && (
-            <WorkoutPlanSection orgId={orgId} clientId={client.id} color={brandGreen} readonly={readonly} />
+            <WorkoutPlanSection orgId={orgId} clientId={client.id} color={brandGreen} readonly={readonly} hasGamification={capabilities.hasGamification} />
           )}
 
-          {tab === 'obiettivi' && (
+          {tab === 'obiettivi' && capabilities.hasGoals && (
             <GoalsSection client={client} orgId={orgId} color={brandGreen} readonly={readonly} />
           )}
 
@@ -305,7 +319,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
             <NotesSection orgId={orgId} clientId={client.id} color={brandGreen} author={trainerAuthor} readonly={readonly} />
           )}
 
-          {tab === 'attivita' && (
+          {tab === 'attivita' && capabilities.hasGamification && (
             <section className="px-4 pt-6 flex flex-col gap-4">
               <ErrorBoundary fallback={ChartErrorFallback}>
                 <XPTrendChart log={client.log ?? []} color={brandGreen} />
@@ -318,11 +332,11 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
             <MisureSection client={client} color={brandGreen} readonly={readonly} onUpdate={handleUpdateMisure} />
           )}
 
-          {tab === 'wearable' && (
+          {tab === 'wearable' && capabilities.hasWearable && (
             <WearableSection client={client} orgId={orgId} color={brandGreen} />
           )}
 
-          {tab === 'trofei' && (
+          {tab === 'trofei' && capabilities.hasGamification && (
             <TrophiesSection
               rawBadges={rawBadges}
               earnedBadges={earnedBadges}

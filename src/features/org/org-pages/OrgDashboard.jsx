@@ -1,5 +1,6 @@
 import { useTrainerState } from '../../../context/TrainerContext'
 import { StatCard, PageTitle } from '../../../components/ui'
+import { getModuleLabel }      from '../../../config/modules.config'
 
 export function OrgDashboard({ clients, org }) {
   const { terminology } = useTrainerState()
@@ -22,7 +23,7 @@ export function OrgDashboard({ clients, org }) {
         />
         <StatCard
           label="Modulo"
-          value={org?.moduleType === 'soccer_academy' ? 'Soccer' : 'PT'}
+          value={getModuleLabel(org?.moduleType, { short: true })}
           color="#60a5fa"
         />
         <StatCard

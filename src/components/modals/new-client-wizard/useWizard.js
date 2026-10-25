@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback }   from 'react'
-import { getWizardSteps, TOTAL_STEPS_MAP } from './wizard.config'
+import { getWizardSteps }                  from './wizard.config'
 import { getTestsForCategoria, applyFormula, getRankFromMedia } from '../../../constants'
 import { calcPercentileEx, calcStatMedia }  from '../../../utils/percentile'
 import { getFirebaseErrorMessage, isEmailTakenError } from '../../../utils/firebaseErrors'
@@ -24,7 +24,13 @@ function calcTestFinalValue(test, tests) {
   return tests[test.key] === '' || isNaN(val) ? null : val
 }
 
-export function useWizard({ onAdd, onClose, isSoccer = false }) {
+/**
+ * @param {object} params
+ * @param {object} params.capabilities — getModule(moduleType): decide step, campi e payload
+ * @param {string} [params.clientLabel] — terminology.client, per i messaggi d'errore
+ */
+export function useWizard({ onAdd, onClose, capabilities, clientLabel = 'Cliente' }) {
+  const { isSoccer, hasClientLogin, hasRank, hasPercentileTests, hasProfileTypes } = capabilities
   const [step,        setStep]        = useState(0)
   const [anagrafica,  setAnagrafica]  = useState({ name: '', dataNascita: '', sesso: 'M', peso: '', altezza: '' })
   const [profileType, setProfileType] = useState('tests_only')
@@ -36,14 +42,15 @@ export function useWizard({ onAdd, onClose, isSoccer = false }) {
   const [loading,     setLoading]     = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
-  const WIZARD_STEPS = useMemo(() => getWizardSteps(profileType, isSoccer), [profileType, isSoccer])
-  const TOTAL_STEPS  = isSoccer ? TOTAL_STEPS_MAP.soccer : TOTAL_STEPS_MAP[profileType]
+  const WIZARD_STEPS = useMemo(() => getWizardSteps(capabilities, profileType), [capabilities, profileType])
+  const TOTAL_STEPS  = WIZARD_STEPS.length
 
-  const categoriaEffettiva = isSoccer
-    ? (getCategoriaFromEta(calcAge(anagrafica.dataNascita)) ?? 'soccer')
-    : categoria
+  const categoriaEffettiva = getCategoriaEffettiva(capabilities, categoria, anagrafica.dataNascita)
 
-  const categoryTests = getTestsForCategoria(categoriaEffettiva)
+  const categoryTests = useMemo(
+    () => (hasPercentileTests && categoriaEffettiva ? getTestsForCategoria(categoriaEffettiva) : []),
+    [hasPercentileTests, categoriaEffettiva],
+  )
   const currentStep   = WIZARD_STEPS[step]
   const currentTest   = currentStep?.type === 'test'
     ? categoryTests[currentStep.index]
@@ -68,7 +75,8 @@ export function useWizard({ onAdd, onClose, isSoccer = false }) {
   }, [tests, categoryTests, anagrafica.sesso, anagrafica.dataNascita])
 
   const media   = calcStatMedia(allStats)
-  const rankObj = getRankFromMedia(media)
+  // Nessuna anteprima rank nei moduli senza rank (STORY-031/032)
+  const rankObj = hasRank ? getRankFromMedia(media) : null
 
   const stepTitle = useMemo(() => {
     if (currentStep?.type === 'test' && currentTest) {
@@ -95,14 +103,20 @@ export function useWizard({ onAdd, onClose, isSoccer = false }) {
   }, [anagrafica])
 
   const validateAccount = useCallback(() => {
-    const email    = validateEmail(account.email)
-    const password = validatePassword(account.password)
     const e = {}
-    if (!email.valid)    e.email    = email.error
-    if (!password.valid) e.password = password.error
+    if (hasClientLogin) {
+      const email    = validateEmail(account.email)
+      const password = validatePassword(account.password)
+      if (!email.valid)    e.email    = email.error
+      if (!password.valid) e.password = password.error
+    } else if (account.email.trim()) {
+      // Senza account l'email è facoltativa: si valida solo il formato, se presente
+      const email = validateEmail(account.email)
+      if (!email.valid) e.email = email.error
+    }
     setErrors(e)
     return Object.keys(e).length === 0
-  }, [account])
+  }, [account, hasClientLogin])
 
   // ── Navigazione ───────────────────────────────────────────────────────────
   const next = useCallback(() => {
@@ -124,21 +138,30 @@ export function useWizard({ onAdd, onClose, isSoccer = false }) {
 
   const handleConfirmSubmit = useCallback(async () => {
     setLoading(true)
+    const base = {
+      ...anagrafica,
+      dataNascita: anagrafica.dataNascita,
+      peso:        parseFloat(anagrafica.peso),
+      altezza:     parseFloat(anagrafica.altezza),
+      email:       account.email.trim(),
+    }
+    // Senza login: niente password, categoria, ruolo o profilo — li fissa il server
+    // (ADR-010), che rifiuta la password se arriva.
+    const formData = hasClientLogin
+      ? {
+          ...base,
+          categoria:   isSoccer ? getCategoriaFromEta(calcAge(anagrafica.dataNascita)) : (profileType === 'bia_only' ? null : categoria),
+          ruolo:       isSoccer ? ruolo : undefined,
+          profileType: hasProfileTypes ? profileType : 'tests_only',
+          password:    account.password,
+        }
+      : base
+
     try {
-      await onAdd({
-        ...anagrafica,
-        dataNascita: anagrafica.dataNascita,
-        peso:        parseFloat(anagrafica.peso),
-        altezza:     parseFloat(anagrafica.altezza),
-        categoria:   isSoccer ? getCategoriaFromEta(calcAge(anagrafica.dataNascita)) : (profileType === 'bia_only' ? null : categoria),
-        ruolo:       isSoccer ? ruolo : undefined,
-        profileType: isSoccer ? 'tests_only' : profileType,
-        email:       account.email.trim(),
-        password:    account.password,
-      })
+      await onAdd(formData)
       onClose()
     } catch (err) {
-      const message = getFirebaseErrorMessage(err, 'Impossibile creare il cliente')
+      const message = getFirebaseErrorMessage(err, `${clientLabel}: creazione non riuscita`)
       // creaCliente/creaMembroTeam rispondono functions/already-exists: il vecchio
       // controllo su auth/* non scattava più e l'errore finiva in fondo al form
       const isEmailError = isEmailTakenError(err)
@@ -146,7 +169,7 @@ export function useWizard({ onAdd, onClose, isSoccer = false }) {
       setLoading(false)
       setShowConfirm(false)
     }
-  }, [anagrafica, profileType, categoria, ruolo, isSoccer, account, onAdd, onClose])
+  }, [anagrafica, profileType, categoria, ruolo, isSoccer, hasClientLogin, hasProfileTypes, account, clientLabel, onAdd, onClose])
 
   return {
     step, anagrafica, profileType, categoria: categoriaEffettiva, ruolo, account, errors, isLoading: loading,
@@ -154,6 +177,7 @@ export function useWizard({ onAdd, onClose, isSoccer = false }) {
     categoryTests, currentStep, currentTest,
     livePercentile, media, rankObj,
     stepTitle, progressPct,
+    totalSteps: TOTAL_STEPS,
     isLastStep: step === TOTAL_STEPS - 1,
     setAnagrafica, setCategoria, setRuolo, setAccount,
     setProfileType: (type) => {
@@ -164,4 +188,15 @@ export function useWizard({ onAdd, onClose, isSoccer = false }) {
     handleRequestSubmit,
     handleConfirmSubmit,
   }
+}
+
+/**
+ * Categoria test del cliente: soccer la ricava dall'età (fascia), PT usa quella
+ * scelta nel wizard, i moduli senza categorie (lipedema) non ne hanno.
+ * @returns {string|null}
+ */
+function getCategoriaEffettiva(capabilities, categoria, dataNascita) {
+  if (capabilities.isSoccer)      return getCategoriaFromEta(calcAge(dataNascita)) ?? 'soccer'
+  if (capabilities.hasCategories) return categoria
+  return null
 }

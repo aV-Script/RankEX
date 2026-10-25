@@ -7,7 +7,117 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-### SPRINT #6 — EPIC-007: Privacy & Data Protection, remediation P0 — aperto il 2026-09-14
+### SPRINT #10 — EPIC-010 Lipedema Edition, prima ondata (fondamenta modulo) — aperto il 2026-10-24
+
+**Branch:** `feature/lipedema-module` (creato da `dev`, come richiesto da ADR-014 §0).
+
+**Numerazione:** #10 e non #7 — i numeri #7…#9 sono già stati usati fuori da questo
+file (commit `852d917` "Sprint #6-#9" su `feature/mobile-app`, e CLAUDE.md cita lo
+"Sprint #9" per la rimozione di `SlotCard.jsx`/`CalendarSidebar.jsx`). Lo storico di
+quegli sprint non è mai arrivato su questo ramo: stesso problema di numerazione
+divergente già tracciato come TD-004.
+
+**Goal:** un'org lipedema si crea, non mostra né calcola rank/XP, e gestisce pazienti
+senza account.
+
+**Story selezionate (ordine ADR-014 §1-3, confermato da ADR-015 §8):**
+1. STORY-030 — modulo `lipedema` + capability esplicite + terminologia, **insieme** a
+   `functions/src/shared/modules.js` e ai controlli di modulo nelle callable (ADR-008).
+   Stesso rilascio functions: nessuna org lipedema deve poter esistere prima che le
+   callable la riconoscano.
+2. STORY-031 — nessun rank/percentile/gamification nel modulo (gating UI sull'inventario
+   ADR-007). Può procedere in parallelo a STORY-032 una volta chiusa STORY-030.
+3. STORY-032 — wizard "Nuovo paziente" senza account Auth (`creaCliente` senza Auth,
+   email facoltativa) + `eliminaCliente` con cancellazione ricorsiva generalizzata
+   (`listCollections`).
+
+**Sequenziamento:** 030 → (031 ∥ 032). 031 e 032 dipendono entrambe dalle capability
+di 030; tra loro sono indipendenti. Ordine di deploy per ogni rilascio (ADR-014):
+functions dev → rules dev → hosting dev → verifica.
+
+**Status board:**
+
+| Task | Status | Note |
+|------|--------|------|
+| STORY-030 — modulo + capability + terminologia + check modulo server (ADR-008) | READY | Primo in sequenza. Include `MODULE_OPTIONS`/admin e la condizione rules sul cambio modulo di un'org con pazienti (ADR-015 §6/§8). Default restrittivo, test tabellare sui 3 moduli (rischio #2 ADR-014). |
+| STORY-031 — niente rank/percentili/gamification | READY | Parte dopo STORY-030. Inventario ADR-007 usato come checklist di code review; verifica a campione "nessun testo percentile/rank/XP" in QA. |
+| STORY-032 — wizard paziente senza Auth + `eliminaCliente` ricorsivo | READY | Parte dopo STORY-030. Test su emulatore obbligatorio per la cancellazione ricorsiva (rischio #1 ADR-014/015: dati sanitari orfani). |
+
+**Dipendenze bloccanti / punti di attenzione:**
+- **Cloud Functions:** STORY-030 e STORY-032 modificano callable (`creaCliente`,
+  `eliminaCliente`, `chiudiSessione`, `salvaCampionamento`, …) e aggiungono
+  `shared/modules.js` (nuova copia speculare). Le functions non sono in CI e non hanno
+  test: verifica dal vivo su `rankex-dev` con script one-off (ADR-014 rischio #8).
+- **`firestore.rules`:** STORY-030 tocca le rules (cambio modulo bloccato con
+  `clientCount > 0`). Deploy rules solo da questo branch basato su `dev`, mai da
+  `feature/mobile-app` (ADR-014 rischio #4: regressione dell'hardening P0).
+- **Deploy:** nessun deploy in prod in questo sprint. Deploy su `rankex-dev` solo dopo
+  QA e solo su richiesta esplicita dell'utente.
+- **Fuori sprint, non bloccante per lo sviluppo:** STORY-029 (attestazione informativa +
+  DPA) è requisito di rilascio, non di sviluppo — nessuna org lipedema va attivata con
+  pazienti reali prima che sia DONE e che il DPA sia firmato (ADR-015 §8).
+
+**Scope creep — regola per questo sprint:** valutazioni/test (STORY-033…038), trend,
+PDF e attestazione informativa **non** entrano qui, anche se toccano gli stessi file.
+TD-005 e TD-006 restano aperti in `docs/TECH-DEBT.md`, non vanno risolti di passaggio.
+Qualunque lavoro emerso non pianificato va in `docs/BACKLOG.md` per il prossimo sprint.
+
+**Prossimo sprint (candidati), in ordine:**
+1. STORY-029 + STORY-033 (attestazione informativa + infrastruttura "Valutazione",
+   stessa ondata per ADR-015 §8)
+2. STORY-034…038 (i 5 test; 036 prima di 037/038, 034/035 in parallelo)
+3. STORY-039 (storico, trend, non comparabilità)
+4. STORY-040 (export PDF paziente)
+
+---
+
+## Piano sprint successivi (proposta Scrum Master, da confermare)
+
+**Aggiornamento 2026-10-24:** la coda corrente è EPIC-010 (Lipedema Edition) — vedi i
+candidati in fondo a Sprint #10. Il piano sotto (EPIC-007/EPIC-005) è precedente e va
+rivisto dal Product Owner prima di riaprirlo.
+
+Sequenza indicativa, non calendarizzata — un solo sviluppatore, quindi ogni sprint parte
+solo a chiusura del precedente. Priorità e ordine sono una proposta di ingegneria, non
+una decisione di business: rivedere prima di aprire ciascuno sprint.
+
+EPIC-003 (Streak presenze) ed EPIC-004 (Obiettivi trainer) erano **già implementate**
+prima di aprire i rispettivi sprint. EPIC-005 (Avatar + Negozio) è stata scoperta
+(Sprint #3, raccomandazione di non procedere) ma l'utente ha scelto comunque uno spike
+tecnico ridotto (Sprint #4, STORY-014, override esplicito — vedi ADR-003), deployato
+su prod. TD-001/TD-002 risolti. EPIC-002 chiusa (Sprint #5).
+
+**EPIC-007 (Privacy & Data Protection) ha ora priorità massima — richiesta esplicita
+dell'utente sui risultati del Privacy & Data Protection Audit — e precede EPIC-005
+completa nella coda.** Sprint #6 (sopra) copre le sole P0 tecniche. Candidati per gli
+sprint successivi, in ordine:
+
+**Candidati aperti (in ordine di priorità):**
+1. **Resto di EPIC-007, P0 rimaste bloccate** — STORY-019 (Privacy Policy/Cookie Policy)
+   e STORY-020 (consenso genitoriale minori), non appena il contenuto legale/la
+   decisione dell'utente arrivano dal track parallelo aperto in Sprint #6. Priorità
+   massima non appena sbloccate, a prescindere da cos'altro è in coda in quel momento.
+2. **EPIC-007, P1** — STORY-021 (verifica regione Firestore, bloccata sull'utente ma
+   verifica leggera), STORY-022 (self-hosting font, READY, nessun blocco), STORY-023
+   (script di backup interim, READY per la parte tecnica). Candidati naturali per
+   **Sprint #7**, dimensionati per stare insieme in un solo sprint senza ripetere il
+   pattern "troppe story a metà".
+3. **EPIC-007, P2** — STORY-024 (minimizzazione dati sensibili per `staff_readonly`),
+   STORY-025 (rimuovere/correggere `deleteOrganization`, READY), STORY-026 (policy di
+   retention, BLOCKED su decisione utente — stesso track parallelo di STORY-019/020).
+4. **EPIC-007, P3** — STORY-027 (rimuovere `VITE_FIREBASE_MEASUREMENT_ID`, READY),
+   STORY-028 (export dati strutturato per il cliente, READY ma richiede una scelta di
+   flusso UX minima prima di stimare).
+5. **EPIC-005 completa — Avatar + Negozio**, dopo EPIC-007, se/quando le domande aperte
+   in `docs/BACKLOG.md` hanno risposta (asset grafici, priorità rispetto alla
+   gamification esistente, bilanciamento economia). Non riconsiderare prima che
+   EPIC-007 sia sostanzialmente chiusa, salvo diversa istruzione esplicita dell'utente.
+
+---
+
+## Storico sprint chiusi
+
+### SPRINT #6 — EPIC-007: Privacy & Data Protection, remediation P0 — aperto il 2026-09-14, archiviato il 2026-10-24
 
 **Perché ora, fuori sequenza:** l'utente ha richiesto esplicitamente priorità massima sui
 risultati del Privacy & Data Protection Audit appena consegnato dal Product Owner
@@ -107,49 +217,15 @@ ma priorità P1/P2) diventano un candidato naturale per un prossimo sprint — n
 uno sprint "parallelo" formale con la sua status board: basta non far dipendere la
 chiusura di *questo* sprint dal loro esito.
 
----
-
-## Piano sprint successivi (proposta Scrum Master, da confermare)
-
-Sequenza indicativa, non calendarizzata — un solo sviluppatore, quindi ogni sprint parte
-solo a chiusura del precedente. Priorità e ordine sono una proposta di ingegneria, non
-una decisione di business: rivedere prima di aprire ciascuno sprint.
-
-EPIC-003 (Streak presenze) ed EPIC-004 (Obiettivi trainer) erano **già implementate**
-prima di aprire i rispettivi sprint. EPIC-005 (Avatar + Negozio) è stata scoperta
-(Sprint #3, raccomandazione di non procedere) ma l'utente ha scelto comunque uno spike
-tecnico ridotto (Sprint #4, STORY-014, override esplicito — vedi ADR-003), deployato
-su prod. TD-001/TD-002 risolti. EPIC-002 chiusa (Sprint #5).
-
-**EPIC-007 (Privacy & Data Protection) ha ora priorità massima — richiesta esplicita
-dell'utente sui risultati del Privacy & Data Protection Audit — e precede EPIC-005
-completa nella coda.** Sprint #6 (sopra) copre le sole P0 tecniche. Candidati per gli
-sprint successivi, in ordine:
-
-**Candidati aperti (in ordine di priorità):**
-1. **Resto di EPIC-007, P0 rimaste bloccate** — STORY-019 (Privacy Policy/Cookie Policy)
-   e STORY-020 (consenso genitoriale minori), non appena il contenuto legale/la
-   decisione dell'utente arrivano dal track parallelo aperto in Sprint #6. Priorità
-   massima non appena sbloccate, a prescindere da cos'altro è in coda in quel momento.
-2. **EPIC-007, P1** — STORY-021 (verifica regione Firestore, bloccata sull'utente ma
-   verifica leggera), STORY-022 (self-hosting font, READY, nessun blocco), STORY-023
-   (script di backup interim, READY per la parte tecnica). Candidati naturali per
-   **Sprint #7**, dimensionati per stare insieme in un solo sprint senza ripetere il
-   pattern "troppe story a metà".
-3. **EPIC-007, P2** — STORY-024 (minimizzazione dati sensibili per `staff_readonly`),
-   STORY-025 (rimuovere/correggere `deleteOrganization`, READY), STORY-026 (policy di
-   retention, BLOCKED su decisione utente — stesso track parallelo di STORY-019/020).
-4. **EPIC-007, P3** — STORY-027 (rimuovere `VITE_FIREBASE_MEASUREMENT_ID`, READY),
-   STORY-028 (export dati strutturato per il cliente, READY ma richiede una scelta di
-   flusso UX minima prima di stimare).
-5. **EPIC-005 completa — Avatar + Negozio**, dopo EPIC-007, se/quando le domande aperte
-   in `docs/BACKLOG.md` hanno risposta (asset grafici, priorità rispetto alla
-   gamification esistente, bilanciamento economia). Non riconsiderare prima che
-   EPIC-007 sia sostanzialmente chiusa, salvo diversa istruzione esplicita dell'utente.
+**Archiviato il 2026-10-24 dallo Scrum Master, senza una chiusura formale in questo file.**
+Le 4 story tecniche (STORY-015…018) erano DONE su rankex-dev; il lavoro EPIC-007
+successivo (DPA, export, cancellazione org, font locali, backup — commit `91d9de7`,
+`5fe04fc`, `12e8709`) è stato fatto fuori da questa status board. Una chiusura formale
+di Sprint #6 esiste solo su `feature/mobile-app` (commit `bba54ab`), mai arrivata su
+`dev` (TD-004). Spostato qui per avere un solo sprint attivo; stato attuale delle
+story EPIC-007 in `docs/BACKLOG.md`.
 
 ---
-
-## Storico sprint chiusi
 
 ### SPRINT #5 — EPIC-002: pulizia debito minore — chiuso il 2026-09-14
 

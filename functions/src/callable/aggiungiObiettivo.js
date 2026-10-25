@@ -2,6 +2,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore }       from 'firebase-admin/firestore'
 import { requireOrgAccess }   from '../shared/auth.js'
 import { TESTS_META }         from '../shared/testsMeta.js'
+import { getOrgCapabilities, requireCapability } from '../shared/orgModule.js'
 
 const REGION = 'europe-west1'
 
@@ -22,6 +23,7 @@ export const aggiungiObiettivo = onCall({ region: REGION }, async (request) => {
   const profile = await requireOrgAccess(request, orgId)
 
   const db      = getFirestore()
+  requireCapability(await getOrgCapabilities(db, orgId), 'hasGoals')
   const goalRef = db.collection(`organizations/${orgId}/clients/${clientId}/goals`).doc()
 
   const goalData = {

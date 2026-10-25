@@ -3,6 +3,7 @@ import { getFirestore }  from 'firebase-admin/firestore'
 import { requireOrgAccess } from '../shared/auth.js'
 import { buildBiaUpdate } from '../shared/gamification.js'
 import { requireId, pickAllowed } from '../shared/validate.js'
+import { getOrgCapabilities } from '../shared/orgModule.js'
 
 const REGION = 'europe-west1'
 
@@ -30,6 +31,7 @@ export const salvaBia = onCall({ region: REGION }, async (request) => {
 
   const db = getFirestore()
   const clientRef = db.doc(`organizations/${orgId}/clients/${clientId}`)
+  const capabilities = await getOrgCapabilities(db, orgId)
 
   // Transazione: legge storico BIA/xp/log e li riscrive (vedi salvaXP).
   return db.runTransaction(async (tx) => {
@@ -37,7 +39,18 @@ export const salvaBia = onCall({ region: REGION }, async (request) => {
     if (!snap.exists) throw new HttpsError('not-found', 'Cliente non trovato')
 
     const client = { id: clientId, ...snap.data() }
-    const { update, xpEarned, isFirstMeasurement } = buildBiaUpdate(client, bia)
+    const built  = buildBiaUpdate(client, bia)
+    const { isFirstMeasurement } = built
+
+    // Senza gamification (lipedema) si salva solo la misurazione: niente xp,
+    // livello, log né notifica XP (ADR-008)
+    if (!capabilities.hasGamification) {
+      const { lastBia, biaHistory } = built.update
+      tx.update(clientRef, { lastBia, biaHistory })
+      return { ok: true, xpEarned: 0, isFirstMeasurement }
+    }
+
+    const { update, xpEarned } = built
     tx.update(clientRef, update)
 
     if (client.clientAuthUid && xpEarned > 0) {

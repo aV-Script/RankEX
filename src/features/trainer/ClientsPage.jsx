@@ -1,4 +1,4 @@
-import { useState, useCallback }         from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useGroups }                      from '../../hooks/useGroups'
 import { useTrainerNav }                  from './useTrainerNav'
 import { useTrainerState }                from '../../context/TrainerContext'
@@ -17,11 +17,11 @@ import { PAGINATION_PAGE_SIZE }          from '../../config/app.config'
 
 const PAGE_SIZE = PAGINATION_PAGE_SIZE
 
-const SORT_OPTIONS = [
-  ['name',  'Nome A→Z'],
-  ['rank',  'Rank'],
-  ['level', 'Livello'],
-]
+const SORT_LABELS = {
+  name:  'Nome A→Z',
+  rank:  'Rank',
+  level: 'Livello',
+}
 
 const ICON_CLIENTS = (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -35,10 +35,12 @@ const ICON_CLIENTS = (
 export function ClientsPage({ orgId, clients = [], clientsLoading: loading = false, clientsError: error = null, onAddClient, onNavigate }) {
   const { moduleType, terminology } = useTrainerState()
   const readonly       = useReadonly()
-  const isSoccer       = getModule(moduleType).isSoccer
+  const capabilities   = useMemo(() => getModule(moduleType), [moduleType])
+  const { isSoccer, hasPlayerRoles } = capabilities
   const { groups }     = useGroups(orgId)
   const { selectClient } = useTrainerNav()
-  const filters          = useClientFilters(clients, groups, isSoccer)
+  const filters          = useClientFilters(clients, groups, capabilities)
+  const categoriaFilterLabel = hasPlayerRoles ? 'Ruolo' : 'Categoria'
   const [view, setView]  = useState('list')
 
   const pagination = usePagination(filters.filteredClients, PAGE_SIZE)
@@ -86,18 +88,20 @@ export function ClientsPage({ orgId, clients = [], clientsLoading: loading = fal
           />
         </SidebarSection>
 
-        <SidebarSection label="Ordina">
-          {SORT_OPTIONS.map(([val, label]) => (
-            <FilterChip key={val} active={filters.sortBy === val} onClick={() => filters.onSortByChange(val)}>
-              {label}
-            </FilterChip>
-          ))}
-        </SidebarSection>
+        {filters.sortKeys.length > 1 && (
+          <SidebarSection label="Ordina">
+            {filters.sortKeys.map(val => (
+              <FilterChip key={val} active={filters.sortBy === val} onClick={() => filters.onSortByChange(val)}>
+                {SORT_LABELS[val]}
+              </FilterChip>
+            ))}
+          </SidebarSection>
+        )}
 
         {filters.categorie.length > 1 && (
-          <SidebarSection label={isSoccer ? 'Ruolo' : 'Categoria'}>
+          <SidebarSection label={categoriaFilterLabel}>
             {filters.categorie.map(val => {
-              const label = isSoccer && val !== 'tutti'
+              const label = hasPlayerRoles && val !== 'tutti'
                 ? (PLAYER_ROLES.find(r => r.value === val)?.label ?? val)
                 : val.charAt(0).toUpperCase() + val.slice(1)
               return (
@@ -161,18 +165,20 @@ export function ClientsPage({ orgId, clients = [], clientsLoading: loading = fal
 
           <div className="flex flex-col gap-2">
 
-            <FilterRow label="Ordina">
-              {SORT_OPTIONS.map(([val, label]) => (
-                <FilterChip key={val} active={filters.sortBy === val} onClick={() => filters.onSortByChange(val)}>
-                  {label}
-                </FilterChip>
-              ))}
-            </FilterRow>
+            {filters.sortKeys.length > 1 && (
+              <FilterRow label="Ordina">
+                {filters.sortKeys.map(val => (
+                  <FilterChip key={val} active={filters.sortBy === val} onClick={() => filters.onSortByChange(val)}>
+                    {SORT_LABELS[val]}
+                  </FilterChip>
+                ))}
+              </FilterRow>
+            )}
 
             {filters.categorie.length > 1 && (
-              <FilterRow label={isSoccer ? 'Ruolo' : 'Categoria'}>
+              <FilterRow label={categoriaFilterLabel}>
                 {filters.categorie.map(val => {
-                  const label = isSoccer && val !== 'tutti'
+                  const label = hasPlayerRoles && val !== 'tutti'
                     ? (PLAYER_ROLES.find(r => r.value === val)?.label ?? val)
                     : val.charAt(0).toUpperCase() + val.slice(1)
                   return (

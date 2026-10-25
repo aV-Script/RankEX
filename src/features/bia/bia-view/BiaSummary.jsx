@@ -5,6 +5,7 @@ import { BIA_PARAMS }    from '../../../constants/bia'
 /**
  * Riepilogo BIA attuale — mostrato nel dashboard cliente e trainer.
  * color = biaColor calcolato nel parent (stesso sistema rank atletico).
+ * rank  = etichetta rank BIA; omessa nei moduli senza rank (badge nascosto).
  */
 export function BiaSummary({ bia, prevBia, sex, age, color, rank }) {
   if (!bia) return null
@@ -15,14 +16,16 @@ export function BiaSummary({ bia, prevBia, sex, age, color, rank }) {
     <div className="rounded-[4px] p-5 rx-card">
       <div className="flex items-center justify-between mb-4">
         <SectionLabel className="mb-0">◈ Composizione corporea</SectionLabel>
-        <div
-          className="flex items-center gap-2 px-3 py-1 rounded-[3px]"
-          style={{ background: color + '11', border: `1px solid ${color}33` }}
-        >
-          <span className="font-display font-black text-[15px]" style={{ color }}>
-            {rank}
-          </span>
-        </div>
+        {rank && (
+          <div
+            className="flex items-center gap-2 px-3 py-1 rounded-[3px]"
+            style={{ background: color + '11', border: `1px solid ${color}33` }}
+          >
+            <span className="font-display font-black text-[15px]" style={{ color }}>
+              {rank}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col gap-3">

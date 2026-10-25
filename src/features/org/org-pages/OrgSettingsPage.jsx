@@ -3,11 +3,7 @@ import { updateOrganization }    from '../../../firebase/services/org'
 import { useToast }              from '../../../hooks/useToast'
 import { getPlanLimits }         from '../../../config/plans.config'
 import { Button, PageTitle }     from '../../../components/ui'
-
-const MODULE_LABELS = {
-  personal_training: 'Personal Training',
-  soccer_academy:     'Soccer Academy',
-}
+import { getModuleLabel }        from '../../../config/modules.config'
 
 export function OrgSettingsPage({ org, orgId }) {
   const [name,   setName]   = useState(org?.name ?? '')
@@ -51,7 +47,7 @@ export function OrgSettingsPage({ org, orgId }) {
             MODULO
           </label>
           <div className="input-base w-full opacity-60 cursor-not-allowed">
-            {MODULE_LABELS[org?.moduleType] ?? org?.moduleType}
+            {getModuleLabel(org?.moduleType)}
           </div>
           <p className="font-body text-[11px] text-white/60 mt-1.5">
             Solo il super admin può modificare il modulo dell'organizzazione.

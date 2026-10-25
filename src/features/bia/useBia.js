@@ -5,19 +5,26 @@ import { saveBiaUseCase }                                from '../../usecases/sa
 import { upgradeProfileUseCase }                         from '../../usecases/upgradeProfileUseCase'
 import { useToast }                                      from '../../hooks/useToast'
 import { getFirebaseErrorMessage }                       from '../../utils/firebaseErrors'
+import { getModule }                                     from '../../config/modules.config'
 
 /**
  * Hook per la gestione delle misurazioni BIA.
  */
 export function useBia() {
-  const { orgId } = useTrainerState()
+  const { orgId, moduleType } = useTrainerState()
+  const { hasGamification }   = getModule(moduleType)
   const dispatch  = useTrainerDispatch()
   const { success, error } = useToast()
 
   const handleSaveBia = useCallback(async (client, biaData) => {
     const { update, xpEarned, isFirstMeasurement } = buildBiaUpdate(client, biaData)
+    // Senza gamification il server salva solo la misurazione (ADR-008): l'update
+    // ottimistico non deve mostrare xp/livello/log che non verranno scritti
+    const optimisticUpdate = hasGamification
+      ? update
+      : { lastBia: update.lastBia, biaHistory: update.biaHistory }
 
-    dispatch({ type: ACTIONS.SELECT_CLIENT, payload: { ...client, ...update } })
+    dispatch({ type: ACTIONS.SELECT_CLIENT, payload: { ...client, ...optimisticUpdate } })
 
     try {
       await saveBiaUseCase(orgId, client, xpEarned, update, isFirstMeasurement)
@@ -29,7 +36,7 @@ export function useBia() {
       // Rilanciato: BiaView resta aperta con i valori inseriti
       throw err
     }
-  }, [orgId, dispatch, success, error])
+  }, [orgId, hasGamification, dispatch, success, error])
 
   const handleUpgradeProfile = useCallback(async (client, newProfileType) => {
     const update   = buildProfileUpgrade(client, newProfileType)

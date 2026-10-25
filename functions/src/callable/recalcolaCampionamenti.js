@@ -18,6 +18,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore }       from 'firebase-admin/firestore'
 import { requireRole }        from '../shared/auth.js'
 import { getRankFromMedia, calcStatMedia } from '../shared/constants.js'
+import { resolveModuleCapabilities } from '../shared/modules.js'
 
 const REGION = 'europe-west1'
 
@@ -51,11 +52,25 @@ export const recalcolaCampionamenti = onCall({ region: REGION, timeoutSeconds: 5
   let patched  = 0
   let skipped  = 0
 
-  const orgsToProcess = orgId
-    ? [{ id: orgId }]
-    : (await db.collection('organizations').get()).docs.map(d => ({ id: d.id, name: d.data().name }))
+  const orgDocs = orgId
+    ? [await db.collection('organizations').doc(orgId).get()].filter(orgDoc => orgDoc.exists)
+    : (await db.collection('organizations').get()).docs
+  const orgsToProcess = orgDocs.map(orgDoc => ({ id: orgDoc.id, name: orgDoc.data().name, moduleType: orgDoc.data().moduleType }))
 
   for (const org of orgsToProcess) {
+    // Org senza test a percentile (lipedema): nessun campionamento da
+    // ricalcolare (ADR-008). Un modulo sconosciuto è un dato corrotto: va
+    // riportato a parte, non confuso con un salto legittimo.
+    const capabilities = resolveModuleCapabilities(org.moduleType)
+    if (!capabilities) {
+      report.push(`${org.name ?? org.id} (${org.id}) — modulo non riconosciuto: ${org.moduleType}, saltata`)
+      continue
+    }
+    if (!capabilities.hasPercentileTests) {
+      report.push(`${org.name ?? org.id} (${org.id}) — modulo senza test a percentile, saltata`)
+      continue
+    }
+
     const clientSnap = await db
       .collection('organizations').doc(org.id)
       .collection('clients').get()

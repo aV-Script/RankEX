@@ -20,7 +20,7 @@ export function useCalendar(orgId) {
   const [loading, setLoading]       = useState(false)
   const [currentDate, setCurrentDate] = useState(toLocalDateStr())
   const [view, setView]             = useState('week') // 'month' | 'week' | 'day'
-  const { success: toastSuccess, error: toastError } = useToast()
+  const { error: toastError } = useToast()
   const initialLoadDone = useRef(false)
 
   // ── Calcola il range in base alla vista ────────────────────────────────
@@ -111,9 +111,11 @@ export function useCalendar(orgId) {
   }, [orgId, fetchSlots, toastError])
 
   // ── Close slot ─────────────────────────────────────────────────────────
+  // Restituisce true se la chiusura è riuscita: il messaggio di conferma lo
+  // sceglie il chiamante, perché dipende dal modulo (XP solo con gamification)
   const handleCloseSlot = useCallback(async (slotId, attendeeIds) => {
     const slot = slots.find(s => s.id === slotId)
-    if (!slot) return
+    if (!slot) return false
 
     const absenteeIds = slot.clientIds.filter(id => !attendeeIds.includes(id))
     const snapshot = slot
@@ -127,12 +129,13 @@ export function useCalendar(orgId) {
 
     try {
       await closeSessionUseCase(orgId, slot, attendeeIds)
-      toastSuccess('Sessione chiusa · +XP assegnata')
+      return true
     } catch {
       setSlots(prev => prev.map(s => s.id === slotId ? snapshot : s))
       toastError('Impossibile chiudere la sessione')
+      return false
     }
-  }, [orgId, slots, toastSuccess, toastError])
+  }, [orgId, slots, toastError])
 
   // ── Skip slot ──────────────────────────────────────────────────────────
   const handleSkipSlot = useCallback(async (slotId) => {

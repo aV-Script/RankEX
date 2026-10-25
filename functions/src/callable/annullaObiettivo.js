@@ -1,6 +1,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore }       from 'firebase-admin/firestore'
 import { requireOrgAccess }   from '../shared/auth.js'
+import { getOrgCapabilities, requireCapability } from '../shared/orgModule.js'
 
 const REGION = 'europe-west1'
 
@@ -14,6 +15,7 @@ export const annullaObiettivo = onCall({ region: REGION }, async (request) => {
   await requireOrgAccess(request, orgId)
 
   const db      = getFirestore()
+  requireCapability(await getOrgCapabilities(db, orgId), 'hasGoals')
   const goalRef = db.doc(`organizations/${orgId}/clients/${clientId}/goals/${goalId}`)
   const snap    = await goalRef.get()
   if (!snap.exists) throw new HttpsError('not-found', 'Obiettivo non trovato')

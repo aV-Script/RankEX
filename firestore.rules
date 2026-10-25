@@ -72,6 +72,18 @@ service cloud.firestore {
       );
     }
 
+    // Cambio di moduleType di un'org (ADR-015 §6): da o verso 'lipedema' solo se
+    // l'org non ha clienti. I dati di un paziente lipedema e di un cliente PT/Soccer
+    // non sono convertibili tra loro. PT ↔ soccer resta libero come prima.
+    // resource.data è l'org stessa: nessuna lettura in più. Fail-closed: un'org
+    // legacy senza clientCount non può passare da/verso lipedema.
+    function isAllowedModuleChange() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['moduleType']) ||
+        !(resource.data.get('moduleType', null) == 'lipedema' ||
+          request.resource.data.get('moduleType', null) == 'lipedema') ||
+        resource.data.get('clientCount', -1) == 0;
+    }
+
     function isOwnClient(orgId, clientId) {
       return isAuth() &&
         userProfile().orgId == orgId &&
@@ -112,8 +124,9 @@ service cloud.firestore {
       allow create, delete: if isSuperAdmin();
       // org_admin aggiorna i campi descrittivi dell'org. Counter, modulo e piano
       // restano fuori: memberCount/clientCount li muovono solo le Cloud Functions
-      // (Admin SDK), moduleType/plan solo super_admin.
-      allow update: if isSuperAdmin() ||
+      // (Admin SDK), moduleType/plan solo super_admin (moduleType con il vincolo
+      // di isAllowedModuleChange).
+      allow update: if (isSuperAdmin() && isAllowedModuleChange()) ||
         (isOrgMember(orgId) && memberRole(orgId) == 'org_admin' &&
          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['memberCount', 'clientCount', 'moduleType', 'plan']));
 

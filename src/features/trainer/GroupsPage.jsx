@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react'
 import { useGroups }                      from '../../hooks/useGroups'
 import { usePagination }                  from '../../hooks/usePagination'
 import { useTrainerState }                from '../../context/TrainerContext'
+import { getModule }                      from '../../config/modules.config'
 import { Pagination }                     from '../../components/common/Pagination'
 import { GroupCard }                      from './groups-page/GroupCard'
 import { GroupDetailView }                from './groups-page/GroupDetailView'
@@ -22,7 +23,8 @@ const ICON_NEW_GROUP = (
 
 export function GroupsPage({ orgId, clients = [] }) {
   const { groups, isLoading, handleAddGroup, handleRenameGroup, handleToggleClient, handleDeleteGroup } = useGroups(orgId)
-  const { terminology } = useTrainerState()
+  const { terminology, moduleType } = useTrainerState()
+  const { hasGroupRanking, hasRank } = getModule(moduleType)
 
   const [view,          setView]          = useState('list')
   const [selectedGroup, setSelectedGroup] = useState(null)
@@ -74,6 +76,8 @@ export function GroupsPage({ orgId, clients = [] }) {
         onDelete={handleDeleteGroup}
         onBack={handleBack}
         terminology={terminology}
+        hasGroupRanking={hasGroupRanking}
+        hasRank={hasRank}
       />
     )
   }

@@ -704,6 +704,53 @@ export const RUNBOOK_SUITES = [
       },
     ],
   },
+  {
+    id: 'lipedema', label: 'Modulo Lipedema', cases: [
+      {
+        id: 'TP-047', usId: 'STORY-032', severity: 'blocker', title: 'Nuovo paziente senza account di accesso',
+        preconditions: 'Org con modulo Lipedema su rankex-dev, account trainer o org_admin dell\'org, sotto il limite pazienti del piano.',
+        steps: [
+          'Pazienti → "+ NUOVO" → verificare 2 step: Dati anagrafici → Contatto',
+          'Verificare assenza di tipologia profilo, categoria, ruolo, fascia e anteprima rank',
+          'Step Contatto: lasciare l\'email vuota → CREA PAZIENTE → confermare',
+          'Ripetere con un\'email in formato non valido → errore sul campo, nessun paziente creato',
+          'Ripetere con un\'email valida → paziente creato',
+          'Firestore: doc paziente con clientAuthUid null, profileType complete, categoria null, nessun campo xp/level/rank/stats/log/coins/badges',
+          'Firebase Auth e users/: nessun nuovo account per i pazienti creati',
+          'Dashboard paziente → menu "⋮": nessuna voce "Reset password"',
+          'clientCount dell\'org +1 per ogni paziente; al limite del piano → schermata di blocco invece del wizard',
+          'audit_logs: CLIENT_CREATED con solo clientId e orgId, senza nome',
+        ],
+        expected: [
+          'Paziente creato senza account Auth né users/{uid}, email facoltativa',
+          'Nessun campo di gamification sul doc paziente',
+          'Limite piano e clientCount come negli altri moduli',
+          'Nessun nome paziente negli audit log',
+        ],
+      },
+      {
+        id: 'TP-048', usId: 'STORY-032', severity: 'blocker', title: 'Eliminazione completa del paziente',
+        preconditions: 'Paziente Lipedema con note e commenti, presente in un gruppo, in uno slot passato e in uno futuro, in una ricorrenza attiva, con una scheda e una notifica (se disponibili, anche valutazioni).',
+        steps: [
+          'Annotare clientId e i path in cui compare',
+          'Dashboard paziente → "Elimina" → doppia conferma con nome digitato',
+          'Firestore: organizations/{orgId}/clients/{clientId} e tutte le sue subcollection (notes, assessments, ...) non esistono più',
+          'Gruppi, slot (clientIds/attendees/absentees) e ricorrenze: clientId assente',
+          'workoutPlans e notifications del paziente: cancellati',
+          'clientCount dell\'org -1',
+          'audit_logs: CLIENT_DELETED con solo clientId e orgId, senza nome',
+          'Ripetere su un cliente PT con account: cancellati anche users/{uid} e l\'account Auth',
+          'Retry dopo interruzione: con un secondo paziente, simulare un errore dopo il batch core (emulatore o functions di dev con una eccezione temporanea — DevTools → Offline NON interrompe la Cloud Function, verifica solo il rollback della UI); se il doc paziente risulta già cancellato ma restano note/riferimenti, rilanciare "Elimina" (o chiamare eliminaCliente con lo stesso clientId) → risposta ok con alreadyDeleted, nessun residuo, clientCount decrementato una sola volta',
+        ],
+        expected: [
+          'Nessun dato residuo del paziente nei dati live dell\'org',
+          'Nessun riferimento al paziente in gruppi, slot, ricorrenze, schede, notifiche',
+          'Nessun nome paziente negli audit log',
+          'Una cancellazione interrotta si completa rilanciandola, senza doppio decremento di clientCount',
+        ],
+      },
+    ],
+  },
 ]
 
 export const TOTAL_CASES = RUNBOOK_SUITES.reduce((sum, s) => sum + s.cases.length, 0)

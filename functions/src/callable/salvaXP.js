@@ -3,6 +3,7 @@ import { getFirestore }  from 'firebase-admin/firestore'
 import { requireOrgAccess } from '../shared/auth.js'
 import { buildXPUpdate } from '../shared/gamification.js'
 import { requireId, requireNumber, optionalString } from '../shared/validate.js'
+import { getOrgCapabilities, requireCapability } from '../shared/orgModule.js'
 
 const REGION = 'europe-west1'
 const MAX_XP_PER_CALL = 1000
@@ -15,6 +16,8 @@ export const salvaXP = onCall({ region: REGION }, async (request) => {
   const safeNote = optionalString(note, 'note', 200)
 
   const db = getFirestore()
+  // Moduli senza gamification (lipedema): nessun XP, nemmeno con chiamata diretta (ADR-008)
+  requireCapability(await getOrgCapabilities(db, orgId), 'hasGamification')
   const clientRef = db.doc(`organizations/${orgId}/clients/${clientId}`)
 
   // Transazione: legge xp/log e li riscrive. Con lettura e scrittura separate due

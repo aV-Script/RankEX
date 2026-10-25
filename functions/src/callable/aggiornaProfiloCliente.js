@@ -3,6 +3,7 @@ import { getFirestore }  from 'firebase-admin/firestore'
 import { requireOrgAccess } from '../shared/auth.js'
 import { buildProfileUpgrade } from '../shared/gamification.js'
 import { requireId } from '../shared/validate.js'
+import { getOrgCapabilities, requireCapability } from '../shared/orgModule.js'
 
 const REGION = 'europe-west1'
 const PROFILE_TYPES = ['tests_only', 'bia_only', 'complete']
@@ -16,6 +17,11 @@ export const aggiornaProfiloCliente = onCall({ region: REGION }, async (request)
   }
 
   const db = getFirestore()
+  // L'upgrade azzera stats/campionamenti/rank o la BIA: senza test a percentile
+  // (lipedema) non ha significato. Controllo su hasPercentileTests e non su
+  // hasProfileTypes perché oggi la UI soccer espone ancora l'upgrade (banner BIA)
+  // e rifiutarlo lì cambierebbe un comportamento esistente — vedi report STORY-030.
+  requireCapability(await getOrgCapabilities(db, orgId), 'hasPercentileTests')
   const clientRef = db.doc(`organizations/${orgId}/clients/${clientId}`)
 
   // Transazione: legge stats/biaHistory/log e li riscrive (vedi salvaXP).

@@ -36,8 +36,9 @@ function initDays(initialData) {
  *   initialData  — piano esistente da modificare
  *   onSubmit     — callback con { title, description, clientId, days, targetSessions }
  *   onBack       — callback annulla
+ *   showXP       — false nei moduli senza gamification: niente bonus XP nel testo
  */
-export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBack, terminology }) {
+export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBack, terminology, showXP = true }) {
   const clientLabel = terminology?.client ?? 'Cliente'
   const [title,        setTitle]        = useState(initialData?.title       ?? '')
   const [description,  setDescription]  = useState(initialData?.description ?? '')
@@ -219,7 +220,8 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
               style={{ maxWidth: 200 }}
             />
             <span className="font-body text-[11px] text-white/35">
-              Ogni presenza registrata in calendario conta una sessione. Raggiunto il numero, la scheda è completata e l&apos;atleta riceve +{PLAN_COMPLETION_XP} XP.
+              Ogni presenza registrata in calendario conta una sessione. Raggiunto il numero, la scheda è completata
+              {showXP ? <> e l&apos;atleta riceve +{PLAN_COMPLETION_XP} XP.</> : '.'}
             </span>
             {errors.targetSessions && <span className="text-red-400 text-[11px]">{errors.targetSessions}</span>}
           </div>

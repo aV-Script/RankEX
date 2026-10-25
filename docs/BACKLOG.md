@@ -1078,7 +1078,7 @@ terzo verticale.
   aperte epic); concordanza di genere ("il Paziente"/"la Paziente", "nuovo/nuova") — già
   un problema noto su terminologia multi-modulo (STORY-024, STORY-027): da decidere con
   ux-ui-designer se usare forme neutre
-- **Status:** BACKLOG
+- **Status:** READY (Sprint #10)
 
 ### [STORY-031] Rank, percentili e gamification assenti nel modulo
 **Come** professionista Lipedema **voglio** non vedere mai rank, percentili, XP,
@@ -1115,7 +1115,7 @@ meccaniche di gioco non pertinenti.
 - **Risks:** è la story con la superficie più ampia (~19 file con ramificazioni per
   modulo + callable server) — rischio alto di superfici dimenticate; le callable oggi
   non conoscono il modulo
-- **Status:** BACKLOG
+- **Status:** READY (Sprint #10)
 
 ### [STORY-032] Wizard "Nuovo paziente" per il modulo
 **Come** professionista Lipedema **voglio** registrare un nuovo paziente con anagrafica
@@ -1154,7 +1154,7 @@ e misure **per** iniziare a raccoglierne le valutazioni.
   header "Reset password", eliminazione); campi anagrafici richiesti dai protocolli
   (es. arto/mano dominante) — da verificare nei docx se servono a livello paziente
   o di singola valutazione
-- **Status:** BACKLOG
+- **Status:** READY (Sprint #10)
 
 ### [STORY-033] Infrastruttura comune "Valutazione" (metadati protocollo, prove grezze, sintomi)
 **Come** professionista Lipedema **voglio** che ogni valutazione salvata registri data,

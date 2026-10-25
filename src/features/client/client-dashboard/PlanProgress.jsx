@@ -5,8 +5,9 @@ import { PLAN_COMPLETION_XP }                  from '../../../constants'
  * Avanzamento della scheda: sessioni svolte (dal calendario, a ogni presenza
  * registrata alla chiusura della sessione), barra se ci sono sessioni previste,
  * giorno consigliato per il prossimo allenamento. Usato da trainer e cliente.
+ * showXP=false (moduli senza gamification) omette il bonus XP di fine scheda.
  */
-export function PlanProgress({ plan, color }) {
+export function PlanProgress({ plan, color, showXP = true }) {
   const { done, target, pct, completed, nextDayIndex } = getPlanProgress(plan)
   const days    = normalizePlanDays(plan)
   const nextDay = days[nextDayIndex]?.label ?? `Giorno ${nextDayIndex + 1}`
@@ -22,7 +23,9 @@ export function PlanProgress({ plan, color }) {
           {target && done > target && <span className="text-white/40 font-normal"> · {done - target} in più</span>}
         </span>
         <span className="font-display text-[10px] tracking-[1px] uppercase" style={{ color }}>
-          {completed ? `✓ Completata · +${PLAN_COMPLETION_XP} XP` : `Prossimo: ${nextDay}`}
+          {completed
+            ? (showXP ? `✓ Completata · +${PLAN_COMPLETION_XP} XP` : '✓ Completata')
+            : `Prossimo: ${nextDay}`}
         </span>
       </div>
       {target && (

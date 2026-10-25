@@ -4,11 +4,12 @@ import {
   ICON_SESSIONS, ICON_NOTES, ICON_RENAME, ICON_PDF, ICON_DELETE,
 } from './groupDetailIcons'
 
+// `isRanking`: tab basate su percentili/rank, assenti senza `hasGroupRanking`
 const SUB_TABS = [
   { id: 'manage',      label: 'Gestione',   icon: ICON_MANAGE      },
-  { id: 'leaderboard', label: 'Classifica', icon: ICON_LEADERBOARD },
-  { id: 'analysis',    label: 'Analisi',    icon: ICON_ANALYSIS    },
-  { id: 'comparison',  label: 'Confronto',  icon: ICON_COMPARE     },
+  { id: 'leaderboard', label: 'Classifica', icon: ICON_LEADERBOARD, isRanking: true },
+  { id: 'analysis',    label: 'Analisi',    icon: ICON_ANALYSIS,    isRanking: true },
+  { id: 'comparison',  label: 'Confronto',  icon: ICON_COMPARE,     isRanking: true },
   { id: 'sessions',    label: 'Sessioni',   icon: ICON_SESSIONS    },
   { id: 'notes',       label: 'Note',       icon: ICON_NOTES       },
 ]
@@ -18,13 +19,15 @@ const SUB_TABS = [
  * (Rinomina / Esporta PDF / Elimina). Estratto da GroupDetailView.jsx (RX-07).
  */
 export function GroupDetailHeader({
-  onBack, terminology, subView, onSelectTab,
+  onBack, terminology, subView, onSelectTab, hasGroupRanking, canExportPdf,
   isEditing, editingName, onEditingNameChange, onSaveRename, onCancelRename,
   showActions, onToggleActions, onOpenRename, onExportPdf, onRequestDelete,
 }) {
   // Chiusura da tastiera per il menu overflow — l'unico modo per chiuderlo
   // era prima un click esterno su un div non focusabile.
   useEscapeKey(onToggleActions, showActions)
+
+  const visibleTabs = SUB_TABS.filter(tab => !tab.isRanking || hasGroupRanking)
 
   return (
     <header
@@ -60,7 +63,7 @@ export function GroupDetailHeader({
           </div>
         ) : (
           <div className="flex items-center justify-center h-full min-w-full w-fit">
-            {SUB_TABS.map(t => (
+            {visibleTabs.map(t => (
               <button
                 key={t.id}
                 onClick={() => onSelectTab(t.id)}
@@ -120,10 +123,12 @@ export function GroupDetailHeader({
                 className="w-full flex items-center gap-2.5 px-3 py-2 text-white/60 hover:text-white hover:bg-white/[.04] transition-colors cursor-pointer bg-transparent border-none text-left font-display text-[10px] tracking-[1.5px] uppercase">
                 {ICON_RENAME} Rinomina
               </button>
-              <button onClick={onExportPdf}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-white/60 hover:text-white hover:bg-white/[.04] transition-colors cursor-pointer bg-transparent border-none text-left font-display text-[10px] tracking-[1.5px] uppercase">
-                {ICON_PDF} Esporta PDF
-              </button>
+              {canExportPdf && (
+                <button onClick={onExportPdf}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-white/60 hover:text-white hover:bg-white/[.04] transition-colors cursor-pointer bg-transparent border-none text-left font-display text-[10px] tracking-[1.5px] uppercase">
+                  {ICON_PDF} Esporta PDF
+                </button>
+              )}
               <div className="h-px my-1" style={{ background: 'rgba(255,255,255,0.06)' }} />
               <button onClick={onRequestDelete}
                 className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-red-900/20 transition-colors cursor-pointer bg-transparent border-none text-left font-display text-[10px] tracking-[1.5px] uppercase"

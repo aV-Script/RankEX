@@ -13,7 +13,7 @@ export function GroupManageTab({
   clientsInGroup, totalClients, clientsNotInGroupCount,
   clientSearch, onSearchChange,
   inGroupPagination, notInGroupPagination,
-  toggling, onRequestToggle,
+  toggling, onRequestToggle, hasGroupRanking, hasRank, terminology,
 }) {
   return (
     <div className="px-4 sm:px-6 pt-4 pb-12 flex flex-col gap-4">
@@ -36,7 +36,7 @@ export function GroupManageTab({
             <>
               <div className="flex flex-col gap-2">
                 {inGroupPagination.paginatedItems.map(c => (
-                  <ClientRow key={c.id} client={c} inGroup loading={toggling === c.id} onToggle={() => onRequestToggle(c, true)} />
+                  <ClientRow key={c.id} client={c} inGroup showRank={hasRank} loading={toggling === c.id} onToggle={() => onRequestToggle(c, true)} />
                 ))}
               </div>
               <Pagination {...inGroupPagination} />
@@ -50,9 +50,9 @@ export function GroupManageTab({
           <div className="flex flex-col gap-2 mb-4">
             <ManageStat label="Nel gruppo"    value={clientsInGroup.length}                 color="var(--rx-accent)" />
             <ManageStat label="Disponibili"   value={totalClients - clientsInGroup.length}  />
-            <ManageStat label="Totale atleti" value={totalClients}                          />
+            <ManageStat label={`Totale ${terminology.clients.toLowerCase()}`} value={totalClients} />
           </div>
-          {clientsInGroup.length < 2 && (
+          {hasGroupRanking && clientsInGroup.length < 2 && (
             <div
               className="px-3 py-3 rounded-[3px] font-body text-[12px] text-white/35 leading-relaxed"
               style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}
@@ -86,7 +86,7 @@ export function GroupManageTab({
             <>
               <div className="flex flex-col gap-2">
                 {notInGroupPagination.paginatedItems.map(c => (
-                  <ClientRow key={c.id} client={c} inGroup={false} loading={toggling === c.id} onToggle={() => onRequestToggle(c, false)} />
+                  <ClientRow key={c.id} client={c} inGroup={false} showRank={hasRank} loading={toggling === c.id} onToggle={() => onRequestToggle(c, false)} />
                 ))}
               </div>
               <Pagination {...notInGroupPagination} />
@@ -100,7 +100,7 @@ export function GroupManageTab({
   )
 }
 
-function ClientRow({ client, inGroup, loading, onToggle }) {
+function ClientRow({ client, inGroup, showRank, loading, onToggle }) {
   return (
     <div
       className="flex items-center justify-between px-4 py-3 rounded-[3px] transition-all"
@@ -120,7 +120,7 @@ function ClientRow({ client, inGroup, loading, onToggle }) {
         </div>
         <div>
           <div className="font-display font-bold text-[13px] text-white/80">{client.name}</div>
-          {client.rank && (
+          {showRank && client.rank && (
             <div className="font-display text-[10px] text-white/30 mt-0.5">
               {client.rank} · Lv.{client.level}
             </div>

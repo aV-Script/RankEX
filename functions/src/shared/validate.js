@@ -60,6 +60,24 @@ export function optionalString(value, name, maxLength) {
   return value
 }
 
+// Stesso formato di src/utils/validation.js → validateEmail; 254 = limite RFC 5321.
+const EMAIL_RE         = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const EMAIL_MAX_LENGTH = 254
+
+/**
+ * Email facoltativa (pazienti senza account, ADR-010): vuota → null, altrimenti
+ * il valore senza spazi ai bordi, se il formato è valido. Nessun vincolo di
+ * unicità: senza account Auth l'email è solo un recapito.
+ */
+export function optionalEmail(value) {
+  if (value === undefined || value === null) return null
+  if (typeof value !== 'string') invalid('email deve essere un testo')
+  const email = value.trim()
+  if (email === '') return null
+  if (email.length > EMAIL_MAX_LENGTH || !EMAIL_RE.test(email)) invalid('Formato email non valido')
+  return email
+}
+
 /**
  * Stessa policy di src/utils/validation.js → validatePassword. Prima esisteva
  * solo nel client: chiamando la callable direttamente si creavano account con

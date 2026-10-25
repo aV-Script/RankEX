@@ -9,7 +9,7 @@ import { useEscapeKey } from '../../../hooks/useEscapeKey'
  * Popup dettaglio slot — appare al click su un evento.
  * Mostra info slot e azioni rapide.
  */
-export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, onCloseSession, onViewRecurrence }) {
+export function SlotPopup({ slot, clients, position, hasGamification, onClose, onDelete, onSkip, onCloseSession, onViewRecurrence }) {
   const ref = useRef(null)
   useFocusTrap(ref, true)
 
@@ -107,7 +107,7 @@ export function SlotPopup({ slot, clients, position, onClose, onDelete, onSkip, 
                 {isPresent ? '✓' : isAbsent ? '✗' : '·'}
               </span>
               <span className="font-display font-bold text-[13px] text-white/80 flex-1">{client.name}</span>
-              {isPresent && (
+              {isPresent && hasGamification && (
                 <span className="font-display text-[10px] text-emerald-400">
                   +XP
                 </span>

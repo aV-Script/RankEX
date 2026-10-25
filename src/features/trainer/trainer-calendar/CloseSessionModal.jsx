@@ -4,7 +4,7 @@ import { useFocusTrap } from '../../../hooks/useFocusTrap'
 import { Button } from '../../../components/ui'
 import { useEscapeKey } from '../../../hooks/useEscapeKey'
 
-export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
+export function CloseSessionModal({ slot, clients, hasGamification, onClose, onConfirm }) {
   const slotClients = slot.clientIds
     .map(id => clients.find(c => c.id === id))
     .filter(Boolean)
@@ -23,11 +23,12 @@ export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
   const absentCount  = slot.clientIds.length - attendees.length
   const presentCount = attendees.length
 
-  // Preview XP e streak per UI
-  const calcClientPreview = (client) => {
+  // Preview XP e streak per UI — solo nei moduli con gamification
+  const getPresentLabel = (client) => {
+    if (!hasGamification) return 'Presente'
     const streak = calcStreakPreview(client)
     const xp = calcSessionXP(client.baseXP ?? 50, streak)
-    return { xp, streak }
+    return `+${xp} XP · streak ${streak}`
   }
 
   // Il bottone resta disabilitato finché la chiusura non risponde: un doppio
@@ -82,7 +83,6 @@ export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
         <div className="flex flex-col gap-2 mb-5">
           {slotClients.map(client => {
             const isPresent = attendees.includes(client.id)
-            const { xp, streak } = calcClientPreview(client)
 
             return (
               <button
@@ -112,7 +112,7 @@ export function CloseSessionModal({ slot, clients, onClose, onConfirm }) {
                     className="font-display text-[10px] mt-0.5"
                     style={{ color: isPresent ? '#34d399' : '#f87171' }}
                   >
-                    {isPresent ? `+${xp} XP · streak ${streak}` : 'Assente'}
+                    {isPresent ? getPresentLabel(client) : 'Assente'}
                   </div>
                 </div>
 

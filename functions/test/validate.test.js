@@ -14,10 +14,24 @@ vi.mock('firebase-functions/v2/https', () => {
 
 const {
   assertIdsInData, requireNumber, optionalString, pickAllowed, requireValidPassword,
-  requireDate, requireTime, requireDays, optionalTargetSessions,
+  requireDate, requireTime, requireDays, optionalTargetSessions, optionalEmail,
 } = await import('../src/shared/validate.js')
 
 const invalid = { code: 'invalid-argument' }
+
+describe('optionalEmail', () => {
+  it('assente o vuota → null (paziente senza recapito)', () => {
+    for (const v of [undefined, null, '', '   ']) expect(optionalEmail(v)).toBeNull()
+  })
+  it('valida → senza spazi ai bordi', () => {
+    expect(optionalEmail(' anna@example.com ')).toBe('anna@example.com')
+  })
+  it('formato non valido, non testo o troppo lunga → errore', () => {
+    for (const v of ['anna', 'anna@', 'a b@c.it', 42, `${'a'.repeat(250)}@x.it`]) {
+      expect(() => optionalEmail(v)).toThrow(expect.objectContaining(invalid))
+    }
+  })
+})
 
 describe('optionalTargetSessions', () => {
   it('vuoto → null (scheda senza sessioni previste)', () => {

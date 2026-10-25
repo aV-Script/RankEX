@@ -4,48 +4,38 @@
  *
  * type:
  *   'anagrafica'   — dati anagrafici
- *   'profileType'  — selezione tipologia profilo
- *   'categoria'    — selezione categoria test (solo se profilo include test)
- *   'account'      — credenziali cliente
+ *   'ruolo'        — ruolo giocatore (moduli con ruoli, soccer)
+ *   'profileType'  — selezione tipologia profilo (moduli con profili, PT)
+ *   'categoria'    — selezione categoria test (solo se il profilo include test)
+ *   'account'      — credenziali cliente (moduli con login del cliente)
+ *   'contatto'     — email facoltativa, nessun account (moduli senza login, ADR-010)
  */
 
-const BASE_STEPS = [
-  { type: 'anagrafica',  title: 'Dati anagrafici' },
-  { type: 'profileType', title: 'Tipologia profilo' },
-]
+const ANAGRAFICA_STEP   = { type: 'anagrafica',  title: 'Dati anagrafici' }
+const RUOLO_STEP        = { type: 'ruolo',       title: 'Ruolo giocatore' }
+const PROFILE_TYPE_STEP = { type: 'profileType', title: 'Tipologia profilo' }
+const CATEGORIA_STEP    = { type: 'categoria',   title: 'Categoria test' }
+const ACCOUNT_STEP      = { type: 'account',     title: 'Account cliente' }
+const CONTATTO_STEP     = { type: 'contatto',    title: 'Contatto' }
 
-const CATEGORIA_STEP = [
-  { type: 'categoria', title: 'Categoria test' },
-]
+/**
+ * Step del wizard per il modulo dell'org. Ogni step dipende da una capability,
+ * mai da "non è soccer": un modulo nuovo non eredita gli step PT (ADR-007).
+ *   PT:       anagrafica → profilo → categoria (se non bia_only) → account
+ *   Soccer:   anagrafica → ruolo → account
+ *   Lipedema: anagrafica → contatto
+ * @param {object} capabilities — getModule(moduleType)
+ * @param {string} [profileType]
+ */
+export function getWizardSteps(capabilities, profileType = 'tests_only') {
+  const hasCategoriaStep = capabilities.hasCategories && capabilities.hasPercentileTests &&
+    (!capabilities.hasProfileTypes || profileType !== 'bia_only')
 
-const TAIL_STEPS = [
-  { type: 'account', title: 'Account cliente' },
-]
-
-const RUOLO_STEP = [
-  { type: 'ruolo', title: 'Ruolo giocatore' },
-]
-
-
-const SOCCER_STEPS = [
-  { type: 'anagrafica', title: 'Dati anagrafici' },
-  ...RUOLO_STEP,
-  ...TAIL_STEPS,
-]
-
-export function getWizardSteps(profileType = 'tests_only', isSoccer = false) {
-  if (isSoccer)               return SOCCER_STEPS
-  if (profileType === 'bia_only') return [...BASE_STEPS, ...TAIL_STEPS]
-  return                               [...BASE_STEPS, ...CATEGORIA_STEP, ...TAIL_STEPS]
+  return [
+    ANAGRAFICA_STEP,
+    ...(capabilities.hasPlayerRoles  ? [RUOLO_STEP]        : []),
+    ...(capabilities.hasProfileTypes ? [PROFILE_TYPE_STEP] : []),
+    ...(hasCategoriaStep             ? [CATEGORIA_STEP]    : []),
+    capabilities.hasClientLogin ? ACCOUNT_STEP : CONTATTO_STEP,
+  ]
 }
-
-export const TOTAL_STEPS_MAP = {
-  tests_only: BASE_STEPS.length + CATEGORIA_STEP.length + TAIL_STEPS.length,
-  bia_only:   BASE_STEPS.length + TAIL_STEPS.length,
-  complete:   BASE_STEPS.length + CATEGORIA_STEP.length + TAIL_STEPS.length,
-  soccer:     SOCCER_STEPS.length,
-}
-
-// Compatibilità con codice esistente
-export const WIZARD_STEPS = getWizardSteps('tests_only')
-export const TOTAL_STEPS  = TOTAL_STEPS_MAP.tests_only

@@ -12,20 +12,16 @@ import { Pagination }           from '../../../components/common/Pagination'
 import { useToast }             from '../../../hooks/useToast'
 import { EmptyState, Input }    from '../../../components/ui'
 import { getPlanLimits, PLAN_OPTIONS } from '../../../config/plans.config'
+import {
+  MODULES, MODULE_OPTIONS, TERMINOLOGY_VARIANTS_BY_MODULE, getModuleLabel, isModuleChangeAllowed,
+} from '../../../config/modules.config'
 
 const ICON_MEMBERS = (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
 )
 
-const MODULE_LABELS = {
-  personal_training: 'Personal Training',
-  soccer_academy:    'Soccer Academy',
-}
-
-const MODULE_OPTIONS = [
-  { value: 'personal_training', label: 'Personal Training' },
-  { value: 'soccer_academy',    label: 'Soccer Academy' },
-]
+const MODULE_CHANGE_BLOCKED_MESSAGE =
+  `Con clienti registrati non si può passare da o verso ${getModuleLabel(MODULES.LIPEDEMA)}: i dati non sono convertibili.`
 
 const ROLE_OPTIONS = [
   { value: 'trainer',        label: 'Trainer' },
@@ -38,11 +34,14 @@ export function OrgDetailView({ org, onBack }) {
   const [members,       setMembers]       = useState([])
   const [clientCount,   setClientCount]   = useState(0)
   const [loading,       setLoading]       = useState(true)
+  const [loadFailed,    setLoadFailed]    = useState(false)
   const [showAddMember, setShowAddMember] = useState(false)
   const [confirmRemove, setConfirmRemove] = useState(null)
   const [removing,      setRemoving]      = useState(false)
   const [plan,          setPlan]          = useState(org.plan ?? 'free')
-  const [moduleType,    setModuleType]    = useState(org.moduleType ?? 'personal_training')
+  // moduleType assente = org legacy PT (ADR-007 §2)
+  const [moduleType,    setModuleType]    = useState(org.moduleType ?? MODULES.PERSONAL_TRAINING)
+  const [termVariant,   setTermVariant]   = useState(org.terminologyVariant ?? null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleteName,    setDeleteName]    = useState('')
   const [deleting,      setDeleting]      = useState(false)
@@ -53,9 +52,16 @@ export function OrgDetailView({ org, onBack }) {
       countClients(org.id),
     ])
       .then(([m, c]) => { setMembers(m); setClientCount(c) })
-      .catch(() => {})
+      .catch(() => setLoadFailed(true))
       .finally(() => setLoading(false))
   }, [org.id])
+
+  // Conteggio reale dei clienti, non solo org.clientCount (ADR-015 §6). Finché
+  // non è noto (caricamento o errore) il cambio da/verso lipedema resta bloccato.
+  const knownClientCount = loading || loadFailed ? null : clientCount
+  const isModuleOptionAllowed = (value) => isModuleChangeAllowed(moduleType, value, knownClientCount)
+  const hasBlockedModuleOption = MODULE_OPTIONS.some(opt => !isModuleOptionAllowed(opt.value))
+  const isModuleLocked = MODULE_OPTIONS.every(opt => opt.value === moduleType || !isModuleOptionAllowed(opt.value))
 
   const handleMemberCreated = (member) => {
     setMembers(prev => [member, ...prev])
@@ -104,16 +110,27 @@ export function OrgDetailView({ org, onBack }) {
   }, [org.id, plan, toast])
 
   const handleModuleChange = useCallback(async (newModule) => {
-    const snapshot = moduleType
-    setModuleType(newModule)
-    try {
-      await updateOrganization(org.id, { moduleType: newModule })
-      toast.success('Modulo aggiornato')
-    } catch {
-      setModuleType(snapshot)
-      toast.error('Impossibile aggiornare il modulo')
+    if (!isModuleChangeAllowed(moduleType, newModule, knownClientCount)) {
+      toast.error(MODULE_CHANGE_BLOCKED_MESSAGE)
+      return
     }
-  }, [org.id, moduleType, toast])
+    // La variante di terminologia appartiene al modulo: senza reset un'org GYM
+    // passata a un altro modulo continuava a mostrare "Membro"/"Classe".
+    const newVariant = TERMINOLOGY_VARIANTS_BY_MODULE[newModule]?.[0]?.value ?? null
+    const snapshot   = { moduleType, termVariant }
+    setModuleType(newModule)
+    setTermVariant(newVariant)
+    try {
+      await updateOrganization(org.id, { moduleType: newModule, terminologyVariant: newVariant })
+      toast.success('Modulo aggiornato')
+    } catch (err) {
+      setModuleType(snapshot.moduleType)
+      setTermVariant(snapshot.termVariant)
+      // Le rules rifiutano il cambio se il counter clientCount dice che ci sono
+      // clienti, anche quando il conteggio reale caricato qui era 0
+      toast.error(err?.code === 'permission-denied' ? MODULE_CHANGE_BLOCKED_MESSAGE : 'Impossibile aggiornare il modulo')
+    }
+  }, [org.id, moduleType, termVariant, knownClientCount, toast])
 
   const handleRoleChange = useCallback(async (member, newRole) => {
     const snapshot = member.role
@@ -150,7 +167,7 @@ export function OrgDetailView({ org, onBack }) {
           className="font-display text-[9px] px-2 py-0.5 rounded-[3px]"
           style={{ background: 'rgba(248,113,113,0.12)', color: '#f87171' }}
         >
-          {MODULE_LABELS[moduleType] ?? moduleType}
+          {getModuleLabel(moduleType)}
         </span>
       </div>
 
@@ -181,18 +198,32 @@ export function OrgDetailView({ org, onBack }) {
               <select
                 value={moduleType}
                 onChange={e => handleModuleChange(e.target.value)}
+                disabled={isModuleLocked}
+                aria-describedby={hasBlockedModuleOption && knownClientCount > 0 ? 'org-module-blocked' : undefined}
                 className="input-base text-[11px] py-1.5 px-2"
                 style={{ width: 'auto', minWidth: 150 }}
               >
                 {MODULE_OPTIONS.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  <option key={opt.value} value={opt.value} disabled={!isModuleOptionAllowed(opt.value)}>
+                    {opt.label}
+                  </option>
                 ))}
               </select>
             </div>
+            {hasBlockedModuleOption && knownClientCount > 0 && (
+              <p id="org-module-blocked" className="font-body text-[11px] text-white/50 m-0 text-right">
+                {MODULE_CHANGE_BLOCKED_MESSAGE}
+              </p>
+            )}
+            {loadFailed && (
+              <p role="alert" className="font-body text-[11px] m-0 text-right" style={{ color: '#f87171' }}>
+                Conteggio clienti non disponibile: il cambio da o verso {getModuleLabel(MODULES.LIPEDEMA)} è bloccato.
+              </p>
+            )}
             {[
               ['ID',          org.id],
               ['Status',      org.status ?? 'active'],
-              ['Terminologia',org.terminologyVariant ?? '—'],
+              ['Terminologia',termVariant ?? '—'],
               ['Owner',       org.ownerId ?? '—'],
               ['Creato il',   org.createdAt ? new Date(org.createdAt).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'],
             ].map(([label, value]) => (

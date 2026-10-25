@@ -3,9 +3,17 @@ import { getTestsForCategoria, CATEGORIE, ALL_TESTS } from '../../constants'
 import { useTrainerState }  from '../../context/TrainerContext'
 import { getModule, SOCCER_AGE_GROUPS } from '../../config/modules.config'
 import { IconChevronDown } from '../../components/ui/icons'
+import { EmptyState }      from '../../components/ui'
 
 const CATEGORY_COLORS = { health: '#34d399', active: '#00c8ff', athlete: '#0066cc' }
 const SOCCER_COLOR    = '#00c8ff'
+
+const ICON_GUIDE = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+  </svg>
+)
 
 const FASCIA_COLORS = {
   soccer_youth:  '#fbbf24',
@@ -14,8 +22,8 @@ const FASCIA_COLORS = {
 }
 
 export function TestGuidePage() {
-  const { moduleType } = useTrainerState()
-  const isSoccer       = getModule(moduleType).isSoccer
+  const { moduleType, terminology } = useTrainerState()
+  const { isSoccer, hasPercentileTests } = getModule(moduleType)
 
   const [selectedCat,  setSelectedCat]  = useState('health')
   const [selectedTest, setSelectedTest] = useState(getTestsForCategoria('health')[0].key)
@@ -27,6 +35,21 @@ export function TestGuidePage() {
   const [soccerSelectedTest, setSoccerSelectedTest] = useState(() =>
     ALL_TESTS.find(t => t.categories.includes('soccer'))?.key ?? null
   )
+
+  // Moduli senza test percentili (lipedema): la guida dei test di valutazione
+  // arriva con STORY-033/039 — finché non c'è, nessun test PT/soccer mostrato
+  if (!hasPercentileTests) {
+    const assessmentsLabel = (terminology?.assessments ?? 'Valutazioni').toLowerCase()
+    return (
+      <div className="text-white px-4 pt-10">
+        <EmptyState
+          icon={ICON_GUIDE}
+          title="Guida non ancora disponibile"
+          description={`La guida ai test delle ${assessmentsLabel} sarà disponibile a breve.`}
+        />
+      </div>
+    )
+  }
 
   if (isSoccer) {
     const currentTest  = soccerTests?.find(t => t.key === soccerSelectedTest) ?? soccerTests?.[0]
