@@ -28,7 +28,7 @@ Formato:
 ## [BUG-002] Lipedema: termini "Sessione/Clienti/Trainer/Allenamenti" hardcoded in calendario, gruppi, note, team
 **Severity:** P2
 **Modulo/Ruolo:** lipedema — trainer, org_admin, staff_readonly (gli stessi testi fissi valgono anche per soccer/GYM, ma l'AC di STORY-030 li vieta esplicitamente nel modulo Lipedema)
-**Status:** OPEN — fix implementato, da verificare in QA (25/10/2026, non committato)
+**Status:** VERIFIED (QA dal vivo 25/10/2026, commit b119bfb, vite locale su rankex-dev): area professionista lipedema (trainer, org_admin, staff_readonly) senza Cliente/Clienti/Trainer/Sessione/Sessioni/Atleta/"Calendario allenamenti" in nav, calendario (header, modali, popup, banner singolare/plurale, toast "Appuntamento chiuso"), ricorrenze, gruppi ("Nessun gruppo", note di gruppo, toggle dialog), schede, note (badge "Professionista"), Team, impostazioni org, Profilo col nome reale, dashboard (tab "Paziente", "Calendario appuntamenti"). PT: confronto testuale con f71f73c su ~32 schermate, uniche differenze quelle attese (nome in Profilo, "Calendario sessioni", "Cliente" nel toggle dialog, aria "Torna ai gruppi", banner "chiudila"). Soccer: "Nuovo allenamento", "Nessuna squadra", "Crea la prima squadra per organizzare gli allievi.", "Coach" nel Team. Residuo grammaticale nuovo: BUG-010.
 **Reproduction steps:**
 1. Org `lipedema` su rankex-dev, login come trainer → Calendario.
 2. Guardare l'header, aprire "+ Sessione", creare uno slot con un paziente, aprirlo e chiuderlo.
@@ -63,7 +63,7 @@ Formato:
 ## [BUG-004] staff_readonly vede "Elimina" nel menu ⋮ della dashboard cliente/paziente
 **Severity:** P3
 **Modulo/Ruolo:** tutti i moduli — staff_readonly (preesistente, non introdotto da f71f73c)
-**Status:** OPEN — fix implementato, da verificare in QA (25/10/2026, non committato)
+**Status:** VERIFIED (QA dal vivo 25/10/2026, commit b119bfb): staff_readonly PT → menu ⋮ con solo "ESPORTA PDF" (prima ESPORTA PDF | RESET PASSWORD | ELIMINA); staff_readonly lipedema → nessun menu ⋮ (prima ELIMINA). Trainer invariato.
 **Reproduction steps:**
 1. Login staff_readonly → apri un cliente/paziente → menu ⋮.
 2. ELIMINA → conferma.
@@ -84,7 +84,7 @@ Formato:
 ## [BUG-006] staff_readonly può aggiornare il profilo cliente dal banner "upgrade" (PT)
 **Severity:** P3
 **Modulo/Ruolo:** personal_training — staff_readonly (preesistente, trovato in code review di BUG-002/004)
-**Status:** OPEN — fix implementato, da verificare in QA (25/10/2026, non committato)
+**Status:** VERIFIED (QA dal vivo 25/10/2026, commit b119bfb): staff_readonly PT, cliente tests_only (tab BIA) e bia_only (banner sopra le tab) → nessun "AGGIUNGI AL PROFILO"; su f71f73c entrambi visibili.
 **Reproduction steps:** login staff_readonly in un'org PT → cliente `bia_only` (banner sopra le tab) oppure cliente `tests_only` → tab BIA → bottone di upgrade al profilo Completo.
 **Expected:** banner nascosto in readonly, come gli altri controlli di modifica.
 **Actual:** `UpgradeCategoryBanner` non controlla readonly: il bottone è visibile e chiama `aggiornaProfiloCliente`.
@@ -108,3 +108,24 @@ Formato:
 **Expected:** termini del modulo (Coach, Allenamento…).
 **Actual:** `ClientView` non riceve `terminology`, quindi `ClientDashboardPage`, `ClientWorkoutSection` ("Il tuo trainer non ha ancora assegnato…"), `NotesSection` (badge "Trainer"), `PlanProgress` ("Sessione N di M") e `ClientCalendar` usano il default PT: l'allievo soccer vede "Trainer"/"Sessione".
 **Suggested fix:** passare la terminologia risolta da `useAuth` (già disponibile in `AppRouter`) a `ClientView` e da lì ai componenti dell'area cliente, che accettano già la prop `terminology`.
+
+## [BUG-009] CSP dell'hosting blocca tutte le Cloud Functions callable (`cloudfunctions.net` assente da `connect-src`)
+**Severity:** P0
+**Modulo/Ruolo:** tutti i moduli, tutti i ruoli — ogni scrittura via `usecases/` (creaCliente, creaMembroTeam, chiudiSessione, salvaBia, aggiungiNota…)
+**Status:** OPEN
+**Reproduction steps:**
+1. Aprire https://rankex-app-dev.web.app (deploy-dev di b119bfb), login super_admin.
+2. Organizzazioni → un'org → Membri → AGGIUNGI → compilare → CREA.
+**Expected:** membro creato.
+**Actual:** "Impossibile creare il membro"; in console: `Connecting to 'https://europe-west1-rankex-dev.cloudfunctions.net/creaMembroTeam' violates the following Content Security Policy directive: "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://fitness.googleapis.com"`. Nessuna invocazione nei log della funzione. In locale (`vite`, nessun header CSP) tutto funziona, per questo e2e e QA locali non lo vedono.
+`firebase.json` ha la stessa CSP su entrambi i target, e `connect-src` non è mai cambiata da 057b621 (apr 2026, prima della migrazione BE). Una sola richiesta HEAD in sola lettura a https://rankex-app.web.app/login restituisce lo **stesso header**: in produzione è probabile lo stesso blocco. **Non verificato su prod** (vietato dal perimetro QA): da confermare subito dall'utente.
+**Suggested fix:** aggiungere a `connect-src` `https://europe-west1-rankex-dev.cloudfunctions.net https://europe-west1-fitquest-60a09.cloudfunctions.net` (o `https://*.cloudfunctions.net`) in entrambi i blocchi header di `firebase.json`, ridistribuire l'hosting e aggiungere un e2e contro l'hosting reale (o un test che verifichi che la CSP includa il dominio delle functions).
+
+## [BUG-010] Lipedema: plurale con quantità 1 nei limiti piano ("massimo 1 professionisti")
+**Severity:** P3
+**Modulo/Ruolo:** lipedema — org_admin (introdotto da b119bfb); simile, preesistente, in tutti i moduli: "1 presenti" nel modal di chiusura
+**Status:** OPEN
+**Reproduction steps:** org lipedema su piano free con ≥1 membro → org_admin → Team (banner limite) → IMPOSTAZIONI; calendario → chiudi un appuntamento con 1 presente.
+**Expected:** "massimo 1 professionista", "Max 1 professionista", "1 presente".
+**Actual:** `MembersPage` "Il piano FREE consente massimo 1 professionisti."; `OrgSettingsPage` "Max 1 professionisti · Max 10 pazienti"; `CloseSessionModal` "1 presenti". PT/soccer non visibili ("trainer"/"coach" invariabili).
+**Suggested fix:** scegliere singolare/plurale in base al numero (`limit === 1 ? terminology.trainer : terminology.trainers`, idem per i presenti).
