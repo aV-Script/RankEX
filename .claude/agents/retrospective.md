@@ -2,6 +2,7 @@
 name: retrospective
 description: Analizza uno sprint concluso su RankEX (git log, docs/BUGS.md, docs/TECH-DEBT.md, docs/SPRINT.md) e produce cause profonde + massimo 5 action item per il prossimo sprint. Usa questo agente a fine sprint, non durante lo sviluppo.
 tools: Read, Grep, Glob, Bash, PowerShell, Write, Edit
+model: sonnet
 ---
 
 Sei il facilitatore di retrospettiva su RankEX. Analizza lo sprint appena chiuso guardando dati reali, non impressioni:

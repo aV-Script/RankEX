@@ -1469,3 +1469,20 @@ valutazioni **per** condividerlo con la paziente o con altri curanti.
   controllabili dall'app; la custodia del documento è responsabilità del titolare
   (da citare nell'informativa/DPA, STORY-029)
 - **Status:** BACKLOG
+
+### STORY-041 — QA automatica contro rankex-dev (riduzione costi di sviluppo)
+- **Contesto:** la QA dal vivo fatta da un agente con il browser ricrea 3 organizzazioni a ogni
+  giro ed è la voce più costosa in token (decisione utente 31/10/2026). La regressione va
+  automatizzata; la QA con agente resta una volta a fine sprint, solo sul nuovo.
+- **Acceptance criteria:**
+  - [ ] Org di test fissa su rankex-dev per ogni modulo (PT, soccer, lipedema) con utenti per
+        ruolo (org_admin, trainer, staff_readonly) e dati minimi, creata da uno script
+        idempotente in `scripts/` (mai contro fitquest-60a09: lo script verifica il projectId)
+  - [ ] Suite Playwright eseguibile contro l'hosting `rankex-app-dev.web.app` (non vite
+        locale: copre anche header/CSP, vedi BUG-009) con i flussi critici: login per ruolo,
+        creazione cliente/paziente, chiusura sessione/appuntamento, BIA, valutazione 2MWT,
+        STS e Handgrip, annulla/correggi, staff_readonly in sola lettura
+  - [ ] Ogni test ripulisce i dati che crea (o usa dati con prefisso e pulizia a fine suite)
+  - [ ] Script npm documentato in CLAUDE.md; esecuzione manuale (non in CI per ora)
+- **Priority:** P1 (Sprint #13)
+- **Status:** BACKLOG
