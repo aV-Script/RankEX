@@ -1,6 +1,7 @@
-import { Suspense }         from 'react'
+import { Suspense, useCallback } from 'react'
 import { TrainerProvider }  from '../../context/TrainerContext'
 import { ReadonlyProvider } from '../../context/ReadonlyContext'
+import { UnsavedChangesProvider, useUnsavedChanges } from '../../context/UnsavedChangesContext'
 import { TrainerShell }     from '../../components/layout/TrainerShell'
 import { ReadonlyBanner }   from '../../components/common/ReadonlyBanner'
 import { ClientDashboard }  from '../client/ClientDashboard'
@@ -28,7 +29,9 @@ export default function TrainerView({ user, profile, org, terminology }) {
       orgPlan={org?.plan ?? 'free'}
     >
       <ReadonlyProvider readonly={readonly}>
-        <TrainerLayout user={user} orgId={orgId} />
+        <UnsavedChangesProvider>
+          <TrainerLayout user={user} orgId={orgId} />
+        </UnsavedChangesProvider>
       </ReadonlyProvider>
     </TrainerProvider>
   )
@@ -43,8 +46,14 @@ function TrainerLayout({ user, orgId }) {
   } = useClients(orgId, user.uid)
   const CurrentPage = PAGES[page] ?? PAGES.clients
 
+  // Nav principale: con un form della dashboard non salvato chiede conferma (BUG-011)
+  const { guardLeave } = useUnsavedChanges()
+  const handleNavigate = useCallback((nextPage, params) => {
+    guardLeave(() => navigateTo(nextPage, params))
+  }, [guardLeave, navigateTo])
+
   return (
-    <TrainerShell page={page} onNavigate={navigateTo}>
+    <TrainerShell page={page} onNavigate={handleNavigate}>
       <ReadonlyBanner />
       {selectedClient ? (
         <div key={`client-${selectedClient.id}`} className="rx-animate-in">

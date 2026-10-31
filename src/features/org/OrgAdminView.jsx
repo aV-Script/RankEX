@@ -1,6 +1,7 @@
-import { Suspense }        from 'react'
+import { Suspense, useCallback } from 'react'
 import { TrainerProvider } from '../../context/TrainerContext'
 import { ReadonlyProvider } from '../../context/ReadonlyContext'
+import { UnsavedChangesProvider, useUnsavedChanges } from '../../context/UnsavedChangesContext'
 import { TrainerShell }    from '../../components/layout/TrainerShell'
 import { ReadonlyBanner }  from '../../components/common/ReadonlyBanner'
 import { useTrainerNav }   from '../trainer/useTrainerNav'
@@ -36,7 +37,9 @@ export default function OrgAdminView({ user, profile, org, terminology }) {
       orgPlan={org?.plan ?? 'free'}
     >
       <ReadonlyProvider readonly={false}>
-        <OrgAdminLayout user={user} orgId={orgId} org={org} />
+        <UnsavedChangesProvider>
+          <OrgAdminLayout user={user} orgId={orgId} org={org} />
+        </UnsavedChangesProvider>
       </ReadonlyProvider>
     </TrainerProvider>
   )
@@ -52,8 +55,14 @@ function OrgAdminLayout({ user, orgId, org }) {
 
   const CurrentPage = ORG_PAGES[page] ?? ORG_PAGES.clients
 
+  // Nav principale: con un form della dashboard non salvato chiede conferma (BUG-011)
+  const { guardLeave } = useUnsavedChanges()
+  const handleNavigate = useCallback((nextPage, params) => {
+    guardLeave(() => navigateTo(nextPage, params))
+  }, [guardLeave, navigateTo])
+
   return (
-    <TrainerShell page={page} onNavigate={navigateTo}>
+    <TrainerShell page={page} onNavigate={handleNavigate}>
       <ReadonlyBanner />
       {selectedClient ? (
         <ClientDashboard

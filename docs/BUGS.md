@@ -129,3 +129,36 @@ Formato:
 **Expected:** "massimo 1 professionista", "Max 1 professionista", "1 presente".
 **Actual:** `MembersPage` "Il piano FREE consente massimo 1 professionisti."; `OrgSettingsPage` "Max 1 professionisti · Max 10 pazienti"; `CloseSessionModal` "1 presenti". PT/soccer non visibili ("trainer"/"coach" invariabili).
 **Suggested fix:** scegliere singolare/plurale in base al numero (`limit === 1 ? terminology.trainer : terminology.trainers`, idem per i presenti).
+
+## [BUG-011] Lipedema: form 2MWT/BIA compilato perso senza conferma (nav principale; INDIETRO della BIA)
+**Severity:** P2
+**Modulo/Ruolo:** lipedema — trainer/org_admin (la nav principale vale per qualunque form a schermo intero della dashboard)
+**Status:** FIX IMPLEMENTATO — da verificare in QA
+**Fix:** Fix implementato 31/10 (da verificare in QA): nuovo `context/UnsavedChangesContext.jsx` (flag + conferma "Uscire senza salvare?" + `beforeunload`) montato in `TrainerView`/`OrgAdminView`; la nav principale passa da `guardLeave`, come tab e back della dashboard; `BiaView` → INDIETRO con conferma se ci sono valori.
+**Reproduction steps (QA dal vivo 31/10/2026, rankex-app-dev, commit 281bbe4):**
+1. Paziente con informativa → Valutazioni → + NUOVA VALUTAZIONE → frazione finale 12 (form modificato).
+2. Cliccare una voce della nav principale (es. GRUPPI).
+3. Ripetere con BIA → + RILEVAMENTO → un valore compilato → nav principale; poi di nuovo con il bottone INDIETRO della BIA.
+**Expected:** conferma "Uscire senza salvare?" come già succede cambiando tab della dashboard o col back dell'header (verificato: lì la conferma c'è e il valore resta).
+**Actual:** nav principale → si passa a Gruppi senza conferma, dati persi (2MWT e BIA). INDIETRO di `BiaView` → torna alla tab BIA senza conferma (l'INDIETRO del 2MWT invece chiede conferma).
+**Suggested fix:** intercettare il cambio pagina di `AppNav`/`TrainerView` quando la dashboard ha un form sporco (stato condiviso o callback `onBeforeLeave`), e dare a `BiaView` lo stesso `showDiscard` del 2MWT su INDIETRO.
+
+## [BUG-012] Mobile: barra riepilogo + SALVA VALUTAZIONE non fissa in basso
+**Severity:** P3
+**Modulo/Ruolo:** lipedema — trainer, mobile (390×844)
+**Status:** FIX IMPLEMENTATO — da verificare in QA
+**Fix:** Fix implementato 31/10 (da verificare in QA): `.rx-animate-in` usa `animation-fill-mode: backwards` (era `forwards`): a fine animazione non resta il transform, le barre fisse di form valutazione e BiaView restano sul viewport. Su mobile la barra copre la bottom tab bar mentre si compila, come già faceva BiaView.
+**Reproduction steps:** mobile → paziente → Valutazioni → + NUOVA VALUTAZIONE → compilare tratti/frazione senza scorrere.
+**Expected:** (spec Sprint #11 §2) riepilogo live e azioni fissi in basso su mobile mentre si compila.
+**Actual:** la barra è `position: fixed` ma un antenato `.rx-animate-in` ha `transform` calcolato (`matrix(1,0,0,1,0,0)`, animazione con fill), che crea un nuovo containing block: la barra resta in fondo al form (y≈1517 px su viewport 844) ed è visibile solo dopo aver scrollato fino alla fine. Il riepilogo "142 m" non si vede mentre si inseriscono i dati.
+**Suggested fix:** rendere la barra fuori dal contenitore animato (portal su `document.body`) oppure togliere il `transform` residuo (`animation-fill-mode: none` / animare solo l'opacità) per la vista valutazione; tenere conto dell'altezza della bottom tab bar (58 px).
+
+## [BUG-013] "Ultime valutazioni" mostra un risultato su percorso variante senza segnalarlo
+**Severity:** P3
+**Modulo/Ruolo:** lipedema — tutti i ruoli che vedono la tab Paziente
+**Status:** FIX IMPLEMENTATO — da verificare in QA
+**Fix:** Fix implementato 31/10 (da verificare in QA): `LatestAssessmentsCard` mostra `AssessmentBadges` (VARIANTE / INTERROTTA) sotto l'ultimo valore.
+**Reproduction steps:** salvare un 2MWT standard (30 m, 145 m) e poi uno su percorso 20 m (variante, 113 m) → tab Paziente.
+**Expected:** l'ultimo valore mostrato porta lo stesso stato dello storico (badge VARIANTE 20 m), o la card mostra l'ultimo valore confrontabile.
+**Actual:** card "Ultime valutazioni": "2MWT · 31/10/2026 · 113 m", nessun indicatore di variante; nello storico la stessa riga ha "VARIANTE 20 m · NON CONFRONTABILE".
+**Suggested fix:** riusare `AssessmentBadges` in `LatestAssessmentsCard` (almeno VARIANTE/INTERROTTA).

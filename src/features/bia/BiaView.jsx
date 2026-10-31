@@ -18,6 +18,7 @@ export function BiaView({ client, color, onSave, onBack, onDirtyChange }) {
   const [errors,      setErrors]      = useState({})
   const [loading,     setLoading]     = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+  const [showDiscard, setShowDiscard] = useState(false)
 
   const bmiComputed = calcBmi(client.peso, client.altezza)
 
@@ -63,6 +64,11 @@ export function BiaView({ client, color, onSave, onBack, onDirtyChange }) {
       setShowConfirm(false)
     }
   }, [values, bmiComputed, onSave, onBack])
+
+  const handleBack = useCallback(() => {
+    if (isDirty) setShowDiscard(true)
+    else onBack()
+  }, [isDirty, onBack])
 
   const prevBia = client.lastBia ?? null
 
@@ -211,7 +217,7 @@ export function BiaView({ client, color, onSave, onBack, onDirtyChange }) {
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              <Button size="sm" variant="ghost" onClick={onBack}>INDIETRO</Button>
+              <Button size="sm" variant="ghost" onClick={handleBack}>INDIETRO</Button>
               <Button size="sm" onClick={handleRequestSave}>SALVA BIA</Button>
             </div>
           </div>
@@ -228,7 +234,7 @@ export function BiaView({ client, color, onSave, onBack, onDirtyChange }) {
           paddingBottom:  'calc(12px + env(safe-area-inset-bottom))',
         }}
       >
-        <Button size="sm" variant="ghost" onClick={onBack} className="flex-1">INDIETRO</Button>
+        <Button size="sm" variant="ghost" onClick={handleBack} className="flex-1">INDIETRO</Button>
         <Button size="sm" onClick={handleRequestSave} className="flex-1">SALVA BIA</Button>
       </div>
 
@@ -240,6 +246,18 @@ export function BiaView({ client, color, onSave, onBack, onDirtyChange }) {
           loading={loading}
           onConfirm={handleConfirmSave}
           onCancel={() => setShowConfirm(false)}
+        />
+      )}
+
+      {showDiscard && (
+        <ConfirmDialog
+          title="Uscire senza salvare?"
+          description="I valori inseriti in questa misurazione andranno persi."
+          confirmLabel="ESCI"
+          cancelLabel="INDIETRO"
+          variant="danger"
+          onConfirm={onBack}
+          onCancel={() => setShowDiscard(false)}
         />
       )}
     </div>

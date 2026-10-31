@@ -241,7 +241,10 @@ select.input-base option {
   100% { transform: translateY(100vh); opacity: 0; }
 }
 
-.rx-animate-in  { animation: rx-fadeIn 250ms ease forwards; }
+/* backwards, non forwards: finita l'animazione non resta un transform sull'elemento,
+   che altrimenti diventa il containing block dei figli position:fixed (barre
+   azioni fisse di BiaView e del form valutazione, BUG-012) */
+.rx-animate-in  { animation: rx-fadeIn 250ms ease backwards; }
 
 /* ── Bordo metallico angolare ──────────────────────────────── */
 .rx-card {

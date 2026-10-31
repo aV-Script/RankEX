@@ -43,7 +43,7 @@ import { TwoMinuteWalkForm }                 from '../assessments/TwoMinuteWalkF
 import { PrivacyNoticeBanner, PrivacyNoticeModal, PRIVACY_BANNER_ID } from '../assessments/PrivacyNotice'
 import { createTwoMinuteWalkForm, formFromAssessment } from '../assessments/twoMinuteWalkFormModel'
 import { requiresPrivacyNotice, isPrivacyNoticeMissingError, nowLocalDateTime } from '../../utils/lipedema'
-import { ConfirmDialog }                     from '../../components/common/ConfirmDialog'
+import { useUnsavedChanges }                 from '../../context/UnsavedChangesContext'
 
 // Montato solo dietro il flusso di export PDF — lazy-load per non pesare
 // sul bundle iniziale della dashboard cliente.
@@ -85,9 +85,8 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
   const [assessmentDraft,  setAssessmentDraft]  = useState(null)
   const [showPrivacyModal, setShowPrivacyModal] = useState(false)
   // Form a schermo intero (campionamento/BIA/valutazione) con dati non salvati:
-  // cambiare tab o uscire chiede conferma. pendingLeave = azione da eseguire dopo
-  const [isFormDirty,  setIsFormDirty]  = useState(false)
-  const [pendingLeave, setPendingLeave] = useState(null)
+  // tab, back e nav principale chiedono conferma (UnsavedChangesContext, BUG-011)
+  const { setHasUnsavedChanges, guardLeave } = useUnsavedChanges()
 
   const { handleSaveBia, handleUpgradeProfile } = useBia()
   const { handleUpdateMisure }                  = useMisure()
@@ -169,12 +168,6 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
     }
   }, [client.email, resetState])
 
-  // Esegue `leave` subito, o dopo conferma se un form a schermo intero ha dati non salvati
-  const guardLeave = useCallback((leave) => {
-    if (view !== 'dashboard' && isFormDirty) setPendingLeave(() => leave)
-    else leave()
-  }, [view, isFormDirty])
-
   const handleSelectTab = useCallback((id) => {
     guardLeave(() => {
       setView('dashboard')
@@ -183,13 +176,6 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
   }, [guardLeave])
 
   const handleBack = useCallback(() => guardLeave(onBack), [guardLeave, onBack])
-
-  const handleConfirmLeave = useCallback(() => {
-    const leave = pendingLeave
-    setPendingLeave(null)
-    setIsFormDirty(false)
-    leave?.()
-  }, [pendingLeave])
 
   const handleToggleActions = useCallback(() => {
     setShowActions(v => !v)
@@ -267,7 +253,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
           color={brandGreen}
           onSave={handleSaveCampionamento}
           onBack={() => setView('dashboard')}
-          onDirtyChange={setIsFormDirty}
+          onDirtyChange={setHasUnsavedChanges}
         />
       )}
       {view === 'bia' && (
@@ -276,7 +262,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
           color={brandGreen}
           onSave={handleSaveBiaForClient}
           onBack={() => setView('dashboard')}
-          onDirtyChange={setIsFormDirty}
+          onDirtyChange={setHasUnsavedChanges}
         />
       )}
       {view === 'valutazione' && assessmentDraft && (
@@ -288,7 +274,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
           onSave={assessmentsState.handleAddAssessment}
           onBack={handleCloseAssessment}
           onPrivacyNoticeMissing={handlePrivacyMissingForClient}
-          onDirtyChange={setIsFormDirty}
+          onDirtyChange={setHasUnsavedChanges}
         />
       )}
       <div className={`flex-1 flex flex-col min-w-0 ${view !== 'dashboard' ? 'hidden' : ''}`}>
@@ -475,17 +461,6 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
         <PrintPickerModal
           onSelect={(mode) => { setPrintMode(mode); setShowPrintPicker(false); setShowReport(true) }}
           onCancel={() => setShowPrintPicker(false)}
-        />
-      )}
-      {pendingLeave && (
-        <ConfirmDialog
-          title="Uscire senza salvare?"
-          description="I dati inseriti andranno persi."
-          confirmLabel="ESCI"
-          cancelLabel="INDIETRO"
-          variant="danger"
-          onConfirm={handleConfirmLeave}
-          onCancel={() => setPendingLeave(null)}
         />
       )}
       {showPrivacyModal && (
