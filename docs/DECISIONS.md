@@ -393,7 +393,7 @@ verificabile con uno script one-off come quello già usato in ADR-003.
 ---
 
 ## [ADR-009] Modello dati delle valutazioni Lipedema
-**Stato:** parzialmente rivisto da ADR-015 (§3 un solo documento, niente assessmentHealth; §7 2MWT a tratti; Test 04/05)
+**Stato:** parzialmente rivisto da ADR-015 (§3 un solo documento, niente assessmentHealth; §7 2MWT a tratti; Test 04/05) e da ADR-016 (schema `trials[]` e `result` dei test 02/03/04/05, `rawValue/rawUnit` → `nativeValue/nativeUnit`, niente `notExecutedReason`)
 **Data:** 2026-10-24
 **Contesto:** STORY-033…038. Il modello attuale `campionamenti[]` + `stats: { stat:
 percentile }` (array nel doc cliente) non regge prove grezze multiple, prove
@@ -618,7 +618,7 @@ del doc annullato. Lo storico cresce di un doc per ogni correzione, trascurabile
 ---
 
 ## [ADR-012] Regole di non comparabilità e precisione numerica
-**Stato:** parzialmente rivisto da ADR-015 (§7 2MWT: niente lapLengthM; unità N/kgf confermate)
+**Stato:** parzialmente rivisto da ADR-015 (§7 2MWT: niente lapLengthM; unità N/kgf confermate) e da ADR-016 (§4 precisione/delta, §7 chiavi normalizzate del dispositivo, tolleranze, livello `info` rimandato a STORY-039, delta per lato)
 **Data:** 2026-10-24
 **Contesto:** STORY-036 (decimali dopo kgf→N) e STORY-039 (cosa rende due valutazioni
 non confrontabili, seriale o modello).
@@ -974,4 +974,417 @@ sanitari, `lapLengthM` e `registraConsensoSanitario`/`revocaConsensoSanitario`.
 Diventano attivi `client.privacyNotice`, la callable `registraInformativaPaziente`, il
 sotto-oggetto `assessments.clinical`, la condizione sul cambio modulo nelle rules e
 `fullLengths` nel 2MWT.
+
+---
+
+## [ADR-016] Lipedema — logica bilaterale multi-prova condivisa, validità per prova, 30s-STS e Handgrip (Sprint #12)
+**Data:** 2026-10-31
+**Contesto:** Sprint #12: STORY-035 (30s-STS), STORY-036 (Handgrip, introduce la logica
+"per lato con N prove" che HHD e OLS riuseranno nel #13), criteri di STORY-033 rimasti
+aperti (validità per prova, best sulle sole valide, dolore per lato, lato dominante).
+Fonti: docx 02/03 (e 04/05 per progettare la parte comune), codice di
+`shared/lipedema.js` ↔ `utils/lipedema.js` (CORE identico riga per riga, registro
+`ASSESSMENT_VALIDATORS`, `trials[]` con `seq`/`side`/`valid` già presenti dal 2MWT).
+ADR-009 aveva previsto `computeBilateralBest(trials, { trialsPerSide, aggregate })`;
+questo ADR ne fissa la forma reale e sostituisce le parti di ADR-009 §2 e ADR-012 che
+cambiano. Dove contraddice ADR-009/012, vale questo.
+
+**Decisione:**
+
+1. **Logica bilaterale: una specifica per test + due funzioni generiche, tutto nel
+   CORE.**
+   - Ogni test bilaterale è una costante di specifica nel CORE (stesso stile di
+     `TWO_MINUTE_WALK`), per esempio:
+     ```js
+     export const HANDGRIP = {
+       protocolVersion:      '1.0',
+       sides:                ['R', 'L'],      // ordine guidato: si parte da destra
+       validTrialsPerSide:   3,
+       maxInvalidPerSide:    3,               // prove non valide ammesse oltre le 3 valide
+       canonicalUnit:        'N',
+       unitFactors:          { N: 1, kgf: 9.80665 },
+       inputDecimals:        2,
+       maxValue:             1000,            // in unità canonica, solo anti-refuso
+       ceiling:              null,            // OLS: 60
+     }
+     ```
+     HHD (#13) e OLS (#13) saranno altre due costanti: HHD come Handgrip (con il suo
+     `maxValue`), OLS con `validTrialsPerSide: 2`, `canonicalUnit: 's'`,
+     `unitFactors: { s: 1 }`, `inputDecimals: 1`, `ceiling: 60`.
+   - `readBilateralTrials(src, spec, fail)` (helper interno): valida e normalizza
+     `trials[]`. `computeBilateralResult(trials, spec)` (esportata, pura): calcola i
+     derivati. I validatori per test (`validateHandgrip`, poi `validateHhd`,
+     `validateOneLegStanding`) leggono setup/clinical/deviation propri e delegano le
+     prove a queste due funzioni. Nessun validatore reimplementa best, simmetria o
+     conteggio delle valide: è il criterio "riusabile" di STORY-036, da verificare in
+     code review.
+   - **Punto di estensione per il #13:** un `readTrialExtra(trialSrc, field, fail)`
+     facoltativo nella specifica, per i campi per prova che solo un test ha (OLS:
+     `endReason`). Non va scritto nel #12: lo si aggiunge con il primo test che lo usa.
+   - **Niente parametro `direction`.** Tutti e tre i test bilaterali prendono il
+     massimo (docx 03 §16, 04 §16, 05 §17). Un ramo "min" senza un consumer sarebbe
+     codice non esercitato da nessun test reale. Se arriva un test bilaterale "meno è
+     meglio", si aggiunge allora.
+   - **Tutto server-side, come oggi:** il client chiama le stesse funzioni per
+     l'anteprima, il server salva il proprio risultato. Il client non invia mai
+     `value`, `result` o `ceiling`: se li invia, vengono ignorati.
+
+2. **Schema di una prova bilaterale** (sostituisce `rawValue/rawUnit/
+   notExecutedReason/endReason/ceiling` di ADR-009 §2 per 03/04/05):
+   ```js
+   trials: [{
+     seq,            // 1..n contiguo, ordine reale di esecuzione
+     side,           // 'R' | 'L'
+     valid,          // boolean, obbligatorio
+     invalidReason,  // null se valid; altrimenti codice da INVALID_TRIAL_REASONS
+     nativeValue,    // numero inserito, nell'unità dello strumento; null ammesso solo se !valid
+     nativeUnit,     // copiata da setup.nativeUnit: la prova si descrive da sola (docx 03 §14)
+     value,          // canonico (N | s), calcolato dal server, NON arrotondato; null se nativeValue null
+     pain,           // NRS 0–10 intero, facoltativo (null)
+     note,           // testo facoltativo, max 200 (TEXT_LIMITS.trialNote)
+     ceiling,        // solo se spec.ceiling: value === spec.ceiling (OLS)
+   }]
+   ```
+   - `INVALID_TRIAL_REASONS` (CORE, un solo catalogo per i tre test, etichette solo nel
+     config client): `technique_error` (posizione, compensazione, impugnatura/cinghia
+     scivolata), `timing_error`, `support_or_assistance` (OLS), `external_interruption`,
+     `device_error`, `other` (con `note` obbligatoria). Il catalogo è chiuso perché il
+     controllo qualità (docx 05 §23) deve poter contare i motivi; un testo libero non si
+     conta.
+   - **`result` generico** (sostituisce `rightBestN/leftBestN/strongestN/weakestN/
+     rightBestS/...` di ADR-009): stessa forma per i tre test, così storico, dettaglio e
+     PDF hanno un solo renderer bilaterale.
+     ```js
+     result: {
+       unit,              // spec.canonicalUnit
+       validCountBySide,  // { R: 0..3, L: 0..3 }
+       sideStatus,        // { R, L }: 'complete' | 'incomplete' | 'not_tested'
+       bestBySide,        // { R, L }: max delle valide, SOLO se il lato è 'complete', altrimenti null
+       strongestSide,     // 'R' | 'L' | null (null se pari o se manca un lato)
+       strongestValue, weakestValue,   // null se manca un lato
+       symmetryPct,       // weakest / strongest × 100, non arrotondato; null se manca un lato
+       ceilingBySide,     // solo se spec.ceiling: { R, L } = best === ceiling
+     }
+     ```
+   - Dolore per lato (`Pain_Right/Pain_Left` dei docx 03/04): **non** è un input
+     separato. Si inserisce per prova (`trials[].pain`, docx 03 §14 / 04 §14) e il
+     server deriva `clinical.painMaxBySide = { R, L }` (massimo per lato, null se
+     nessun valore). Due input per lo stesso dato (per prova e per lato) potrebbero
+     contraddirsi senza che nessuno lo noti.
+
+3. **Validità per prova e regola "N prove valide per lato".**
+   - Ogni prova ha `valid` obbligatorio. Una prova non valida resta salvata e si ripete
+     (docx 03 §11, 05 §14). Per lato al massimo `validTrialsPerSide` prove valide (una
+     quarta valida renderebbe "best di 3" ambiguo: rifiutata) e al massimo
+     `maxInvalidPerSide` non valide. Quindi al massimo 6 prove per lato nell'Handgrip,
+     5 nell'OLS. Superato il tetto, la prova non si sta eseguendo: il professionista
+     segna l'interruzione. Il tetto serve anche contro refusi e documenti senza limite.
+   - Valori: prova valida → `nativeValue` obbligatorio, `> 0`, al massimo
+     `inputDecimals` decimali, `value ≤ maxValue` (e `≤ ceiling` per OLS, oltre
+     rifiutato come in ADR-012). Prova non valida → `nativeValue` facoltativo: se la
+     cinghia scivola, spesso non c'è una lettura. Se c'è, si conserva e si valida con
+     gli stessi limiti.
+   - **Best solo sulle valide, e solo con il lato completo.** `bestBySide[side]` è
+     valorizzato solo quando il lato ha esattamente `validTrialsPerSide` prove valide.
+     Con meno prove (`incomplete`) o nessuna (`not_tested`) resta `null`, ma le prove
+     grezze restano visibili nel dettaglio. È l'AC di STORY-036 ("i best di una mano non
+     testata/incompleta restano vuoti senza invalidare l'altra mano"). Un best di 2 prove
+     confrontato con un best di 3 sembrerebbe un calo che non c'è.
+   - **Ordine D-S alternato: guidato in UI, non imposto dal server.** Il server
+     controlla che `seq` sia contiguo e che i lati siano tra quelli della specifica, non
+     l'alternanza. Con una prova ripetuta, o con un lato che finisce prima, l'ordine
+     reale smette di alternare per motivi legittimi, e un vincolo rigido renderebbe
+     impossibile registrarlo com'è stato eseguito. La UI propone come prossimo lato
+     quello con meno prove valide (a parità, l'opposto dell'ultimo, e si parte da `R`).
+     Un ordine scelto diversamente si registra come deviazione.
+   - **Interruzione per sicurezza (Handgrip §19, HHD §19, OLS §20).** Usa
+     `events.stoppedEarly` e `clinical.stopReasonCode/stopReasonNote`, come 2MWT/STS.
+     Regole:
+     - `stoppedEarly === false` → entrambi i lati devono essere `complete`, altrimenti
+       errore "Completa le prove o segna l'interruzione".
+     - `stoppedEarly === true` → motivo obbligatorio, qualunque conteggio ammesso (anche
+       0 prove su un lato: lato non eseguibile per controindicazione, docx 03 §20). Il
+       lato completo conserva il suo best. `outcome: 'stopped_early'`.
+     - Niente `stopTimeS`: per prove di 3 s non significa nulla.
+     - Il catalogo dei motivi è `LIMB_STOP_REASON_CODES` (nuovo, CORE): `acute_pain`,
+       `neurological_symptoms`, `dizziness`, `loss_of_control`, `instability`,
+       `contraindication`, `patient_request`, `examiner_decision`, `other`. È separato
+       da `STOP_REASON_CODES` (2MWT/STS, motivi cardiorespiratori), che **non si
+       tocca**: allargarlo farebbe accettare al 2MWT "sintomi neurologici della mano".
+     - `notExecutedReason` di ADR-009 sparisce: il lato non eseguito è `not_tested`
+       con il motivo dell'interruzione.
+
+4. **Unità e precisione** (conferma ADR-012, con dettagli):
+   - Unità inserita **una volta per valutazione** (`setup.nativeUnit ∈ unitFactors`, un
+     dinamometro mostra una sola unità) e copiata su ogni prova.
+     `value = nativeValue × unitFactors[nativeUnit]` (kgf × 9,80665), **mai arrotondato
+     in DB**. `nativeValue` è conservato com'è stato inserito.
+   - Visualizzazione: N senza decimali. Se l'unità nativa è kgf, accanto anche kgf con
+     1 decimale (dal `nativeValue`, non riconvertito). Simmetria % con 1 decimale. OLS
+     in secondi con 1 decimale.
+   - Delta (client, ADR-012): si arrotondano i due valori alla precisione mostrata
+     (N → intero) e poi si sottraggono. Così la differenza è coerente con i numeri a
+     schermo, anche se in DB ci sono 294,1995 e 295,18.
+   - L'unità nativa **non** è un criterio di comparabilità: dopo la conversione i valori
+     sono nella stessa grandezza. Lo è il modello di dispositivo.
+
+5. **Lato dominante: dato della valutazione, precompilato dalla precedente.**
+   - `setup.dominantSide ∈ DOMINANT_SIDES = ['R', 'L', 'both']`, obbligatorio nei test
+     bilaterali (mano per 03, gamba per 04/05).
+   - Il form lo **precompila** dall'ultima valutazione valida del paziente dello stesso
+     arto (03 per la mano; 04/05 per la gamba), già caricata da `useAssessments`. Nessuna
+     lettura in più.
+   - Non è un criterio di comparabilità.
+   - Motivi:
+     - Il docx lo elenca tra i campi del record del test (03 §22, 04 §22, 05 §22), e uno
+       snapshot per valutazione resta vero anche se in seguito si corregge un refuso.
+     - Un campo sul paziente andrebbe scritto o con un `updateDoc` diretto, aggiungendo
+       la chiave alla whitelist di `firestore.rules` (file "estrema cautela" + deploy su
+       due progetti + test emulatore), o con una nuova callable. Tutto questo per evitare
+       un tap a valutazione.
+   - Se in futuro serve sul paziente, la precompilazione cambia sorgente e il dato per
+     valutazione resta.
+
+6. **30s-STS (STORY-035): prova singola, schema come il 2MWT.**
+   - `LIPEDEMA_TEST_IDS.SIT_TO_STAND_30S = 'lipedema_30s_sts'` e la costante
+     `SIT_TO_STAND_30S`:
+     ```js
+     {
+       protocolVersion: '1.0',
+       durationS: 30,
+       standardChairHeightCm: 43.2,
+       chairToleranceCm: 0.5,
+       minChairHeightCm: 30,
+       maxChairHeightCm: 70,
+       maxRepetitions: 60,
+       maxPauseCount: 10,
+     }
+     ```
+     Tutti i valori sono anti-refuso, non clinici.
+   - **Input ripetizioni** (risolve un'ambiguità del docx §14/§16):
+     - Si inseriscono le alzate **complete** (`trial.completeRepetitions`, intero ≥ 0)
+       e il flag `trial.partialRepCounted`.
+     - Lo score lo calcola il server: `repetitions = completeRepetitions +
+       (partialRepCounted ? 1 : 0)`.
+     - Così la ripetizione parziale finale è distinta per costruzione (docx §16 "il
+       software deve distinguere") e non c'è il rischio di contarla due volte. La UI
+       mostra il totale in anteprima.
+     - `partialRepCounted: true` è ammesso solo se la prova è arrivata ai 30 s: con
+       interruzione o uso braccia è un errore.
+   - **Uso delle braccia** (`events.usedArms`, boolean obbligatorio):
+     - Esito: `outcome: 'invalidated'` (nuovo valore di `ASSESSMENT_OUTCOME`, già
+       previsto da ADR-009/012), `result.repetitions: 0`, `result.durationS: null`.
+     - La prova resta `valid: false` con `invalidReason: 'used_arms'`. Le alzate fatte
+       prima restano in `trial.completeRepetitions` come dato grezzo, se inserite.
+     - Uno 0 da invalidazione si distingue da uno 0 reale tramite `outcome`, mai dal
+       numero (AC STORY-035).
+     - `usedArms` e `stoppedEarly` non possono essere entrambi veri: l'uso delle braccia
+       è un motivo tecnico, non un sintomo (docx §19). Un sintomo concomitante va in
+       `conditionsNote`.
+   - **Stop anticipato:** come 2MWT. `stopTimeS` intero 1–29, motivo da
+       `STOP_REASON_CODES` (stesso catalogo provvisorio, come deciso nello sprint),
+       `result.durationS = stopTimeS`.
+   - **Errore tecnico** (`events.technicalError` boolean + `technicalErrorNote`
+     obbligatoria se true, max 500): campo distinto da deviazione e note. Non cambia
+     l'esito: è un flag mostrato nello storico. Un errore che invalida la prova si
+     gestisce non salvandola o annullandola.
+   - `events.familiarizationDone` boolean obbligatorio, non entra nel risultato. Pause:
+     come 2MWT, durata ≤ `durationS`.
+   - **Setup sedia:**
+     - Campi: `chairHeightCm` (1 decimale, default 43,2), `chairHasArmrests`,
+       `armsCrossed` (boolean obbligatori), `assistiveDevice: 'none'` fisso (non è un
+       input).
+     - `isStandardChair = |h − 43,2| ≤ 0,5`. Una sedia fuori tolleranza richiede
+       `setup.variantConfirmed`, come il percorso del 2MWT.
+     - `chairHasArmrests === true` o `armsCrossed === false` → il server **richiede**
+       `deviation.present === true` con descrizione (AC: "deviazione registrata"). Non
+       la imposta da solo, perché una deviazione senza descrizione non serve a chi
+       rilegge.
+   - **Dati clinici:** solo `painPre/Post`, `fatiguePre/Post`, `dyspneaPre/Post` +
+     `stopReasonCode/Note` + `conditionsNote`.
+     - `readClinical` riceve l'elenco delle chiavi ammesse per test: il 2MWT passa
+       quello completo (comportamento invariato). Le chiavi non previste vengono
+       ignorate, non salvate come `null`.
+     - Niente FC/SpO₂/PA (AC STORY-035).
+   - `trials: [{ seq: 1, side: null, valid, invalidReason, completeRepetitions,
+     partialRepCounted, value }]`.
+   - `comparability: { protocolVersion, chairHeightCm, chairHasArmrests, armsCrossed }`.
+
+7. **Comparabilità e storico** (precisa ADR-012; la parte di STORY-039 resta a lei):
+   - `COMPARABILITY_RULES` accetta una `tolerance` facoltativa: issue se `|a − b| >
+     tolerance`. Serve per la sedia (±0,5 cm), e nel #13 per ginocchio e anca (±5°).
+   - 30s-STS: `protocolVersion`, `chairHeightCm` (±0,5), `chairHasArmrests`,
+     `armsCrossed`.
+   - **Handgrip:**
+     - **Setup:** `dominantSide`, `device { brand, model, serial }` (marca e modello
+       obbligatori, seriale facoltativo, max 60 ciascuno), `gripSetting` (testo breve
+       obbligatorio, max 40: le impugnature si indicano in modi diversi tra modelli,
+       es. "posizione 2"), `nativeUnit`.
+     - **Snapshot di comparabilità con chiavi normalizzate dal server:**
+       `deviceModelKey = trim+lowercase(brand) + '|' + trim+lowercase(model)`,
+       `gripSettingKey`, `deviceSerialKey`. Senza normalizzazione "Jamar" e "jamar "
+       darebbero un falso "non comparabile".
+     - **Regole `warning`:** `protocolVersion`, `deviceModelKey`, `gripSettingKey`.
+   - **Il seriale entra nello snapshot già ora**, anche se il livello `info` di ADR-012
+     lo implementa STORY-039: i documenti sono immutabili (ADR-011), quindi tutto ciò
+     che una regola futura dovrà confrontare va salvato dal primo giorno.
+   - **Esiti non ordinari:** `buildTestHistory` non calcola il delta se uno dei due
+     estremi è `stopped_early` **o** `invalidated` (oggi controlla solo
+     `stopped_early`). `deltaUnavailable` riporta l'esito.
+   - **Bilaterali:**
+     - `getPrimaryResult` resta per i monolaterali. Si aggiunge una lettura per lato
+       (`bestBySide`), e `buildTestHistory` produce `deltaBySide: { R, L }`.
+     - Per ogni lato, il riferimento è la precedente valutazione valida, confrontabile
+       e con quel lato `complete`. Il delta c'è se il lato è `complete` in entrambe:
+       un Handgrip interrotto con la destra completa ha comunque un delta a destra.
+     - Il campo `delta` dei monolaterali non cambia.
+
+8. **Divergenza client/server e test di parità.** Rischio #3 di ADR-014, con la logica
+   generica che rende una divergenza più costosa: sbaglierebbe tre test.
+   - Tutto ciò che entra nel risultato salvato vive **dentro il CORE**: specifiche,
+     cataloghi, `readBilateralTrials`, `computeBilateralResult`, validatori,
+     `readClinical`. Il test esistente "CORE identico riga per riga" lo copre già per
+     costruzione, senza nuovi meccanismi.
+   - **Guardie nuove nel test di parità:**
+     - (a) nella copia server, dopo `// ── Fine CORE` non c'è codice, solo spazi.
+       Altrimenti una funzione aggiunta lì sfuggirebbe al confronto testuale.
+     - (b) `shared/lipedema.js` non contiene `import`. È il vincolo emerso in `281bbe4`:
+       la CI non installa `functions/node_modules`, quindi un import di
+       `firebase-functions` romperebbe la CI, e un import di un altro `shared/` sposterebbe
+       logica fuori dal confronto.
+     - (c) `CORE_CONSTANTS` / `CORE_FUNCTIONS` estesi alle nuove esportazioni
+       (`SIT_TO_STAND_30S`, `HANDGRIP`, `INVALID_TRIAL_REASONS`,
+       `LIMB_STOP_REASON_CODES`, `DOMINANT_SIDES`, `computeBilateralResult`).
+   - **Casi comportamentali** (oltre al confronto testuale, perché documentano i casi
+     limite):
+     - `CASES` di `validateAssessmentInput` per STS: completo, parziale +1, braccia,
+       braccia + stop, parziale + stop, sedia variante, braccioli senza deviazione.
+     - `CASES` per Handgrip: 6 prove in N, in kgf, con non valide ripetute, 4ª valida,
+       tetto delle non valide, stop con un lato a 0, stop con un lato incompleto, non
+       valida senza valore.
+     - Una griglia su `computeBilateralResult` con `HANDGRIP` **e** una specifica
+       sintetica tipo OLS (2 prove, `ceiling: 60`, 1 decimale) definita nel test: la
+       parte generica che il #13 userà è esercitata già ora, prima di avere un test OLS.
+   - Unit test in `__tests__/utils/lipedema.test.js` per le stesse regole (arrotondamento
+     del delta per lato, pareggio → `strongestSide: null`, simmetria non arrotondata).
+     Il test di parità dice "uguali", non "giusti".
+
+9. **Cosa non cambia.**
+   - `aggiungiValutazione` non si modifica: smista tramite `ASSESSMENT_VALIDATORS`, e due
+     voci nuove bastano. `MAX_TESTS_PER_VISIT` e la correzione (stesso `testId`)
+     restano validi.
+   - **`firestore.rules`: nessuna modifica**: le valutazioni restano `write: false`, il
+     lato dominante non è sul paziente.
+   - Indici: nessuno.
+   - Piani SaaS: nessun impatto (non si creano né trainer né pazienti).
+   - Copie speculari toccate: solo `utils/lipedema.js` ↔ `shared/lipedema.js`, quindi
+     **ridistribuire le functions** (`cd functions && npm run deploy:dev`; prod non
+     prevista finché il DPA non è firmato, STORY-029, e comunque con runtime Node 22).
+     Non toccati `gamification`/`constants`/`plans`/`testsMeta`.
+   - **2MWT: output identico**, nessun campo nuovo sulla sua prova. Aggiungere per
+     esempio `invalidReason: null` cambierebbe `isSameAssessmentData` contro i doc già
+     salvati, e una correzione identica risulterebbe "diversa".
+   - I form ricevono già i dati dal genitore e salvano tramite `onSave`
+     (`TwoMinuteWalkForm`), quindi niente `orgId` nei form, né prop né
+     `useTrainerState()`.
+
+10. **Ordine di implementazione per il developer:**
+    0. Workflow Node 22 (task dello sprint, indipendente).
+    1. **Refactor del CORE a comportamento invariato:**
+       - `readClinical(src, fail, keys)`;
+       - `ASSESSMENT_OUTCOME.INVALIDATED`;
+       - `tolerance` in `COMPARABILITY_RULES`;
+       - `buildTestHistory` con esiti non ordinari generici;
+       - guardie (a)(b) nel test di parità.
+
+       Parità e unit test esistenti verdi **senza modificare i loro casi**: è la prova
+       che il 2MWT non è cambiato.
+    2. **STORY-035:**
+       - specifica + `validateSitToStand30s` nel CORE + registro;
+       - config client (etichette, motivi, `COMPARABILITY_REASON_LABELS`);
+       - form model + form (sul modello di `twoMinuteWalkFormModel.js`);
+       - badge "invalidato" / "errore tecnico" in `AssessmentBadges`;
+       - casi di parità.
+    3. **Logica generica:** `readBilateralTrials` + `computeBilateralResult` +
+       cataloghi, con unit test sulla specifica sintetica tipo OLS, **prima** di qualunque
+       UI Handgrip. Se la forma regge con 2 prove + ceiling, regge anche per il #13.
+    4. **STORY-036 + criteri 033:**
+       - specifica `HANDGRIP` + validatore;
+       - form a 6+ prove guidate (design ux-ui-designer, tenendo conto dell'osservazione
+         del #11 sulla barra fissa su mobile);
+       - dettaglio multi-prova in `AssessmentDetailModal` (oggi legge solo
+         `trials[0]`);
+       - storico e `LatestAssessmentsCard` per lato, con `deltaBySide`;
+       - precompilazione del lato dominante.
+    5. Casi di parità Handgrip + griglia `computeBilateralResult`.
+    6. **Runbook** (`config/runbook.config.js`, suite `lipedema`):
+       - STS completo con parziale +1;
+       - STS uso braccia → 0 marcato "invalidato", nessun delta;
+       - STS sedia fuori tolleranza / braccioli → variante e deviazione richieste;
+       - Handgrip in kgf → N senza decimali + kgf nativo visibile;
+       - prova non valida ripetuta ed esclusa dal best;
+       - tetto delle prove non valide;
+       - interruzione con un lato incompleto → best vuoto solo su quel lato, l'altro
+         conservato e con delta;
+       - cambio modello dispositivo → avviso di non comparabilità;
+       - lato dominante precompilato dalla valutazione precedente;
+       - `staff_readonly` vede le prove ma non salva.
+    7. Deploy dev: functions → hosting (rules invariate). QA sull'hosting reale
+       `rankex-app-dev.web.app`, desktop e mobile.
+
+**Alternative scartate:**
+- **Funzione per test** (`computeHandgripResult`, `computeHhdResult`, ...) invece di
+  quella generica: tre copie della stessa regola dentro un file già duplicato
+  client/server, e una correzione dovrebbe essere fatta sei volte. È proprio ciò che
+  l'AC di STORY-036 chiede di evitare.
+- **Prove come campi fissi** (`rightTrial1..3`, come i docx 03/04 §22): non rappresentano
+  le prove non valide ripetute né l'ordine reale, e cambierebbero forma per OLS (2 prove).
+- **Best sulle valide disponibili anche con il lato incompleto:** confronterebbe best di
+  2 e best di 3 come equivalenti. Il dato non va perso: le prove grezze restano.
+- **Alternanza D-S imposta dal server:** rifiuterebbe esecuzioni reali e legittime (prova
+  ripetuta, lato finito prima).
+- **Lato dominante sul paziente:** richiede una modifica a `firestore.rules` o una nuova
+  callable, e perde lo snapshot storico (motivi al §5).
+- **Dolore per lato come input separato:** due fonti per lo stesso dato, che possono
+  divergere.
+- **Input "ripetizioni valide" già comprensivo della parziale:** la distinzione chiesta
+  dal docx §16 si perderebbe, con il rischio di contarla due volte.
+- **Uso braccia come `stopReasonCode`:** mescolerebbe un motivo tecnico con un sintomo
+  clinico, e lo 0 non si distinguerebbe in modo affidabile da un'interruzione.
+- **Generare la copia server da quella client con uno script di build:** eliminerebbe
+  la duplicazione, ma `functions/` ha un deploy indipendente e nessun passo di build
+  condiviso. Il confronto testuale del CORE dà la stessa garanzia a costo zero.
+
+**Conseguenze:**
+- **Volume:** il CORE cresce (due validatori + logica generica, duplicati), il che rende
+  più importante tenerlo puro e dentro i marcatori (guardie al §8). Un Handgrip occupa
+  al massimo 12 prove, pochi KB per documento: nessun impatto su limiti o costi.
+- **Lavoro del #13:**
+  - HHD = specifica + validatore che legge setup (`fixationMethod`, angoli con
+    tolleranza ±5°, `sensorPosition`, `contractionS`) e `clinical.painPre`;
+  - OLS = specifica con `ceiling` + `readTrialExtra` per `endReason`.
+
+  Nessuna modifica alla logica generica è prevista: se serve, è un segnale da portare
+  in review.
+- **Dati e precisione:**
+  - Il livello `info` (seriale) e il trend restano a STORY-039, ma i dati esistono già
+    nello snapshot.
+  - `symmetryPct` e `value` non arrotondati sono voluti (ADR-012): chi esporta i dati
+    (`export-org.mjs`) vedrà decimali lunghi, ed è corretto così.
+
+**Addendum (review Sprint #12, 2026-10-31):** scelte di implementazione dove il testo
+sopra lasciava margine, confermate in code review.
+- 30s-STS: `events.usedArmsNote` facoltativa (max 500, `TEXT_LIMITS.usedArmsNote`),
+  salvata solo con `usedArms: true`, altrimenti `null`.
+- 30s-STS con uso delle braccia: `trials[0].value = 0`, coerente con `result.repetitions`;
+  le alzate grezze restano in `completeRepetitions` (facoltative, `null` se non inserite).
+- Bilaterali: `ceilingBySide[side]` è `null` quando il lato non ha un best (non `false`).
+- Handgrip con stop anticipato: le righe pianificate rimaste vuote sono prove non
+  eseguite e il client non le invia; `seq` è l'ordine delle righe inviate.
+- STS invalidata nello storico: come `stopped_early` (§7), resta la precedente valida e
+  confrontabile per la successiva, che mostra "—" con il motivo; nessun delta da o verso
+  di lei. Non è esclusa dal riferimento.
+- Handgrip: `HANDGRIP.invalidReasons` (sottoinsieme di `INVALID_TRIAL_REASONS`, senza
+  `support_or_assistance`) controllato in `readBilateralTrials`; `normalizeKey` e
+  `isStandardChairHeight` esportate dal CORE e usate dai form.
 

@@ -59,8 +59,15 @@ con terminologie, test e comportamenti UI diversi.
   contiene il nome
 - Cambio di `moduleType` da/verso `lipedema` bloccato se l'org ha clienti
   (`isAllowedModuleChange` in `firestore.rules` + `OrgDetailView`)
-- Valutazioni (subcollection `assessments`), informativa e storico: STORY-029/033-040, non
-  ancora implementate
+- Informativa: `client.privacyNotice` scritto solo via `registraInformativaPaziente` (o dal
+  wizard via `creaCliente`); senza, `aggiungiValutazione` e `salvaBia` sono rifiutati
+- Valutazioni: subcollection `clients/{id}/assessments` immutabile (rules: lettura membri org,
+  scrittura negata), callable `aggiungiValutazione` (con correzione atomica `supersedes`) e
+  `annullaValutazione`. Risultati, validazione e comparabilità calcolati nel blocco CORE di
+  `functions/src/shared/lipedema.js`, identico a `src/utils/lipedema.js` (test di parità; il
+  file server non deve importare nulla). UI per test in `features/assessments/assessmentRegistry.js`.
+  Implementati 2MWT, 30s-STS, Handgrip (logica bilaterale generica, ADR-016); HHD, OLS,
+  guida dei test, trend e PDF: STORY-037-040
 
 ### Capability per modulo
 `getModule(moduleType)` (`config/modules.config.js`) restituisce flag espliciti per ogni

@@ -39,10 +39,11 @@ import { ChartErrorFallback }                from '../../components/common/Chart
 import { useAssessments }                    from '../../hooks/useAssessments'
 import { usePrivacyNotice }                  from '../assessments/usePrivacyNotice'
 import { AssessmentsSection }                from '../assessments/AssessmentsSection'
-import { TwoMinuteWalkForm }                 from '../assessments/TwoMinuteWalkForm'
+import { ASSESSMENT_UI }                     from '../assessments/assessmentRegistry'
 import { PrivacyNoticeBanner, PrivacyNoticeModal, PRIVACY_BANNER_ID } from '../assessments/PrivacyNotice'
-import { createTwoMinuteWalkForm, formFromAssessment } from '../assessments/twoMinuteWalkFormModel'
-import { requiresPrivacyNotice, isPrivacyNoticeMissingError, nowLocalDateTime } from '../../utils/lipedema'
+import {
+  requiresPrivacyNotice, isPrivacyNoticeMissingError, nowLocalDateTime, getLatestValidByTest,
+} from '../../utils/lipedema'
 import { useUnsavedChanges }                 from '../../context/UnsavedChangesContext'
 
 // Montato solo dietro il flusso di export PDF — lazy-load per non pesare
@@ -81,7 +82,8 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
   const [printMode,       setPrintMode]       = useState('dark')
   const [showActions,     setShowActions]     = useState(false)
   const [resetState,   setResetState]  = useState('idle')
-  // Valutazione in corso: { initialForm, supersedes } — supersedes = valutazione da correggere
+  // Valutazione in corso: { testId, initialForm, supersedes, previous } — supersedes =
+  // valutazione da correggere, previous = ultima valida dello stesso test (precompilazione, avvisi)
   const [assessmentDraft,  setAssessmentDraft]  = useState(null)
   const [showPrivacyModal, setShowPrivacyModal] = useState(false)
   // Form a schermo intero (campionamento/BIA/valutazione) con dati non salvati:
@@ -136,6 +138,8 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
 
   // staff_readonly (BUG-004): dal menu ⋮ niente azioni che scrivono o mandano email
   const canResetPassword = !readonly && capabilities.hasClientLogin && Boolean(client.clientAuthUid && client.email)
+
+  const AssessmentForm = assessmentDraft ? ASSESSMENT_UI[assessmentDraft.testId]?.Form : null
 
   const defaultTab = 'atleta'
   const tab        = activeTab ?? defaultTab
@@ -196,15 +200,28 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
     setShowDelete(true)
   }, [])
 
-  const handleNewAssessment = useCallback(() => {
-    setAssessmentDraft({ initialForm: createTwoMinuteWalkForm(nowLocalDateTime()), supersedes: null })
+  const handleNewAssessment = useCallback((testId) => {
+    const previous = getLatestValidByTest(assessmentsState.assessments)[testId] ?? null
+    setAssessmentDraft({
+      testId,
+      initialForm: ASSESSMENT_UI[testId].createForm(nowLocalDateTime(), previous),
+      supersedes:  null,
+      previous,
+    })
     setView('valutazione')
-  }, [])
+  }, [assessmentsState.assessments])
 
   const handleCorrectAssessment = useCallback((assessment) => {
-    setAssessmentDraft({ initialForm: formFromAssessment(assessment), supersedes: assessment })
+    const others   = assessmentsState.assessments.filter(item => item.id !== assessment.id)
+    const previous = getLatestValidByTest(others)[assessment.testId] ?? null
+    setAssessmentDraft({
+      testId:      assessment.testId,
+      initialForm: ASSESSMENT_UI[assessment.testId].formFromAssessment(assessment),
+      supersedes:  assessment,
+      previous,
+    })
     setView('valutazione')
-  }, [])
+  }, [assessmentsState.assessments])
 
   const handleCloseAssessment = useCallback(() => {
     setAssessmentDraft(null)
@@ -265,12 +282,13 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
           onDirtyChange={setHasUnsavedChanges}
         />
       )}
-      {view === 'valutazione' && assessmentDraft && (
-        <TwoMinuteWalkForm
+      {view === 'valutazione' && AssessmentForm && (
+        <AssessmentForm
           client={client}
           examinerName={currentUserName}
           initialForm={assessmentDraft.initialForm}
           supersedes={assessmentDraft.supersedes}
+          previous={assessmentDraft.previous}
           onSave={assessmentsState.handleAddAssessment}
           onBack={handleCloseAssessment}
           onPrivacyNoticeMissing={handlePrivacyMissingForClient}

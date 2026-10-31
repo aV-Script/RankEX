@@ -1,27 +1,33 @@
-import { Button, Modal, SectionLabel } from '../../components/ui'
+import { Button, Modal } from '../../components/ui'
 import { ASSESSMENT_OUTCOME, isValidAssessment } from '../../utils/lipedema'
-import {
-  LIPEDEMA_TESTS, CLINICAL_ROWS, getAssistiveDeviceLabel, getStopReasonLabel,
-} from '../../config/lipedemaTests.config'
+import { LIPEDEMA_TESTS } from '../../config/lipedemaTests.config'
+import { ASSESSMENT_UI, formatAssessmentPrimary } from './assessmentRegistry'
 import { AssessmentBadges } from './AssessmentBadges'
 import { DeltaText }        from './DeltaText'
-import { formatNumber, formatLength, formatDateTime, formatTimestamp } from './assessmentFormat'
+import { DetailSection, Row } from './AssessmentDetailParts'
+import { formatDateTime, formatTimestamp } from './assessmentFormat'
 
 /**
- * Dettaglio di una valutazione: risultato, prova grezza con la formula, setup,
- * parametri clinici e tracciabilità (ADR-011). Azioni solo se scrivibile e
- * valida; staff_readonly vede tutto senza footer.
+ * Dettaglio di una valutazione: risultato, prove grezze e setup (parte del test,
+ * dal registro), parametri clinici e tracciabilità (ADR-011). Azioni solo se
+ * scrivibile e valida; staff_readonly vede tutto senza footer.
  */
 export function AssessmentDetailModal({ entry, assessments, readonly, onClose, onCorrect, onVoid }) {
   const { assessment } = entry
   const test       = LIPEDEMA_TESTS[assessment.testId]
-  const { setup = {}, events = {}, clinical = {}, deviation = {}, result = {} } = assessment
-  const trial      = assessment.trials?.[0] ?? {}
-  const isStopped  = assessment.outcome === ASSESSMENT_OUTCOME.STOPPED_EARLY
-  const hasClinical = CLINICAL_ROWS.some(row => clinical[row.pre] != null || clinical[row.post] != null) || Boolean(clinical.conditionsNote)
+  const ui         = ASSESSMENT_UI[assessment.testId]
+  const { clinical = {}, deviation = {} } = assessment
+  const clinicalRows = test?.clinicalRows ?? []
+  const filledRows = clinicalRows.filter(row => clinical[row.pre] != null || clinical[row.post] != null)
+  const hasClinical = filledRows.length > 0 || Boolean(clinical.conditionsNote)
   const replaced   = assessments.find(item => item.id === assessment.supersedes)
   const replacedBy = assessments.find(item => item.id === assessment.supersededBy)
-  const canAct     = !readonly && isValidAssessment(assessment)
+  // Correggere richiede il form del test: solo per i test nel registro
+  const canAct     = !readonly && isValidAssessment(assessment) && Boolean(ui)
+  // 0 da invalidazione: non barrato né in evidenza, è un esito non ordinario
+  const valueStyle = !isValidAssessment(assessment)
+    ? 'line-through opacity-50'
+    : assessment.outcome === ASSESSMENT_OUTCOME.INVALIDATED ? 'opacity-60' : ''
 
   return (
     <Modal title={`${test?.shortName ?? assessment.testId} · ${formatDateTime(assessment.performedAt)}`} onClose={onClose} size="lg">
@@ -29,60 +35,39 @@ export function AssessmentDetailModal({ entry, assessments, readonly, onClose, o
 
         <DetailSection title="Risultato">
           <div className="flex flex-col gap-1.5">
-            <span className={`font-display font-black text-[28px] text-white leading-none ${isValidAssessment(assessment) ? '' : 'line-through opacity-50'}`}>
-              {formatNumber(result.distanceM)} m
+            <span className={`font-display font-black text-[28px] text-white leading-none ${valueStyle}`}>
+              {formatAssessmentPrimary(assessment)}
             </span>
-            <span>
-              {isStopped ? `Interrotta a ${events.stopTimeS} s` : `Durata ${result.durationS} s`} · velocità media {formatNumber(result.avgSpeedMs, 2)} m/s
-            </span>
+            {ui && <ui.ResultInfo assessment={assessment} />}
             <DeltaText entry={entry} />
             <AssessmentBadges assessment={assessment} nonComparable={entry.nonComparable} />
           </div>
         </DetailSection>
 
-        <DetailSection title="Prova grezza">
-          <Row label={`Tratti completi${isStopped ? " fino all'interruzione" : ''}`} value={trial.fullLengths} />
-          <Row label="Frazione finale" value={`${formatNumber(trial.partialDistanceM, 1)} m`} />
-          <Row label="Formula" value={`${trial.fullLengths} × ${formatLength(setup.courseLengthM)} m + ${formatNumber(trial.partialDistanceM, 1)} m = ${formatNumber(result.distanceM)} m (arrotondato al metro)`} />
-        </DetailSection>
-
-        <DetailSection title="Setup">
-          <Row label="Protocollo" value={`${test?.shortName ?? ''} · ${assessment.protocolVersion}`} />
-          <Row label="Lunghezza percorso" value={`${formatLength(setup.courseLengthM)} m${setup.isStandardCourse === false ? ' (variante)' : ''}`} />
-          <Row label="Ausilio" value={`${getAssistiveDeviceLabel(setup.assistiveDevice)}${setup.assistiveDeviceNote ? ` — ${setup.assistiveDeviceNote}` : ''}`} />
-          {isStopped && (
-            <Row
-              label="Motivo dell'interruzione"
-              value={`${getStopReasonLabel(clinical.stopReasonCode)}${clinical.stopReasonNote ? ` — ${clinical.stopReasonNote}` : ''}`}
-            />
-          )}
-        </DetailSection>
-
-        <DetailSection title="Pause">
-          <Row label="Numero" value={events.pauseCount ?? 0} />
-          {events.pauseCount > 0 && <Row label="Durata totale" value={`${events.pauseDurationS} s`} />}
-        </DetailSection>
+        {ui && test && <ui.Detail assessment={assessment} test={test} />}
 
         {hasClinical && (
           <DetailSection title="Parametri clinici">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="font-display text-[10px] tracking-[2px]">
-                  <th className="font-normal py-1" />
-                  <th className="font-normal py-1 text-center">PRE</th>
-                  <th className="font-normal py-1 text-center">POST</th>
-                </tr>
-              </thead>
-              <tbody>
-                {CLINICAL_ROWS.filter(row => clinical[row.pre] != null || clinical[row.post] != null).map(row => (
-                  <tr key={row.pre} style={{ borderTop: '1px solid var(--rx-border)' }}>
-                    <td className="py-1.5">{row.label}</td>
-                    <td className="py-1.5 text-center text-white/80">{clinical[row.pre] ?? '—'}</td>
-                    <td className="py-1.5 text-center text-white/80">{clinical[row.post] ?? '—'}</td>
+            {filledRows.length > 0 && (
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="font-display text-[10px] tracking-[2px]">
+                    <th className="font-normal py-1" />
+                    <th className="font-normal py-1 text-center">PRE</th>
+                    <th className="font-normal py-1 text-center">POST</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filledRows.map(row => (
+                    <tr key={row.pre} style={{ borderTop: '1px solid var(--rx-border)' }}>
+                      <td className="py-1.5">{row.label}</td>
+                      <td className="py-1.5 text-center text-white/80">{clinical[row.pre] ?? '—'}</td>
+                      <td className="py-1.5 text-center text-white/80">{clinical[row.post] ?? '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
             {clinical.conditionsNote && <Row label="Condizioni concomitanti" value={clinical.conditionsNote} />}
           </DetailSection>
         )}
@@ -119,25 +104,5 @@ export function AssessmentDetailModal({ entry, assessments, readonly, onClose, o
         )}
       </div>
     </Modal>
-  )
-}
-
-// ── Componenti locali ─────────────────────────────────────────────────────────
-
-function DetailSection({ title, children }) {
-  return (
-    <section className="flex flex-col gap-1.5">
-      <SectionLabel className="!mb-1">{title}</SectionLabel>
-      {children}
-    </section>
-  )
-}
-
-function Row({ label, value }) {
-  return (
-    <div className="flex flex-col sm:flex-row sm:gap-3">
-      <span className="sm:w-48 shrink-0 text-white/40">{label}</span>
-      <span className="text-white/80 break-words">{value}</span>
-    </div>
   )
 }

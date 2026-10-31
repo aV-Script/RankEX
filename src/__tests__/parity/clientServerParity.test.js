@@ -213,10 +213,13 @@ describe('Lipedema — valutazioni e informativa (ADR-014 rischio #3)', () => {
     'LIPEDEMA_TEST_IDS', 'ASSESSMENT_STATUS', 'ASSESSMENT_OUTCOME', 'TWO_MINUTE_WALK',
     'ASSISTIVE_DEVICES', 'STOP_REASON_CODES', 'PAIN_SCALE', 'PRIVACY_NOTICE_MISSING',
     'CLINICAL_RANGES', 'TEXT_LIMITS', 'MAX_TESTS_PER_VISIT',
+    'SIT_TO_STAND_30S', 'HANDGRIP', 'INVALID_TRIAL_REASONS', 'LIMB_STOP_REASON_CODES',
+    'DOMINANT_SIDES', 'BILATERAL_SIDE_STATUS',
   ]
   const CORE_FUNCTIONS = [
     'requiresPrivacyNotice', 'computeTwoMinuteWalkResult', 'validateAssessmentInput',
     'validatePrivacyNoticeInput', 'validateVoidReason', 'patientAgeAt', 'formatLocalDateTime',
+    'computeSitToStandResult', 'computeBilateralResult', 'normalizeKey', 'isStandardChairHeight',
   ]
   const CONTEXT = { nowLocal: '2026-10-30T11:00', birthDate: '1985-03-12' }
   const BASE = {
@@ -242,14 +245,140 @@ describe('Lipedema — valutazioni e informativa (ADR-014 rischio #3)', () => {
     {},
   ]
 
+  // 30s-STS (ADR-016 §6)
+  const STS = {
+    testId: 'lipedema_30s_sts', performedAt: '2026-10-30T10:30',
+    setup:  { chairHeightCm: 43.2, chairHasArmrests: false, armsCrossed: true },
+    trial:  { completeRepetitions: 14, partialRepCounted: false },
+    events: { usedArms: false, stoppedEarly: false, technicalError: false, familiarizationDone: true, pauseCount: 0 },
+    clinical: {}, deviation: { present: false },
+  }
+  const STS_CASES = [
+    STS,
+    { ...STS, trial: { completeRepetitions: 14, partialRepCounted: true } },
+    { ...STS, trial: { completeRepetitions: 6, partialRepCounted: false }, events: { ...STS.events, usedArms: true, usedArmsNote: ' spinta sulle cosce ' } },
+    { ...STS, trial: { partialRepCounted: false }, events: { ...STS.events, usedArms: true } },
+    { ...STS, events: { ...STS.events, usedArms: true, stoppedEarly: true, stopTimeS: 12 }, clinical: { stopReasonCode: 'dizziness' } },
+    { ...STS, trial: { completeRepetitions: 9, partialRepCounted: true }, events: { ...STS.events, stoppedEarly: true, stopTimeS: 22 }, clinical: { stopReasonCode: 'lower_limb_pain' } },
+    { ...STS, trial: { completeRepetitions: 9, partialRepCounted: false }, events: { ...STS.events, stoppedEarly: true, stopTimeS: 22, pauseCount: 1, pauseDurationS: 23 }, clinical: { stopReasonCode: 'other', stopReasonNote: 'x' } },
+    { ...STS, setup: { chairHeightCm: 45, chairHasArmrests: false, armsCrossed: true } },
+    { ...STS, setup: { chairHeightCm: 45, chairHasArmrests: false, armsCrossed: true, variantConfirmed: true } },
+    { ...STS, setup: { chairHeightCm: 43.7, chairHasArmrests: false, armsCrossed: true } },
+    { ...STS, setup: { chairHeightCm: 43.2, chairHasArmrests: true, armsCrossed: true } },
+    { ...STS, setup: { chairHeightCm: 43.2, chairHasArmrests: true, armsCrossed: false }, deviation: { present: true, note: 'braccioli' } },
+    { ...STS, events: { ...STS.events, technicalError: true } },
+    { ...STS, clinical: { painPre: 2, fatiguePost: 3.5, hrPreBpm: 80, bpSysPre: 120 } },
+    { ...STS, trial: { completeRepetitions: 60, partialRepCounted: true } },
+    { ...STS, events: { usedArms: 'no' } },
+  ]
+
+  // Handgrip: 6 prove D-S alternate (ADR-016 §1-3)
+  const grip = (side, nativeValue, extra = {}) => ({ side, valid: true, nativeValue, ...extra })
+  const numbered = trials => trials.map((trial, i) => ({ seq: i + 1, ...trial }))
+  const SIX_RAW = [grip('R', 30), grip('L', 28), grip('R', 31.5), grip('L', 27), grip('R', 29), grip('L', 28.25)]
+  const SIX = numbered(SIX_RAW)
+  const HANDGRIP_BASE = {
+    testId: 'lipedema_handgrip', performedAt: '2026-10-30T10:30',
+    setup:  { dominantSide: 'R', device: { brand: ' Jamar ', model: 'Plus+', serial: 'A12' }, gripSetting: 'Posizione 2', nativeUnit: 'N' },
+    trials: SIX, events: { stoppedEarly: false }, clinical: {}, deviation: { present: false },
+  }
+  const HANDGRIP_CASES = [
+    HANDGRIP_BASE,
+    { ...HANDGRIP_BASE, setup: { ...HANDGRIP_BASE.setup, nativeUnit: 'kgf' } },
+    { ...HANDGRIP_BASE, trials: numbered([grip('R', 30), grip('L', 28, { valid: false, invalidReason: 'technique_error', pain: 4 }), grip('L', 28), grip('R', 31), grip('L', 27), grip('R', 29), grip('L', 26)]) },
+    { ...HANDGRIP_BASE, trials: numbered([...SIX_RAW, grip('R', 33)]) },
+    { ...HANDGRIP_BASE, trials: numbered([grip('R', 30), ...Array(4).fill(grip('L', null, { valid: false, invalidReason: 'device_error' }))]), events: { stoppedEarly: true }, clinical: { stopReasonCode: 'acute_pain' } },
+    { ...HANDGRIP_BASE, trials: numbered([grip('R', 30), grip('R', 31), grip('R', 29)]), events: { stoppedEarly: true }, clinical: { stopReasonCode: 'contraindication' } },
+    { ...HANDGRIP_BASE, trials: numbered([grip('R', 30), grip('L', 28), grip('R', 31), grip('L', 27), grip('R', 29)]), events: { stoppedEarly: true }, clinical: { stopReasonCode: 'neurological_symptoms', stopReasonNote: 'formicolio' } },
+    { ...HANDGRIP_BASE, trials: numbered([grip('R', 30), grip('L', 28), grip('R', 31), grip('L', 27), grip('R', 29)]) },
+    { ...HANDGRIP_BASE, trials: numbered([grip('R', null, { valid: false, invalidReason: 'other', note: 'scivolata' }), ...SIX_RAW]) },
+    { ...HANDGRIP_BASE, trials: numbered([grip('R', null, { valid: false, invalidReason: 'other' }), ...SIX_RAW]) },
+    { ...HANDGRIP_BASE, trials: SIX.map((trial, i) => (i === 2 ? { ...trial, seq: 9 } : trial)) },
+    { ...HANDGRIP_BASE, setup: { ...HANDGRIP_BASE.setup, dominantSide: 'X', device: { brand: '', model: 'x'.repeat(61) }, gripSetting: '  ', nativeUnit: 'lbf' } },
+    { ...HANDGRIP_BASE, trials: numbered([grip('R', 30.123), grip('L', 1001), grip('R', 0), grip('L', '28'), grip('R', 29, { pain: 11 }), grip('L', 28)]) },
+    { ...HANDGRIP_BASE, events: { stoppedEarly: true }, clinical: { stopReasonCode: 'chest_pain' } },
+    { ...HANDGRIP_BASE, trials: 'sei prove' },
+    { ...HANDGRIP_BASE, trials: numbered([grip('R', 30, { valid: false, invalidReason: 'support_or_assistance' }), ...SIX_RAW]) },
+  ]
+
+  const coreFile = relativePath => readFileSync(new URL(relativePath, import.meta.url), 'utf8').replace(/\r\n/g, '\n')
+  const SERVER_FILE = '../../../functions/src/shared/lipedema.js'
+
   it('il blocco CORE è identico, riga per riga, nelle due copie', () => {
     const core = relativePath => {
-      const text = readFileSync(new URL(relativePath, import.meta.url), 'utf8').replace(/\r\n/g, '\n')
+      const text = coreFile(relativePath)
       return text.slice(text.indexOf('export const LIPEDEMA_TEST_IDS'), text.indexOf('// ── Fine CORE'))
     }
-    const server = core('../../../functions/src/shared/lipedema.js')
+    const server = core(SERVER_FILE)
     expect(server.length).toBeGreaterThan(1000)
     expect(core('../../utils/lipedema.js')).toBe(server)
+  })
+
+  it('copia server: marcatore "Fine CORE" presente, prima del CORE solo commenti', () => {
+    const text = coreFile(SERVER_FILE)
+    expect(text).toContain('// ── Fine CORE')
+    const before = text.slice(0, text.indexOf('export const LIPEDEMA_TEST_IDS'))
+    expect(before.split('\n').filter(line => line.trim() !== '' && !line.trim().startsWith('//'))).toEqual([])
+  })
+
+  it('copia server: nessun codice dopo "Fine CORE" (sfuggirebbe al confronto)', () => {
+    const text = coreFile(SERVER_FILE)
+    const afterMarker = text.slice(text.indexOf('// ── Fine CORE'))
+    expect(afterMarker.split('\n').slice(1).join('\n').trim()).toBe('')
+  })
+
+  it('copia server: nessun import (la CI non installa functions/node_modules, 281bbe4)', () => {
+    const text = coreFile(SERVER_FILE)
+    expect(text).not.toMatch(/^\s*import[\s{*'"]/m)
+    expect(text).not.toMatch(/\bimport\s*\(/)
+  })
+
+  it.each([...STS_CASES, ...HANDGRIP_CASES].map((input, i) => [i, input.testId, input]))(
+    'validateAssessmentInput STS/Handgrip caso %i (%s): stessi errori e stesso valore salvato',
+    (_i, _testId, input) => {
+      expect(serverLipedema.validateAssessmentInput(input, CONTEXT)).toEqual(clientLipedema.validateAssessmentInput(input, CONTEXT))
+    },
+  )
+
+  it('computeBilateralResult identico con HANDGRIP e con una specifica sintetica tipo OLS', () => {
+    const OLS_LIKE = {
+      protocolVersion: '1.0', sides: ['R', 'L'], validTrialsPerSide: 2, maxInvalidPerSide: 3,
+      canonicalUnit: 's', unitFactors: { s: 1 }, inputDecimals: 1, ceiling: 60,
+    }
+    const pools = { R: [0.1, 12.5, 60, 31.2, null], L: [60, 8, 8, 44.4, null] }
+    for (const spec of [clientLipedema.HANDGRIP, OLS_LIKE]) {
+      for (let mask = 0; mask < 2 ** 8; mask += 1) {
+        const trials = []
+        for (let i = 0; i < 8; i += 1) {
+          const side  = i % 2 === 0 ? 'R' : 'L'
+          const value = pools[side][i % pools[side].length]
+          if (mask & (1 << i)) trials.push({ seq: trials.length + 1, side, valid: value !== null && i % 3 !== 2, value })
+        }
+        expect(serverLipedema.computeBilateralResult(trials, spec)).toEqual(clientLipedema.computeBilateralResult(trials, spec))
+      }
+    }
+  })
+
+  it('normalizeKey e isStandardChairHeight identici', () => {
+    for (const text of [' Jamar ', 'PLUS+', '', null, undefined]) {
+      expect(serverLipedema.normalizeKey(text)).toBe(clientLipedema.normalizeKey(text))
+    }
+    for (const height of [42.6, 42.7, 43.2, 43.7, 43.8, 45]) {
+      expect(serverLipedema.isStandardChairHeight(height)).toBe(clientLipedema.isStandardChairHeight(height))
+    }
+  })
+
+  it('computeSitToStandResult identico', () => {
+    for (const usedArms of [false, true]) {
+      for (const partialRepCounted of [false, true]) {
+        for (const stopTimeS of [null, 12]) {
+          for (const completeRepetitions of [0, 14, 59, null]) {
+            const input = { completeRepetitions, partialRepCounted, usedArms, stopTimeS }
+            expect(serverLipedema.computeSitToStandResult(input)).toEqual(clientLipedema.computeSitToStandResult(input))
+          }
+        }
+      }
+    }
   })
 
   it('costanti del CORE identiche', () => {

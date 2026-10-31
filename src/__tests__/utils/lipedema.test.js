@@ -3,11 +3,19 @@ import {
   computeTwoMinuteWalkResult, validateAssessmentInput, validatePrivacyNoticeInput, validateVoidReason,
   patientAgeAt, requiresPrivacyNotice, buildTestHistory, getLatestValidByTest, getComparabilityIssues,
   isPrivacyNoticeMissingError, PRIVACY_NOTICE_MISSING, isSameAssessmentData, nowLocalDateTime, todayLocalDate, LOCAL_TIME_ZONE,
+  computeBilateralResult, HANDGRIP,
 } from '../../utils/lipedema.js'
 import { getModule, MODULES } from '../../config/modules.config.js'
 import {
   createTwoMinuteWalkForm, formFromAssessment, buildTwoMinuteWalkInput, toNumber, countClinicalFilled,
 } from '../../features/assessments/twoMinuteWalkFormModel.js'
+import {
+  createSitToStandForm, buildSitToStandInput, sitToStandFormFromAssessment,
+} from '../../features/assessments/sitToStandFormModel.js'
+import {
+  createHandgripForm, createPlannedTrials, proposeNextSide, buildHandgripInput, handgripFormFromAssessment,
+} from '../../features/assessments/handgripFormModel.js'
+import { formatMonoDelta, formatBilateralDelta, formatBilateralPrimary } from '../../features/assessments/assessmentFormat.js'
 
 const CONTEXT = { nowLocal: '2026-10-30T11:00', birthDate: '1985-03-12' }
 const BASE = {
@@ -256,5 +264,317 @@ describe("correzione identica all'originale (L3)", () => {
     const original = saved()
     const again = validateAssessmentInput(buildTwoMinuteWalkInput(formFromAssessment(original)), CONTEXT_L3).value
     expect(isSameAssessmentData(again, original)).toBe(true)
+  })
+})
+
+// ── Sprint #12: 30s-STS, logica bilaterale, Handgrip (ADR-016) ────────────────
+
+describe('validateAssessmentInput — 30s-STS', () => {
+  const STS = {
+    testId: 'lipedema_30s_sts', performedAt: '2026-10-30T10:30',
+    setup:  { chairHeightCm: 43.2, chairHasArmrests: false, armsCrossed: true },
+    trial:  { completeRepetitions: 14, partialRepCounted: false },
+    events: { usedArms: false, stoppedEarly: false, technicalError: false, familiarizationDone: true, pauseCount: 0 },
+    clinical: {}, deviation: { present: false },
+  }
+  const sts = override => validateAssessmentInput({ ...STS, ...override }, CONTEXT)
+
+  it('completo con parziale finale: 14 + 1 = 15, contata dal server', () => {
+    const { errors, value } = sts({ trial: { completeRepetitions: 14, partialRepCounted: true } })
+    expect(errors).toEqual({})
+    expect(value).toMatchObject({
+      outcome: 'complete', result: { repetitions: 15, durationS: 30 },
+      trials: [{ seq: 1, side: null, valid: true, invalidReason: null, completeRepetitions: 14, partialRepCounted: true, value: 15 }],
+      setup: { isStandardChair: true, assistiveDevice: 'none' },
+      comparability: { protocolVersion: '1.0', chairHeightCm: 43.2, chairHasArmrests: false, armsCrossed: true },
+    })
+  })
+
+  it('uso delle braccia: outcome invalidated, 0 e durata null, alzate grezze conservate', () => {
+    const { value } = sts({ trial: { completeRepetitions: 6, partialRepCounted: false }, events: { ...STS.events, usedArms: true, usedArmsNote: ' spinta ' } })
+    expect(value).toMatchObject({
+      outcome: 'invalidated', result: { repetitions: 0, durationS: null },
+      trials: [{ valid: false, invalidReason: 'used_arms', completeRepetitions: 6, value: 0 }],
+      events: { usedArms: true, usedArmsNote: 'spinta' },
+    })
+    // alzate facoltative con l'uso delle braccia
+    expect(sts({ trial: { partialRepCounted: false }, events: { ...STS.events, usedArms: true } }).value.trials[0].completeRepetitions).toBeNull()
+  })
+
+  it('uso braccia + stop, parziale + stop: rifiutati', () => {
+    expect(sts({ events: { ...STS.events, usedArms: true, stoppedEarly: true, stopTimeS: 12 }, clinical: { stopReasonCode: 'dizziness' } }).errors)
+      .toHaveProperty('events.usedArms')
+    expect(sts({ trial: { completeRepetitions: 9, partialRepCounted: true }, events: { ...STS.events, stoppedEarly: true, stopTimeS: 22 }, clinical: { stopReasonCode: 'dyspnea' } }).errors)
+      .toHaveProperty('trial.partialRepCounted')
+    const { value } = sts({ trial: { completeRepetitions: 9, partialRepCounted: false }, events: { ...STS.events, stoppedEarly: true, stopTimeS: 22 }, clinical: { stopReasonCode: 'dyspnea' } })
+    expect(value).toMatchObject({ outcome: 'stopped_early', result: { repetitions: 9, durationS: 22 } })
+    expect(sts({ events: { ...STS.events, stoppedEarly: true, stopTimeS: 30 }, clinical: { stopReasonCode: 'dyspnea' } }).errors).toHaveProperty('events.stopTimeS')
+  })
+
+  it('sedia: ±0,5 cm standard, oltre variante da confermare', () => {
+    expect(sts({ setup: { ...STS.setup, chairHeightCm: 43.7 } }).value.setup.isStandardChair).toBe(true)
+    expect(sts({ setup: { ...STS.setup, chairHeightCm: 45 } }).errors).toHaveProperty('setup.variantConfirmed')
+    expect(sts({ setup: { ...STS.setup, chairHeightCm: 45, variantConfirmed: true } }).value.setup.isStandardChair).toBe(false)
+    expect(sts({ setup: { ...STS.setup, chairHeightCm: 20 } }).errors).toHaveProperty('setup.chairHeightCm')
+  })
+
+  it('braccioli o braccia non incrociate richiedono la deviazione descritta', () => {
+    expect(sts({ setup: { ...STS.setup, chairHasArmrests: true } }).errors).toHaveProperty('deviation.present')
+    expect(sts({ setup: { ...STS.setup, armsCrossed: false }, deviation: { present: true } }).errors).toHaveProperty('deviation.note')
+    expect(sts({ setup: { ...STS.setup, armsCrossed: false }, deviation: { present: true, note: 'mani sulle cosce' } }).errors).toEqual({})
+  })
+
+  it('errore tecnico con descrizione obbligatoria, familiarizzazione obbligatoria, niente FC/SpO₂/PA', () => {
+    expect(sts({ events: { ...STS.events, technicalError: true } }).errors).toHaveProperty('events.technicalErrorNote')
+    expect(sts({ events: { ...STS.events, familiarizationDone: undefined } }).errors).toHaveProperty('events.familiarizationDone')
+    const { value } = sts({ clinical: { painPre: 2, hrPreBpm: 80, bpSysPre: 120 } })
+    expect(value.clinical.painPre).toBe(2)
+    expect(value.clinical).not.toHaveProperty('hrPreBpm')
+    expect(value.clinical).not.toHaveProperty('bpSysPre')
+  })
+
+  it('pause entro la durata reale; oltre 60 ripetizioni rifiutate', () => {
+    expect(sts({ events: { ...STS.events, pauseCount: 1, pauseDurationS: 31 } }).errors).toHaveProperty('events.pauseDurationS')
+    expect(sts({ trial: { completeRepetitions: 60, partialRepCounted: true } }).errors).toHaveProperty('trial.completeRepetitions')
+  })
+})
+
+describe('computeBilateralResult (ADR-016 §2-3)', () => {
+  const trial = (side, value, valid = true) => ({ side, valid, value })
+  const OLS_LIKE = {
+    protocolVersion: '1.0', sides: ['R', 'L'], validTrialsPerSide: 2, maxInvalidPerSide: 3,
+    canonicalUnit: 's', unitFactors: { s: 1 }, inputDecimals: 1, ceiling: 60,
+  }
+
+  it('best = massimo delle sole valide, più forte, simmetria non arrotondata', () => {
+    const result = computeBilateralResult([
+      trial('R', 300), trial('L', 280), trial('R', 999, false), trial('R', 310), trial('L', 270), trial('R', 305), trial('L', 281),
+    ], HANDGRIP)
+    expect(result).toEqual({
+      unit: 'N', validCountBySide: { R: 3, L: 3 }, sideStatus: { R: 'complete', L: 'complete' },
+      bestBySide: { R: 310, L: 281 }, strongestSide: 'R', strongestValue: 310, weakestValue: 281,
+      symmetryPct: (281 / 310) * 100,
+    })
+  })
+
+  it('pareggio → strongestSide null', () => {
+    const result = computeBilateralResult([trial('R', 300), trial('L', 300), trial('R', 1), trial('L', 1), trial('R', 2), trial('L', 2)], HANDGRIP)
+    expect(result).toMatchObject({ strongestSide: null, strongestValue: 300, weakestValue: 300, symmetryPct: 100 })
+  })
+
+  it("lato incompleto o non testato: best null senza toccare l'altro", () => {
+    const result = computeBilateralResult([trial('R', 300), trial('R', 310), trial('R', 305), trial('L', 280), trial('L', 290, false)], HANDGRIP)
+    expect(result).toMatchObject({
+      validCountBySide: { R: 3, L: 1 }, sideStatus: { R: 'complete', L: 'incomplete' },
+      bestBySide: { R: 310, L: null }, strongestSide: null, strongestValue: null, symmetryPct: null,
+    })
+    expect(computeBilateralResult([trial('R', 1), trial('R', 2), trial('R', 3)], HANDGRIP).sideStatus.L).toBe('not_tested')
+  })
+
+  it('specifica sintetica tipo OLS: 2 prove valide per lato e ceiling per lato', () => {
+    const result = computeBilateralResult([trial('R', 60), trial('L', 12.5), trial('R', 44.4), trial('L', 30)], OLS_LIKE)
+    expect(result).toMatchObject({
+      unit: 's', sideStatus: { R: 'complete', L: 'complete' }, bestBySide: { R: 60, L: 30 },
+      strongestSide: 'R', ceilingBySide: { R: true, L: false },
+    })
+    expect(computeBilateralResult([trial('R', 60)], OLS_LIKE).ceilingBySide).toEqual({ R: null, L: null })
+    expect(computeBilateralResult([trial('R', 1)], HANDGRIP)).not.toHaveProperty('ceilingBySide')
+  })
+})
+
+describe('validateAssessmentInput — Handgrip', () => {
+  const grip = (side, nativeValue, extra = {}) => ({ side, valid: true, nativeValue, ...extra })
+  const numbered = trials => trials.map((item, i) => ({ seq: i + 1, ...item }))
+  const SIX = [grip('R', 30), grip('L', 28), grip('R', 31.5), grip('L', 27), grip('R', 29), grip('L', 28.25)]
+  const BASE_HG = {
+    testId: 'lipedema_handgrip', performedAt: '2026-10-30T10:30',
+    setup: { dominantSide: 'R', device: { brand: ' Jamar ', model: 'Plus+', serial: ' A12 ' }, gripSetting: 'Posizione 2', nativeUnit: 'N' },
+    trials: numbered(SIX), events: { stoppedEarly: false }, clinical: {}, deviation: { present: false },
+  }
+  const hg = override => validateAssessmentInput({ ...BASE_HG, ...override }, CONTEXT)
+
+  it('6 prove in N: best, chiavi di comparabilità normalizzate, lato dominante nel setup', () => {
+    const { errors, value } = hg({})
+    expect(errors).toEqual({})
+    expect(value).toMatchObject({
+      outcome: 'complete', events: { stoppedEarly: false },
+      setup: { dominantSide: 'R', device: { brand: 'Jamar', model: 'Plus+', serial: 'A12' }, gripSetting: 'Posizione 2', nativeUnit: 'N' },
+      result: { bestBySide: { R: 31.5, L: 28.25 }, strongestSide: 'R' },
+      comparability: { protocolVersion: '1.0', deviceModelKey: 'jamar|plus+', gripSettingKey: 'posizione 2', deviceSerialKey: 'a12' },
+      clinical: { painScale: 'nrs_0_10', painMaxBySide: { R: null, L: null }, stopReasonCode: null },
+    })
+    expect(value.trials[0]).toEqual({ seq: 1, side: 'R', valid: true, invalidReason: null, nativeValue: 30, nativeUnit: 'N', value: 30, pain: null, note: null })
+  })
+
+  it('kgf: valore nativo conservato, N = × 9,80665 non arrotondato', () => {
+    const { value } = hg({ setup: { ...BASE_HG.setup, nativeUnit: 'kgf' } })
+    expect(value.trials[0]).toMatchObject({ nativeValue: 30, nativeUnit: 'kgf', value: 30 * 9.80665 })
+    expect(value.result.bestBySide.R).toBe(31.5 * 9.80665)
+  })
+
+  it('non valida ripetuta: salvata, esclusa dal best; dolore massimo per lato derivato', () => {
+    const { value } = hg({ trials: numbered([grip('R', 30), grip('L', 40, { valid: false, invalidReason: 'technique_error', pain: 4 }), grip('L', 28, { pain: 2 }), grip('R', 31), grip('L', 27), grip('R', 29), grip('L', 26)]) })
+    expect(value.result).toMatchObject({ validCountBySide: { R: 3, L: 3 }, bestBySide: { R: 31, L: 28 } })
+    expect(value.trials[1]).toMatchObject({ valid: false, invalidReason: 'technique_error', nativeValue: 40 })
+    expect(value.clinical.painMaxBySide).toEqual({ R: null, L: 4 })
+  })
+
+  it('quarta valida, oltre 3 non valide, non valida senza motivo: rifiutate', () => {
+    expect(hg({ trials: numbered([...SIX, grip('R', 33)]) }).errors).toHaveProperty('trials.6.valid')
+    const invalid = grip('L', null, { valid: false, invalidReason: 'device_error' })
+    expect(hg({ trials: numbered([grip('R', 30), invalid, invalid, invalid, invalid]), events: { stoppedEarly: true }, clinical: { stopReasonCode: 'acute_pain' } }).errors)
+      .toHaveProperty('trials.4.valid')
+    expect(hg({ trials: numbered([grip('L', null, { valid: false }), ...SIX]) }).errors).toHaveProperty('trials.0.invalidReason')
+    expect(hg({ trials: numbered([grip('L', null, { valid: false, invalidReason: 'other' }), ...SIX]) }).errors).toHaveProperty('trials.0.note')
+    expect(hg({ trials: numbered([grip('L', null, { valid: false, invalidReason: 'support_or_assistance' }), ...SIX]) }).errors).toHaveProperty('trials.0.invalidReason')
+    // con troppe prove l'errore resta sulla prova, senza il messaggio di completezza
+    expect(hg({ trials: numbered([...SIX, grip('R', 33)]) }).errors).not.toHaveProperty('trials')
+  })
+
+  it('non valida senza valore ammessa; valida senza valore no', () => {
+    expect(hg({ trials: numbered([grip('R', null, { valid: false, invalidReason: 'device_error' }), ...SIX]) }).value.trials[0])
+      .toMatchObject({ nativeValue: null, value: null })
+    expect(hg({ trials: numbered([grip('R', null), ...SIX.slice(1)]) }).errors).toHaveProperty('trials.0.nativeValue')
+  })
+
+  it('senza stop servono entrambi i lati completi; con stop il lato completo conserva il best', () => {
+    const partial = numbered([grip('R', 30), grip('L', 28), grip('R', 31), grip('L', 27), grip('R', 29)])
+    expect(hg({ trials: partial }).errors.trials).toBe("Completa le prove o segna l'interruzione")
+    expect(hg({ trials: partial, events: { stoppedEarly: true } }).errors).toHaveProperty('clinical.stopReasonCode')
+    expect(hg({ trials: partial, events: { stoppedEarly: true }, clinical: { stopReasonCode: 'chest_pain' } }).errors).toHaveProperty('clinical.stopReasonCode')
+    const { value } = hg({ trials: partial, events: { stoppedEarly: true }, clinical: { stopReasonCode: 'acute_pain' } })
+    expect(value).toMatchObject({ outcome: 'stopped_early', result: { sideStatus: { R: 'complete', L: 'incomplete' }, bestBySide: { R: 31, L: null } } })
+    const oneSide = hg({ trials: numbered([grip('R', 30), grip('R', 31), grip('R', 29)]), events: { stoppedEarly: true }, clinical: { stopReasonCode: 'contraindication' } })
+    expect(oneSide.value.result.sideStatus).toEqual({ R: 'complete', L: 'not_tested' })
+  })
+
+  it('anti-refuso e numerazione: decimali, massimo, seq contiguo, unità e setup obbligatori', () => {
+    expect(hg({ trials: numbered([grip('R', 30.123), ...SIX.slice(1)]) }).errors).toHaveProperty('trials.0.nativeValue')
+    expect(hg({ trials: numbered([grip('R', 1001), ...SIX.slice(1)]) }).errors).toHaveProperty('trials.0.nativeValue')
+    expect(hg({ setup: { ...BASE_HG.setup, nativeUnit: 'kgf' }, trials: numbered([grip('R', 102), ...SIX.slice(1)]) }).errors).toHaveProperty('trials.0.nativeValue')
+    expect(hg({ trials: numbered(SIX).map((item, i) => (i === 2 ? { ...item, seq: 9 } : item)) }).errors).toHaveProperty('trials.2.seq')
+    const { errors } = hg({ setup: { dominantSide: 'X', device: { brand: '', model: '' }, gripSetting: ' ', nativeUnit: 'lbf' } })
+    expect(Object.keys(errors)).toEqual(expect.arrayContaining(['setup.dominantSide', 'setup.device.brand', 'setup.device.model', 'setup.gripSetting', 'setup.nativeUnit']))
+    expect(hg({ setup: { ...BASE_HG.setup, dominantSide: 'both' } }).errors).toEqual({})
+  })
+
+  it('il client non decide value né result: vengono ricalcolati', () => {
+    const { value } = hg({ trials: numbered(SIX.map(item => ({ ...item, value: 999 }))), result: { bestBySide: { R: 999 } } })
+    expect(value.trials[0].value).toBe(30)
+    expect(value.result.bestBySide.R).toBe(31.5)
+  })
+})
+
+describe('storico: tolleranze, esiti non ordinari, delta per lato (ADR-016 §7)', () => {
+  const sts = (id, performedAt, repetitions, extra = {}) => ({
+    id, testId: 'lipedema_30s_sts', performedAt, status: 'valid', outcome: 'complete', result: { repetitions },
+    comparability: { protocolVersion: '1.0', chairHeightCm: 43.2, chairHasArmrests: false, armsCrossed: true }, ...extra,
+  })
+  const hg = (id, performedAt, bestBySide, sideStatus = { R: 'complete', L: 'complete' }, extra = {}) => ({
+    id, testId: 'lipedema_handgrip', performedAt, status: 'valid', outcome: 'complete', result: { bestBySide, sideStatus },
+    comparability: { protocolVersion: '1.0', deviceModelKey: 'jamar|plus', gripSettingKey: '2', deviceSerialKey: null }, ...extra,
+  })
+  const byId = (history, id) => history.find(entry => entry.assessment.id === id)
+
+  it('altezza sedia confrontabile entro ±0,5 cm, oltre no', () => {
+    const at = height => ({ ...sts('x', 'x', 1), comparability: { protocolVersion: '1.0', chairHeightCm: height, chairHasArmrests: false, armsCrossed: true } })
+    expect(getComparabilityIssues(at(43.7), at(43.2))).toEqual([])
+    expect(getComparabilityIssues(at(43.8), at(43.2))).toEqual(['chairHeight'])
+  })
+
+  it('STS invalidata: nessun delta, motivo invalidated (anche verso la successiva)', () => {
+    const history = buildTestHistory([
+      sts('a', '2026-09-01T10:00', 13), sts('inv', '2026-09-15T10:00', 0, { outcome: 'invalidated' }), sts('b', '2026-10-01T10:00', 15),
+    ], 'lipedema_30s_sts')
+    expect(byId(history, 'inv')).toMatchObject({ delta: null, deltaUnavailable: 'invalidated' })
+    expect(byId(history, 'b')).toMatchObject({ delta: null, deltaUnavailable: 'invalidated' })
+  })
+
+  it('Handgrip: delta per lato sui valori arrotondati alla precisione mostrata', () => {
+    const history = buildTestHistory([hg('a', '2026-09-03T10:00', { R: 294.1995, L: 270.4 }), hg('b', '2026-10-01T10:00', { R: 295.18, L: 266.6 })], 'lipedema_handgrip')
+    const entry = byId(history, 'b')
+    expect(entry.deltaBySide).toEqual({ R: 1, L: -3 })   // 295 − 294, 267 − 270
+    expect(entry.referenceBySide.R.id).toBe('a')
+    expect(entry.delta).toBeNull()
+  })
+
+  it('interrotta con la destra completa: delta solo a destra, a sinistra si salta alla precedente completa', () => {
+    const history = buildTestHistory([
+      hg('a', '2026-08-01T10:00', { R: 300, L: 280 }),
+      hg('b', '2026-09-01T10:00', { R: 305, L: null }, { R: 'complete', L: 'incomplete' }, { outcome: 'stopped_early' }),
+      hg('c', '2026-10-01T10:00', { R: 310, L: 290 }),
+    ], 'lipedema_handgrip')
+    expect(byId(history, 'b').deltaBySide).toEqual({ R: 5, L: null })
+    expect(byId(history, 'c').deltaBySide).toEqual({ R: 5, L: 10 })
+    expect(byId(history, 'c').referenceBySide.L.id).toBe('a')
+  })
+
+  it('dinamometro diverso: non confrontabile, nessun delta', () => {
+    const other = hg('a', '2026-09-03T10:00', { R: 300, L: 280 }, undefined, { comparability: { protocolVersion: '1.0', deviceModelKey: 'camry|eh101', gripSettingKey: '2', deviceSerialKey: null } })
+    const entry = byId(buildTestHistory([other, hg('b', '2026-10-01T10:00', { R: 310, L: 290 })], 'lipedema_handgrip'), 'b')
+    expect(entry).toMatchObject({ nonComparable: ['dynamometer'], reference: null, deltaBySide: { R: null, L: null } })
+  })
+})
+
+describe('form 30s-STS e Handgrip ↔ input della callable', () => {
+  it("30s-STS: form nuovo, braccia ⇒ stop e parziale spenti nell'input, Correggi identico", () => {
+    const form = createSitToStandForm('2026-10-30T10:30')
+    expect(form).toMatchObject({ chairHeightCm: '43.2', chairHasArmrests: false, armsCrossed: true, familiarizationDone: null })
+    const armsInput = buildSitToStandInput({ ...form, usedArms: true, stoppedEarly: true, partialRepCounted: true, familiarizationDone: true })
+    expect(armsInput.events).toMatchObject({ usedArms: true, stoppedEarly: false, stopTimeS: null })
+    expect(armsInput.trial.partialRepCounted).toBe(false)
+
+    const original = validateAssessmentInput(buildSitToStandInput({
+      ...form, completeRepetitions: '14', partialRepCounted: true, familiarizationDone: true,
+      technicalError: true, technicalErrorNote: 'conteggio', pauseCount: '1', pauseDurationS: '3', clinical: { ...form.clinical, painPre: '2' },
+    }), CONTEXT).value
+    expect(original.result.repetitions).toBe(15)
+    const again = validateAssessmentInput(buildSitToStandInput(sitToStandFormFromAssessment(original)), CONTEXT).value
+    expect(isSameAssessmentData(again, original)).toBe(true)
+  })
+
+  it('Handgrip: 6 prove pianificate D-S alternate, lato proposto, precompilazione dalla precedente', () => {
+    expect(createPlannedTrials().map(row => row.side)).toEqual(['R', 'L', 'R', 'L', 'R', 'L'])
+    expect(proposeNextSide([{ side: 'R', valid: true }, { side: 'L', valid: false }])).toBe('L')
+    const previous = { performedAt: '2026-09-03T10:00', setup: { dominantSide: 'L', device: { brand: 'Jamar', model: 'Plus', serial: null }, gripSetting: '2', nativeUnit: 'kgf' } }
+    expect(createHandgripForm('2026-10-30T10:30', previous)).toMatchObject({
+      dominantSide: 'L', deviceBrand: 'Jamar', deviceModel: 'Plus', deviceSerial: '', gripSetting: '2', nativeUnit: 'kgf',
+    })
+    expect(createHandgripForm('2026-10-30T10:30')).toMatchObject({ dominantSide: '', nativeUnit: 'N' })
+  })
+
+  it('Handgrip: con lo stop le righe pianificate vuote non si salvano; Correggi identico', () => {
+    const form = { ...createHandgripForm('2026-10-30T10:30'), deviceBrand: 'Jamar', deviceModel: 'Plus', gripSetting: '2', dominantSide: 'R' }
+    const values = ['30', '28', '31', '27,5', '29', '']
+    form.trials = form.trials.map((row, i) => ({ ...row, nativeValue: values[i] }))
+    expect(buildHandgripInput(form).trials).toHaveLength(6)
+    const stopped = { ...form, stoppedEarly: true, stopReasonCode: 'acute_pain' }
+    const input = buildHandgripInput(stopped)
+    expect(input.trials.map(item => item.seq)).toEqual([1, 2, 3, 4, 5])
+    expect(input.trials[3].nativeValue).toBe(27.5)
+    const original = validateAssessmentInput(input, CONTEXT).value
+    expect(original.result.sideStatus).toEqual({ R: 'complete', L: 'incomplete' })
+    const again = validateAssessmentInput(buildHandgripInput(handgripFormFromAssessment(original)), CONTEXT).value
+    expect(isSameAssessmentData(again, original)).toBe(true)
+  })
+})
+
+describe('testo del delta (registro)', () => {
+  it('monolaterale: invalidata e interrotta descritte, valore con unità', () => {
+    const reference = { performedAt: '2026-09-03T10:00', outcome: 'complete' }
+    expect(formatMonoDelta({ assessment: { outcome: 'complete' }, reference, delta: 2, deltaUnavailable: null }, 'ripetizioni'))
+      .toBe('+2 ripetizioni rispetto al 03/09')
+    expect(formatMonoDelta({ assessment: { outcome: 'invalidated' }, reference, delta: null, deltaUnavailable: 'invalidated' }, 'ripetizioni'))
+      .toBe('— rispetto al 03/09: questa valutazione è invalidata (protocollo non valido)')
+    expect(formatMonoDelta({ assessment: { outcome: 'complete' }, reference: { ...reference, outcome: 'stopped_early' }, delta: null, deltaUnavailable: 'stopped_early' }, 'm'))
+      .toBe('— rispetto al 03/09: quella precedente è interrotta')
+  })
+
+  it('bilaterale: per lato, una data se il riferimento è lo stesso', () => {
+    const ref = { performedAt: '2026-09-03T10:00' }
+    expect(formatBilateralDelta({ deltaBySide: { R: 12, L: -4 }, referenceBySide: { R: ref, L: ref } }, 'N')).toBe('D +12 N · S −4 N rispetto al 03/09')
+    expect(formatBilateralDelta({ deltaBySide: { R: 5, L: null }, referenceBySide: { R: ref, L: null } }, 'N')).toBe('D +5 N rispetto al 03/09')
+    expect(formatBilateralDelta({ deltaBySide: { R: null, L: null }, referenceBySide: { R: null, L: null } }, 'N')).toBeNull()
+    expect(formatBilateralPrimary({ result: { bestBySide: { R: 245.4, L: null } } }, 'N')).toBe('D 245 · S — N')
   })
 })

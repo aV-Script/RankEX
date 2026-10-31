@@ -2,6 +2,11 @@
 // callable (numeri o null). La validazione è quella condivisa col server
 // (utils/lipedema.js → validateAssessmentInput): qui solo la conversione.
 import { LIPEDEMA_TEST_IDS, TWO_MINUTE_WALK, CLINICAL_RANGES } from '../../utils/lipedema'
+import {
+  fieldId, toNumber, toText, emptyClinical, clinicalFromAssessment, clinicalToInput, countFilledClinical,
+} from './formModelUtils'
+
+export { fieldId, toNumber }
 
 const CLINICAL_KEYS = Object.keys(CLINICAL_RANGES)
 
@@ -19,9 +24,9 @@ export const FIELD_ORDER = [
 // Campi senza i quali la distanza non è calcolabile (riepilogo live a "—")
 export const RESULT_FIELDS = ['setup.courseLengthM', 'trial.fullLengths', 'trial.partialDistanceM', 'events.stopTimeS']
 
-/** id dell'elemento DOM di un campo, da usare anche come htmlFor del Field */
-export function fieldId(field) {
-  return `assessment-${field.replace(/\./g, '-')}`
+/** Ordine dei campi per il focus sul primo errore (useAssessmentForm) */
+export function getTwoMinuteWalkFieldOrder() {
+  return FIELD_ORDER
 }
 
 /** @param {string} nowLocal — 'YYYY-MM-DDTHH:mm' */
@@ -40,7 +45,7 @@ export function createTwoMinuteWalkForm(nowLocal) {
     stopReasonNote:      '',
     pauseCount:          '0',
     pauseDurationS:      '',
-    clinical:            Object.fromEntries(CLINICAL_KEYS.map(key => [key, ''])),
+    clinical:            emptyClinical(CLINICAL_KEYS),
     conditionsNote:      '',
     deviationPresent:    false,
     deviationNote:       '',
@@ -69,7 +74,7 @@ export function formFromAssessment(assessment) {
     stopReasonNote:      clinical.stopReasonNote ?? '',
     pauseCount:          toText(events.pauseCount ?? 0),
     pauseDurationS:      events.pauseCount > 0 ? toText(events.pauseDurationS) : '',
-    clinical:            Object.fromEntries(CLINICAL_KEYS.map(key => [key, toText(clinical[key])])),
+    clinical:            clinicalFromAssessment(CLINICAL_KEYS, clinical),
     conditionsNote:      clinical.conditionsNote ?? '',
     deviationPresent:    deviation.present === true,
     deviationNote:       deviation.note ?? '',
@@ -99,7 +104,7 @@ export function buildTwoMinuteWalkInput(form) {
       pauseDurationS: toNumber(form.pauseCount) > 0 ? toNumber(form.pauseDurationS) : null,
     },
     clinical: {
-      ...Object.fromEntries(CLINICAL_KEYS.map(key => [key, toNumber(form.clinical[key])])),
+      ...clinicalToInput(CLINICAL_KEYS, form.clinical),
       stopReasonCode: form.stoppedEarly ? (form.stopReasonCode || null) : null,
       stopReasonNote: form.stoppedEarly ? form.stopReasonNote : null,
       conditionsNote: form.conditionsNote,
@@ -114,16 +119,5 @@ export function buildTwoMinuteWalkInput(form) {
 
 /** Quanti parametri clinici facoltativi sono compilati (contatore della sezione) */
 export function countClinicalFilled(form) {
-  return CLINICAL_KEYS.filter(key => form.clinical[key] !== '').length + (form.conditionsNote.trim() ? 1 : 0)
-}
-
-/** '' → null; virgola decimale accettata; testo non numerico → NaN (lo segnala la validazione) */
-export function toNumber(value) {
-  if (value === null || value === undefined) return null
-  const text = String(value).trim().replace(',', '.')
-  return text === '' ? null : Number(text)
-}
-
-function toText(value) {
-  return value === null || value === undefined ? '' : String(value)
+  return countFilledClinical(CLINICAL_KEYS, form)
 }

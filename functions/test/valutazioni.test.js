@@ -272,6 +272,120 @@ describe('aggiungiValutazione — 2MWT', () => {
   })
 })
 
+describe('aggiungiValutazione — 30s-STS (STORY-035)', () => {
+  const STS = {
+    testId:      'lipedema_30s_sts',
+    performedAt: '2026-10-30T10:30',
+    setup:       { chairHeightCm: 43.2, chairHasArmrests: false, armsCrossed: true },
+    trial:       { completeRepetitions: 14, partialRepCounted: true },
+    events:      { usedArms: false, stoppedEarly: false, technicalError: false, familiarizationDone: true, pauseCount: 0 },
+    clinical:    {},
+    deviation:   { present: false },
+  }
+  const call = test => aggiungiValutazione(req('trainer1', { tests: [test] }))
+
+  it('ripetizioni calcolate dal server (14 + parziale = 15), comparabilità della sedia', async () => {
+    await call({ ...STS, result: { repetitions: 60 } })
+    const [[, doc]] = assessments()
+    expect(doc).toMatchObject({
+      testId: 'lipedema_30s_sts', outcome: 'complete', status: 'valid',
+      result: { repetitions: 15, durationS: 30 },
+      trials: [{ seq: 1, side: null, valid: true, invalidReason: null, completeRepetitions: 14, partialRepCounted: true, value: 15 }],
+      comparability: { protocolVersion: '1.0', chairHeightCm: 43.2, chairHasArmrests: false, armsCrossed: true },
+    })
+    expect(doc.clinical).not.toHaveProperty('hrPreBpm')
+  })
+
+  it('uso delle braccia: 0 con outcome invalidated, distinto da uno 0 reale', async () => {
+    await call({ ...STS, trial: { completeRepetitions: 5, partialRepCounted: false }, events: { ...STS.events, usedArms: true } })
+    await call({ ...STS, testId: 'lipedema_30s_sts', performedAt: '2026-10-30T10:40', trial: { completeRepetitions: 0, partialRepCounted: false } })
+    const docs = assessments().map(([, doc]) => doc)
+    expect(docs.map(doc => [doc.outcome, doc.result.repetitions])).toEqual([['invalidated', 0], ['complete', 0]])
+    expect(docs[0].trials[0]).toMatchObject({ valid: false, invalidReason: 'used_arms', completeRepetitions: 5 })
+  })
+
+  it.each([
+    ['uso braccia + stop',         { events: { ...STS.events, usedArms: true, stoppedEarly: true, stopTimeS: 10 }, clinical: { stopReasonCode: 'dizziness' } }],
+    ['parziale con stop',          { events: { ...STS.events, stoppedEarly: true, stopTimeS: 20 }, clinical: { stopReasonCode: 'dyspnea' } }],
+    ['sedia variante non confermata', { setup: { ...STS.setup, chairHeightCm: 46 } }],
+    ['braccioli senza deviazione', { setup: { ...STS.setup, chairHasArmrests: true } }],
+    ['errore tecnico senza descrizione', { events: { ...STS.events, technicalError: true } }],
+    ['ripetizioni non intere',     { trial: { completeRepetitions: 14.5, partialRepCounted: false } }],
+  ])('%s → invalid-argument, nessuna scrittura', async (_label, override) => {
+    await expect(call({ ...STS, ...override })).rejects.toMatchObject({ code: 'invalid-argument' })
+    expect(assessments()).toEqual([])
+  })
+})
+
+describe('aggiungiValutazione — Handgrip (STORY-036)', () => {
+  const grip = (side, nativeValue, extra = {}) => ({ side, valid: true, nativeValue, ...extra })
+  const numbered = trials => trials.map((trial, i) => ({ seq: i + 1, ...trial }))
+  const SIX = [grip('R', 30), grip('L', 28), grip('R', 31.5), grip('L', 27), grip('R', 29), grip('L', 28.25)]
+  const HANDGRIP = {
+    testId:      'lipedema_handgrip',
+    performedAt: '2026-10-30T10:30',
+    setup:       { dominantSide: 'R', device: { brand: 'Jamar ', model: 'Plus+' }, gripSetting: 'Posizione 2', nativeUnit: 'kgf' },
+    trials:      numbered(SIX),
+    events:      { stoppedEarly: false },
+    clinical:    {},
+    deviation:   { present: false },
+  }
+  const call = test => aggiungiValutazione(req('trainer1', { tests: [test] }))
+
+  it('kgf convertiti in N dal server senza arrotondare, best/simmetria calcolati, dolore per lato derivato', async () => {
+    const trials = numbered([...SIX.slice(0, 5), grip('L', 28.25, { pain: 3 })])
+    await call({ ...HANDGRIP, trials: trials.map(trial => ({ ...trial, value: 1 })), result: { bestBySide: { R: 1, L: 1 } } })
+    const [[, doc]] = assessments()
+    expect(doc.trials[2]).toMatchObject({ nativeValue: 31.5, nativeUnit: 'kgf', value: 31.5 * 9.80665 })
+    expect(doc.result).toMatchObject({
+      unit: 'N', sideStatus: { R: 'complete', L: 'complete' },
+      bestBySide: { R: 31.5 * 9.80665, L: 28.25 * 9.80665 }, strongestSide: 'R',
+      symmetryPct: (28.25 * 9.80665) / (31.5 * 9.80665) * 100,
+    })
+    expect(doc.clinical.painMaxBySide).toEqual({ R: null, L: 3 })
+    expect(doc.comparability).toEqual({ protocolVersion: '1.0', deviceModelKey: 'jamar|plus+', gripSettingKey: 'posizione 2', deviceSerialKey: null })
+    expect(doc.setup.dominantSide).toBe('R')
+  })
+
+  it('interruzione con un lato incompleto: salvato, best solo sul lato completo', async () => {
+    await call({
+      ...HANDGRIP, trials: numbered([grip('R', 30), grip('L', 28), grip('R', 31), grip('L', null, { valid: false, invalidReason: 'technique_error' }), grip('R', 29)]),
+      events: { stoppedEarly: true }, clinical: { stopReasonCode: 'acute_pain' },
+    })
+    const [[, doc]] = assessments()
+    expect(doc).toMatchObject({ outcome: 'stopped_early', clinical: { stopReasonCode: 'acute_pain' } })
+    expect(doc.result).toMatchObject({ sideStatus: { R: 'complete', L: 'incomplete' }, bestBySide: { R: 31 * 9.80665, L: null }, symmetryPct: null })
+  })
+
+  it.each([
+    ['lato incompleto senza stop',   { trials: numbered(SIX.slice(0, 5)) }],
+    ['quarta prova valida',          { trials: numbered([...SIX, grip('R', 33)]) }],
+    ['motivo di stop del 2MWT',      { trials: numbered(SIX.slice(0, 5)), events: { stoppedEarly: true }, clinical: { stopReasonCode: 'chest_pain' } }],
+    ['prova non valida senza motivo', { trials: numbered([grip('R', null, { valid: false }), ...SIX]) }],
+    ['oltre il massimo plausibile',  { trials: numbered([grip('R', 200), ...SIX.slice(1)]) }],
+    ['marca mancante',               { setup: { ...HANDGRIP.setup, device: { model: 'Plus+' } } }],
+    ['lato dominante mancante',      { setup: { ...HANDGRIP.setup, dominantSide: null } }],
+    ['troppe prove',                 { trials: numbered(Array(13).fill(grip('R', 30))) }],
+  ])('%s → invalid-argument, nessuna scrittura', async (_label, override) => {
+    await expect(call({ ...HANDGRIP, ...override })).rejects.toMatchObject({ code: 'invalid-argument' })
+    expect(assessments()).toEqual([])
+  })
+
+  it('stessa visita: 2MWT + 30s-STS + Handgrip in un solo visitId', async () => {
+    const sts = {
+      testId: 'lipedema_30s_sts', performedAt: '2026-10-30T10:30',
+      setup: { chairHeightCm: 43.2, chairHasArmrests: false, armsCrossed: true },
+      trial: { completeRepetitions: 12, partialRepCounted: false },
+      events: { usedArms: false, stoppedEarly: false, technicalError: false, familiarizationDone: false, pauseCount: 0 },
+      clinical: {}, deviation: { present: false },
+    }
+    await aggiungiValutazione(req('trainer1', { tests: [TWO_MWT, sts, HANDGRIP] }))
+    const docs = assessments().map(([, doc]) => doc)
+    expect(docs.map(doc => doc.testId)).toEqual(['lipedema_2mwt', 'lipedema_30s_sts', 'lipedema_handgrip'])
+    expect(new Set(docs.map(doc => doc.visitId)).size).toBe(1)
+  })
+})
+
 describe('aggiungiValutazione — correzione (supersedes)', () => {
   const OLD = `${ASSESS}/old1`
   beforeEach(() => {

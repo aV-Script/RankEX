@@ -1038,8 +1038,9 @@ trattare dati sanitari su pazienti reali in modo lecito.
 - **Risks:** DPA e informativa dipendono da azioni legali/commerciali fuori dal
   repository → possono ritardare il go-live di ogni org anche a codice pronto; un blocco
   solo UI darebbe una falsa sicurezza (stesso errore di RX-63, STORY-002)
-- **Status:** READY (Sprint #11) — parte tecnica (a). I requisiti non-codice (b), (c) e
-  il privacy draft sono BLOCKED fuori capacità developer (proprietario utente/legale)
+- **Status:** parte tecnica (a) DONE (Sprint #11, `cc42e34`) — verificata dal vivo su
+  rankex-app-dev 31/10, non in prod. I requisiti non-codice (b), (c) e il privacy draft
+  restano BLOCKED fuori capacità developer (proprietario utente/legale): bloccano il go-live
 
 ### [STORY-030] Nuovo modulo a livello organizzazione + capability + terminologia
 **Come** super_admin **voglio** creare un'organizzazione con il modulo Lipedema e
@@ -1220,8 +1221,10 @@ confrontabile nel tempo, come richiesto da tutti e 5 i documenti.
   rappresenta prove multiple + metadati — forzarlo dentro creerebbe ambiguità con PT/
   Soccer; volume dati per paziente più alto (prove grezze × test × valutazioni) →
   verificare impatto sui limiti Firestore piano Spark
-- **Status:** READY (Sprint #11) — insieme a STORY-034, unico test concreto su cui
-  verificarla end-to-end
+- **Status:** IN PROGRESS — infrastruttura DONE (Sprint #11, `cc42e34`, verificata su
+  rankex-app-dev 31/10). Criteri aperti: validità per prova + best sulle valide, dolore
+  per lato, lato dominante → Sprint #12 con STORY-036; guida dei 5 test in
+  `TestGuidePage` → con STORY-037/038
 
 ### [STORY-034] Test 01 — 2-Minute Walk Test (2MWT)
 **Come** professionista **voglio** registrare un 2MWT inserendo tratti e frazione finale
@@ -1258,8 +1261,8 @@ confrontabile nel tempo, come richiesto da tutti e 5 i documenti.
   trend (STORY-039) deve distinguerla. Il docx §23 descrive una schermata test con timer
   02:00, contatore (tratti) e pulsante "Pausa" live: **da decidere con ux-ui-designer** se
   la v1 offre timer/contatore in app o solo l'inserimento a posteriori dei valori
-- **Status:** READY (Sprint #11) — decisione ux-ui-designer su timer live vs
-  inserimento a posteriori prima di iniziare la UI
+- **Status:** DONE (Sprint #11, `cc42e34` + fix BUG-011/012/013 in `769565d`) —
+  verificata dal vivo su rankex-app-dev 31/10, non in prod
 
 ### [STORY-035] Test 02 — 30-Second Sit-to-Stand (30s STS)
 **Come** professionista **voglio** registrare le ripetizioni valide in 30 s e gli
@@ -1291,7 +1294,7 @@ eventuali motivi di invalidazione **per** avere un dato coerente con il protocol
 - **Dependencies:** STORY-033
 - **Risks:** uno 0 da invalidazione e uno 0 reale vanno distinti nel trend (STORY-039)
   per non mostrare un falso crollo di performance
-- **Status:** BACKLOG
+- **Status:** READY (Sprint #12)
 
 ### [STORY-036] Test 03 — Handgrip Dynamometry (infrastruttura bilaterale multi-prova)
 **Come** professionista **voglio** inserire 3 prove per mano alternate D-S e ottenere il
@@ -1325,7 +1328,8 @@ dinamometro.
 - **Dependencies:** STORY-033
 - **Risks:** precisione di arrotondamento dopo conversione (decimali da conservare —
   da decidere con Tech Lead)
-- **Status:** BACKLOG
+- **Status:** READY (Sprint #12) — design Tech Lead (logica bilaterale
+  condivisa, decimali) e UX prima del codice
 
 ### [STORY-037] Test 04 — Handheld Dynamometry quadricipite
 **Come** professionista **voglio** registrare 3 prove per gamba della forza del
@@ -1356,7 +1360,7 @@ valutazioni eseguite nelle stesse condizioni.
         deviazione
 - **Dependencies:** STORY-036
 - **Risks:** fissaggio diverso tra retest = dato non comparabile (gestito da STORY-039)
-- **Status:** BACKLOG
+- **Status:** BACKLOG — candidata Sprint #13 (dopo STORY-036)
 
 ### [STORY-038] Test 05 — One-Leg Standing (OLS)
 **Come** professionista **voglio** registrare 2 prove per gamba con tempo e motivo di
@@ -1389,7 +1393,7 @@ massimo.
 - **Dependencies:** STORY-036
 - **Risks:** senza sezione UI nel docx, il flusso di inserimento va disegnato da
   ux-ui-designer senza riferimento dell'autore
-- **Status:** BACKLOG
+- **Status:** BACKLOG — candidata Sprint #13 (dopo STORY-036)
 
 ### [STORY-039] Storico, trend e avviso di non comparabilità per test
 **Come** professionista **voglio** vedere per ogni test lo storico delle valutazioni, un

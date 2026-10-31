@@ -7,97 +7,93 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-### SPRINT #11 — EPIC-010 Lipedema Edition, seconda ondata (informativa + Valutazione + 2MWT) — aperto il 2026-10-30
+### SPRINT #12 — EPIC-010 Lipedema Edition, terza ondata (30s-STS + Handgrip bilaterale) — aperto il 2026-10-31
 
-**Branch:** `feature/lipedema-module` (basato su `dev`, allineato a `origin/dev` in
-`e9bdebb` all'apertura). Rules e functions si deployano solo da qui (ADR-014 rischio #4).
+**Branch:** `feature/lipedema-module` (allineato a `origin/dev` in `27bfc55` all'apertura).
+Rules e functions si deployano solo da qui (ADR-014 rischio #4). **Nessun deploy in prod
+del modulo** (DPA non firmato, STORY-029).
 
-**Goal:** un professionista registra l'informativa e salva/annulla una valutazione
-2MWT, con storico grezzo verificabile.
+**Goal:** il professionista registra 30s-STS e Handgrip con prove multiple per mano,
+validità per prova e best calcolato dal server, con storico grezzo — e la logica
+bilaterale è pronta per essere riusata da HHD e OLS.
 
 **Story selezionate:**
-1. STORY-029 — parte tecnica: `client.privacyNotice` scritto solo via callable
-   (`registraInformativaPaziente`, e/o in `creaCliente` dal wizard), audit
-   `PRIVACY_NOTICE_RECORDED` con soli id, gate `failed-precondition` in
-   `aggiungiValutazione` e `salvaBia` per le org lipedema, banner "Registra informativa"
-   sul paziente (ADR-015 §1-2). I requisiti **non-codice** (DPA art. 28 firmato,
-   testo dell'informativa redatto dall'org, `PRIVACY-POLICY-DRAFT.md` aggiornato) sono
-   tracciati qui per visibilità ma **fuori capacità developer**: proprietario l'utente,
-   non condizionano la chiusura dello sprint (stesso schema di STORY-019/020 in Sprint #6).
-2. STORY-033 — base comune Valutazione: `assessmentsPath`, service + `useAssessments`,
-   match rules `clients/{id}/assessments/{id}` (`read: canRead`, `write: false`),
-   callable `aggiungiValutazione`/`annullaValutazione` + usecases, schema unico con
-   `clinical: {}` (ADR-009 come rivisto da ADR-015 §3), immutabilità e "annulla +
-   reinserisci" con `supersedes`/`supersededBy` e audit `ASSESSMENT_VOIDED` solo id
-   (ADR-011), snapshot `comparability` (ADR-012), coppia `utils/lipedema.js` ↔
-   `functions/src/shared/lipedema.js` nel test di parità.
-3. STORY-034 — 2MWT (`lipedema_2mwt`): tratti + frazione, `distanceM` calcolata dal
-   server, validazioni ADR-015 §7, stop anticipato, dati clinici opzionali pre/post.
+1. **STORY-035** — 30s-STS (`lipedema_30s_sts`): prova singola come il 2MWT, ma con
+   0 da invalidazione "uso braccia" distinto dallo 0 reale, errore tecnico separato da
+   deviazione, setup sedia, familiarizzazione non conteggiata.
+2. **STORY-036** — Handgrip: introduce l'infrastruttura **bilaterale multi-prova**
+   (ordine alternato D-S, validità per prova, best per lato = max delle valide,
+   Strongest/Weakest, simmetria, N/kgf con valore nativo conservato), scritta come
+   logica condivisa in `utils/lipedema.js` ↔ `shared/lipedema.js` (test di parità).
+3. **Criteri di STORY-033 rimandati dal #11, solo la parte bilaterale** — validità per
+   prova + best sulle sole valide, dolore per prova e per lato, lato dominante: si
+   verificano end-to-end su STORY-036, quindi chiudono insieme a lei.
+4. **Workflow GitHub a Node 22** — `ci.yml`, `deploy.yml` (2 job), `e2e.yml` hanno
+   ancora `node-version: '20'`, mentre `functions/` gira su Node 22 da `13052d6`.
+   Task piccolo, prima del resto: allinea la CI al runtime reale.
 
-**Perché anche STORY-034 (decisione di sequenziamento, non di prodotto):** STORY-033 da
-sola **non è verificabile end-to-end**. `aggiungiValutazione` valida e calcola `setup`,
-`trials` e `result` per `testId`: senza almeno un test concreto si potrebbe solo
-provare uno schema vuoto, e AC centrali di 033 ("risultato derivato calcolato dal
-sistema con arrotondamento identico", "prove grezze conservate", "stop anticipato mai
-trattato come completo", annulla + reinserisci) non avrebbero nulla di reale su cui
-girare. Il 2MWT è il test più semplice: una sola prova, monolaterale, nessuna
-conversione di unità, nessuna dipendenza da STORY-036 (bilaterale), e tutti i default
-di protocollo già decisi (ADR-015 §7). 035 resta fuori per tenere lo sprint piccolo:
-un secondo test non aggiunge verificabilità all'infrastruttura.
+**Fuori dal #12, candidati del #13 (motivo):**
+- **STORY-037 (HHD) e STORY-038 (OLS)** dipendono da STORY-036. Metterle nello stesso
+  sprint significa costruire due test sopra un'infrastruttura bilaterale non ancora
+  passata da review e QA: se la review di 036 cambia la forma della logica condivisa,
+  si rifanno tre test invece di uno. Il #11 aveva 3 story e ha prodotto 1 HIGH + 3
+  MEDIUM in review e 3 bug in QA: quattro test più i criteri 033 più la guida sono
+  oltre la capacità reale di un solo sviluppatore. Meglio chiudere 035+036 bene.
+- **Guida dei 5 test in `TestGuidePage`** (criterio 033): va scritta quando esistono
+  tutti e 5 i test, insieme a 037/038, per non pubblicare istruzioni di test non
+  ancora registrabili.
+- STORY-039 (storico/trend/non comparabilità) e STORY-040 (PDF) restano dopo.
 
-**Sequenziamento:** 029 (gate) e 033 (infrastruttura) procedono insieme — il gate vive
-dentro `aggiungiValutazione` — poi 034 sopra 033. Ordine di deploy per ogni rilascio
-(ADR-014): functions dev → rules dev → hosting dev → verifica. **Nessun deploy in prod**
-in questo sprint: il modulo lipedema non va in produzione prima del DPA firmato.
+**Sequenziamento:** workflow Node 22 → 035 (stesso schema del 2MWT, nessuna nuova
+infrastruttura) e, in parallelo, design di 036 (Tech Lead: forma della logica bilaterale
+condivisa, decimali dopo la conversione kgf→N, lato dominante del paziente o della
+valutazione; ux-ui-designer: inserimento guidato delle 6 prove alternate su mobile) →
+implementazione 036 + criteri 033 bilaterali → code review (verifica esplicita: logica
+bilaterale riusabile da 037/038) → deploy dev (functions → rules → hosting) → **QA
+sull'hosting reale** `rankex-app-dev.web.app`, desktop e mobile.
 
 **Status board:**
 
 | Task | Status | Note |
 |------|--------|------|
-| STORY-029 — attestazione informativa + gate server (parte tecnica) | IN REVIEW (implementata 30/10, da code-review + QA su rankex-app-dev) | Tocca `creaCliente`, `salvaBia`, nuova callable, `AUDIT_ACTIONS`. AC "storico attestazioni" già chiuso da ADR-015 §1 (ultima versione sul doc + storico in `audit_logs`). |
-| STORY-029 — requisiti non-codice (DPA, testo informativa, privacy draft) | BLOCKED (fuori capacità developer) | Proprietario utente/legale. `docs/PRIVACY-POLICY-DRAFT.md` non esiste su questo ramo (solo su `feature/mobile-app`, TD-004): portarlo o riscriverlo è una scelta dell'utente. Bloccante per il go-live, non per la chiusura sprint. |
-| STORY-033 — infrastruttura Valutazione | IN REVIEW (implementata 30/10, da code-review + QA su rankex-app-dev) | Dipende dal gate di 029 per l'AC "nessuna valutazione senza informativa". Test rules su emulatore (scrittura diretta negata a tutti, `staff_readonly` legge) obbligatorio. |
-| STORY-034 — 2MWT | IN REVIEW (implementata 30/10, da code-review + QA su rankex-app-dev) | Parte dopo lo schema/callable di 033. Decisione ux-ui-designer **prima della UI**: timer/contatore live in app o solo inserimento a posteriori (rischio aperto in STORY-034). |
+| Workflow GitHub `node-version` 20 → 22 (`ci.yml`, `deploy.yml` ×2, `e2e.yml`) | IN REVIEW | Nessuna dipendenza. Verifica: CI verde su un push del branch. |
+| STORY-035 — 30s-STS | IN REVIEW | Riusa schema/callable di STORY-033 come il 2MWT. `stopReasonCode`: stesso catalogo provvisorio del 2MWT. |
+| STORY-036 — Handgrip + infrastruttura bilaterale multi-prova | IN REVIEW (implementata su ADR-016 + spec UX) | Decisioni aperte: decimali dopo la conversione (rischio in backlog), lato dominante come dato del paziente o della valutazione (criterio 033). Da loggare in `docs/DECISIONS.md` prima di iniziare. |
+| STORY-033 — criteri bilaterali rimandati (validità per prova, best sulle valide, dolore per lato, lato dominante) | IN REVIEW (insieme a STORY-036) | Chiudono con 036, non separatamente. |
+| STORY-029 — requisiti non-codice (DPA, testo informativa, privacy draft) | BLOCKED (fuori capacità developer) | Proprietario utente/legale. Bloccano il go-live, non la chiusura sprint. |
 
 **Dipendenze bloccanti / punti di attenzione:**
-- **Cloud Functions:** 3 callable nuove (`registraInformativaPaziente`,
-  `aggiungiValutazione`, `annullaValutazione`) + modifiche a `creaCliente`/`salvaBia`.
-  Non in CI, senza test: verifica dal vivo su `rankex-dev` con script one-off,
-  incluse le chiamate dirette che devono fallire (senza informativa, da
-  `staff_readonly`, update/delete diretto su `assessments`).
-- **`firestore.rules`:** un nuovo match annidato. Deploy solo `deploy:rules:dev`.
-- **Nuova copia speculare** `utils/lipedema.js` ↔ `shared/lipedema.js`: il test di
-  parità è condizione di DONE (ADR-014 rischio #3).
-- **QA sull'hosting reale:** BUG-009 è sfuggito perché la QA girava su vite locale,
-  senza header. In questo sprint il giro QA finale va fatto su `rankex-app-dev.web.app`
-  dopo il deploy-dev, non solo in locale.
-- **AC di STORY-033 non verificabili end-to-end in questo sprint:** validità per prova e
-  best su prove valide (03/04/05), dolore per lato, lato dominante, guida dei 5 test in
-  `TestGuidePage`. Con il solo 2MWT si verificano al massimo come funzioni pure/schema.
-  Da confermare con Product Owner/Tech Lead se restano in 033 (verifica rimandata a
-  036-038) o vanno spostati nelle story dei singoli test: **non** allargare lo sprint
-  per chiuderli.
-- **Domanda aperta, non bloccante per il server:** catalogo `stopReasonCode` (EPIC-010,
-  questioni aperte) — serve per lo stop anticipato del 2MWT; in assenza, decisione
-  provvisoria Tech Lead.
+- **Cloud Functions:** `aggiungiValutazione` estesa a due nuovi `testId`; deploy solo
+  `deploy:dev`, runtime Node 22. **Il prossimo deploy delle functions in prod (anche
+  per altri motivi) deve usare Node 22**: Node 20 è dismesso da Google dal 30/10.
+- **`firestore.rules`:** nessuna modifica prevista (le valutazioni restano
+  `write: false`). Se emerge, va segnalata qui prima di farla.
+- **Copia speculare** `utils/lipedema.js` ↔ `shared/lipedema.js`: la logica bilaterale
+  entra nel test di parità — condizione di DONE (ADR-014 rischio #3). Precedente del
+  #11: il test di parità non deve importare file che dipendono da `firebase-functions`
+  (la CI non installa `functions/node_modules`, `281bbe4`).
+- **Osservazione UX accettata nel #11:** su mobile la barra del form copre la bottom
+  tab bar durante la compilazione. Con le 6 prove dell'Handgrip il form è più lungo:
+  l'ux-ui-designer lo tiene presente nel design di 036, senza riaprire il tema come
+  lavoro di questo sprint.
 
-**Scope creep — regola per questo sprint:** STORY-035…040, trend/grafici, PDF, i bug P3
-aperti (BUG-003/005/007/008/010) e i TD aperti (TD-004…010) **non** entrano qui, anche
-se toccano gli stessi file. Lavoro emerso non pianificato → `docs/BACKLOG.md`.
+**Scope creep — regola per questo sprint:** STORY-037…040, la guida test, i bug P3
+aperti (BUG-003/005/007/008/010) e i TD aperti (TD-004…010) **non** entrano qui. Lavoro
+emerso non pianificato → `docs/BACKLOG.md`.
 
 **Prossimo sprint (candidati), in ordine:**
-1. STORY-035 (30s STS) e STORY-036 (infrastruttura bilaterale handgrip)
-2. STORY-037/038 dopo 036
-3. STORY-039 (storico, trend, non comparabilità)
-4. STORY-040 (export PDF paziente)
-5. Bug P3 lipedema (BUG-003, BUG-010) se il Product Owner li vuole prima del go-live
+1. STORY-037 (HHD) e STORY-038 (OLS) sulla logica bilaterale di 036 + guida dei 5 test
+   in `TestGuidePage` (ultimo criterio aperto di STORY-033)
+2. STORY-039 (storico, trend, non comparabilità)
+3. STORY-040 (export PDF paziente)
+4. Bug P3 lipedema (BUG-003, BUG-010) se il Product Owner li vuole prima del go-live
 
 ---
 
 ## Piano sprint successivi (proposta Scrum Master, da confermare)
 
 **Aggiornamento 2026-10-30:** la coda corrente è EPIC-010 (Lipedema Edition) — vedi i
-candidati in fondo a Sprint #11. Il piano sotto (EPIC-007/EPIC-005) è precedente e va
+candidati in fondo a Sprint #12. Il piano sotto (EPIC-007/EPIC-005) è precedente e va
 rivisto dal Product Owner prima di riaprirlo.
 
 Sequenza indicativa, non calendarizzata — un solo sviluppatore, quindi ogni sprint parte
@@ -140,6 +136,68 @@ sprint successivi, in ordine:
 
 ## Storico sprint chiusi
 
+# SPRINT #11 — chiuso il 2026-10-31
+
+EPIC-010 Lipedema Edition, seconda ondata (informativa + Valutazione + 2MWT) — aperto
+il 2026-10-30, branch `feature/lipedema-module`.
+
+## Goal
+Un professionista registra l'informativa e salva/annulla una valutazione 2MWT, con
+storico grezzo verificabile. **Raggiunto.**
+
+## Completato
+- **STORY-029 (parte tecnica)** — `client.privacyNotice` solo via callable, audit
+  `PRIVACY_NOTICE_RECORDED` con soli id, gate `failed-precondition` in
+  `aggiungiValutazione` e `salvaBia`, banner sul paziente. Commit `cc42e34`.
+- **STORY-033** — infrastruttura Valutazione (subcollection `assessments`, rules
+  `write: false`, `aggiungiValutazione`/`annullaValutazione`, annulla + reinserisci,
+  snapshot di comparabilità, coppia `utils/lipedema.js` ↔ `shared/lipedema.js` nel test
+  di parità), per la parte verificabile col solo 2MWT. Commit `cc42e34`.
+- **STORY-034** — 2MWT: distanza calcolata dal server, validazioni, percorso variante,
+  stop anticipato, dati clinici opzionali pre/post. Commit `cc42e34`.
+- **Code review:** 1 HIGH + 3 MEDIUM, tutti corretti prima della QA.
+- **QA dal vivo sull'hosting reale** `rankex-app-dev.web.app` (non vite locale, lezione
+  di BUG-009): tutta PASS.
+- **BUG-011** (form compilato perso senza conferma), **BUG-012** (barra SALVA non fissa
+  su mobile), **BUG-013** ("Ultime valutazioni" senza segnalare variante/interruzione) —
+  trovati dalla QA, fixati in `769565d`, **VERIFIED** il 31/10 su rankex-app-dev
+  (`27bfc55`).
+
+## Non completato (motivo)
+- **Criteri di STORY-033 non verificabili col solo 2MWT** — validità per prova e best
+  sulle valide, dolore per lato, lato dominante, guida dei 5 test in `TestGuidePage`.
+  Rimandati per scelta, già previsto all'apertura: i bilaterali al #12 con STORY-036,
+  la guida con 037/038.
+- **STORY-029, requisiti non-codice** (DPA art. 28 firmato, testo dell'informativa,
+  privacy draft): BLOCKED, proprietario utente/legale. Bloccano il go-live, non lo
+  sprint.
+- Deploy in produzione del modulo: non previsto (DPA).
+
+## Blockers
+- Nessuno tecnico aperto.
+- DPA / testo informativa (vedi sopra) — unico blocco al go-live di EPIC-010.
+
+## Tech debt emerso
+- **Runtime Cloud Functions portato a Node 22** (`13052d6`): Google ha dismesso Node 20
+  il 30/10. Lavoro non pianificato ma obbligato (senza, niente deploy). Conseguenze
+  aperte: (1) il prossimo deploy delle functions in **prod** dovrà usare Node 22;
+  (2) i workflow GitHub (`ci.yml`, `deploy.yml`, `e2e.yml`) sono ancora su
+  `node-version: '20'` → task nel Sprint #12.
+- **CI rotta** da un import del test di parità verso un file che dipende da
+  `firebase-functions` (la CI non installa `functions/node_modules`); corretta in
+  `281bbe4` separando `shared/timezone.js`. Per la Retrospective: i file `shared/`
+  importati dai test di parità devono restare puri, senza dipendenze di `functions/`.
+- **Osservazione UX accettata, non un bug:** su mobile la barra del form (z-40) copre la
+  bottom tab bar (z-30) durante la compilazione; si esce con INDIETRO, back dell'header
+  o swipe, tutti con conferma (BUG-011/012). Da tenere presente nel design dei test
+  multi-prova, più lunghi.
+- Nessun nuovo TD numerato. Bug P3 e TD-004…010 invariati.
+
+## Prossimo sprint (candidati)
+STORY-035 + STORY-036 + criteri bilaterali di STORY-033 + workflow Node 22 → aperto come
+Sprint #12, vedi sopra. Poi STORY-037/038 + guida test, 039, 040.
+
+---
 # SPRINT #10 — chiuso il 2026-10-30
 
 EPIC-010 Lipedema Edition, prima ondata (fondamenta modulo) — aperto il 2026-10-24,
