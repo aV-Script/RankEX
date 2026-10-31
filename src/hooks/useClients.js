@@ -134,6 +134,12 @@ export function useClients(orgId, userId) {
     }
   }, [orgId, clients, clientLabel, dispatch, removeLocal, toastSuccess, toastError])
 
+  // ── Cliente aggiornato altrove (es. informativa registrata dalla dashboard) ─
+  // Allinea la lista, così riaprendo il cliente non si riparte dal dato vecchio
+  const handleClientUpdated = useCallback((client) => {
+    updateLocal(client.id, client)
+  }, [updateLocal])
+
   return {
     clients,
     isLoading: loading,
@@ -143,5 +149,6 @@ export function useClients(orgId, userId) {
     handleCampionamento,
     handleAddXP,
     handleDeleteClient,
+    handleClientUpdated,
   }
 }

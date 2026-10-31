@@ -4,6 +4,7 @@ import { requireOrgAccess } from '../shared/auth.js'
 import { buildBiaUpdate } from '../shared/gamification.js'
 import { requireId, pickAllowed } from '../shared/validate.js'
 import { getOrgCapabilities } from '../shared/orgModule.js'
+import { requiresPrivacyNotice, PRIVACY_NOTICE_MISSING } from '../shared/lipedema.js'
 
 const REGION = 'europe-west1'
 
@@ -39,6 +40,12 @@ export const salvaBia = onCall({ region: REGION }, async (request) => {
     if (!snap.exists) throw new HttpsError('not-found', 'Cliente non trovato')
 
     const client = { id: clientId, ...snap.data() }
+
+    // Nei moduli in cui ogni dato è sanitario (lipedema) la BIA, come le
+    // valutazioni, si salva solo dopo aver registrato l'informativa (ADR-015 §1)
+    if (requiresPrivacyNotice(capabilities) && !client.privacyNotice) {
+      throw new HttpsError('failed-precondition', 'Informativa non registrata per questo paziente', { reason: PRIVACY_NOTICE_MISSING })
+    }
     const built  = buildBiaUpdate(client, bia)
     const { isFirstMeasurement } = built
 

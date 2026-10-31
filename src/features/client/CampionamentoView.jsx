@@ -1,3 +1,4 @@
+import { useEffect }        from 'react'
 import { Button }           from '../../components/ui'
 import { calcAge }          from '../../utils/validation'
 import { ConfirmDialog }    from '../../components/common/ConfirmDialog'
@@ -5,7 +6,8 @@ import { TestInput }        from '../../components/modals/campionamento-modal/Te
 import { RankPreview }      from '../../components/modals/campionamento-modal/RankPreview'
 import { useCampionamento } from '../../components/modals/campionamento-modal/useCampionamento'
 
-export function CampionamentoView({ client, _color, onSave, onBack }) {
+// onDirtyChange(boolean): vedi BiaView
+export function CampionamentoView({ client, _color, onSave, onBack, onDirtyChange }) {
   const {
     config,
     testValues,
@@ -26,6 +28,10 @@ export function CampionamentoView({ client, _color, onSave, onBack }) {
     handleConfirmSave,
     setShowConfirm,
   } = useCampionamento({ client, onSave, onBack })
+  const isDirty = filledCount > 0
+
+  useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
+  useEffect(() => () => onDirtyChange?.(false), [onDirtyChange])
 
   return (
     <div className="min-h-screen text-white">

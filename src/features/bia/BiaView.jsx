@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { Button, SectionLabel }           from '../../components/ui'
 import { ConfirmDialog }                  from '../../components/common/ConfirmDialog'
 import { BiaGaugeBar }                    from './bia-view/BiaGaugeBar'
@@ -7,8 +7,14 @@ import { calcBmi }                        from '../../utils/bia'
 import { calcAge }                        from '../../utils/validation'
 
 
-export function BiaView({ client, color, onSave, onBack }) {
+// onDirtyChange(boolean): il genitore chiede conferma prima di smontare la vista
+// con valori inseriti (cambio tab, back dell'header)
+export function BiaView({ client, color, onSave, onBack, onDirtyChange }) {
   const [values,      setValues]      = useState(BIA_EMPTY)
+  const isDirty = Object.values(values).some(value => value !== '')
+
+  useEffect(() => { onDirtyChange?.(isDirty) }, [isDirty, onDirtyChange])
+  useEffect(() => () => onDirtyChange?.(false), [onDirtyChange])
   const [errors,      setErrors]      = useState({})
   const [loading,     setLoading]     = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)

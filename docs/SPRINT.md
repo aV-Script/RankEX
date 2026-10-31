@@ -7,74 +7,97 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-### SPRINT #10 — EPIC-010 Lipedema Edition, prima ondata (fondamenta modulo) — aperto il 2026-10-24
+### SPRINT #11 — EPIC-010 Lipedema Edition, seconda ondata (informativa + Valutazione + 2MWT) — aperto il 2026-10-30
 
-**Branch:** `feature/lipedema-module` (creato da `dev`, come richiesto da ADR-014 §0).
+**Branch:** `feature/lipedema-module` (basato su `dev`, allineato a `origin/dev` in
+`e9bdebb` all'apertura). Rules e functions si deployano solo da qui (ADR-014 rischio #4).
 
-**Numerazione:** #10 e non #7 — i numeri #7…#9 sono già stati usati fuori da questo
-file (commit `852d917` "Sprint #6-#9" su `feature/mobile-app`, e CLAUDE.md cita lo
-"Sprint #9" per la rimozione di `SlotCard.jsx`/`CalendarSidebar.jsx`). Lo storico di
-quegli sprint non è mai arrivato su questo ramo: stesso problema di numerazione
-divergente già tracciato come TD-004.
+**Goal:** un professionista registra l'informativa e salva/annulla una valutazione
+2MWT, con storico grezzo verificabile.
 
-**Goal:** un'org lipedema si crea, non mostra né calcola rank/XP, e gestisce pazienti
-senza account.
+**Story selezionate:**
+1. STORY-029 — parte tecnica: `client.privacyNotice` scritto solo via callable
+   (`registraInformativaPaziente`, e/o in `creaCliente` dal wizard), audit
+   `PRIVACY_NOTICE_RECORDED` con soli id, gate `failed-precondition` in
+   `aggiungiValutazione` e `salvaBia` per le org lipedema, banner "Registra informativa"
+   sul paziente (ADR-015 §1-2). I requisiti **non-codice** (DPA art. 28 firmato,
+   testo dell'informativa redatto dall'org, `PRIVACY-POLICY-DRAFT.md` aggiornato) sono
+   tracciati qui per visibilità ma **fuori capacità developer**: proprietario l'utente,
+   non condizionano la chiusura dello sprint (stesso schema di STORY-019/020 in Sprint #6).
+2. STORY-033 — base comune Valutazione: `assessmentsPath`, service + `useAssessments`,
+   match rules `clients/{id}/assessments/{id}` (`read: canRead`, `write: false`),
+   callable `aggiungiValutazione`/`annullaValutazione` + usecases, schema unico con
+   `clinical: {}` (ADR-009 come rivisto da ADR-015 §3), immutabilità e "annulla +
+   reinserisci" con `supersedes`/`supersededBy` e audit `ASSESSMENT_VOIDED` solo id
+   (ADR-011), snapshot `comparability` (ADR-012), coppia `utils/lipedema.js` ↔
+   `functions/src/shared/lipedema.js` nel test di parità.
+3. STORY-034 — 2MWT (`lipedema_2mwt`): tratti + frazione, `distanceM` calcolata dal
+   server, validazioni ADR-015 §7, stop anticipato, dati clinici opzionali pre/post.
 
-**Story selezionate (ordine ADR-014 §1-3, confermato da ADR-015 §8):**
-1. STORY-030 — modulo `lipedema` + capability esplicite + terminologia, **insieme** a
-   `functions/src/shared/modules.js` e ai controlli di modulo nelle callable (ADR-008).
-   Stesso rilascio functions: nessuna org lipedema deve poter esistere prima che le
-   callable la riconoscano.
-2. STORY-031 — nessun rank/percentile/gamification nel modulo (gating UI sull'inventario
-   ADR-007). Può procedere in parallelo a STORY-032 una volta chiusa STORY-030.
-3. STORY-032 — wizard "Nuovo paziente" senza account Auth (`creaCliente` senza Auth,
-   email facoltativa) + `eliminaCliente` con cancellazione ricorsiva generalizzata
-   (`listCollections`).
+**Perché anche STORY-034 (decisione di sequenziamento, non di prodotto):** STORY-033 da
+sola **non è verificabile end-to-end**. `aggiungiValutazione` valida e calcola `setup`,
+`trials` e `result` per `testId`: senza almeno un test concreto si potrebbe solo
+provare uno schema vuoto, e AC centrali di 033 ("risultato derivato calcolato dal
+sistema con arrotondamento identico", "prove grezze conservate", "stop anticipato mai
+trattato come completo", annulla + reinserisci) non avrebbero nulla di reale su cui
+girare. Il 2MWT è il test più semplice: una sola prova, monolaterale, nessuna
+conversione di unità, nessuna dipendenza da STORY-036 (bilaterale), e tutti i default
+di protocollo già decisi (ADR-015 §7). 035 resta fuori per tenere lo sprint piccolo:
+un secondo test non aggiunge verificabilità all'infrastruttura.
 
-**Sequenziamento:** 030 → (031 ∥ 032). 031 e 032 dipendono entrambe dalle capability
-di 030; tra loro sono indipendenti. Ordine di deploy per ogni rilascio (ADR-014):
-functions dev → rules dev → hosting dev → verifica.
+**Sequenziamento:** 029 (gate) e 033 (infrastruttura) procedono insieme — il gate vive
+dentro `aggiungiValutazione` — poi 034 sopra 033. Ordine di deploy per ogni rilascio
+(ADR-014): functions dev → rules dev → hosting dev → verifica. **Nessun deploy in prod**
+in questo sprint: il modulo lipedema non va in produzione prima del DPA firmato.
 
 **Status board:**
 
 | Task | Status | Note |
 |------|--------|------|
-| STORY-030 — modulo + capability + terminologia + check modulo server (ADR-008) | READY | Primo in sequenza. Include `MODULE_OPTIONS`/admin e la condizione rules sul cambio modulo di un'org con pazienti (ADR-015 §6/§8). Default restrittivo, test tabellare sui 3 moduli (rischio #2 ADR-014). |
-| STORY-031 — niente rank/percentili/gamification | READY | Parte dopo STORY-030. Inventario ADR-007 usato come checklist di code review; verifica a campione "nessun testo percentile/rank/XP" in QA. |
-| STORY-032 — wizard paziente senza Auth + `eliminaCliente` ricorsivo | READY | Parte dopo STORY-030. Test su emulatore obbligatorio per la cancellazione ricorsiva (rischio #1 ADR-014/015: dati sanitari orfani). |
+| STORY-029 — attestazione informativa + gate server (parte tecnica) | IN REVIEW (implementata 30/10, da code-review + QA su rankex-app-dev) | Tocca `creaCliente`, `salvaBia`, nuova callable, `AUDIT_ACTIONS`. AC "storico attestazioni" già chiuso da ADR-015 §1 (ultima versione sul doc + storico in `audit_logs`). |
+| STORY-029 — requisiti non-codice (DPA, testo informativa, privacy draft) | BLOCKED (fuori capacità developer) | Proprietario utente/legale. `docs/PRIVACY-POLICY-DRAFT.md` non esiste su questo ramo (solo su `feature/mobile-app`, TD-004): portarlo o riscriverlo è una scelta dell'utente. Bloccante per il go-live, non per la chiusura sprint. |
+| STORY-033 — infrastruttura Valutazione | IN REVIEW (implementata 30/10, da code-review + QA su rankex-app-dev) | Dipende dal gate di 029 per l'AC "nessuna valutazione senza informativa". Test rules su emulatore (scrittura diretta negata a tutti, `staff_readonly` legge) obbligatorio. |
+| STORY-034 — 2MWT | IN REVIEW (implementata 30/10, da code-review + QA su rankex-app-dev) | Parte dopo lo schema/callable di 033. Decisione ux-ui-designer **prima della UI**: timer/contatore live in app o solo inserimento a posteriori (rischio aperto in STORY-034). |
 
 **Dipendenze bloccanti / punti di attenzione:**
-- **Cloud Functions:** STORY-030 e STORY-032 modificano callable (`creaCliente`,
-  `eliminaCliente`, `chiudiSessione`, `salvaCampionamento`, …) e aggiungono
-  `shared/modules.js` (nuova copia speculare). Le functions non sono in CI e non hanno
-  test: verifica dal vivo su `rankex-dev` con script one-off (ADR-014 rischio #8).
-- **`firestore.rules`:** STORY-030 tocca le rules (cambio modulo bloccato con
-  `clientCount > 0`). Deploy rules solo da questo branch basato su `dev`, mai da
-  `feature/mobile-app` (ADR-014 rischio #4: regressione dell'hardening P0).
-- **Deploy:** nessun deploy in prod in questo sprint. Deploy su `rankex-dev` solo dopo
-  QA e solo su richiesta esplicita dell'utente.
-- **Fuori sprint, non bloccante per lo sviluppo:** STORY-029 (attestazione informativa +
-  DPA) è requisito di rilascio, non di sviluppo — nessuna org lipedema va attivata con
-  pazienti reali prima che sia DONE e che il DPA sia firmato (ADR-015 §8).
+- **Cloud Functions:** 3 callable nuove (`registraInformativaPaziente`,
+  `aggiungiValutazione`, `annullaValutazione`) + modifiche a `creaCliente`/`salvaBia`.
+  Non in CI, senza test: verifica dal vivo su `rankex-dev` con script one-off,
+  incluse le chiamate dirette che devono fallire (senza informativa, da
+  `staff_readonly`, update/delete diretto su `assessments`).
+- **`firestore.rules`:** un nuovo match annidato. Deploy solo `deploy:rules:dev`.
+- **Nuova copia speculare** `utils/lipedema.js` ↔ `shared/lipedema.js`: il test di
+  parità è condizione di DONE (ADR-014 rischio #3).
+- **QA sull'hosting reale:** BUG-009 è sfuggito perché la QA girava su vite locale,
+  senza header. In questo sprint il giro QA finale va fatto su `rankex-app-dev.web.app`
+  dopo il deploy-dev, non solo in locale.
+- **AC di STORY-033 non verificabili end-to-end in questo sprint:** validità per prova e
+  best su prove valide (03/04/05), dolore per lato, lato dominante, guida dei 5 test in
+  `TestGuidePage`. Con il solo 2MWT si verificano al massimo come funzioni pure/schema.
+  Da confermare con Product Owner/Tech Lead se restano in 033 (verifica rimandata a
+  036-038) o vanno spostati nelle story dei singoli test: **non** allargare lo sprint
+  per chiuderli.
+- **Domanda aperta, non bloccante per il server:** catalogo `stopReasonCode` (EPIC-010,
+  questioni aperte) — serve per lo stop anticipato del 2MWT; in assenza, decisione
+  provvisoria Tech Lead.
 
-**Scope creep — regola per questo sprint:** valutazioni/test (STORY-033…038), trend,
-PDF e attestazione informativa **non** entrano qui, anche se toccano gli stessi file.
-TD-005 e TD-006 restano aperti in `docs/TECH-DEBT.md`, non vanno risolti di passaggio.
-Qualunque lavoro emerso non pianificato va in `docs/BACKLOG.md` per il prossimo sprint.
+**Scope creep — regola per questo sprint:** STORY-035…040, trend/grafici, PDF, i bug P3
+aperti (BUG-003/005/007/008/010) e i TD aperti (TD-004…010) **non** entrano qui, anche
+se toccano gli stessi file. Lavoro emerso non pianificato → `docs/BACKLOG.md`.
 
 **Prossimo sprint (candidati), in ordine:**
-1. STORY-029 + STORY-033 (attestazione informativa + infrastruttura "Valutazione",
-   stessa ondata per ADR-015 §8)
-2. STORY-034…038 (i 5 test; 036 prima di 037/038, 034/035 in parallelo)
+1. STORY-035 (30s STS) e STORY-036 (infrastruttura bilaterale handgrip)
+2. STORY-037/038 dopo 036
 3. STORY-039 (storico, trend, non comparabilità)
 4. STORY-040 (export PDF paziente)
+5. Bug P3 lipedema (BUG-003, BUG-010) se il Product Owner li vuole prima del go-live
 
 ---
 
 ## Piano sprint successivi (proposta Scrum Master, da confermare)
 
-**Aggiornamento 2026-10-24:** la coda corrente è EPIC-010 (Lipedema Edition) — vedi i
-candidati in fondo a Sprint #10. Il piano sotto (EPIC-007/EPIC-005) è precedente e va
+**Aggiornamento 2026-10-30:** la coda corrente è EPIC-010 (Lipedema Edition) — vedi i
+candidati in fondo a Sprint #11. Il piano sotto (EPIC-007/EPIC-005) è precedente e va
 rivisto dal Product Owner prima di riaprirlo.
 
 Sequenza indicativa, non calendarizzata — un solo sviluppatore, quindi ogni sprint parte
@@ -116,6 +139,77 @@ sprint successivi, in ordine:
 ---
 
 ## Storico sprint chiusi
+
+# SPRINT #10 — chiuso il 2026-10-30
+
+EPIC-010 Lipedema Edition, prima ondata (fondamenta modulo) — aperto il 2026-10-24,
+branch `feature/lipedema-module` da `dev`. Numerazione #10 e non #7: i numeri #7…#9
+sono già stati usati su `feature/mobile-app` (TD-004).
+
+## Goal
+Un'org lipedema si crea, non mostra né calcola rank/XP, e gestisce pazienti senza
+account.
+
+## Completato
+- **STORY-030** — modulo `lipedema`, capability esplicite in `getModule` (default
+  restrittivo per moduli sconosciuti), terminologia Professionista/Paziente/
+  Appuntamento, `shared/modules.js` + check di modulo nelle callable (ADR-008), cambio
+  modulo bloccato con pazienti (rules + `OrgDetailView`). Commit `f71f73c`.
+- **STORY-031** — niente rank/percentili/gamification nel modulo, lato UI e lato
+  callable (XP/campionamento/obiettivi/avatar rifiutati; `chiudiSessione` e `salvaBia`
+  senza XP). Commit `f71f73c`.
+- **STORY-032** — wizard paziente senza account Auth, email facoltativa, audit
+  `CLIENT_CREATED` senza nome; `eliminaCliente` con `listCollections` +
+  `recursiveDelete`. Commit `f71f73c`.
+- Tutte e tre **verificate dal vivo su rankex-dev** (QA 25/10, due giri: il primo su
+  `f71f73c`, il secondo su `b119bfb` dopo i fix).
+- **BUG-002** (terminologia hardcoded, P2), **BUG-004** (Elimina visibile a
+  staff_readonly, P3), **BUG-006** (upgrade profilo da staff_readonly, P3) — fixati in
+  `b119bfb`, **VERIFIED** dal vivo il 25/10.
+- **BUG-009** (P0, fuori piano) — la CSP di `firebase.json` non ammetteva
+  `*.cloudfunctions.net` in `connect-src`: **ogni** scrittura via callable era
+  bloccata sull'hosting reale, produzione inclusa, dalla migrazione BE di luglio. Trovato
+  dalla QA sull'hosting dev, fixato (`56905ee` su dev, verificato con smoke test su
+  rankex-app-dev/rankex-admin-dev), pubblicato in produzione con hotfix `4f5d08e` su
+  `main` il 26/10 (deploy-prod verde, header live verificato), poi riportato su dev
+  (`2fb17a1`). Entrato nello sprint senza discussione: un P0 in prod ha precedenza su
+  tutto.
+
+## Non completato (motivo)
+- Nessuna story pianificata lasciata a metà.
+- Deploy in produzione del modulo lipedema: **non previsto** per scelta (nessuna org
+  lipedema in prod prima del DPA, STORY-029).
+
+## Blockers
+- Nessuno tecnico aperto.
+- BUG-009 in prod: header verificato, la prova di scrittura dal vivo in produzione è a
+  cura dell'utente (da confermare in `docs/BUGS.md` quando fatta).
+
+## Tech debt emerso
+- **Bug P3 aperti** (non bloccanti, fuori sprint): BUG-003 (badge scrivibili
+  direttamente su un paziente, stessa causa di TD-005), BUG-005 (tab BIA visibile nel
+  soccer), BUG-007 (azioni di scrittura del calendario visibili in readonly), BUG-008
+  (area atleta con terminologia PT fissa), BUG-010 (plurale con quantità 1 in lipedema).
+- **TD aggiunti in sprint:** TD-007 (soccer dichiara `hasBia`/`hasProfileTypes` false
+  ma la UI offre la BIA), TD-008 (`OrgDetailView` senza scelta di
+  `terminologyVariant`), TD-009 (audit `CLIENT_DELETED` solo client-side,
+  `CLIENT_CREATED` doppio), TD-010 (codice morto degli step 'test' in `useWizard`).
+  TD-004/005/006 restano aperti dal design (24/10).
+- **Tech debt di processo (per la Retrospective):** la CSP non era coperta da alcun
+  test. Gli e2e e la QA locale girano su vite, che non applica gli header di
+  `firebase.json`: il blocco di tutte le callable è rimasto invisibile per circa tre
+  mesi ed è emerso solo perché la QA di questo sprint ha usato l'hosting dev reale.
+  Da discutere: un test che verifichi la CSP rispetto ai domini usati dall'app, o un
+  e2e minimo contro l'hosting deployato (suggerimento già in BUG-009); e la QA
+  sull'hosting reale come passo fisso prima di chiudere una story che tocca callable.
+- Pattern osservato: i fix di BUG-002 hanno toccato 48 file — la terminologia per
+  modulo era una superficie più grande di quanto l'inventario ADR-007 prevedesse.
+
+## Prossimo sprint (candidati)
+STORY-029 (parte tecnica) + STORY-033 + STORY-034 → aperto come Sprint #11, vedi sopra.
+Poi STORY-035/036, 037/038, 039, 040.
+
+---
 
 ### SPRINT #6 — EPIC-007: Privacy & Data Protection, remediation P0 — aperto il 2026-09-14, archiviato il 2026-10-24
 

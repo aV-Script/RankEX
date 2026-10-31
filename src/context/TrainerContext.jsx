@@ -15,6 +15,9 @@ const initialState = {
   moduleType:  null,
   terminology: null,
   userRole:    null,
+  // Nome di chi usa l'app: profile.name → email → uid, come getActorName lato
+  // server (functions/src/shared/actor.js). Solo per mostrarlo in anteprima
+  userName:    null,
   orgPlan:     'free',
 }
 
@@ -38,9 +41,9 @@ const DispatchCtx = createContext(null)
 
 // ── Provider ──────────────────────────────────────────────────────────────────
 /**
- * @param {{ orgId, moduleType, terminology, userRole, orgPlan, children }} props
+ * @param {{ orgId, moduleType, terminology, userRole, userName, orgPlan, children }} props
  */
-export function TrainerProvider({ orgId, moduleType, terminology, userRole, orgPlan, children }) {
+export function TrainerProvider({ orgId, moduleType, terminology, userRole, userName, orgPlan, children }) {
   const [state, dispatch] = useReducer(reducer, {
     ...initialState,
     orgId,
@@ -48,6 +51,7 @@ export function TrainerProvider({ orgId, moduleType, terminology, userRole, orgP
     // Unico punto di fallback: i consumer leggono sempre una terminologia valida
     terminology: terminology ?? DEFAULT_TERMINOLOGY,
     userRole,
+    userName: userName ?? null,
     orgPlan: orgPlan ?? 'free',
   })
 

@@ -48,6 +48,7 @@
 
   /* Semantici — stato/classifica, non legati al tema (uguali su tutti i 7 temi) */
   --rx-danger: #f87171;
+  --rx-warning: #fbbf24; /* avvisi ambra (informativa mancante, varianti, interruzioni) */
   --rx-gold:   #ffd700;
   --rx-silver: #c0c0c0;
 

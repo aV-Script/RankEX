@@ -91,6 +91,8 @@ function seed(moduleType) {
       name: 'P', sesso: 'F', eta: 40, categoria: null, profileType: 'complete', clientAuthUid: 'uC1',
       xp: 10, xpNext: 500, level: 1, log: [], coins: 500, avatarPurchased: [],
       lastBia: null, biaHistory: [],
+      // salvaBia in lipedema richiede l'informativa (ADR-015 §1, valutazioni.test.js)
+      privacyNotice: { informativaVersion: 'v1', deliveredAt: '2026-10-01', recordedBy: 'trainer1' },
     }],
     [GOAL,   { testKey: 'sprint_20m', status: 'active' }],
   ])

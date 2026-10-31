@@ -9,6 +9,7 @@ import {
 import { isAtClientLimit }  from '../shared/plans.js'
 import { getOrgCapabilities } from '../shared/orgModule.js'
 import { calcAge }          from '../shared/percentile.js'
+import { buildPrivacyNotice, writeAudit, AUDIT_PRIVACY_NOTICE_RECORDED } from '../shared/actor.js'
 
 const REGION = 'europe-west1'
 
@@ -92,7 +93,7 @@ export const creaCliente = onCall({ region: REGION }, async (request) => {
   }
 
   if (!capabilities.hasClientLogin) {
-    return createClientWithoutLogin(db, request, { orgId, trainerId, formData })
+    return createClientWithoutLogin(db, request, { orgId, trainerId, formData, profile, capabilities })
   }
 
   const { email, password, testValues = {}, stats = {}, ...rest } = formData
@@ -168,7 +169,7 @@ export const creaCliente = onCall({ region: REGION }, async (request) => {
  * accede all'app, quindi nessuna password (rifiutata se arriva) ed email facoltativa.
  * clientCount nello stesso batch del doc, come per gli altri moduli.
  */
-async function createClientWithoutLogin(db, request, { orgId, trainerId, formData }) {
+async function createClientWithoutLogin(db, request, { orgId, trainerId, formData, profile, capabilities }) {
   const anagrafica = validateAnagraficaWithoutLogin(formData)
 
   if (formData.password !== undefined && formData.password !== null && formData.password !== '') {
@@ -176,14 +177,17 @@ async function createClientWithoutLogin(db, request, { orgId, trainerId, formDat
   }
   const email = optionalEmail(formData.email)
 
-  // Punto di estensione STORY-029/033: l'attestazione "informativa consegnata"
-  // (client.privacyNotice + audit PRIVACY_NOTICE_RECORDED, ADR-015 §1) potrà essere
-  // raccolta qui alla creazione. Fuori scope di STORY-032.
+  // Attestazione "informativa consegnata" raccolta dal wizard (ADR-015 §1),
+  // facoltativa: senza, il paziente si crea lo stesso e valutazioni/BIA restano
+  // bloccate finché non si registra con registraInformativaPaziente
+  const privacyNotice = readPrivacyNotice(formData.privacyNotice, anagrafica, { request, profile, capabilities })
+
   const data = {
     ...anagrafica,
     ...CLIENT_WITHOUT_LOGIN_DEFAULTS,
     email,
     trainerId,
+    ...(privacyNotice ? { privacyNotice } : {}),
   }
 
   const clientRef = db.collection(`organizations/${orgId}/clients`).doc()
@@ -211,7 +215,27 @@ async function createClientWithoutLogin(db, request, { orgId, trainerId, formDat
     env:       'functions',
   }).catch(() => {})
 
+  if (privacyNotice) {
+    writeAudit(db, request, AUDIT_PRIVACY_NOTICE_RECORDED, {
+      orgId, clientId, informativaVersion: privacyNotice.informativaVersion,
+    })
+  }
+
   return { id: clientId, ...data }
+}
+
+/**
+ * Informativa consegnata, se il wizard l'ha raccolta: stesso helper di
+ * registraInformativaPaziente (shared/actor.js). Solo nei moduli con
+ * valutazioni; recordedBy/recordedAt li imposta il server.
+ * @returns {object|null}
+ */
+function readPrivacyNotice(input, anagrafica, { request, profile, capabilities }) {
+  if (input === undefined || input === null) return null
+  if (!capabilities.hasAssessments) {
+    throw new HttpsError('invalid-argument', "Il modulo dell'organizzazione non prevede l'informativa paziente")
+  }
+  return buildPrivacyNotice(input, anagrafica.dataNascita, { profile, request })
 }
 
 /**

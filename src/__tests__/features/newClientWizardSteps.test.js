@@ -20,8 +20,8 @@ describe('getWizardSteps — step per modulo (STORY-032)', () => {
     expect(stepTypes(MODULES.SOCCER_ACADEMY, 'bia_only')).toEqual(['anagrafica', 'ruolo', 'account'])
   })
 
-  it('Lipedema: niente profilo/categoria/ruolo/account, solo contatto facoltativo', () => {
-    expect(stepTypes(MODULES.LIPEDEMA)).toEqual(['anagrafica', 'contatto'])
+  it('Lipedema: niente profilo/categoria/ruolo/account; contatto e informativa facoltativi', () => {
+    expect(stepTypes(MODULES.LIPEDEMA)).toEqual(['anagrafica', 'contatto', 'informativa'])
   })
 
   it('modulo sconosciuto: nessuno step ereditato da PT, nessun account', () => {

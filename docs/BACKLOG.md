@@ -1038,7 +1038,8 @@ trattare dati sanitari su pazienti reali in modo lecito.
 - **Risks:** DPA e informativa dipendono da azioni legali/commerciali fuori dal
   repository → possono ritardare il go-live di ogni org anche a codice pronto; un blocco
   solo UI darebbe una falsa sicurezza (stesso errore di RX-63, STORY-002)
-- **Status:** BACKLOG
+- **Status:** READY (Sprint #11) — parte tecnica (a). I requisiti non-codice (b), (c) e
+  il privacy draft sono BLOCKED fuori capacità developer (proprietario utente/legale)
 
 ### [STORY-030] Nuovo modulo a livello organizzazione + capability + terminologia
 **Come** super_admin **voglio** creare un'organizzazione con il modulo Lipedema e
@@ -1078,7 +1079,7 @@ terzo verticale.
   aperte epic); concordanza di genere ("il Paziente"/"la Paziente", "nuovo/nuova") — già
   un problema noto su terminologia multi-modulo (STORY-024, STORY-027): da decidere con
   ux-ui-designer se usare forme neutre
-- **Status:** READY (Sprint #10)
+- **Status:** DONE (Sprint #10) — verificata dal vivo su rankex-dev 25/10, non in prod
 
 ### [STORY-031] Rank, percentili e gamification assenti nel modulo
 **Come** professionista Lipedema **voglio** non vedere mai rank, percentili, XP,
@@ -1115,7 +1116,7 @@ meccaniche di gioco non pertinenti.
 - **Risks:** è la story con la superficie più ampia (~19 file con ramificazioni per
   modulo + callable server) — rischio alto di superfici dimenticate; le callable oggi
   non conoscono il modulo
-- **Status:** READY (Sprint #10)
+- **Status:** DONE (Sprint #10) — verificata dal vivo su rankex-dev 25/10, non in prod
 
 ### [STORY-032] Wizard "Nuovo paziente" per il modulo
 **Come** professionista Lipedema **voglio** registrare un nuovo paziente con anagrafica
@@ -1154,7 +1155,7 @@ e misure **per** iniziare a raccoglierne le valutazioni.
   header "Reset password", eliminazione); campi anagrafici richiesti dai protocolli
   (es. arto/mano dominante) — da verificare nei docx se servono a livello paziente
   o di singola valutazione
-- **Status:** READY (Sprint #10)
+- **Status:** DONE (Sprint #10) — verificata dal vivo su rankex-dev 25/10, non in prod
 
 ### [STORY-033] Infrastruttura comune "Valutazione" (metadati protocollo, prove grezze, sintomi)
 **Come** professionista Lipedema **voglio** che ogni valutazione salvata registri data,
@@ -1219,7 +1220,8 @@ confrontabile nel tempo, come richiesto da tutti e 5 i documenti.
   rappresenta prove multiple + metadati — forzarlo dentro creerebbe ambiguità con PT/
   Soccer; volume dati per paziente più alto (prove grezze × test × valutazioni) →
   verificare impatto sui limiti Firestore piano Spark
-- **Status:** BACKLOG
+- **Status:** READY (Sprint #11) — insieme a STORY-034, unico test concreto su cui
+  verificarla end-to-end
 
 ### [STORY-034] Test 01 — 2-Minute Walk Test (2MWT)
 **Come** professionista **voglio** registrare un 2MWT inserendo tratti e frazione finale
@@ -1256,7 +1258,8 @@ confrontabile nel tempo, come richiesto da tutti e 5 i documenti.
   trend (STORY-039) deve distinguerla. Il docx §23 descrive una schermata test con timer
   02:00, contatore (tratti) e pulsante "Pausa" live: **da decidere con ux-ui-designer** se
   la v1 offre timer/contatore in app o solo l'inserimento a posteriori dei valori
-- **Status:** BACKLOG
+- **Status:** READY (Sprint #11) — decisione ux-ui-designer su timer live vs
+  inserimento a posteriori prima di iniziare la UI
 
 ### [STORY-035] Test 02 — 30-Second Sit-to-Stand (30s STS)
 **Come** professionista **voglio** registrare le ripetizioni valide in 30 s e gli

@@ -9,6 +9,7 @@ import {
 // `labelKey`: etichetta presa dalla terminologia del modulo invece di `label`
 const TABS = [
   { id: 'atleta',      labelKey: 'athlete',  icon: ICON_AVATAR },
+  { id: 'valutazioni', labelKey: 'assessments', icon: ICON_TEST },
   { id: 'test',        label: 'Test',        icon: ICON_TEST },
   { id: 'bia',         label: 'BIA',         icon: ICON_BIA },
   { id: 'allenamento', label: 'Allenamento', icon: ICON_WORKOUT },

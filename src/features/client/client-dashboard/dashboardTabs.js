@@ -8,6 +8,7 @@
  */
 export const DASHBOARD_TABS = [
   { id: 'atleta' },
+  { id: 'valutazioni', capability: 'hasAssessments' },
   { id: 'test',        capability: 'hasPercentileTests', requiresTests: true },
   { id: 'bia' },
   { id: 'allenamento' },

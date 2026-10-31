@@ -26,6 +26,8 @@
  *   - aggiungiObiettivo / annullaObiettivo (achievement controllato in salvaCampionamento)
  *   - acquistaAvatar (spike EPIC-005 — negozio avatar, vedi docs/DECISIONS.md ADR-002)
  *   - registraLoginFallito (STORY-017/EPIC-007 — no auth richiesta, vedi ADR-004)
+ *   - registraInformativaPaziente / aggiungiValutazione / annullaValutazione
+ *     (EPIC-010 Lipedema — STORY-029/033/034, ADR-009/011/015)
  */
 
 import { initializeApp } from 'firebase-admin/app'
@@ -70,3 +72,6 @@ export { aggiungiObiettivo }           from './callable/aggiungiObiettivo.js'
 export { annullaObiettivo }            from './callable/annullaObiettivo.js'
 export { acquistaAvatar }              from './callable/acquistaAvatar.js'
 export { registraLoginFallito }        from './callable/registraLoginFallito.js'
+export { registraInformativaPaziente } from './callable/registraInformativaPaziente.js'
+export { aggiungiValutazione }         from './callable/aggiungiValutazione.js'
+export { annullaValutazione }          from './callable/annullaValutazione.js'

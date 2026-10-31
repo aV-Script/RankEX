@@ -286,6 +286,33 @@ export function Field({ label, error, htmlFor, children }) {
   )
 }
 
+// ─── WarningNote ──────────────────────────────────────────────────────────────
+// Avviso ambra in linea (--rx-warning, uguale su tutti i temi): informa senza
+// bloccare, es. informativa mancante o percorso non standard. `action` opzionale
+// a destra (es. un <Button>), `id` per collegarlo con aria-describedby.
+export function WarningNote({ id, title, children, action, className = '' }) {
+  return (
+    <div
+      id={id}
+      className={`flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-3 rounded-[4px] ${className}`}
+      style={{
+        background: 'color-mix(in srgb, var(--rx-warning) 7%, transparent)',
+        border:     '1px solid color-mix(in srgb, var(--rx-warning) 30%, transparent)',
+      }}
+    >
+      <div className="flex-1 min-w-0 font-body text-[12px] leading-relaxed" style={{ color: 'var(--rx-text-muted)' }}>
+        {title && (
+          <span className="font-display text-[9px] font-bold tracking-[2px] uppercase mr-2 align-middle" style={{ color: 'var(--rx-warning)' }}>
+            {title}
+          </span>
+        )}
+        {children}
+      </div>
+      {action && <div className="shrink-0">{action}</div>}
+    </div>
+  )
+}
+
 // ─── EmptyState ───────────────────────────────────────────────────────────────
 export function EmptyState({ icon, title, description, color = 'var(--rx-accent)', action }) {
   return (

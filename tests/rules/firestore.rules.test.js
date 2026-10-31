@@ -373,6 +373,52 @@ describe('Obiettivi del cliente', () => {
   })
 })
 
+// ── Valutazioni Lipedema — lettura ai membri, scrittura solo Admin SDK ───────
+describe('Valutazioni (assessments)', () => {
+  const ASSESSMENT  = 'organizations/org1/clients/client1/assessments/a1'
+  const ASSESSMENTS = 'organizations/org1/clients/client1/assessments'
+  const DATA = { testId: 'lipedema_2mwt', status: 'valid', result: { distanceM: 142 } }
+
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(ctx => setDoc(doc(ctx.firestore(), ASSESSMENT), DATA))
+  })
+
+  it.each(['admin1', 'trainer1', 'staff1', 'superadmin1'])('%s legge le valutazioni (doc e lista)', async (uid) => {
+    const db = ctxFor(uid).firestore()
+    await assertSucceeds(getDoc(doc(db, ASSESSMENT)))
+    await assertSucceeds(getDocs(collection(db, ASSESSMENTS)))
+  })
+
+  it('un membro di un\'altra org e il cliente non le leggono', async () => {
+    await assertFails(getDoc(doc(ctxFor('admin2').firestore(), ASSESSMENT)))
+    await assertFails(getDoc(doc(ctxFor('clientUser1').firestore(), ASSESSMENT)))
+  })
+
+  it.each(['admin1', 'trainer1', 'staff1', 'superadmin1'])('%s non crea, modifica né cancella direttamente', async (uid) => {
+    const db = ctxFor(uid).firestore()
+    await assertFails(addDoc(collection(db, ASSESSMENTS), DATA))
+    await assertFails(setDoc(doc(db, `${ASSESSMENTS}/nuova`), DATA))
+    await assertFails(updateDoc(doc(db, ASSESSMENT), { status: 'voided' }))
+    await assertFails(deleteDoc(doc(db, ASSESSMENT)))
+  })
+})
+
+// ── Informativa paziente — solo via callable ────────────────────────────────
+describe('client.privacyNotice', () => {
+  const CLIENT = 'organizations/org1/clients/client1'
+  const NOTICE = { informativaVersion: 'v1', deliveredAt: '2026-10-01', recordedBy: 'trainer1' }
+
+  it.each(['admin1', 'trainer1', 'staff1'])('%s non lo scrive direttamente', async (uid) => {
+    const db = ctxFor(uid).firestore()
+    await assertFails(updateDoc(doc(db, CLIENT), { privacyNotice: NOTICE }))
+    await assertFails(updateDoc(doc(db, CLIENT), { peso: 70, privacyNotice: NOTICE }))
+  })
+
+  it('il cliente non lo scrive sul proprio documento', async () => {
+    await assertFails(updateDoc(doc(ctxFor('clientUser1').firestore(), CLIENT), { privacyNotice: NOTICE }))
+  })
+})
+
 // ── Runbook manuale (qa_runs) — solo super_admin ─────────────────────────────
 describe('Runbook (qa_runs)', () => {
   it('super_admin può creare un giro', async () => {

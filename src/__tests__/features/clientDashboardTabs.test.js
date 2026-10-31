@@ -14,8 +14,13 @@ describe('getVisibleTabIds', () => {
     expect(getVisibleTabIds(getModule(MODULES.PERSONAL_TRAINING), false)).toEqual(ALL_TABS.filter(id => id !== 'test'))
   })
 
-  it('lipedema: niente Test, Obiettivi, Attività, Wearable, Trofei', () => {
+  it('lipedema: Valutazioni subito dopo Paziente; niente Test, Obiettivi, Attività, Wearable, Trofei', () => {
     expect(getVisibleTabIds(getModule(MODULES.LIPEDEMA), true))
-      .toEqual(['atleta', 'bia', 'allenamento', 'calendario', 'note', 'misure'])
+      .toEqual(['atleta', 'valutazioni', 'bia', 'allenamento', 'calendario', 'note', 'misure'])
+  })
+
+  it('PT e soccer: nessuna tab Valutazioni', () => {
+    expect(getVisibleTabIds(getModule(MODULES.PERSONAL_TRAINING), true)).not.toContain('valutazioni')
+    expect(getVisibleTabIds(getModule(MODULES.SOCCER_ACADEMY), true)).not.toContain('valutazioni')
   })
 })

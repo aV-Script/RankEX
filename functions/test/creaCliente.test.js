@@ -170,6 +170,50 @@ describe('creaCliente — modulo senza login (lipedema)', () => {
   })
 })
 
+describe('creaCliente — informativa raccolta dal wizard (STORY-029)', () => {
+  beforeEach(() => setOrg('lipedema'))
+  const NOTICE = { informativaVersion: ' v2.1 ', deliveredAt: '2026-10-20' }
+
+  it('salva privacyNotice con recordedBy dal token e audit con soli id', async () => {
+    const res = await call({ ...ANAGRAFICA, privacyNotice: { ...NOTICE, recordedBy: 'falso' } })
+    await flush()
+    const [[, doc]] = clientDocs()
+    expect(doc.privacyNotice).toEqual({
+      informativaVersion: 'v2.1', deliveredAt: '2026-10-20',
+      recordedBy: 'trainer1', recordedByName: 'trainer@org.it', recordedAt: TODAY.toISOString(),
+    })
+    expect(res.privacyNotice).toEqual(doc.privacyNotice)
+    const notice = db.audit.find(entry => entry.action === 'PRIVACY_NOTICE_RECORDED')
+    expect(notice.details).toEqual({ orgId: 'org1', clientId: res.id, informativaVersion: 'v2.1' })
+    expect(JSON.stringify(db.audit)).not.toContain(ANAGRAFICA.name)
+  })
+
+  it('senza attestazione il paziente si crea lo stesso, senza privacyNotice', async () => {
+    await call({ ...ANAGRAFICA })
+    await flush()
+    const [[, doc]] = clientDocs()
+    expect(doc).not.toHaveProperty('privacyNotice')
+    expect(db.audit.map(entry => entry.action)).toEqual(['CLIENT_CREATED'])
+  })
+
+  it.each([
+    ['versione mancante',        { deliveredAt: '2026-10-20' }],
+    ['data futura',              { informativaVersion: 'v1', deliveredAt: '2026-10-26' }],
+    ['data prima della nascita', { informativaVersion: 'v1', deliveredAt: '1980-01-01' }],
+  ])('%s → invalid-argument, nessun paziente creato', async (_label, privacyNotice) => {
+    await expect(call({ ...ANAGRAFICA, privacyNotice })).rejects.toMatchObject({ code: 'invalid-argument' })
+    expect(clientDocs()).toEqual([])
+    expect(db.docs.get(ORG).clientCount).toBe(0)
+  })
+
+  it('PT: privacyNotice dal client ignorato (non è nella whitelist anagrafica)', async () => {
+    setOrg('personal_training')
+    await call({ ...ANAGRAFICA, email: 'anna@example.com', password: 'Password1', privacyNotice: NOTICE })
+    const [[, doc]] = clientDocs()
+    expect(doc).not.toHaveProperty('privacyNotice')
+  })
+})
+
 describe('creaCliente — senza login: validazione anagrafica (M1)', () => {
   beforeEach(() => setOrg('lipedema'))
 

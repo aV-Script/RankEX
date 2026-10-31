@@ -199,6 +199,20 @@ service cloud.firestore {
 
           allow delete: if false;
         }
+
+        // ── Valutazioni Lipedema (ADR-009/011/015) ─────────
+        // Immutabili: le scrive solo l'Admin SDK (aggiungiValutazione /
+        // annullaValutazione), che calcola il risultato e controlla
+        // l'informativa. Lettura a tutti i membri dell'org, staff_readonly
+        // incluso (ADR-015 §2). Nessun ramo cliente: il paziente non ha account.
+        // client.privacyNotice non è nella whitelist di update del cliente qui
+        // sopra: lo scrivono solo registraInformativaPaziente e creaCliente.
+
+        match /assessments/{assessmentId} {
+          allow read: if canRead(orgId);
+
+          allow write: if false;
+        }
       }
 
       // ── Slots ─────────────────────────────────────────────

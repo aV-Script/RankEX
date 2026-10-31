@@ -14,6 +14,7 @@ import { StepRuolo }              from '../../components/modals/new-client-wizar
 import { StepAccount }            from '../../components/modals/new-client-wizard/steps/StepAccount'
 import { StepProfileType }        from '../../components/modals/new-client-wizard/steps/StepProfileType'
 import { StepContatto }           from '../../components/modals/new-client-wizard/steps/StepContatto'
+import { StepInformativa }        from '../../components/modals/new-client-wizard/steps/StepInformativa'
 
 export function NewClientView({ orgId, onAdd, onBack, clients = [], onNavigate }) {
   const { moduleType, orgPlan, terminology }        = useTrainerState()
@@ -193,6 +194,16 @@ function StepContent({ wizard }) {
       setAccount={wizard.setAccount}
       errors={wizard.errors}
       anagrafica={wizard.anagrafica}
+    />
+  )
+
+  if (currentStep?.type === 'informativa') return (
+    <StepInformativa
+      privacy={wizard.privacy}
+      setPrivacy={wizard.setPrivacy}
+      errors={wizard.errors}
+      today={wizard.today}
+      birthDate={wizard.anagrafica.dataNascita}
     />
   )
 

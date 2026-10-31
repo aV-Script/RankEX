@@ -6,6 +6,7 @@
  * i colori dei rank E+/E e LOG_MAX_ENTRIES sono divergiti senza che nessuno se
  * ne accorgesse. Se uno di questi test fallisce, aggiornare entrambe le copie.
  */
+import { readFileSync } from 'fs'
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest'
 
 import * as clientConst  from '../../constants/index.js'
@@ -27,6 +28,9 @@ import * as clientBadges  from '../../utils/badges.js'
 import * as serverBadges  from '../../../functions/src/shared/badges.js'
 import { MAX_RECURRENCE_SLOTS as CLIENT_MAX_REC } from '../../utils/calendarUtils.js'
 import { MAX_RECURRENCE_SLOTS as SERVER_MAX_REC } from '../../../functions/src/shared/calendarUtils.js'
+import * as clientLipedema from '../../utils/lipedema.js'
+import * as serverLipedema from '../../../functions/src/shared/lipedema.js'
+import * as serverActor    from '../../../functions/src/shared/actor.js'
 
 const AGES  = Array.from({ length: 66 }, (_, i) => i + 5)   // 5..70
 const SEXES = ['M', 'F']
@@ -201,5 +205,105 @@ describe('Capability per modulo', () => {
     expect(serverModules.resolveModuleCapabilities(null)).toEqual(serverModules.MODULE_CAPABILITIES.personal_training)
     expect(serverModules.resolveModuleCapabilities(undefined)).toEqual(serverModules.MODULE_CAPABILITIES.personal_training)
     expect(serverModules.resolveModuleCapabilities('qualcosa')).toBeNull()
+  })
+})
+
+describe('Lipedema — valutazioni e informativa (ADR-014 rischio #3)', () => {
+  const CORE_CONSTANTS = [
+    'LIPEDEMA_TEST_IDS', 'ASSESSMENT_STATUS', 'ASSESSMENT_OUTCOME', 'TWO_MINUTE_WALK',
+    'ASSISTIVE_DEVICES', 'STOP_REASON_CODES', 'PAIN_SCALE', 'PRIVACY_NOTICE_MISSING',
+    'CLINICAL_RANGES', 'TEXT_LIMITS', 'MAX_TESTS_PER_VISIT',
+  ]
+  const CORE_FUNCTIONS = [
+    'requiresPrivacyNotice', 'computeTwoMinuteWalkResult', 'validateAssessmentInput',
+    'validatePrivacyNoticeInput', 'validateVoidReason', 'patientAgeAt', 'formatLocalDateTime',
+  ]
+  const CONTEXT = { nowLocal: '2026-10-30T11:00', birthDate: '1985-03-12' }
+  const BASE = {
+    testId: 'lipedema_2mwt', performedAt: '2026-10-30T10:30',
+    setup: { courseLengthM: 30, assistiveDevice: 'none' },
+    trial: { fullLengths: 4, partialDistanceM: 22 },
+    events: { stoppedEarly: false, pauseCount: 0 },
+    clinical: {}, deviation: { present: false },
+  }
+  const CASES = [
+    BASE,
+    { ...BASE, setup: { courseLengthM: 15.3, assistiveDevice: 'other', assistiveDeviceNote: ' deambulatore ', variantConfirmed: true }, trial: { fullLengths: 7, partialDistanceM: 0.4 } },
+    { ...BASE, setup: { courseLengthM: 20, assistiveDevice: 'none' } },
+    { ...BASE, trial: { fullLengths: 4, partialDistanceM: 30 } },
+    { ...BASE, events: { stoppedEarly: true, stopTimeS: 85, pauseCount: 2, pauseDurationS: 12 }, clinical: { stopReasonCode: 'other', stopReasonNote: 'x' } },
+    { ...BASE, events: { stoppedEarly: true, stopTimeS: 85, pauseCount: 0 }, clinical: {} },
+    { ...BASE, clinical: { painPre: 3, dyspneaPost: 4.5, bpSysPre: 120, bpDiaPre: 80, hrPostBpm: 251, spo2PrePct: 97 } },
+    { ...BASE, clinical: { bpSysPre: 120 } },
+    { ...BASE, performedAt: '2026-10-30T12:00' },
+    { ...BASE, performedAt: '1980-01-01T10:00' },
+    { ...BASE, deviation: { present: true, note: '  ' }, notes: 'x'.repeat(1001) },
+    { ...BASE, testId: 'sconosciuto' },
+    {},
+  ]
+
+  it('il blocco CORE è identico, riga per riga, nelle due copie', () => {
+    const core = relativePath => {
+      const text = readFileSync(new URL(relativePath, import.meta.url), 'utf8').replace(/\r\n/g, '\n')
+      return text.slice(text.indexOf('export const LIPEDEMA_TEST_IDS'), text.indexOf('// ── Fine CORE'))
+    }
+    const server = core('../../../functions/src/shared/lipedema.js')
+    expect(server.length).toBeGreaterThan(1000)
+    expect(core('../../utils/lipedema.js')).toBe(server)
+  })
+
+  it('costanti del CORE identiche', () => {
+    for (const name of CORE_CONSTANTS) expect([name, serverLipedema[name]]).toEqual([name, clientLipedema[name]])
+  })
+
+  it('stesse funzioni del CORE esportate da entrambe le copie', () => {
+    for (const name of CORE_FUNCTIONS) {
+      expect(typeof serverLipedema[name], name).toBe('function')
+      expect(typeof clientLipedema[name], name).toBe('function')
+    }
+  })
+
+  it.each(CASES.map((input, i) => [i, input]))('validateAssessmentInput caso %i: stessi errori e stesso valore salvato', (_i, input) => {
+    expect(serverLipedema.validateAssessmentInput(input, CONTEXT)).toEqual(clientLipedema.validateAssessmentInput(input, CONTEXT))
+  })
+
+  it('computeTwoMinuteWalkResult identico su una griglia di input', () => {
+    for (const courseLengthM of [5, 10.5, 15.2, 15.3, 20, 30]) {
+      for (const fullLengths of [0, 1, 3, 7, 12]) {
+        for (const partialDistanceM of [0, 0.4, 0.5, 2.5, 4.9]) {
+          for (const durationS of [60, 85, 120]) {
+            const input = { courseLengthM, fullLengths, partialDistanceM, durationS }
+            expect(serverLipedema.computeTwoMinuteWalkResult(input)).toEqual(clientLipedema.computeTwoMinuteWalkResult(input))
+          }
+        }
+      }
+    }
+  })
+
+  it('informativa, motivo di annullamento, età e capability identici', () => {
+    const notices = [
+      { informativaVersion: ' v2.1 ', deliveredAt: '2026-10-01' }, { informativaVersion: '', deliveredAt: '2026-10-01' },
+      { informativaVersion: 'v1', deliveredAt: '2026-11-01' }, { informativaVersion: 'v1', deliveredAt: '1980-01-01' }, {},
+    ]
+    for (const notice of notices) {
+      const context = { today: '2026-10-30', birthDate: '1985-03-12' }
+      expect(serverLipedema.validatePrivacyNoticeInput(notice, context)).toEqual(clientLipedema.validatePrivacyNoticeInput(notice, context))
+    }
+    for (const reason of ['', '  ', 'ok', 'x'.repeat(501), 42, undefined]) {
+      expect(serverLipedema.validateVoidReason(reason)).toEqual(clientLipedema.validateVoidReason(reason))
+    }
+    for (const [birth, at] of [['1985-03-12', '2026-03-11T10:00'], ['1985-03-12', '2026-03-12T10:00'], [null, '2026-01-01T10:00']]) {
+      expect(serverLipedema.patientAgeAt(birth, at)).toBe(clientLipedema.patientAgeAt(birth, at))
+    }
+    for (const moduleType of Object.keys(clientModules.MODULE_CAPABILITIES)) {
+      expect(serverLipedema.requiresPrivacyNotice(serverModules.MODULE_CAPABILITIES[moduleType]))
+        .toBe(clientLipedema.requiresPrivacyNotice(clientModules.MODULE_CAPABILITIES[moduleType]))
+    }
+    const date = new Date('2026-10-30T10:00:00Z')
+    expect(serverLipedema.formatLocalDateTime(date, 'Europe/Rome')).toBe(clientLipedema.formatLocalDateTime(date, 'Europe/Rome'))
+  })
+
+  it('stesso fuso degli studi per "adesso" e "non futura" (client = server)', () => {
+    expect(clientLipedema.LOCAL_TIME_ZONE).toBe(serverActor.LOCAL_TIME_ZONE)
   })
 })

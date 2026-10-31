@@ -24,6 +24,7 @@ export default function TrainerView({ user, profile, org, terminology }) {
       moduleType={moduleType}
       terminology={resolvedTerminology}
       userRole={userRole}
+      userName={profile?.name ?? user.email ?? user.uid}
       orgPlan={org?.plan ?? 'free'}
     >
       <ReadonlyProvider readonly={readonly}>
@@ -38,7 +39,7 @@ function TrainerLayout({ user, orgId }) {
   const {
     clients, isLoading, fetchError,
     fetchClients,
-    handleAddClient, handleCampionamento, handleDeleteClient,
+    handleAddClient, handleCampionamento, handleDeleteClient, handleClientUpdated,
   } = useClients(orgId, user.uid)
   const CurrentPage = PAGES[page] ?? PAGES.clients
 
@@ -53,6 +54,7 @@ function TrainerLayout({ user, orgId }) {
             onBack={deselectClient}
             onCampionamento={handleCampionamento}
             onDelete={handleDeleteClient}
+            onClientUpdated={handleClientUpdated}
           />
         </div>
       ) : (

@@ -5,6 +5,7 @@ import { calcPercentileEx, calcStatMedia }  from '../../../utils/percentile'
 import { getFirebaseErrorMessage, isEmailTakenError } from '../../../utils/firebaseErrors'
 import { validateEmail, validatePassword, validateBirthDate, validateRequired, validateNumber, calcAge } from '../../../utils/validation'
 import { getCategoriaFromEta }             from '../../../config/modules.config'
+import { validatePrivacyNoticeInput, todayLocalDate } from '../../../utils/lipedema'
 
 /**
  * Calcola il valore finale di un test (con o senza formula composita).
@@ -30,7 +31,8 @@ function calcTestFinalValue(test, tests) {
  * @param {string} [params.clientLabel] — terminology.client, per i messaggi d'errore
  */
 export function useWizard({ onAdd, onClose, capabilities, clientLabel = 'Cliente' }) {
-  const { isSoccer, hasClientLogin, hasRank, hasPercentileTests, hasProfileTypes } = capabilities
+  const { isSoccer, hasClientLogin, hasRank, hasPercentileTests, hasProfileTypes, hasAssessments } = capabilities
+  const today = todayLocalDate()
   const [step,        setStep]        = useState(0)
   const [anagrafica,  setAnagrafica]  = useState({ name: '', dataNascita: '', sesso: 'M', peso: '', altezza: '' })
   const [profileType, setProfileType] = useState('tests_only')
@@ -38,6 +40,8 @@ export function useWizard({ onAdd, onClose, capabilities, clientLabel = 'Cliente
   const [ruolo,       setRuolo]       = useState('goalkeeper')
   const [tests,       setTests]       = useState({})
   const [account,     setAccount]     = useState({ email: '', password: '' })
+  // Informativa consegnata (solo moduli con valutazioni): facoltativa alla creazione
+  const [privacy,     setPrivacy]     = useState({ delivered: false, informativaVersion: '', deliveredAt: today })
   const [errors,      setErrors]      = useState({})
   const [loading,     setLoading]     = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
@@ -118,12 +122,22 @@ export function useWizard({ onAdd, onClose, capabilities, clientLabel = 'Cliente
     return Object.keys(e).length === 0
   }, [account, hasClientLogin])
 
+  // Solo se l'informativa è stata spuntata: stesse regole del server (utils/lipedema.js)
+  const validatePrivacy = useCallback(() => {
+    if (!hasAssessments || !privacy.delivered) return true
+    const { errors: found } = validatePrivacyNoticeInput(privacy, { today, birthDate: anagrafica.dataNascita || null })
+    setErrors(found)
+    return Object.keys(found).length === 0
+  }, [hasAssessments, privacy, today, anagrafica.dataNascita])
+
   // ── Navigazione ───────────────────────────────────────────────────────────
   const next = useCallback(() => {
     if (currentStep?.type === 'anagrafica' && !validateAnagrafica()) return
+    // Il contatto non è più l'ultimo step quando segue l'informativa
+    if (currentStep?.type === 'contatto' && !validateAccount()) return
     setErrors({})
     setStep(s => s + 1)
-  }, [currentStep, validateAnagrafica])
+  }, [currentStep, validateAnagrafica, validateAccount])
 
   const prev = useCallback(() => {
     setErrors({})
@@ -132,9 +146,9 @@ export function useWizard({ onAdd, onClose, capabilities, clientLabel = 'Cliente
 
   // ── Submit ────────────────────────────────────────────────────────────────
   const handleRequestSubmit = useCallback(() => {
-    if (!validateAccount()) return
+    if (currentStep?.type === 'informativa' ? !validatePrivacy() : !validateAccount()) return
     setShowConfirm(true)
-  }, [validateAccount])
+  }, [currentStep, validatePrivacy, validateAccount])
 
   const handleConfirmSubmit = useCallback(async () => {
     setLoading(true)
@@ -155,7 +169,12 @@ export function useWizard({ onAdd, onClose, capabilities, clientLabel = 'Cliente
           profileType: hasProfileTypes ? profileType : 'tests_only',
           password:    account.password,
         }
-      : base
+      : {
+          ...base,
+          ...(hasAssessments && privacy.delivered
+            ? { privacyNotice: { informativaVersion: privacy.informativaVersion, deliveredAt: privacy.deliveredAt } }
+            : {}),
+        }
 
     try {
       await onAdd(formData)
@@ -169,17 +188,17 @@ export function useWizard({ onAdd, onClose, capabilities, clientLabel = 'Cliente
       setLoading(false)
       setShowConfirm(false)
     }
-  }, [anagrafica, profileType, categoria, ruolo, isSoccer, hasClientLogin, hasProfileTypes, account, clientLabel, onAdd, onClose])
+  }, [anagrafica, profileType, categoria, ruolo, isSoccer, hasClientLogin, hasProfileTypes, hasAssessments, account, privacy, clientLabel, onAdd, onClose])
 
   return {
-    step, anagrafica, profileType, categoria: categoriaEffettiva, ruolo, account, errors, isLoading: loading,
+    step, anagrafica, profileType, categoria: categoriaEffettiva, ruolo, account, privacy, today, errors, isLoading: loading,
     showConfirm, setShowConfirm,
     categoryTests, currentStep, currentTest,
     livePercentile, media, rankObj,
     stepTitle, progressPct,
     totalSteps: TOTAL_STEPS,
     isLastStep: step === TOTAL_STEPS - 1,
-    setAnagrafica, setCategoria, setRuolo, setAccount,
+    setAnagrafica, setCategoria, setRuolo, setAccount, setPrivacy,
     setProfileType: (type) => {
       setProfileType(type)
       if (type === 'bia_only') setTests({})

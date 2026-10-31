@@ -36,6 +36,14 @@ import { getVisibleTabIds }                  from './client-dashboard/dashboardT
 import { AtletaTab }                         from './client-dashboard/AtletaTab'
 import { ErrorBoundary }                     from '../../components/common/ErrorBoundary'
 import { ChartErrorFallback }                from '../../components/common/ChartErrorFallback'
+import { useAssessments }                    from '../../hooks/useAssessments'
+import { usePrivacyNotice }                  from '../assessments/usePrivacyNotice'
+import { AssessmentsSection }                from '../assessments/AssessmentsSection'
+import { TwoMinuteWalkForm }                 from '../assessments/TwoMinuteWalkForm'
+import { PrivacyNoticeBanner, PrivacyNoticeModal, PRIVACY_BANNER_ID } from '../assessments/PrivacyNotice'
+import { createTwoMinuteWalkForm, formFromAssessment } from '../assessments/twoMinuteWalkFormModel'
+import { requiresPrivacyNotice, isPrivacyNoticeMissingError, nowLocalDateTime } from '../../utils/lipedema'
+import { ConfirmDialog }                     from '../../components/common/ConfirmDialog'
 
 // Montato solo dietro il flusso di export PDF — lazy-load per non pesare
 // sul bundle iniziale della dashboard cliente.
@@ -51,9 +59,9 @@ const ClientReportPrint = lazy(() =>
  *   LEFT panel  │  RIGHT panel
  *   avatar+dati │  stat tiles + tab nav + contenuto
  */
-export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDelete }) {
+export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDelete, onClientUpdated }) {
   const { rankObj: testRankObj } = useClientRank(client)
-  const { userRole, terminology, moduleType } = useTrainerState()
+  const { userRole, userName, terminology, moduleType } = useTrainerState()
   const readonly      = useReadonly()
   const capabilities  = useMemo(() => getModule(moduleType), [moduleType])
 
@@ -73,11 +81,23 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
   const [printMode,       setPrintMode]       = useState('dark')
   const [showActions,     setShowActions]     = useState(false)
   const [resetState,   setResetState]  = useState('idle')
+  // Valutazione in corso: { initialForm, supersedes } — supersedes = valutazione da correggere
+  const [assessmentDraft,  setAssessmentDraft]  = useState(null)
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false)
+  // Form a schermo intero (campionamento/BIA/valutazione) con dati non salvati:
+  // cambiare tab o uscire chiede conferma. pendingLeave = azione da eseguire dopo
+  const [isFormDirty,  setIsFormDirty]  = useState(false)
+  const [pendingLeave, setPendingLeave] = useState(null)
 
   const { handleSaveBia, handleUpgradeProfile } = useBia()
   const { handleUpdateMisure }                  = useMisure()
+  const assessmentsState = useAssessments(orgId, client.id, { enabled: capabilities.hasAssessments })
+  const { handleRecordPrivacyNotice, handlePrivacyNoticeMissing } = usePrivacyNotice(orgId, onClientUpdated)
+  // Valutazioni e BIA si salvano solo con l'informativa registrata (ADR-015 §1)
+  const needsPrivacyNotice = requiresPrivacyNotice(capabilities) && !client.privacyNotice
 
-  const trainerUid = getAuth(app).currentUser?.uid ?? 'trainer'
+  const currentUser = getAuth(app).currentUser
+  const trainerUid  = currentUser?.uid ?? 'trainer'
   const { earnedBadges, allBadges, rawBadges, badgeProgress, handleAwardManual, handleRevoke, handleUpdateShowcase } =
     useBadges(orgId, client.id, client)
 
@@ -109,8 +129,11 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
 
   const trainerAuthor = {
     role: userRole,
-    name: getAuth(app).currentUser?.email ?? terminology.trainer,
+    name: currentUser?.email ?? terminology.trainer,
   }
+  // Chi esegue la valutazione o registra l'informativa: lo scrive il server
+  // (getActorName), qui lo stesso valore dal profilo solo per mostrarlo
+  const currentUserName = userName ?? terminology.trainer
 
   // staff_readonly (BUG-004): dal menu ⋮ niente azioni che scrivono o mandano email
   const canResetPassword = !readonly && capabilities.hasClientLogin && Boolean(client.clientAuthUid && client.email)
@@ -146,10 +169,27 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
     }
   }, [client.email, resetState])
 
+  // Esegue `leave` subito, o dopo conferma se un form a schermo intero ha dati non salvati
+  const guardLeave = useCallback((leave) => {
+    if (view !== 'dashboard' && isFormDirty) setPendingLeave(() => leave)
+    else leave()
+  }, [view, isFormDirty])
+
   const handleSelectTab = useCallback((id) => {
-    setView('dashboard')
-    setActiveTab(id)
-  }, [])
+    guardLeave(() => {
+      setView('dashboard')
+      setActiveTab(id)
+    })
+  }, [guardLeave])
+
+  const handleBack = useCallback(() => guardLeave(onBack), [guardLeave, onBack])
+
+  const handleConfirmLeave = useCallback(() => {
+    const leave = pendingLeave
+    setPendingLeave(null)
+    setIsFormDirty(false)
+    leave?.()
+  }, [pendingLeave])
 
   const handleToggleActions = useCallback(() => {
     setShowActions(v => !v)
@@ -170,11 +210,42 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
     setShowDelete(true)
   }, [])
 
+  const handleNewAssessment = useCallback(() => {
+    setAssessmentDraft({ initialForm: createTwoMinuteWalkForm(nowLocalDateTime()), supersedes: null })
+    setView('valutazione')
+  }, [])
+
+  const handleCorrectAssessment = useCallback((assessment) => {
+    setAssessmentDraft({ initialForm: formFromAssessment(assessment), supersedes: assessment })
+    setView('valutazione')
+  }, [])
+
+  const handleCloseAssessment = useCallback(() => {
+    setAssessmentDraft(null)
+    setActiveTab('valutazioni')
+    setView('dashboard')
+  }, [])
+
+  const handleOpenPrivacyModal = useCallback(() => setShowPrivacyModal(true), [])
+
+  const handlePrivacyMissingForClient = useCallback(() => {
+    handlePrivacyNoticeMissing(client)
+  }, [handlePrivacyNoticeMissing, client])
+
+  const handleSaveBiaForClient = useCallback(async (biaData) => {
+    try {
+      await handleSaveBia(client, biaData)
+    } catch (err) {
+      if (isPrivacyNoticeMissingError(err)) handlePrivacyNoticeMissing(client)
+      throw err
+    }
+  }, [handleSaveBia, handlePrivacyNoticeMissing, client])
+
   return (
     <div className="min-h-screen text-white flex flex-col">
 
       <ClientDashboardHeader
-        onBack={onBack}
+        onBack={handleBack}
         tab={tab}
         onSelectTab={handleSelectTab}
         visibleTabIds={visibleTabIds}
@@ -196,14 +267,28 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
           color={brandGreen}
           onSave={handleSaveCampionamento}
           onBack={() => setView('dashboard')}
+          onDirtyChange={setIsFormDirty}
         />
       )}
       {view === 'bia' && (
         <BiaView
           client={client}
           color={brandGreen}
-          onSave={(biaData) => handleSaveBia(client, biaData)}
+          onSave={handleSaveBiaForClient}
           onBack={() => setView('dashboard')}
+          onDirtyChange={setIsFormDirty}
+        />
+      )}
+      {view === 'valutazione' && assessmentDraft && (
+        <TwoMinuteWalkForm
+          client={client}
+          examinerName={currentUserName}
+          initialForm={assessmentDraft.initialForm}
+          supersedes={assessmentDraft.supersedes}
+          onSave={assessmentsState.handleAddAssessment}
+          onBack={handleCloseAssessment}
+          onPrivacyNoticeMissing={handlePrivacyMissingForClient}
+          onDirtyChange={setIsFormDirty}
         />
       )}
       <div className={`flex-1 flex flex-col min-w-0 ${view !== 'dashboard' ? 'hidden' : ''}`}>
@@ -245,6 +330,22 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
               biaRankObj={biaRankObj}
               capabilities={capabilities}
               terminology={terminology}
+              readonly={readonly}
+              assessmentsState={assessmentsState}
+              onViewAssessments={() => handleSelectTab('valutazioni')}
+              onRequestPrivacyNotice={handleOpenPrivacyModal}
+            />
+          )}
+
+          {tab === 'valutazioni' && capabilities.hasAssessments && (
+            <AssessmentsSection
+              assessmentsState={assessmentsState}
+              needsPrivacyNotice={needsPrivacyNotice}
+              readonly={readonly}
+              terminology={terminology}
+              onNewAssessment={handleNewAssessment}
+              onCorrect={handleCorrectAssessment}
+              onRequestPrivacyNotice={handleOpenPrivacyModal}
             />
           )}
 
@@ -277,14 +378,19 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
 
           {tab === 'bia' && (
             hasBiaData ? (
-              <section className="px-4 pt-6">
+              <section className="px-4 pt-6 flex flex-col gap-4">
+                {needsPrivacyNotice && (
+                  <PrivacyNoticeBanner readonly={readonly} terminology={terminology} onRegister={handleOpenPrivacyModal} />
+                )}
                 <div className="rounded-[4px] p-5 rx-card flex flex-col gap-4">
                   <div className="flex items-center justify-between">
                     <div className="font-display text-[10px] tracking-[3px] uppercase" style={{ color: 'var(--rx-accent)' }}>◈ BIA</div>
                     {!readonly && (
                       <button
                         onClick={() => setView('bia')}
-                        className="font-display text-[10px] tracking-[1px] px-3 py-1.5 rounded-[3px] border cursor-pointer transition-all"
+                        disabled={needsPrivacyNotice}
+                        aria-describedby={needsPrivacyNotice ? PRIVACY_BANNER_ID : undefined}
+                        className="font-display text-[10px] tracking-[1px] px-3 py-1.5 rounded-[3px] border cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{ color: 'var(--rx-accent)', borderColor: 'color-mix(in srgb, var(--rx-accent) 33%, transparent)', background: 'color-mix(in srgb, var(--rx-accent) 7%, transparent)' }}
                       >
                         + RILEVAMENTO
@@ -369,6 +475,25 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
         <PrintPickerModal
           onSelect={(mode) => { setPrintMode(mode); setShowPrintPicker(false); setShowReport(true) }}
           onCancel={() => setShowPrintPicker(false)}
+        />
+      )}
+      {pendingLeave && (
+        <ConfirmDialog
+          title="Uscire senza salvare?"
+          description="I dati inseriti andranno persi."
+          confirmLabel="ESCI"
+          cancelLabel="INDIETRO"
+          variant="danger"
+          onConfirm={handleConfirmLeave}
+          onCancel={() => setPendingLeave(null)}
+        />
+      )}
+      {showPrivacyModal && (
+        <PrivacyNoticeModal
+          client={client}
+          examinerName={currentUserName}
+          onSubmit={(input) => handleRecordPrivacyNotice(client, input)}
+          onClose={() => setShowPrivacyModal(false)}
         />
       )}
       {showReport && (

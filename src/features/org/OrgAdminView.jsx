@@ -32,6 +32,7 @@ export default function OrgAdminView({ user, profile, org, terminology }) {
       moduleType={moduleType}
       terminology={terminology ?? getTerminology(moduleType, org?.terminologyVariant)}
       userRole={userRole}
+      userName={profile?.name ?? user.email ?? user.uid}
       orgPlan={org?.plan ?? 'free'}
     >
       <ReadonlyProvider readonly={false}>
@@ -46,7 +47,7 @@ function OrgAdminLayout({ user, orgId, org }) {
   const {
     clients, isLoading, fetchError,
     fetchClients,
-    handleAddClient, handleCampionamento, handleDeleteClient,
+    handleAddClient, handleCampionamento, handleDeleteClient, handleClientUpdated,
   } = useClients(orgId, user.uid)
 
   const CurrentPage = ORG_PAGES[page] ?? ORG_PAGES.clients
@@ -61,6 +62,7 @@ function OrgAdminLayout({ user, orgId, org }) {
           onBack={deselectClient}
           onCampionamento={handleCampionamento}
           onDelete={handleDeleteClient}
+          onClientUpdated={handleClientUpdated}
         />
       ) : (
         <Suspense fallback={<LoadingScreen />}>

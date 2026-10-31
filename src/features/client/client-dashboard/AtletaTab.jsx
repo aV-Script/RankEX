@@ -1,7 +1,7 @@
 import { XPBar }         from '../../../components/ui/XPBar'
-import { EmptyState }    from '../../../components/ui'
 import { AvatarDisplay } from '../client-view/avatar/AvatarDisplay'
-import { ICON_TEST }     from './clientDashboardIcons'
+import { LatestAssessmentsCard } from '../../assessments/LatestAssessmentsCard'
+import { PrivacyNoticeCard }     from '../../assessments/PrivacyNotice'
 
 /**
  * Contenuto del tab "Atleta" della dashboard cliente — card riepilogo con
@@ -9,9 +9,17 @@ import { ICON_TEST }     from './clientDashboardIcons'
  * Nei moduli senza rank né gamification (lipedema) mostra un riepilogo
  * anagrafico/BIA senza rank, livello, XP né avatar del negozio.
  */
-export function AtletaTab({ client, orgId, campCount, rankObj, ruoloObj, categoriaObj, profileType, biaRankObj, capabilities, terminology }) {
+export function AtletaTab({
+  client, orgId, campCount, rankObj, ruoloObj, categoriaObj, profileType, biaRankObj, capabilities, terminology,
+  readonly, assessmentsState, onViewAssessments, onRequestPrivacyNotice,
+}) {
   if (!capabilities.hasRank && !capabilities.hasGamification) {
-    return <PatientSummary client={client} capabilities={capabilities} terminology={terminology} />
+    return (
+      <PatientSummary
+        client={client} capabilities={capabilities} terminology={terminology} readonly={readonly}
+        assessmentsState={assessmentsState} onViewAssessments={onViewAssessments} onRequestPrivacyNotice={onRequestPrivacyNotice}
+      />
+    )
   }
 
   const mediaVal  = client.media != null ? Math.round(client.media) : null
@@ -91,9 +99,7 @@ export function AtletaTab({ client, orgId, campCount, rankObj, ruoloObj, categor
 
 // ── Componenti locali ─────────────────────────────────────────────────────────
 
-function PatientSummary({ client, capabilities, terminology }) {
-  const assessmentsLabel = (terminology?.assessments ?? 'Valutazioni').toLowerCase()
-
+function PatientSummary({ client, capabilities, terminology, readonly, assessmentsState, onViewAssessments, onRequestPrivacyNotice }) {
   return (
     <section className="p-4 flex flex-col gap-4">
       <div className="rx-card rounded-[4px] overflow-hidden">
@@ -121,15 +127,11 @@ function PatientSummary({ client, capabilities, terminology }) {
         )}
       </div>
 
-      {/* Placeholder: le valutazioni dei test arrivano con STORY-033/039 */}
       {capabilities.hasAssessments && (
-        <div className="rx-card rounded-[4px]">
-          <EmptyState
-            icon={ICON_TEST}
-            title={`Nessuna ${(terminology?.assessment ?? 'Valutazione').toLowerCase()}`}
-            description={`Le ${assessmentsLabel} dei test non sono ancora disponibili.`}
-          />
-        </div>
+        <>
+          <LatestAssessmentsCard assessmentsState={assessmentsState} terminology={terminology} onViewAll={onViewAssessments} />
+          <PrivacyNoticeCard privacyNotice={client.privacyNotice ?? null} readonly={readonly} onRegister={onRequestPrivacyNotice} />
+        </>
       )}
     </section>
   )
@@ -137,10 +139,10 @@ function PatientSummary({ client, capabilities, terminology }) {
 
 function StatsStrip({ items }) {
   return (
-    <div className="flex" style={{ borderTop: '1px solid var(--border-default)' }}>
+    <div className="flex" style={{ borderTop: '1px solid var(--rx-border)' }}>
       {items.filter(Boolean).map((item, i) => (
         <div key={item.label} className="flex-1 flex flex-col items-center py-4"
-          style={{ borderLeft: i > 0 ? '1px solid var(--border-default)' : 'none' }}>
+          style={{ borderLeft: i > 0 ? '1px solid var(--rx-border)' : 'none' }}>
           <span className="font-display font-black text-[18px] text-white leading-none">{item.value}</span>
           <span className="font-display text-[8px] font-semibold tracking-[1.5px] uppercase mt-1.5"
             style={{ color: 'rgba(255,255,255,0.25)' }}>{item.label}</span>
