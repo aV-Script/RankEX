@@ -1294,7 +1294,7 @@ eventuali motivi di invalidazione **per** avere un dato coerente con il protocol
 - **Dependencies:** STORY-033
 - **Risks:** uno 0 da invalidazione e uno 0 reale vanno distinti nel trend (STORY-039)
   per non mostrare un falso crollo di performance
-- **Status:** READY (Sprint #12)
+- **Status:** DONE (Sprint #12)
 
 ### [STORY-036] Test 03 — Handgrip Dynamometry (infrastruttura bilaterale multi-prova)
 **Come** professionista **voglio** inserire 3 prove per mano alternate D-S e ottenere il
@@ -1328,7 +1328,7 @@ dinamometro.
 - **Dependencies:** STORY-033
 - **Risks:** precisione di arrotondamento dopo conversione (decimali da conservare —
   da decidere con Tech Lead)
-- **Status:** READY (Sprint #12) — design Tech Lead (logica bilaterale
+- **Status:** DONE (Sprint #12) — design Tech Lead (logica bilaterale
   condivisa, decimali) e UX prima del codice
 
 ### [STORY-037] Test 04 — Handheld Dynamometry quadricipite

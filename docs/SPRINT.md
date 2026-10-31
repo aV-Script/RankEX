@@ -7,7 +7,7 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-### SPRINT #12 — EPIC-010 Lipedema Edition, terza ondata (30s-STS + Handgrip bilaterale) — aperto il 2026-10-31
+### SPRINT #12 — EPIC-010 Lipedema Edition, terza ondata (30s-STS + Handgrip bilaterale) — aperto il 2026-10-31, chiuso il 2026-10-31 (goal raggiunto: review con 4 MEDIUM corretti, QA TP-054…063 PASS sull'hosting rankex-dev, nessun bug; non verificati per budget: layout mobile dei nuovi form, painMaxBySide, badge cambio dinamometro)
 
 **Branch:** `feature/lipedema-module` (allineato a `origin/dev` in `27bfc55` all'apertura).
 Rules e functions si deployano solo da qui (ADR-014 rischio #4). **Nessun deploy in prod
@@ -56,10 +56,10 @@ sull'hosting reale** `rankex-app-dev.web.app`, desktop e mobile.
 
 | Task | Status | Note |
 |------|--------|------|
-| Workflow GitHub `node-version` 20 → 22 (`ci.yml`, `deploy.yml` ×2, `e2e.yml`) | IN REVIEW | Nessuna dipendenza. Verifica: CI verde su un push del branch. |
-| STORY-035 — 30s-STS | IN REVIEW | Riusa schema/callable di STORY-033 come il 2MWT. `stopReasonCode`: stesso catalogo provvisorio del 2MWT. |
-| STORY-036 — Handgrip + infrastruttura bilaterale multi-prova | IN REVIEW (implementata su ADR-016 + spec UX) | Decisioni aperte: decimali dopo la conversione (rischio in backlog), lato dominante come dato del paziente o della valutazione (criterio 033). Da loggare in `docs/DECISIONS.md` prima di iniziare. |
-| STORY-033 — criteri bilaterali rimandati (validità per prova, best sulle valide, dolore per lato, lato dominante) | IN REVIEW (insieme a STORY-036) | Chiudono con 036, non separatamente. |
+| Workflow GitHub `node-version` 20 → 22 (`ci.yml`, `deploy.yml` ×2, `e2e.yml`) | DONE | Nessuna dipendenza. Verifica: CI verde su un push del branch. |
+| STORY-035 — 30s-STS | DONE | Riusa schema/callable di STORY-033 come il 2MWT. `stopReasonCode`: stesso catalogo provvisorio del 2MWT. |
+| STORY-036 — Handgrip + infrastruttura bilaterale multi-prova | DONE | Decisioni aperte: decimali dopo la conversione (rischio in backlog), lato dominante come dato del paziente o della valutazione (criterio 033). Da loggare in `docs/DECISIONS.md` prima di iniziare. |
+| STORY-033 — criteri bilaterali rimandati (validità per prova, best sulle valide, dolore per lato, lato dominante) | DONE | Chiudono con 036, non separatamente. |
 | STORY-029 — requisiti non-codice (DPA, testo informativa, privacy draft) | BLOCKED (fuori capacità developer) | Proprietario utente/legale. Bloccano il go-live, non la chiusura sprint. |
 
 **Dipendenze bloccanti / punti di attenzione:**
