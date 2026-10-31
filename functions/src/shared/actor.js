@@ -5,10 +5,9 @@
 
 import { HttpsError } from 'firebase-functions/v2/https'
 import { validatePrivacyNoticeInput, formatLocalDateTime } from './lipedema.js'
+import { LOCAL_TIME_ZONE } from './timezone.js'
 
-// Ora locale degli studi (ADR-009: performedAt è in ora locale Europe/Rome).
-// Stesso valore di LOCAL_TIME_ZONE in src/utils/lipedema.js (test di parità).
-export const LOCAL_TIME_ZONE = 'Europe/Rome'
+export { LOCAL_TIME_ZONE }
 
 export const AUDIT_PRIVACY_NOTICE_RECORDED = 'PRIVACY_NOTICE_RECORDED'
 export const AUDIT_ASSESSMENT_VOIDED       = 'ASSESSMENT_VOIDED'

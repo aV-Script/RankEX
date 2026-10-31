@@ -30,7 +30,7 @@ import { MAX_RECURRENCE_SLOTS as CLIENT_MAX_REC } from '../../utils/calendarUtil
 import { MAX_RECURRENCE_SLOTS as SERVER_MAX_REC } from '../../../functions/src/shared/calendarUtils.js'
 import * as clientLipedema from '../../utils/lipedema.js'
 import * as serverLipedema from '../../../functions/src/shared/lipedema.js'
-import * as serverActor    from '../../../functions/src/shared/actor.js'
+import * as serverTimezone from '../../../functions/src/shared/timezone.js'
 
 const AGES  = Array.from({ length: 66 }, (_, i) => i + 5)   // 5..70
 const SEXES = ['M', 'F']
@@ -304,6 +304,6 @@ describe('Lipedema — valutazioni e informativa (ADR-014 rischio #3)', () => {
   })
 
   it('stesso fuso degli studi per "adesso" e "non futura" (client = server)', () => {
-    expect(clientLipedema.LOCAL_TIME_ZONE).toBe(serverActor.LOCAL_TIME_ZONE)
+    expect(clientLipedema.LOCAL_TIME_ZONE).toBe(serverTimezone.LOCAL_TIME_ZONE)
   })
 })
