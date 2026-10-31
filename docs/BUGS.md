@@ -133,7 +133,7 @@ Formato:
 ## [BUG-011] Lipedema: form 2MWT/BIA compilato perso senza conferma (nav principale; INDIETRO della BIA)
 **Severity:** P2
 **Modulo/Ruolo:** lipedema — trainer/org_admin (la nav principale vale per qualunque form a schermo intero della dashboard)
-**Status:** FIX IMPLEMENTATO — da verificare in QA
+**Status:** VERIFIED (31/10/2026, hosting rankex-app-dev, commit 769565d): 2MWT e BIA sporchi → voce della nav principale desktop e swipe della bottom bar mobile → "Uscire senza salvare?"; INDIETRO mantiene il valore, ESCI naviga. INDIETRO interno della BIA → conferma "…in questa misurazione andranno persi". Ricarica con form sporco → avviso nativo beforeunload (restando, il valore c'è); dopo il salvataggio della BIA e con navigazione normale nessun avviso. PT/soccer: nessun dialog navigando tutte le voci. Nota: su mobile il tap sulla bottom tab bar non è verificabile perché la barra azioni fissa (z-40) la copre mentre il form è aperto (vedi BUG-012).
 **Fix:** Fix implementato 31/10 (da verificare in QA): nuovo `context/UnsavedChangesContext.jsx` (flag + conferma "Uscire senza salvare?" + `beforeunload`) montato in `TrainerView`/`OrgAdminView`; la nav principale passa da `guardLeave`, come tab e back della dashboard; `BiaView` → INDIETRO con conferma se ci sono valori.
 **Reproduction steps (QA dal vivo 31/10/2026, rankex-app-dev, commit 281bbe4):**
 1. Paziente con informativa → Valutazioni → + NUOVA VALUTAZIONE → frazione finale 12 (form modificato).
@@ -146,7 +146,7 @@ Formato:
 ## [BUG-012] Mobile: barra riepilogo + SALVA VALUTAZIONE non fissa in basso
 **Severity:** P3
 **Modulo/Ruolo:** lipedema — trainer, mobile (390×844)
-**Status:** FIX IMPLEMENTATO — da verificare in QA
+**Status:** VERIFIED (31/10/2026, commit 769565d): mobile 390×844, barra riepilogo + SALVA fissa in fondo al viewport durante la compilazione (2MWT: barra 682–844 px a scroll 153; BIA: 781–844 px). `.rx-animate-in` ora `rx-fadeIn 0.25s backwards`, transform a riposo `none`. Osservazione (non bloccante, decisione UX): la barra copre la bottom tab bar (z-40 su z-30), quindi col form aperto la nav mobile non è cliccabile; si esce con INDIETRO, back dell'header o swipe (protetti dalla conferma).
 **Fix:** Fix implementato 31/10 (da verificare in QA): `.rx-animate-in` usa `animation-fill-mode: backwards` (era `forwards`): a fine animazione non resta il transform, le barre fisse di form valutazione e BiaView restano sul viewport. Su mobile la barra copre la bottom tab bar mentre si compila, come già faceva BiaView.
 **Reproduction steps:** mobile → paziente → Valutazioni → + NUOVA VALUTAZIONE → compilare tratti/frazione senza scorrere.
 **Expected:** (spec Sprint #11 §2) riepilogo live e azioni fissi in basso su mobile mentre si compila.
@@ -156,7 +156,7 @@ Formato:
 ## [BUG-013] "Ultime valutazioni" mostra un risultato su percorso variante senza segnalarlo
 **Severity:** P3
 **Modulo/Ruolo:** lipedema — tutti i ruoli che vedono la tab Paziente
-**Status:** FIX IMPLEMENTATO — da verificare in QA
+**Status:** VERIFIED (31/10/2026, commit 769565d): card "Ultime valutazioni" mostra "INTERROTTA · 85 s" quando l'ultima valida è interrotta e "VARIANTE 20 m" quando è su percorso variante.
 **Fix:** Fix implementato 31/10 (da verificare in QA): `LatestAssessmentsCard` mostra `AssessmentBadges` (VARIANTE / INTERROTTA) sotto l'ultimo valore.
 **Reproduction steps:** salvare un 2MWT standard (30 m, 145 m) e poi uno su percorso 20 m (variante, 113 m) → tab Paziente.
 **Expected:** l'ultimo valore mostrato porta lo stesso stato dello storico (badge VARIANTE 20 m), o la card mostra l'ultimo valore confrontabile.
