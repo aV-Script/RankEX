@@ -1388,3 +1388,50 @@ sopra lasciava margine, confermate in code review.
   `support_or_assistance`) controllato in `readBilateralTrials`; `normalizeKey` e
   `isStandardChairHeight` esportate dal CORE e usate dai form.
 
+## [ADR-017] Lipedema — HHD quadricipite (STORY-037, Sprint #13)
+**Data:** 2026-11-06
+**Contesto:** il Test 04 riusa la logica bilaterale di ADR-016 senza modificarla, come
+previsto. Fonti: docx 04, ADR-009 §2, ADR-012, ADR-015 §7, tavola `ValutazioneHHD` del
+canvas. Qui solo le scelte che quei documenti lasciavano aperte.
+
+**Decisione:**
+1. **`HHD_QUADRICEPS`** nel CORE, `testId: 'lipedema_hhd_quadriceps'`, `maxValue: 1500` N
+   (solo anti-refuso), motivi di prova non valida come Handgrip.
+2. **Setup:** `dominantSide`, `device`, `fixationMethod` (`belt|manual`, un solo campo:
+   diverso per lato non è rappresentabile), `kneeAngleDeg` e `hipAngleDeg` (interi,
+   default 90), `sensorPosition` (`distal_anterior_tibia|other`, con nota se `other`),
+   `contractionS`, `assistiveDevice` + nota, `nativeUnit`. `clinical.painPre` facoltativo.
+   Marca, modello e seriale restano tre campi: il canvas ne mostra uno solo, ma l'AC e il
+   docx §22 li vogliono separati, e il modello è un criterio di comparabilità.
+3. **Fissaggio e gamba dominante senza default** nel form nuovo: si scelgono, o arrivano
+   dall'ultima HHD valida. Un default registrerebbe un dato che nessuno ha controllato.
+4. **Contrazione:** campo con default 3 s, mai precompilato dalla precedente. Se è diversa
+   da 3 il server richiede `deviation.present` con descrizione (stesso schema dei
+   braccioli del 30s-STS). Il form attiva la deviazione; tornando a 3 la spegne solo se non
+   è stata descritta.
+5. **Comparabilità:** `protocolVersion`, `deviceModelKey`, `fixationMethod`,
+   `kneeAngleDeg` e `hipAngleDeg` (±5°), `sensorPositionKey` (`other|nota normalizzata`).
+   Seriale salvato per STORY-039, non è un criterio; l'ausilio non lo è (test da seduta).
+   `computeHhdComparability` è nel CORE: la usano server e form, così l'avviso prima del
+   salvataggio e lo snapshot salvato non possono divergere. L'avviso vale anche in
+   Correggi e ignora i campi non ancora validi.
+6. **Differenza tra i lati: derivata alla lettura** (`getSideDifference`, solo client), non
+   in `result`. Aggiungerla a `computeBilateralResult` cambierebbe il `result` di ogni
+   Handgrip, e una correzione identica di un documento già salvato risulterebbe diversa
+   (ADR-016 §9). I dati per ricalcolarla sono nel documento. Assoluta sui valori mostrati,
+   relativa in % del lato più forte (il docx non la definisce): vale 100 − simmetria.
+7. **Catalogo stop:** `cramps` aggiunto a `LIMB_STOP_REASON_CODES`, perché il docx 04 §19 lo
+   elenca. Vale per tutti i test bilaterali; `STOP_REASON_CODES` non cambia.
+8. **Form:** prove, anteprima, stop, dispositivo e unità estratti da `HandgripForm` in
+   `BilateralFormParts.jsx`, `useBilateralTrials.js` e `bilateralFormModel.js`, per non
+   avere due copie e prepararli a OLS. Comportamento Handgrip invariato. La resa resta
+   quella delle righe di prova già in produzione su dev, non la tabella del canvas.
+
+**Conseguenze:**
+- `firestore.rules`, indici e `aggiungiValutazione`: nessuna modifica.
+- Copia speculare toccata: `shared/lipedema.js`, quindi vanno ridistribuite le functions.
+- **Per STORY-038:** la gamba dominante oggi si precompila solo dall'ultima HHD. ADR-016 §5
+  chiede di usare anche l'OLS (stesso arto): `createForm` riceve solo la precedente dello
+  stesso test, quindi va esteso quando esiste l'OLS.
+- `seed-demo-lipedema.mjs` non crea HHD: per ora si inseriscono a mano.
+

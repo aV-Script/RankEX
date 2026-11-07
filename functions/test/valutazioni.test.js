@@ -371,6 +371,38 @@ describe('aggiungiValutazione — Handgrip (STORY-036)', () => {
     expect(assessments()).toEqual([])
   })
 
+  it('HHD: risultato e snapshot di comparabilità calcolati dal server', async () => {
+    const hhd = {
+      ...HANDGRIP, testId: 'lipedema_hhd_quadriceps',
+      setup: {
+        dominantSide: 'R', device: { brand: 'Hoggan', model: 'microFET2' }, fixationMethod: 'belt', kneeAngleDeg: 90,
+        hipAngleDeg: 90, sensorPosition: 'distal_anterior_tibia', contractionS: 3, assistiveDevice: 'none', nativeUnit: 'N',
+      },
+    }
+    await aggiungiValutazione(req('trainer1', { tests: [hhd] }))
+    const [[, doc]] = assessments()
+    expect(doc).toMatchObject({
+      testId: 'lipedema_hhd_quadriceps', outcome: 'complete',
+      comparability: { fixationMethod: 'belt', deviceModelKey: 'hoggan|microfet2', sensorPositionKey: 'distal_anterior_tibia' },
+    })
+    expect(doc.result.sideStatus).toEqual({ R: 'complete', L: 'complete' })
+  })
+
+  it.each([
+    ['oltre 60,0 s',            { nativeValue: 60.1, endReason: 'ceiling' }],
+    ['60,0 s con altro motivo', { nativeValue: 60, endReason: 'foot_touch' }],
+    ['senza motivo di fine',    { nativeValue: 30, endReason: null }],
+  ])('OLS: %s → invalid-argument, nessuna scrittura', async (_label, firstTrial) => {
+    const ols = {
+      testId: 'lipedema_ols', performedAt: HANDGRIP.performedAt,
+      setup: { dominantSide: 'R', footwear: 'barefoot', surface: 'hard_floor', assistiveDevice: 'none', nativeUnit: 's' },
+      trials: numbered([{ side: 'R', valid: true, ...firstTrial }, { side: 'L', valid: true, nativeValue: 20, endReason: 'foot_touch' }, { side: 'R', valid: true, nativeValue: 21, endReason: 'foot_touch' }, { side: 'L', valid: true, nativeValue: 22, endReason: 'foot_touch' }]),
+      events: { stoppedEarly: false }, clinical: {}, deviation: { present: false },
+    }
+    await expect(call(ols)).rejects.toMatchObject({ code: 'invalid-argument' })
+    expect(assessments()).toEqual([])
+  })
+
   it('stessa visita: 2MWT + 30s-STS + Handgrip in un solo visitId', async () => {
     const sts = {
       testId: 'lipedema_30s_sts', performedAt: '2026-10-30T10:30',

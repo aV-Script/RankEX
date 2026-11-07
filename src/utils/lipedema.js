@@ -14,6 +14,8 @@ export const LIPEDEMA_TEST_IDS = {
   TWO_MINUTE_WALK:  'lipedema_2mwt',
   SIT_TO_STAND_30S: 'lipedema_30s_sts',
   HANDGRIP:         'lipedema_handgrip',
+  HHD_QUADRICEPS:   'lipedema_hhd_quadriceps',
+  ONE_LEG_STANDING: 'lipedema_ols',
 }
 
 export const ASSESSMENT_STATUS = {
@@ -53,7 +55,7 @@ export const SIT_TO_STAND_30S = {
   maxPauseCount:         10,
 }
 
-// Test 03 — protocollo 1.0 (docx 03, ADR-016 §1). HHD e OLS saranno altre
+// Test 03 — protocollo 1.0 (docx 03, ADR-016 §1). HHD e OLS sono altre
 // specifiche con la stessa forma, lette dalla stessa logica bilaterale
 // (readBilateralTrials + computeBilateralResult)
 export const HANDGRIP = {
@@ -71,6 +73,34 @@ export const HANDGRIP = {
   invalidReasons:     ['technique_error', 'timing_error', 'external_interruption', 'device_error', 'other'],
 }
 
+// Test 04 — protocollo 1.0 (docx 04, ADR-015 §7, ADR-017). Stessa logica
+// bilaterale dell'Handgrip; angoli e contrazione sono default da protocollo
+export const HHD_QUADRICEPS = {
+  protocolVersion:      '1.0',
+  sides:                ['R', 'L'],
+  validTrialsPerSide:   3,
+  maxInvalidPerSide:    3,
+  canonicalUnit:        'N',
+  unitFactors:          { N: 1, kgf: 9.80665 },
+  inputDecimals:        2,
+  maxValue:             1500,            // in unità canonica, solo anti-refuso
+  ceiling:              null,
+  invalidReasons:       ['technique_error', 'timing_error', 'external_interruption', 'device_error', 'other'],
+  standardKneeAngleDeg: 90,
+  standardHipAngleDeg:  90,
+  angleToleranceDeg:    5,
+  maxAngleDeg:          180,
+  standardContractionS: 3,
+  maxContractionS:      30,
+}
+
+// Fissaggio del dinamometro, unico per entrambe le gambe (docx 04 §18)
+export const FIXATION_METHODS = ['belt', 'manual']
+
+// Punto del sensore: catalogo chiuso, un testo libero non sarebbe confrontabile
+// (ADR-009 §2). Con 'other' la nota è obbligatoria
+export const SENSOR_POSITIONS = ['distal_anterior_tibia', 'other']
+
 export const ASSISTIVE_DEVICES = ['none', 'cane', 'crutch', 'rollator', 'other']
 
 // Catalogo chiuso dei motivi di stop anticipato: i codici sono stabili, le
@@ -83,7 +113,7 @@ export const STOP_REASON_CODES = [
 // Interruzione dei test bilaterali (docx 03 §19, 04 §19, 05 §20): separato da
 // STOP_REASON_CODES (2MWT/STS, motivi cardiorespiratori), che non si allarga
 export const LIMB_STOP_REASON_CODES = [
-  'acute_pain', 'neurological_symptoms', 'dizziness', 'loss_of_control',
+  'acute_pain', 'cramps', 'neurological_symptoms', 'dizziness', 'loss_of_control',
   'instability', 'contraindication', 'patient_request', 'examiner_decision', 'other',
 ]
 
@@ -140,6 +170,7 @@ export const TEXT_LIMITS = {
   trialNote:           200,
   deviceField:         60,
   gripSetting:         40,
+  sensorPositionNote:  200,
 }
 
 export const MAX_TESTS_PER_VISIT = 5
@@ -149,6 +180,7 @@ export const MAX_TESTS_PER_VISIT = 5
 const ALL_CLINICAL_KEYS          = Object.keys(CLINICAL_RANGES)
 const SIT_TO_STAND_CLINICAL_KEYS = ['painPre', 'painPost', 'dyspneaPre', 'dyspneaPost', 'fatiguePre', 'fatiguePost']
 const NO_CLINICAL_KEYS           = []
+const HHD_CLINICAL_KEYS          = ['painPre']
 
 // Il 30s-STS si esegue senza ausili (docx 02 §5): non è un input
 const STS_ASSISTIVE_DEVICE   = 'none'
@@ -211,6 +243,23 @@ export function isStandardChairHeight(heightCm) {
 /** Chiave di confronto (dispositivo, impugnatura): senza spazi ai bordi e senza maiuscole */
 export function normalizeKey(text) {
   return (text ?? '').trim().toLowerCase()
+}
+
+/**
+ * Snapshot di comparabilità dell'HHD (ADR-012, ADR-017): lo salva il server e lo
+ * usa il form per avvisare prima del salvataggio. Il seriale si conserva per
+ * STORY-039, non è un criterio.
+ */
+export function computeHhdComparability({ brand, model, serial, fixationMethod, kneeAngleDeg, hipAngleDeg, sensorPosition, sensorPositionNote }) {
+  return {
+    protocolVersion:   HHD_QUADRICEPS.protocolVersion,
+    deviceModelKey:    `${normalizeKey(brand)}|${normalizeKey(model)}`,
+    deviceSerialKey:   serial ? normalizeKey(serial) : null,
+    fixationMethod,
+    kneeAngleDeg,
+    hipAngleDeg,
+    sensorPositionKey: sensorPosition === 'other' ? `other|${normalizeKey(sensorPositionNote)}` : sensorPosition,
+  }
 }
 
 /**
@@ -372,10 +421,7 @@ function validateTwoMinuteWalk(input, context) {
     fail('setup.variantConfirmed', 'Conferma la variante di percorso')
   }
 
-  const assistiveDevice = setup.assistiveDevice
-  if (!ASSISTIVE_DEVICES.includes(assistiveDevice)) fail('setup.assistiveDevice', "Seleziona l'ausilio")
-  const deviceNote = readText(setup.assistiveDeviceNote, TEXT_LIMITS.assistiveDeviceNote, 'setup.assistiveDeviceNote', fail)
-  if (assistiveDevice === 'other' && !deviceNote) fail('setup.assistiveDeviceNote', "Descrivi l'ausilio")
+  const { assistiveDevice, assistiveDeviceNote } = readAssistiveDevice(setup, fail)
 
   // Stop anticipato: un test interrotto non è mai trattato come completo
   const { stoppedEarly, stopTimeS } = readTimedStop(events, TWO_MINUTE_WALK.durationS, fail)
@@ -428,7 +474,7 @@ function validateTwoMinuteWalk(input, context) {
         courseLengthM,
         isStandardCourse,
         assistiveDevice,
-        assistiveDeviceNote: assistiveDevice === 'other' ? deviceNote : null,
+        assistiveDeviceNote,
       },
       trials: [{ seq: 1, side: null, valid: true, fullLengths, partialDistanceM, value: result.distanceM }],
       events: { pauseCount, pauseDurationS, stopTimeS },
@@ -579,7 +625,6 @@ function validateHandgrip(input, context) {
   const fail   = makeFail(errors)
   const src        = asObject(input)
   const setup      = asObject(src.setup)
-  const device     = asObject(setup.device)
   const events     = asObject(src.events)
   const clinicalIn = asObject(src.clinical)
   const spec       = HANDGRIP
@@ -588,9 +633,7 @@ function validateHandgrip(input, context) {
 
   // Setup: chi rilegge deve sapere con quale strumento e impugnatura (docx 03 §21)
   const dominantSide = readDominantSide(setup.dominantSide, fail)
-  const brand  = readRequiredText(device.brand, TEXT_LIMITS.deviceField, 'setup.device.brand', 'Inserisci la marca del dinamometro', fail, errors)
-  const model  = readRequiredText(device.model, TEXT_LIMITS.deviceField, 'setup.device.model', 'Inserisci il modello del dinamometro', fail, errors)
-  const serial = readText(device.serial, TEXT_LIMITS.deviceField, 'setup.device.serial', fail)
+  const { brand, model, serial } = readDevice(setup, fail, errors)
   const gripSetting = readRequiredText(setup.gripSetting, TEXT_LIMITS.gripSetting, 'setup.gripSetting', "Indica l'impostazione dell'impugnatura", fail, errors)
 
   // Prove e derivati: tutta la logica è quella bilaterale generica
@@ -639,10 +682,98 @@ function validateHandgrip(input, context) {
   }
 }
 
+function validateHhdQuadriceps(input, context) {
+  const errors = {}
+  const fail   = makeFail(errors)
+  const src        = asObject(input)
+  const setup      = asObject(src.setup)
+  const events     = asObject(src.events)
+  const clinicalIn = asObject(src.clinical)
+  const spec       = HHD_QUADRICEPS
+
+  const performedAt = readPerformedAt(src.performedAt, context, fail)
+
+  // Setup: dispositivo, fissaggio e posizione decidono se due valutazioni si
+  // possono confrontare (docx 04 §21)
+  const dominantSide = readDominantSide(setup.dominantSide, fail)
+  const { brand, model, serial } = readDevice(setup, fail, errors)
+  const fixationMethod = setup.fixationMethod
+  if (!FIXATION_METHODS.includes(fixationMethod)) fail('setup.fixationMethod', 'Seleziona il metodo di fissaggio')
+  const kneeAngleDeg = readAngle(setup.kneeAngleDeg, spec, 'setup.kneeAngleDeg', "Inserisci l'angolo del ginocchio", fail)
+  const hipAngleDeg  = readAngle(setup.hipAngleDeg, spec, 'setup.hipAngleDeg', "Inserisci l'angolo dell'anca", fail)
+
+  const sensorPosition = setup.sensorPosition
+  if (!SENSOR_POSITIONS.includes(sensorPosition)) fail('setup.sensorPosition', 'Seleziona il punto del sensore')
+  const sensorNote = readText(setup.sensorPositionNote, TEXT_LIMITS.sensorPositionNote, 'setup.sensorPositionNote', fail)
+  if (sensorPosition === 'other' && !sensorNote) fail('setup.sensorPositionNote', 'Descrivi il punto del sensore')
+  const sensorPositionNote = sensorPosition === 'other' ? sensorNote : null
+
+  const contractionS = setup.contractionS
+  const isContractionValid = isFiniteNumber(contractionS) && contractionS > 0 &&
+    contractionS <= spec.maxContractionS && hasMaxDecimals(contractionS, 1)
+  if (!isContractionValid) fail('setup.contractionS', `Inserisci la durata della contrazione (fino a ${spec.maxContractionS} s, un decimale)`)
+
+  const { assistiveDevice, assistiveDeviceNote } = readAssistiveDevice(setup, fail)
+
+  // Prove e derivati: tutta la logica è quella bilaterale generica
+  const { nativeUnit, trials } = readBilateralTrials(src, spec, fail)
+  const result = trials ? computeBilateralResult(trials, spec) : null
+  const { stoppedEarly, stopReasonCode, stopReasonNote } = readLimbStop(events, clinicalIn, result, fail, errors)
+
+  const clinical = readClinical(clinicalIn, fail, HHD_CLINICAL_KEYS)
+  const conditionsNote = readText(clinicalIn.conditionsNote, TEXT_LIMITS.conditionsNote, 'clinical.conditionsNote', fail)
+  const deviation = readDeviation(src.deviation, fail)
+  // Contrazione fuori protocollo: la deviazione va descritta da chi l'ha vista
+  if (isContractionValid && contractionS !== spec.standardContractionS && deviation.present === false) {
+    fail('deviation.present', `Contrazione diversa da ${spec.standardContractionS} s: registra la deviazione dal protocollo`)
+  }
+  const notes = readText(src.notes, TEXT_LIMITS.notes, 'notes', fail)
+
+  if (hasErrors(errors)) return { errors, value: null }
+
+  return {
+    errors,
+    value: {
+      testId:  LIPEDEMA_TEST_IDS.HHD_QUADRICEPS,
+      protocolVersion: spec.protocolVersion,
+      performedAt,
+      outcome: stoppedEarly ? ASSESSMENT_OUTCOME.STOPPED_EARLY : ASSESSMENT_OUTCOME.COMPLETE,
+      setup: {
+        dominantSide,
+        device: { brand, model, serial },
+        fixationMethod,
+        kneeAngleDeg,
+        hipAngleDeg,
+        sensorPosition,
+        sensorPositionNote,
+        contractionS,
+        assistiveDevice,
+        assistiveDeviceNote,
+        nativeUnit,
+      },
+      trials,
+      events:  { stoppedEarly },
+      result,
+      comparability: computeHhdComparability({ brand, model, serial, fixationMethod, kneeAngleDeg, hipAngleDeg, sensorPosition, sensorPositionNote }),
+      clinical: {
+        painScale: PAIN_SCALE,
+        ...clinical,
+        painMaxBySide: computePainMaxBySide(trials, spec),
+        stopReasonCode,
+        stopReasonNote,
+        conditionsNote,
+      },
+      deviation,
+      notes,
+    },
+  }
+}
+
 const ASSESSMENT_VALIDATORS = {
   [LIPEDEMA_TEST_IDS.TWO_MINUTE_WALK]:  validateTwoMinuteWalk,
   [LIPEDEMA_TEST_IDS.SIT_TO_STAND_30S]: validateSitToStand30s,
   [LIPEDEMA_TEST_IDS.HANDGRIP]:         validateHandgrip,
+  [LIPEDEMA_TEST_IDS.HHD_QUADRICEPS]:   validateHhdQuadriceps,
 }
 
 // ── Logica bilaterale generica (ADR-016 §1-3) ────────────────────────────────
@@ -654,9 +785,10 @@ const ASSESSMENT_VALIDATORS = {
  * lato. L'alternanza dei lati la guida la UI, non la impone il server. L'unità
  * nativa si inserisce una volta per valutazione (setup.nativeUnit) e si copia
  * su ogni prova; `value` è canonico e non arrotondato.
+ * `readTrialExtra` (facoltativa): campi per prova che solo un test ha (ADR-016 §1).
  * @returns {{ nativeUnit: string|null, trials: object[]|null }}
  */
-function readBilateralTrials(src, spec, fail) {
+function readBilateralTrials(src, spec, fail, readTrialExtra) {
   const setup = asObject(src.setup)
   const nativeUnit = typeof setup.nativeUnit === 'string' && Object.hasOwn(spec.unitFactors, setup.nativeUnit)
     ? setup.nativeUnit
@@ -717,7 +849,7 @@ function readBilateralTrials(src, spec, fail) {
 
     const trial = { seq: index + 1, side, valid: valid === true, invalidReason, nativeValue, nativeUnit, value, pain, note }
     if (hasCeiling(spec)) trial.ceiling = value === spec.ceiling
-    return trial
+    return readTrialExtra ? { ...trial, ...readTrialExtra(trialSrc, trial, field, fail) } : trial
   })
   return { nativeUnit, trials }
 }
@@ -849,6 +981,38 @@ function readDeviation(value, fail) {
   const note = readText(deviation.note, TEXT_LIMITS.deviationNote, 'deviation.note', fail)
   if (present === true && !note) fail('deviation.note', 'Descrivi la deviazione')
   return { present, note: present ? note : null }
+}
+
+/** Ausilio dal catalogo, nota obbligatoria con "Altro" e salvata solo in quel caso */
+function readAssistiveDevice(setup, fail) {
+  const assistiveDevice = setup.assistiveDevice
+  if (!ASSISTIVE_DEVICES.includes(assistiveDevice)) fail('setup.assistiveDevice', "Seleziona l'ausilio")
+  const note = readText(setup.assistiveDeviceNote, TEXT_LIMITS.assistiveDeviceNote, 'setup.assistiveDeviceNote', fail)
+  if (assistiveDevice === 'other' && !note) fail('setup.assistiveDeviceNote', "Descrivi l'ausilio")
+  return { assistiveDevice, assistiveDeviceNote: assistiveDevice === 'other' ? note : null }
+}
+
+/** Dinamometro: marca e modello obbligatori, seriale facoltativo */
+function readDevice(setup, fail, errors) {
+  const device = asObject(setup.device)
+  return {
+    brand:  readRequiredText(device.brand, TEXT_LIMITS.deviceField, 'setup.device.brand', 'Inserisci la marca del dinamometro', fail, errors),
+    model:  readRequiredText(device.model, TEXT_LIMITS.deviceField, 'setup.device.model', 'Inserisci il modello del dinamometro', fail, errors),
+    serial: readText(device.serial, TEXT_LIMITS.deviceField, 'setup.device.serial', fail),
+  }
+}
+
+/** Angolo articolare in gradi interi: obbligatorio, limiti solo anti-refuso */
+function readAngle(value, spec, field, emptyMessage, fail) {
+  if (value === undefined || value === null) {
+    fail(field, emptyMessage)
+    return null
+  }
+  if (!isIntegerInRange(value, 0, spec.maxAngleDeg)) {
+    fail(field, `Inserisci un angolo intero (0–${spec.maxAngleDeg}°)`)
+    return null
+  }
+  return value
 }
 
 function readDominantSide(value, fail) {
@@ -1027,6 +1191,14 @@ export const COMPARABILITY_RULES = {
     { key: 'deviceModelKey',  reason: 'dynamometer' },
     { key: 'gripSettingKey',  reason: 'grip' },
   ],
+  [LIPEDEMA_TEST_IDS.HHD_QUADRICEPS]: [
+    { key: 'protocolVersion',   reason: 'protocol' },
+    { key: 'deviceModelKey',    reason: 'dynamometer' },
+    { key: 'fixationMethod',    reason: 'fixation' },
+    { key: 'kneeAngleDeg',      reason: 'kneeAngle', tolerance: HHD_QUADRICEPS.angleToleranceDeg },
+    { key: 'hipAngleDeg',       reason: 'hipAngle',  tolerance: HHD_QUADRICEPS.angleToleranceDeg },
+    { key: 'sensorPositionKey', reason: 'sensor' },
+  ],
 }
 
 // Valore primario dei test monolaterali, già arrotondato alla precisione
@@ -1037,9 +1209,10 @@ const PRIMARY_RESULT_KEY = {
 }
 
 // Test bilaterali: specifica + decimali mostrati del best (N senza decimali,
-// ADR-016 §4). Il delta per lato arrotonda prima i due valori a questa precisione
+// secondi con uno, ADR-016 §4). Il delta per lato arrotonda prima i due valori a questa precisione
 export const BILATERAL_TESTS = {
-  [LIPEDEMA_TEST_IDS.HANDGRIP]: { spec: HANDGRIP, displayDecimals: 0 },
+  [LIPEDEMA_TEST_IDS.HANDGRIP]:       { spec: HANDGRIP, displayDecimals: 0 },
+  [LIPEDEMA_TEST_IDS.HHD_QUADRICEPS]: { spec: HHD_QUADRICEPS, displayDecimals: 0 },
 }
 
 // Esiti che non sono valori ordinari: nessun delta se uno dei due estremi lo è
@@ -1062,6 +1235,20 @@ export function getPrimaryResult(assessment) {
 /** Best per lato di un test bilaterale: { R, L } (null se il lato non è completo) */
 export function getBestBySide(assessment) {
   return assessment?.result?.bestBySide ?? null
+}
+
+/**
+ * Differenza tra i lati di un test bilaterale, derivata alla lettura (ADR-017):
+ * assoluta sui valori arrotondati alla precisione mostrata, relativa in % del
+ * lato più forte, così vale 100 − simmetria. null se manca un lato.
+ */
+export function getSideDifference(result, decimals = 0) {
+  const { strongestValue, weakestValue } = result ?? {}
+  if (!isFiniteNumber(strongestValue) || !isFiniteNumber(weakestValue)) return null
+  return {
+    absolute:    roundToDecimals(roundToDecimals(strongestValue, decimals) - roundToDecimals(weakestValue, decimals), decimals),
+    relativePct: ((strongestValue - weakestValue) / strongestValue) * 100,
+  }
 }
 
 /** Arrotondamento alla precisione mostrata (ADR-012) */
@@ -1172,7 +1359,8 @@ function isDeepEqual(a, b) {
   return keysA.length === keysB.length && keysA.every(key => Object.hasOwn(b, key) && isDeepEqual(a[key], b[key]))
 }
 
-function byMostRecent(a, b) {
+/** Dalla più recente: performedAt ha i minuti, a parità decide la registrazione */
+export function byMostRecent(a, b) {
   if (a.performedAt !== b.performedAt) return a.performedAt < b.performedAt ? 1 : -1
   const createdA = a.createdAt ?? ''
   const createdB = b.createdAt ?? ''

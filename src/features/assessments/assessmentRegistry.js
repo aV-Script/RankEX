@@ -1,30 +1,36 @@
 // Registro per test delle valutazioni Lipedema: form, dettaglio e formattazione
 // di ogni test implementato, così storico, dettaglio, card e selettore non
 // ramificano su testId. Dati e etichette in config/lipedemaTests.config.js.
-// Un test nuovo (HHD, OLS) = una voce qui + una in LIPEDEMA_TESTS/ORDER.
+// Un test nuovo = una voce qui + una in LIPEDEMA_TESTS/ORDER.
 import { LIPEDEMA_TEST_IDS, BILATERAL_TESTS, getPrimaryResult } from '../../utils/lipedema'
 import { LIPEDEMA_TESTS } from '../../config/lipedemaTests.config'
 import { TwoMinuteWalkForm } from './TwoMinuteWalkForm'
 import { SitToStandForm }    from './SitToStandForm'
 import { HandgripForm }      from './HandgripForm'
+import { HhdForm }           from './HhdForm'
 import {
   TwoMinuteWalkResultInfo, TwoMinuteWalkDetail, SitToStandResultInfo, SitToStandDetail,
-  BilateralResultInfo, HandgripDetail,
+  BilateralResultInfo, HandgripDetail, HhdDetail,
 } from './AssessmentTestDetails'
+import { getLatestDominantLeg } from './bilateralFormModel'
 import { createTwoMinuteWalkForm, formFromAssessment as twoMinuteWalkFormFromAssessment } from './twoMinuteWalkFormModel'
 import { createSitToStandForm, sitToStandFormFromAssessment } from './sitToStandFormModel'
 import { createHandgripForm, handgripFormFromAssessment }     from './handgripFormModel'
+import { createHhdForm, hhdFormFromAssessment }               from './hhdFormModel'
 import { formatNumber, formatMonoDelta, formatBilateralDelta, formatBilateralPrimary } from './assessmentFormat'
 
 const HANDGRIP_ID       = LIPEDEMA_TEST_IDS.HANDGRIP
 const HANDGRIP_DECIMALS = BILATERAL_TESTS[HANDGRIP_ID].displayDecimals
 const HANDGRIP_UNIT     = LIPEDEMA_TESTS[HANDGRIP_ID].unit
+const HHD_ID            = LIPEDEMA_TEST_IDS.HHD_QUADRICEPS
+const HHD_DECIMALS      = BILATERAL_TESTS[HHD_ID].displayDecimals
+const HHD_UNIT          = LIPEDEMA_TESTS[HHD_ID].unit
 
 /**
  * Per ogni test:
  * - `Form`              — form a schermo intero ({ client, examinerName, initialForm, supersedes, previous, onSave, ... })
  * - `ResultInfo` / `Detail` — parte specifica del dettaglio
- * - `createForm(nowLocal, previous)` — form nuovo (previous = ultima valida dello stesso test, per la precompilazione)
+ * - `createForm(nowLocal, previous, latestByTest)` — form nuovo (previous = ultima valida dello stesso test, latestByTest = ultima valida per test: precompilazione)
  * - `formFromAssessment(assessment)` — form di Correggi
  * - `formatPrimary(assessment)` — valore principale a schermo
  * - `formatDelta(entry)`        — testo del delta (buildTestHistory), null se assente
@@ -56,6 +62,15 @@ export const ASSESSMENT_UI = {
     formFromAssessment: handgripFormFromAssessment,
     formatPrimary:      assessment => formatBilateralPrimary(assessment, HANDGRIP_UNIT, HANDGRIP_DECIMALS),
     formatDelta:        entry => formatBilateralDelta(entry, HANDGRIP_UNIT, HANDGRIP_DECIMALS),
+  },
+  [HHD_ID]: {
+    Form:               HhdForm,
+    ResultInfo:         BilateralResultInfo,
+    Detail:             HhdDetail,
+    createForm:         (nowLocal, previous, latestByTest) => createHhdForm(nowLocal, previous, getLatestDominantLeg(latestByTest)),
+    formFromAssessment: hhdFormFromAssessment,
+    formatPrimary:      assessment => formatBilateralPrimary(assessment, HHD_UNIT, HHD_DECIMALS),
+    formatDelta:        entry => formatBilateralDelta(entry, HHD_UNIT, HHD_DECIMALS),
   },
 }
 

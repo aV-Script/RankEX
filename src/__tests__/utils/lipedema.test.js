@@ -3,9 +3,10 @@ import {
   computeTwoMinuteWalkResult, validateAssessmentInput, validatePrivacyNoticeInput, validateVoidReason,
   patientAgeAt, requiresPrivacyNotice, buildTestHistory, getLatestValidByTest, getComparabilityIssues,
   isPrivacyNoticeMissingError, PRIVACY_NOTICE_MISSING, isSameAssessmentData, nowLocalDateTime, todayLocalDate, LOCAL_TIME_ZONE,
-  computeBilateralResult, HANDGRIP,
+  computeBilateralResult, HANDGRIP, getSideDifference,
 } from '../../utils/lipedema.js'
 import { getModule, MODULES } from '../../config/modules.config.js'
+import { LIPEDEMA_TESTS, getInvalidTrialReasonLabel } from '../../config/lipedemaTests.config.js'
 import {
   createTwoMinuteWalkForm, formFromAssessment, buildTwoMinuteWalkInput, toNumber, countClinicalFilled,
 } from '../../features/assessments/twoMinuteWalkFormModel.js'
@@ -13,8 +14,13 @@ import {
   createSitToStandForm, buildSitToStandInput, sitToStandFormFromAssessment,
 } from '../../features/assessments/sitToStandFormModel.js'
 import {
-  createHandgripForm, createPlannedTrials, proposeNextSide, buildHandgripInput, handgripFormFromAssessment,
+  createHandgripForm, buildHandgripInput, handgripFormFromAssessment,
 } from '../../features/assessments/handgripFormModel.js'
+import { createPlannedTrials, proposeNextSide, getLatestDominantLeg, toPreviewTrials } from '../../features/assessments/bilateralFormModel.js'
+import {
+  createHhdForm, buildHhdInput, hhdFormFromAssessment, hhdComparabilityOf, isHhdDeviationRequired,
+  applyContractionChange, getHhdComparabilityWarnings,
+} from '../../features/assessments/hhdFormModel.js'
 import { formatMonoDelta, formatBilateralDelta, formatBilateralPrimary } from '../../features/assessments/assessmentFormat.js'
 
 const CONTEXT = { nowLocal: '2026-10-30T11:00', birthDate: '1985-03-12' }
@@ -465,6 +471,225 @@ describe('validateAssessmentInput — Handgrip', () => {
   })
 })
 
+describe('validateAssessmentInput — HHD quadricipite (ADR-017)', () => {
+  const leg = (side, nativeValue, extra = {}) => ({ side, valid: true, nativeValue, ...extra })
+  const numbered = trials => trials.map((item, i) => ({ seq: i + 1, ...item }))
+  const SIX = [leg('R', 212), leg('L', 188), leg('R', 224), leg('L', 196), leg('R', 219), leg('L', 192)]
+  const SETUP = {
+    dominantSide: 'R', device: { brand: ' Hoggan ', model: 'microFET2', serial: '4411' }, fixationMethod: 'belt',
+    kneeAngleDeg: 90, hipAngleDeg: 90, sensorPosition: 'distal_anterior_tibia', contractionS: 3,
+    assistiveDevice: 'none', nativeUnit: 'N',
+  }
+  const BASE_HHD = {
+    testId: 'lipedema_hhd_quadriceps', performedAt: '2026-10-30T10:30', setup: SETUP,
+    trials: numbered(SIX), events: { stoppedEarly: false }, clinical: { painPre: 2 }, deviation: { present: false },
+  }
+  const hhd = override => validateAssessmentInput({ ...BASE_HHD, ...override }, CONTEXT)
+  const withSetup = patch => hhd({ setup: { ...SETUP, ...patch } })
+
+  it('6 prove: best, simmetria, setup e chiavi di comparabilità', () => {
+    const { errors, value } = hhd({})
+    expect(errors).toEqual({})
+    expect(value).toMatchObject({
+      outcome: 'complete',
+      setup: { fixationMethod: 'belt', kneeAngleDeg: 90, hipAngleDeg: 90, contractionS: 3, sensorPositionNote: null, assistiveDevice: 'none', assistiveDeviceNote: null },
+      result: { unit: 'N', bestBySide: { R: 224, L: 196 }, strongestSide: 'R', symmetryPct: 87.5 },
+      comparability: { protocolVersion: '1.0', deviceModelKey: 'hoggan|microfet2', deviceSerialKey: '4411', fixationMethod: 'belt', kneeAngleDeg: 90, hipAngleDeg: 90, sensorPositionKey: 'distal_anterior_tibia' },
+      clinical: { painScale: 'nrs_0_10', painPre: 2, painMaxBySide: { R: null, L: null } },
+    })
+    expect(value.clinical).not.toHaveProperty('painPost')
+  })
+
+  it('kgf: valore nativo conservato, N non arrotondato', () => {
+    const { value } = hhd({ setup: { ...SETUP, nativeUnit: 'kgf' }, trials: numbered(SIX.map(item => ({ ...item, nativeValue: item.nativeValue / 10 }))) })
+    expect(value.trials[0]).toMatchObject({ nativeValue: 21.2, nativeUnit: 'kgf', value: 21.2 * 9.80665 })
+  })
+
+  it('fissaggio obbligatorio: belt e manual ammessi, altro no; un campo solo per entrambe le gambe', () => {
+    expect(withSetup({ fixationMethod: 'manual' }).errors).toEqual({})
+    expect(withSetup({ fixationMethod: undefined }).errors).toHaveProperty(['setup.fixationMethod'])
+    expect(withSetup({ fixationMethod: 'elastic' }).errors).toHaveProperty(['setup.fixationMethod'])
+    // Un fissaggio per lato non è rappresentabile: le chiavi extra si ignorano
+    expect(hhd({ setup: { ...SETUP, fixationMethodLeft: 'manual' } }).value.setup).not.toHaveProperty('fixationMethodLeft')
+  })
+
+  it('angoli obbligatori, interi e nei limiti', () => {
+    expect(withSetup({ kneeAngleDeg: null }).errors).toHaveProperty(['setup.kneeAngleDeg'])
+    expect(withSetup({ hipAngleDeg: 90.5 }).errors).toHaveProperty(['setup.hipAngleDeg'])
+    expect(withSetup({ kneeAngleDeg: 181 }).errors).toHaveProperty(['setup.kneeAngleDeg'])
+    expect(withSetup({ kneeAngleDeg: 95, hipAngleDeg: 85 }).errors).toEqual({})
+  })
+
+  it('punto del sensore: catalogo chiuso, "Altro" con descrizione e chiave normalizzata', () => {
+    expect(withSetup({ sensorPosition: 'caviglia' }).errors).toHaveProperty(['setup.sensorPosition'])
+    expect(withSetup({ sensorPosition: 'other' }).errors).toHaveProperty(['setup.sensorPositionNote'])
+    const { value } = withSetup({ sensorPosition: 'other', sensorPositionNote: ' Metà Tibia ' })
+    expect(value.setup.sensorPositionNote).toBe('Metà Tibia')
+    expect(value.comparability.sensorPositionKey).toBe('other|metà tibia')
+    expect(withSetup({ sensorPositionNote: 'residuo' }).value.setup.sensorPositionNote).toBeNull()
+  })
+
+  it('contrazione diversa da 3 s: ammessa solo con la deviazione descritta', () => {
+    expect(withSetup({ contractionS: 5 }).errors).toHaveProperty(['deviation.present'])
+    expect(hhd({ setup: { ...SETUP, contractionS: 5 }, deviation: { present: true, note: 'tenuta 5 s' } }).errors).toEqual({})
+    expect(withSetup({ contractionS: 0 }).errors).toHaveProperty(['setup.contractionS'])
+    expect(withSetup({ contractionS: 31 }).errors).toHaveProperty(['setup.contractionS'])
+    expect(withSetup({ contractionS: 2.55 }).errors).toHaveProperty(['setup.contractionS'])
+  })
+
+  it('dolore pre-test e ausilio: facoltativo il primo, catalogo chiuso il secondo', () => {
+    expect(hhd({ clinical: {} }).value.clinical.painPre).toBeNull()
+    expect(hhd({ clinical: { painPre: 11 } }).errors).toHaveProperty(['clinical.painPre'])
+    expect(withSetup({ assistiveDevice: 'skate' }).errors).toHaveProperty(['setup.assistiveDevice'])
+    expect(withSetup({ assistiveDevice: 'other' }).errors).toHaveProperty(['setup.assistiveDeviceNote'])
+    expect(withSetup({ assistiveDevice: 'cane' }).errors).toEqual({})
+  })
+
+  it('stessa logica bilaterale: non valida ripetuta, stop con una gamba incompleta', () => {
+    const repeated = hhd({ trials: numbered([leg('R', 212), leg('L', 300, { valid: false, invalidReason: 'technique_error', pain: 4 }), leg('L', 188), leg('R', 224), leg('L', 196), leg('R', 219), leg('L', 192)]) })
+    expect(repeated.value.result.bestBySide.L).toBe(196)
+    expect(repeated.value.clinical.painMaxBySide).toEqual({ R: null, L: 4 })
+    expect(hhd({ trials: numbered([leg('R', 212, { valid: false, invalidReason: 'support_or_assistance' }), ...SIX]) }).errors).toHaveProperty(['trials.0.invalidReason'])
+    const partial = numbered([leg('R', 212), leg('L', 188), leg('R', 224), leg('R', 219)])
+    expect(hhd({ trials: partial }).errors.trials).toBe("Completa le prove o segna l'interruzione")
+    const { value } = hhd({ trials: partial, events: { stoppedEarly: true }, clinical: { stopReasonCode: 'acute_pain' } })
+    expect(value).toMatchObject({ outcome: 'stopped_early', result: { bestBySide: { R: 224, L: null }, symmetryPct: null } })
+  })
+
+  it('anti-refuso: oltre 1500 N rifiutato, anche in kgf', () => {
+    expect(hhd({ trials: numbered([leg('R', 1501), ...SIX.slice(1)]) }).errors).toHaveProperty(['trials.0.nativeValue'])
+    expect(hhd({ setup: { ...SETUP, nativeUnit: 'kgf' }, trials: numbered([leg('R', 153), ...SIX.slice(1)]) }).errors).toHaveProperty(['trials.0.nativeValue'])
+  })
+
+  it('getSideDifference: assoluta sui valori mostrati, relativa = 100 − simmetria', () => {
+    const { value } = hhd({})
+    expect(getSideDifference(value.result)).toEqual({ absolute: 28, relativePct: 12.5 })
+    expect(getSideDifference({ strongestValue: 300.4, weakestValue: 299.6 }).absolute).toBe(0)
+    expect(getSideDifference({ strongestValue: null, weakestValue: null })).toBeNull()
+    expect(getSideDifference(undefined)).toBeNull()
+  })
+
+  it('comparabilità: fissaggio, modello, sensore; angoli solo oltre ±5°; seriale e unità no', () => {
+    const at = patch => ({ testId: 'lipedema_hhd_quadriceps', comparability: withSetup(patch).value.comparability })
+    const base = at({})
+    expect(getComparabilityIssues(at({ fixationMethod: 'manual' }), base)).toEqual(['fixation'])
+    expect(getComparabilityIssues(at({ device: { brand: 'Lafayette', model: '01165' } }), base)).toEqual(['dynamometer'])
+    expect(getComparabilityIssues(at({ kneeAngleDeg: 95, hipAngleDeg: 85 }), base)).toEqual([])
+    expect(getComparabilityIssues(at({ kneeAngleDeg: 96 }), base)).toEqual(['kneeAngle'])
+    expect(getComparabilityIssues(at({ hipAngleDeg: 84 }), base)).toEqual(['hipAngle'])
+    expect(getComparabilityIssues(at({ sensorPosition: 'other', sensorPositionNote: 'metà tibia' }), base)).toEqual(['sensor'])
+    expect(getComparabilityIssues(at({ device: { brand: 'Hoggan', model: 'MICROFET2', serial: '9' } }), base)).toEqual([])
+    const inKgf = hhd({ setup: { ...SETUP, nativeUnit: 'kgf' }, trials: numbered(SIX.map(item => ({ ...item, nativeValue: item.nativeValue / 10 }))) }).value
+    expect(getComparabilityIssues(inKgf, base)).toEqual([])
+  })
+
+  it('storico: delta per lato, fissaggio diverso senza delta', () => {
+    const doc = (id, performedAt, patch, values) => ({
+      ...hhd({ setup: { ...SETUP, ...patch }, trials: numbered(values.map((value, i) => leg(i % 2 === 0 ? 'R' : 'L', value))) }).value,
+      id, performedAt, status: 'valid',
+    })
+    const history = buildTestHistory([
+      doc('a', '2026-08-01T10:00', {}, [200, 180, 210, 185, 205, 182]),
+      doc('b', '2026-09-01T10:00', {}, [212, 188, 224, 196, 219, 192]),
+      doc('c', '2026-10-01T10:00', { fixationMethod: 'manual' }, [230, 200, 231, 201, 232, 202]),
+    ], 'lipedema_hhd_quadriceps')
+    expect(history.find(entry => entry.assessment.id === 'b').deltaBySide).toEqual({ R: 14, L: 11 })
+    expect(history.find(entry => entry.assessment.id === 'c')).toMatchObject({ nonComparable: ['fixation'], reference: null, deltaBySide: { R: null, L: null } })
+  })
+})
+
+describe('form HHD ↔ input della callable', () => {
+  const PREVIOUS = {
+    performedAt: '2026-09-03T10:00',
+    setup: {
+      dominantSide: 'L', device: { brand: 'Hoggan', model: 'microFET2', serial: null }, fixationMethod: 'manual',
+      kneeAngleDeg: 85, hipAngleDeg: 95, sensorPosition: 'other', sensorPositionNote: 'metà tibia', contractionS: 5,
+      assistiveDevice: 'cane', assistiveDeviceNote: null, nativeUnit: 'kgf',
+    },
+  }
+
+  it('form nuovo: default del protocollo; fissaggio e gamba dominante da scegliere', () => {
+    expect(createHhdForm('2026-10-30T10:30')).toMatchObject({
+      fixationMethod: '', dominantSide: '', kneeAngleDeg: '90', hipAngleDeg: '90', contractionS: '3',
+      sensorPosition: 'distal_anterior_tibia', assistiveDevice: 'none', nativeUnit: 'N',
+    })
+    expect(createHhdForm('2026-10-30T10:30').trials.map(row => row.side)).toEqual(['R', 'L', 'R', 'L', 'R', 'L'])
+  })
+
+  it('precompilazione dalla precedente, ma non la contrazione (deviazione di quella seduta)', () => {
+    expect(createHhdForm('2026-10-30T10:30', PREVIOUS)).toMatchObject({
+      fixationMethod: 'manual', dominantSide: 'L', deviceBrand: 'Hoggan', deviceModel: 'microFET2', deviceSerial: '',
+      kneeAngleDeg: '85', hipAngleDeg: '95', sensorPosition: 'other', sensorPositionNote: 'metà tibia',
+      contractionS: '3', assistiveDevice: 'cane', nativeUnit: 'kgf',
+    })
+  })
+
+  it('deviazione richiesta solo con una contrazione valida diversa da quella standard', () => {
+    expect(isHhdDeviationRequired({ contractionS: '3' })).toBe(false)
+    expect(isHhdDeviationRequired({ contractionS: '' })).toBe(false)
+    expect(isHhdDeviationRequired({ contractionS: '4,5' })).toBe(true)
+  })
+
+  it('contrazione: la deviazione si attiva e si spegne da sola solo se non è stata descritta', () => {
+    const base = createHhdForm('2026-10-30T10:30')
+    const on = applyContractionChange(base, '5')
+    expect(on.deviationPresent).toBe(true)
+    expect(applyContractionChange(on, '3').deviationPresent).toBe(false)
+    expect(applyContractionChange({ ...on, deviationNote: 'tenuta 5 s' }, '3')).toMatchObject({ deviationPresent: true, deviationNote: 'tenuta 5 s' })
+    expect(applyContractionChange({ ...base, deviationPresent: true, deviationNote: '' }, '3').deviationPresent).toBe(true)
+  })
+
+  it('avvisi di comparabilità solo sui campi già validi, sensore e fissaggio compresi', () => {
+    const previous = { comparability: hhdComparabilityOf({ ...createHhdForm('x'), deviceBrand: 'Hoggan', deviceModel: 'm', fixationMethod: 'belt' }) }
+    const filled = { ...createHhdForm('2026-10-30T10:30'), deviceBrand: 'Hoggan', deviceModel: 'm', fixationMethod: 'belt', dominantSide: 'R' }
+    const warnings = form => getHhdComparabilityWarnings(form, validateAssessmentInput(buildHhdInput(form), CONTEXT).errors, previous)
+    expect(warnings(filled)).toEqual([])
+    expect(getHhdComparabilityWarnings(filled, {}, null)).toEqual([])
+    expect(warnings({ ...filled, fixationMethod: 'manual' })).toEqual(['fixation'])
+    expect(warnings({ ...filled, kneeAngleDeg: '100' })).toEqual(['kneeAngle'])
+    // Campo svuotato o non valido: nessun falso "diverso"
+    expect(warnings({ ...filled, kneeAngleDeg: '' })).toEqual([])
+    expect(warnings({ ...filled, hipAngleDeg: '999' })).toEqual([])
+    expect(warnings({ ...filled, sensorPosition: 'other', sensorPositionNote: '' })).toEqual([])
+    expect(warnings({ ...filled, fixationMethod: '' })).toEqual([])
+    // Marca vuota: non nasconde gli altri motivi
+    expect(warnings({ ...filled, deviceBrand: '', fixationMethod: 'manual' })).toEqual(['fixation'])
+    expect(warnings({ ...filled, sensorPosition: 'other', sensorPositionNote: 'metà tibia' })).toEqual(['sensor'])
+  })
+
+  it('il form produce lo stesso snapshot di comparabilità del server; Correggi identico', () => {
+    const form = {
+      ...createHhdForm('2026-10-30T10:30', PREVIOUS), contractionS: '4,5', deviationPresent: true, deviationNote: 'tenuta',
+      assistiveDevice: 'other', assistiveDeviceNote: 'tutore', clinical: { painPre: '2' },
+    }
+    const values = ['21,5', '18', '22', '19', '21', '18,25']
+    form.trials = form.trials.map((row, i) => ({ ...row, nativeValue: values[i], pain: i === 1 ? '3' : '' }))
+    const { errors, value: original } = validateAssessmentInput(buildHhdInput(form), CONTEXT)
+    expect(errors).toEqual({})
+    expect(hhdComparabilityOf(form)).toEqual(original.comparability)
+    expect(original.setup).toMatchObject({ contractionS: 4.5, assistiveDeviceNote: 'tutore', sensorPositionNote: 'metà tibia' })
+    const again = validateAssessmentInput(buildHhdInput(hhdFormFromAssessment(original)), CONTEXT).value
+    expect(isSameAssessmentData(again, original)).toBe(true)
+  })
+
+  it('con lo stop le righe vuote non si salvano', () => {
+    const form = { ...createHhdForm('2026-10-30T10:30'), stoppedEarly: true }
+    form.trials = form.trials.map((row, i) => ({ ...row, nativeValue: i < 2 ? '200' : '' }))
+    expect(buildHhdInput(form).trials.map(item => item.seq)).toEqual([1, 2])
+  })
+
+  it('crampi tra i motivi di stop dei test bilaterali (docx 04 §19), non del 2MWT', () => {
+    expect(LIPEDEMA_TESTS.lipedema_hhd_quadriceps.stopReasonOptions.map(option => option.value)).toContain('cramps')
+    expect(LIPEDEMA_TESTS.lipedema_2mwt.stopReasonOptions.map(option => option.value)).not.toContain('cramps')
+  })
+
+  it('il motivo di tecnica dipende dal test: la Handgrip resta sulla sua etichetta', () => {
+    const label = testId => getInvalidTrialReasonLabel('technique_error', LIPEDEMA_TESTS[testId].invalidReasonOptions)
+    expect(label('lipedema_hhd_quadriceps')).toContain('cinghia')
+    expect(label('lipedema_handgrip')).toContain('impugnatura')
+  })
+})
+
 describe('storico: tolleranze, esiti non ordinari, delta per lato (ADR-016 §7)', () => {
   const sts = (id, performedAt, repetitions, extra = {}) => ({
     id, testId: 'lipedema_30s_sts', performedAt, status: 'valid', outcome: 'complete', result: { repetitions },
@@ -534,8 +759,8 @@ describe('form 30s-STS e Handgrip ↔ input della callable', () => {
   })
 
   it('Handgrip: 6 prove pianificate D-S alternate, lato proposto, precompilazione dalla precedente', () => {
-    expect(createPlannedTrials().map(row => row.side)).toEqual(['R', 'L', 'R', 'L', 'R', 'L'])
-    expect(proposeNextSide([{ side: 'R', valid: true }, { side: 'L', valid: false }])).toBe('L')
+    expect(createPlannedTrials(HANDGRIP).map(row => row.side)).toEqual(['R', 'L', 'R', 'L', 'R', 'L'])
+    expect(proposeNextSide([{ side: 'R', valid: true }, { side: 'L', valid: false }], HANDGRIP)).toBe('L')
     const previous = { performedAt: '2026-09-03T10:00', setup: { dominantSide: 'L', device: { brand: 'Jamar', model: 'Plus', serial: null }, gripSetting: '2', nativeUnit: 'kgf' } }
     expect(createHandgripForm('2026-10-30T10:30', previous)).toMatchObject({
       dominantSide: 'L', deviceBrand: 'Jamar', deviceModel: 'Plus', deviceSerial: '', gripSetting: '2', nativeUnit: 'kgf',

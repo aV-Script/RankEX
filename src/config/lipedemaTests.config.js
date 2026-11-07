@@ -3,7 +3,7 @@
 // senza label, come testsMeta.js). Protocolli: lipidemia/*.docx.
 // Comportamento per test (form, dettaglio, formattazione) nel registro
 // features/assessments/assessmentRegistry.js: qui solo dati.
-import { LIPEDEMA_TEST_IDS, TWO_MINUTE_WALK, SIT_TO_STAND_30S, HANDGRIP } from '../utils/lipedema'
+import { LIPEDEMA_TEST_IDS, TWO_MINUTE_WALK, SIT_TO_STAND_30S, HANDGRIP, HHD_QUADRICEPS } from '../utils/lipedema'
 
 export const ASSISTIVE_DEVICE_OPTIONS = [
   { value: 'none',     label: 'Nessuno' },
@@ -28,6 +28,7 @@ export const STOP_REASON_OPTIONS = [
 // Interruzione dei test bilaterali (LIMB_STOP_REASON_CODES, docx 03 §19)
 export const LIMB_STOP_REASON_OPTIONS = [
   { value: 'acute_pain',            label: 'Dolore acuto o crescente' },
+  { value: 'cramps',                label: 'Crampi importanti' },
   { value: 'neurological_symptoms', label: 'Sintomi neurologici nuovi' },
   { value: 'dizziness',             label: 'Capogiro / presincope / malessere' },
   { value: 'loss_of_control',       label: "Perdita di controllo dell'arto" },
@@ -61,6 +62,17 @@ export const DOMINANT_SIDE_OPTIONS = [
   { value: 'both', label: 'ENTRAMBE' },
 ]
 
+// HHD: fissaggio e punto del sensore (FIXATION_METHODS, SENSOR_POSITIONS)
+export const FIXATION_OPTIONS = [
+  { value: 'belt',   label: 'CINGHIA ESTERNA' },
+  { value: 'manual', label: 'MANUALE' },
+]
+
+export const SENSOR_POSITION_OPTIONS = [
+  { value: 'distal_anterior_tibia', label: 'Anteriore distale, appena sopra la caviglia' },
+  { value: 'other',                 label: 'Altro' },
+]
+
 // Motivi di non comparabilità (utils/lipedema.js → COMPARABILITY_RULES)
 export const COMPARABILITY_REASON_LABELS = {
   protocol:    'protocollo diverso',
@@ -71,6 +83,10 @@ export const COMPARABILITY_REASON_LABELS = {
   armsCrossed: 'posizione delle braccia diversa',
   dynamometer: 'dinamometro diverso',
   grip:        'impugnatura diversa',
+  fixation:    'fissaggio diverso',
+  kneeAngle:   'angolo del ginocchio diverso',
+  hipAngle:    "angolo dell'anca diverso",
+  sensor:      'punto del sensore diverso',
 }
 
 // Parametri clinici facoltativi: una riga per misura, colonne PRE | POST.
@@ -88,9 +104,19 @@ export const CLINICAL_ROWS = [
 // 30s-STS: niente FC/SpO₂/PA (ADR-016 §6)
 const SIT_TO_STAND_CLINICAL_ROWS = CLINICAL_ROWS.filter(row => ['painPre', 'dyspneaPre', 'fatiguePre'].includes(row.pre))
 
+// Handgrip e HHD: appoggio/assistenza è dell'OLS
+const LIMB_INVALID_REASON_OPTIONS = INVALID_TRIAL_REASON_OPTIONS.filter(option => option.value !== 'support_or_assistance')
+
+// HHD: nessuna impugnatura, la tecnica riguarda la cinghia
+const HHD_INVALID_REASON_OPTIONS = LIMB_INVALID_REASON_OPTIONS.map(option => (
+  option.value === 'technique_error' ? { ...option, label: 'Errore di tecnica (posizione, compensazione, cinghia)' } : option
+))
+
 /**
  * Una voce per test implementato. `stopReasonOptions` e `clinicalRows` sono
  * quelli del test (catalogo stop filtrato per test, righe cliniche ammesse).
+ * Bilaterali, facoltativi: `strongestLabel` (default "Più forte"),
+ * `endReasonOptions` (motivo di fine per prova), `hasTrialPain: false`.
  */
 export const LIPEDEMA_TESTS = {
   [LIPEDEMA_TEST_IDS.TWO_MINUTE_WALK]: {
@@ -116,10 +142,22 @@ export const LIPEDEMA_TESTS = {
     shortName: 'Handgrip',
     name:      'Handgrip Dynamometry',
     unit:      HANDGRIP.canonicalUnit,
+    limbName:  'mano',
     protocolVersion:      HANDGRIP.protocolVersion,
     stopReasonOptions:    LIMB_STOP_REASON_OPTIONS,
     clinicalRows:         [],
-    invalidReasonOptions: INVALID_TRIAL_REASON_OPTIONS.filter(option => option.value !== 'support_or_assistance'),
+    invalidReasonOptions: LIMB_INVALID_REASON_OPTIONS,
+  },
+  [LIPEDEMA_TEST_IDS.HHD_QUADRICEPS]: {
+    id:        LIPEDEMA_TEST_IDS.HHD_QUADRICEPS,
+    shortName: 'HHD',
+    name:      'Handheld Dynamometry · Quadricipite',
+    unit:      HHD_QUADRICEPS.canonicalUnit,
+    limbName:  'gamba',
+    protocolVersion:      HHD_QUADRICEPS.protocolVersion,
+    stopReasonOptions:    LIMB_STOP_REASON_OPTIONS,
+    clinicalRows:         [],
+    invalidReasonOptions: HHD_INVALID_REASON_OPTIONS,
   },
 }
 
@@ -128,7 +166,26 @@ export const LIPEDEMA_TEST_ORDER = [
   LIPEDEMA_TEST_IDS.TWO_MINUTE_WALK,
   LIPEDEMA_TEST_IDS.SIT_TO_STAND_30S,
   LIPEDEMA_TEST_IDS.HANDGRIP,
+  LIPEDEMA_TEST_IDS.HHD_QUADRICEPS,
 ]
+
+export function getFixationLabel(value) {
+  return FIXATION_OPTIONS.find(option => option.value === value)?.label ?? value
+}
+
+export function getSensorPositionLabel(value) {
+  return SENSOR_POSITION_OPTIONS.find(option => option.value === value)?.label ?? value
+}
+
+/** Etichetta del motivo di fine, dalle `endReasonOptions` del test */
+export function getEndReasonLabel(value, options = []) {
+  return options.find(option => option.value === value)?.label ?? value
+}
+
+/** Come si chiama il lato con il valore maggiore: "Più forte" non vale per un tempo */
+export function getStrongestLabel(testId) {
+  return LIPEDEMA_TESTS[testId]?.strongestLabel ?? 'Più forte'
+}
 
 export function getAssistiveDeviceLabel(value) {
   return ASSISTIVE_DEVICE_OPTIONS.find(option => option.value === value)?.label ?? value
@@ -139,8 +196,9 @@ export function getStopReasonLabel(value) {
   return [...STOP_REASON_OPTIONS, ...LIMB_STOP_REASON_OPTIONS].find(option => option.value === value)?.label ?? value
 }
 
-export function getInvalidTrialReasonLabel(value) {
-  return INVALID_TRIAL_REASON_OPTIONS.find(option => option.value === value)?.label ?? value
+/** Etichetta del motivo: `options` del test, se ne ha di proprie */
+export function getInvalidTrialReasonLabel(value, options = INVALID_TRIAL_REASON_OPTIONS) {
+  return options.find(option => option.value === value)?.label ?? value
 }
 
 export function getDominantSideLabel(value) {

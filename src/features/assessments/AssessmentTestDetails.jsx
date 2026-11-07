@@ -1,6 +1,7 @@
-import { ASSESSMENT_OUTCOME, BILATERAL_SIDE_STATUS, BILATERAL_TESTS } from '../../utils/lipedema'
+import { ASSESSMENT_OUTCOME, BILATERAL_SIDE_STATUS, BILATERAL_TESTS, getSideDifference } from '../../utils/lipedema'
 import {
-  getAssistiveDeviceLabel, getStopReasonLabel, getInvalidTrialReasonLabel, getDominantSideLabel, SIDE_LABELS,
+  getAssistiveDeviceLabel, getStopReasonLabel, getInvalidTrialReasonLabel, getDominantSideLabel, getFixationLabel,
+  getSensorPositionLabel, getStrongestLabel, getEndReasonLabel, LIPEDEMA_TESTS, SIDE_LABELS,
 } from '../../config/lipedemaTests.config'
 import { Badge } from '../../components/ui'
 import { DetailSection, Row } from './AssessmentDetailParts'
@@ -93,7 +94,7 @@ export function SitToStandDetail({ assessment, test }) {
   )
 }
 
-// ── Bilaterali (Handgrip; HHD e OLS nel #13) ─────────────────────────────────
+// ── Bilaterali (Handgrip, HHD, OLS) ──────────────────────────────────────────
 
 export function BilateralResultInfo({ assessment }) {
   const { result = {} } = assessment
@@ -102,18 +103,22 @@ export function BilateralResultInfo({ assessment }) {
   }
   return (
     <span>
-      Più forte: {result.strongestSide ? SIDE_LABELS[result.strongestSide].label : 'pari'} · Simmetria {formatNumber(result.symmetryPct, SYMMETRY_DECIMALS)} %
+      {getStrongestLabel(assessment.testId)}: {result.strongestSide ? SIDE_LABELS[result.strongestSide].label : 'pari'} · Simmetria {formatNumber(result.symmetryPct, SYMMETRY_DECIMALS)} %
     </span>
   )
 }
 
 /**
  * Tabella cronologica delle prove (Prova | Lato | Letto | canonico | Esito) +
- * best per lato: un solo renderer per i test bilaterali (ADR-016 §2).
+ * best per lato: un solo renderer per i test bilaterali (ADR-016 §2). "Letto" solo
+ * con più unità ammesse; motivo di fine e tetto solo per i test che li hanno.
  */
 export function BilateralTrialsDetail({ assessment }) {
   const { result = {}, clinical = {} } = assessment
   const { spec, displayDecimals } = BILATERAL_TESTS[assessment.testId]
+  const hasNativeColumn = Object.keys(spec.unitFactors).length > 1
+  const endReasonOptions = LIPEDEMA_TESTS[assessment.testId]?.endReasonOptions
+  const hasEndReason    = Boolean(endReasonOptions)
   const trials   = assessment.trials ?? []
   const unit     = result.unit ?? spec.canonicalUnit
   const bestSeqs = new Set(spec.sides.map(side => trials.find(trial =>
@@ -127,8 +132,9 @@ export function BilateralTrialsDetail({ assessment }) {
             <tr className="font-display text-[10px] tracking-[2px]">
               <th className="font-normal py-1 pr-2">PROVA</th>
               <th className="font-normal py-1 pr-2">LATO</th>
-              <th className="font-normal py-1 pr-2">LETTO</th>
+              {hasNativeColumn && <th className="font-normal py-1 pr-2">LETTO</th>}
               <th className="font-normal py-1 pr-2">{unit}</th>
+              {hasEndReason && <th className="font-normal py-1 pr-2">FINE</th>}
               <th className="font-normal py-1">ESITO</th>
             </tr>
           </thead>
@@ -137,14 +143,18 @@ export function BilateralTrialsDetail({ assessment }) {
               <tr key={trial.seq} style={{ borderTop: '1px solid var(--rx-border)', opacity: trial.valid ? 1 : 0.6 }}>
                 <td className="py-1.5 pr-2">{trial.seq}</td>
                 <td className="py-1.5 pr-2">{SIDE_LABELS[trial.side]?.short ?? trial.side}</td>
-                <td className="py-1.5 pr-2 text-white/80">
-                  {trial.nativeValue === null ? '—' : `${formatNumber(trial.nativeValue, trial.nativeUnit === unit ? displayDecimals : NATIVE_DECIMALS)} ${trial.nativeUnit}`}
-                </td>
+                {hasNativeColumn && (
+                  <td className="py-1.5 pr-2 text-white/80">
+                    {trial.nativeValue === null ? '—' : `${formatNumber(trial.nativeValue, trial.nativeUnit === unit ? displayDecimals : NATIVE_DECIMALS)} ${trial.nativeUnit}`}
+                  </td>
+                )}
                 <td className="py-1.5 pr-2 text-white/80">{formatNumber(trial.value, displayDecimals)}</td>
+                {hasEndReason && <td className="py-1.5 pr-2 text-white/80">{trial.endReason ? getEndReasonLabel(trial.endReason, endReasonOptions) : '—'}</td>}
                 <td className="py-1.5">
                   {trial.valid
                     ? (bestSeqs.has(trial.seq) ? <Badge color="var(--rx-accent)">MIGLIORE</Badge> : 'Valida')
-                    : `Non valida — ${getInvalidTrialReasonLabel(trial.invalidReason)}`}
+                    : `Non valida — ${getInvalidTrialReasonLabel(trial.invalidReason, LIPEDEMA_TESTS[assessment.testId]?.invalidReasonOptions)}`}
+                  {trial.valid && trial.ceiling === true ? ` · tetto ${spec.ceiling} s` : ''}
                   {trial.pain !== null && trial.pain !== undefined ? ` · dolore ${trial.pain}` : ''}
                   {trial.note ? ` · ${trial.note}` : ''}
                 </td>
@@ -160,7 +170,10 @@ export function BilateralTrialsDetail({ assessment }) {
           value={describeSide(result, side, spec, unit, displayDecimals)}
         />
       ))}
-      <Row label="Più forte" value={result.strongestValue === null ? '—' : (result.strongestSide ? SIDE_LABELS[result.strongestSide].label : 'pari')} />
+      {result.ceilingBySide && (
+        <Row label={`Tetto ${spec.ceiling} s raggiunto`} value={spec.sides.map(side => `${SIDE_LABELS[side].short} ${formatCeiling(result.ceilingBySide[side])}`).join(' · ')} />
+      )}
+      <Row label={getStrongestLabel(assessment.testId)} value={result.strongestValue === null ? '—' : (result.strongestSide ? SIDE_LABELS[result.strongestSide].label : 'pari')} />
       <Row label="Simmetria" value={result.symmetryPct === null ? '—' : `${formatNumber(result.symmetryPct, SYMMETRY_DECIMALS)} %`} />
       {spec.sides.some(side => clinical.painMaxBySide?.[side] != null) && (
         <Row
@@ -190,6 +203,38 @@ export function HandgripDetail({ assessment, test }) {
   )
 }
 
+export function HhdDetail({ assessment, test }) {
+  const { setup = {}, clinical = {}, result = {} } = assessment
+  const device = setup.device ?? {}
+  const { spec, displayDecimals } = BILATERAL_TESTS[assessment.testId]
+  const difference = getSideDifference(result, displayDecimals)
+  return (
+    <>
+      <BilateralTrialsDetail assessment={assessment} />
+      {difference && (
+        <DetailSection title="Differenza tra le gambe">
+          <Row label="Assoluta" value={`${formatNumber(difference.absolute, displayDecimals)} ${result.unit ?? spec.canonicalUnit}`} />
+          <Row label="Relativa" value={`${formatNumber(difference.relativePct, SYMMETRY_DECIMALS)} %`} />
+        </DetailSection>
+      )}
+      <DetailSection title="Setup">
+        <Row label="Protocollo" value={`${test.shortName} · ${assessment.protocolVersion}`} />
+        <Row label="Dinamometro" value={`${device.brand} ${device.model}${device.serial ? ` · seriale ${device.serial}` : ''}`} />
+        <Row label="Fissaggio" value={getFixationLabel(setup.fixationMethod)} />
+        <Row label="Angolo ginocchio" value={`${setup.kneeAngleDeg}°`} />
+        <Row label="Angolo anca" value={`${setup.hipAngleDeg}°`} />
+        <Row label="Punto del sensore" value={`${getSensorPositionLabel(setup.sensorPosition)}${setup.sensorPositionNote ? ` — ${setup.sensorPositionNote}` : ''}`} />
+        <Row label="Contrazione" value={`${formatLength(setup.contractionS)} s`} />
+        <Row label="Gamba dominante" value={getDominantSideLabel(setup.dominantSide)} />
+        <Row label="Unità dello strumento" value={setup.nativeUnit} />
+        <Row label="Dolore pre-test (NRS)" value={clinical.painPre ?? '—'} />
+        <Row label="Ausilio" value={`${getAssistiveDeviceLabel(setup.assistiveDevice)}${setup.assistiveDeviceNote ? ` — ${setup.assistiveDeviceNote}` : ''}`} />
+        {assessment.outcome === ASSESSMENT_OUTCOME.STOPPED_EARLY && <StopReasonRow clinical={clinical} />}
+      </DetailSection>
+    </>
+  )
+}
+
 // ── Componenti locali ─────────────────────────────────────────────────────────
 
 function StopReasonRow({ clinical }) {
@@ -211,6 +256,12 @@ function PausesSection({ events }) {
 }
 
 // ── Funzioni helper pure ──────────────────────────────────────────────────────
+
+/** Flag del tetto: sì/no, "—" sul lato senza best */
+function formatCeiling(isCeiling) {
+  if (isCeiling === null || isCeiling === undefined) return '—'
+  return isCeiling ? 'sì' : 'no'
+}
 
 function describeSide(result, side, spec, unit, decimals) {
   const status = result.sideStatus?.[side]

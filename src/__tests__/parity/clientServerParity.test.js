@@ -214,12 +214,12 @@ describe('Lipedema — valutazioni e informativa (ADR-014 rischio #3)', () => {
     'ASSISTIVE_DEVICES', 'STOP_REASON_CODES', 'PAIN_SCALE', 'PRIVACY_NOTICE_MISSING',
     'CLINICAL_RANGES', 'TEXT_LIMITS', 'MAX_TESTS_PER_VISIT',
     'SIT_TO_STAND_30S', 'HANDGRIP', 'INVALID_TRIAL_REASONS', 'LIMB_STOP_REASON_CODES',
-    'DOMINANT_SIDES', 'BILATERAL_SIDE_STATUS',
+    'DOMINANT_SIDES', 'BILATERAL_SIDE_STATUS', 'HHD_QUADRICEPS', 'FIXATION_METHODS', 'SENSOR_POSITIONS',
   ]
   const CORE_FUNCTIONS = [
     'requiresPrivacyNotice', 'computeTwoMinuteWalkResult', 'validateAssessmentInput',
     'validatePrivacyNoticeInput', 'validateVoidReason', 'patientAgeAt', 'formatLocalDateTime',
-    'computeSitToStandResult', 'computeBilateralResult', 'normalizeKey', 'isStandardChairHeight',
+    'computeSitToStandResult', 'computeBilateralResult', 'normalizeKey', 'isStandardChairHeight', 'computeHhdComparability',
   ]
   const CONTEXT = { nowLocal: '2026-10-30T11:00', birthDate: '1985-03-12' }
   const BASE = {
@@ -301,6 +301,33 @@ describe('Lipedema — valutazioni e informativa (ADR-014 rischio #3)', () => {
     { ...HANDGRIP_BASE, trials: numbered([grip('R', 30, { valid: false, invalidReason: 'support_or_assistance' }), ...SIX_RAW]) },
   ]
 
+  // HHD quadricipite (ADR-017)
+  const HHD_SETUP = {
+    dominantSide: 'R', device: { brand: ' Hoggan ', model: 'microFET2', serial: '4411' }, fixationMethod: 'belt',
+    kneeAngleDeg: 90, hipAngleDeg: 90, sensorPosition: 'distal_anterior_tibia', contractionS: 3, assistiveDevice: 'none', nativeUnit: 'N',
+  }
+  const HHD_BASE = { ...HANDGRIP_BASE, testId: 'lipedema_hhd_quadriceps', setup: HHD_SETUP, clinical: { painPre: 2 } }
+  const withHhdSetup = patch => ({ ...HHD_BASE, setup: { ...HHD_SETUP, ...patch } })
+  const HHD_CASES = [
+    HHD_BASE,
+    withHhdSetup({ nativeUnit: 'kgf' }),
+    withHhdSetup({ fixationMethod: 'manual', kneeAngleDeg: 85, hipAngleDeg: 95 }),
+    withHhdSetup({ fixationMethod: 'elastic', kneeAngleDeg: 181, hipAngleDeg: null }),
+    withHhdSetup({ sensorPosition: 'other', sensorPositionNote: ' Metà Tibia ' }),
+    withHhdSetup({ sensorPosition: 'other' }),
+    withHhdSetup({ sensorPosition: 'caviglia' }),
+    withHhdSetup({ contractionS: 5 }),
+    { ...withHhdSetup({ contractionS: 4.5 }), deviation: { present: true, note: 'tenuta' } },
+    withHhdSetup({ contractionS: 0 }),
+    withHhdSetup({ assistiveDevice: 'other' }),
+    withHhdSetup({ assistiveDevice: 'other', assistiveDeviceNote: ' tutore ' }),
+    { ...HHD_BASE, clinical: { painPre: 11, painPost: 3 } },
+    { ...HHD_BASE, trials: numbered([grip('R', 30)]), events: { stoppedEarly: true }, clinical: { stopReasonCode: 'cramps' } },
+    { ...HHD_BASE, trials: numbered([grip('R', 1501), ...SIX_RAW.slice(1)]) },
+    { ...HHD_BASE, trials: numbered([grip('R', 30), grip('L', 28), grip('R', 31)]), events: { stoppedEarly: true }, clinical: { stopReasonCode: 'acute_pain' } },
+    { ...HHD_BASE, trials: numbered([grip('R', 30, { valid: false, invalidReason: 'support_or_assistance' }), ...SIX_RAW]) },
+  ]
+
   const coreFile = relativePath => readFileSync(new URL(relativePath, import.meta.url), 'utf8').replace(/\r\n/g, '\n')
   const SERVER_FILE = '../../../functions/src/shared/lipedema.js'
 
@@ -333,12 +360,19 @@ describe('Lipedema — valutazioni e informativa (ADR-014 rischio #3)', () => {
     expect(text).not.toMatch(/\bimport\s*\(/)
   })
 
-  it.each([...STS_CASES, ...HANDGRIP_CASES].map((input, i) => [i, input.testId, input]))(
-    'validateAssessmentInput STS/Handgrip caso %i (%s): stessi errori e stesso valore salvato',
+  it.each([...STS_CASES, ...HANDGRIP_CASES, ...HHD_CASES].map((input, i) => [i, input.testId, input]))(
+    'validateAssessmentInput STS/Handgrip/HHD caso %i (%s): stessi errori e stesso valore salvato',
     (_i, _testId, input) => {
       expect(serverLipedema.validateAssessmentInput(input, CONTEXT)).toEqual(clientLipedema.validateAssessmentInput(input, CONTEXT))
     },
   )
+
+  it('computeHhdComparability identico', () => {
+    const input = { brand: ' Hoggan ', model: 'microFET2', serial: '', fixationMethod: 'belt', kneeAngleDeg: 90, hipAngleDeg: 90 }
+    for (const position of [{ sensorPosition: 'distal_anterior_tibia' }, { sensorPosition: 'other', sensorPositionNote: ' Metà Tibia ' }]) {
+      expect(serverLipedema.computeHhdComparability({ ...input, ...position })).toEqual(clientLipedema.computeHhdComparability({ ...input, ...position }))
+    }
+  })
 
   it('computeBilateralResult identico con HANDGRIP e con una specifica sintetica tipo OLS', () => {
     const OLS_LIKE = {
