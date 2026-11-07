@@ -67,8 +67,9 @@ con terminologie, test e comportamenti UI diversi.
   `functions/src/shared/lipedema.js`, identico a `src/utils/lipedema.js` (test di parità; il
   file server non deve importare nulla). UI per test in `features/assessments/assessmentRegistry.js`.
   Implementati tutti e 5 i test (logica bilaterale generica per Handgrip, HHD e OLS, ADR-016/017/018;
-  parti comuni dei form in `BilateralFormParts`, `useBilateralTrials`, `bilateralFormModel`); guida
-  dei test, trend e PDF: STORY-039-040
+  parti comuni dei form in `BilateralFormParts`, `useBilateralTrials`, `bilateralFormModel`). Guida
+  dei test in `config/lipedemaGuide.config.js` (istruzioni verbali testuali dai docx) e
+  `features/trainer/test-guide/LipedemaTestGuide.jsx`; trend e PDF: STORY-039-040
 - Sequenza di visita (STORY-042): solo navigazione client tra i form (`assessmentVisit.js`, stato in
   `ClientDashboard`). Nessun documento "visita": ogni test è una valutazione a sé, salvata alla conferma.
   `handleAddAssessment` restituisce `{ refreshed }`, la rilettura dello storico da cui si precompila il test successivo

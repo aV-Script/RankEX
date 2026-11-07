@@ -4,6 +4,7 @@ import { useTrainerState }  from '../../context/TrainerContext'
 import { getModule, SOCCER_AGE_GROUPS } from '../../config/modules.config'
 import { IconChevronDown } from '../../components/ui/icons'
 import { EmptyState }      from '../../components/ui'
+import { LipedemaTestGuide } from './test-guide/LipedemaTestGuide'
 
 const CATEGORY_COLORS = { health: '#34d399', active: '#00c8ff', athlete: '#0066cc' }
 const SOCCER_COLOR    = '#00c8ff'
@@ -23,7 +24,7 @@ const FASCIA_COLORS = {
 
 export function TestGuidePage() {
   const { moduleType, terminology } = useTrainerState()
-  const { isSoccer, hasPercentileTests } = getModule(moduleType)
+  const { isSoccer, hasPercentileTests, hasAssessments } = getModule(moduleType)
 
   const [selectedCat,  setSelectedCat]  = useState('health')
   const [selectedTest, setSelectedTest] = useState(getTestsForCategoria('health')[0].key)
@@ -36,8 +37,9 @@ export function TestGuidePage() {
     ALL_TESTS.find(t => t.categories.includes('soccer'))?.key ?? null
   )
 
-  // Moduli senza test percentili (lipedema): la guida dei test di valutazione
-  // arriva con STORY-033/039 — finché non c'è, nessun test PT/soccer mostrato
+  if (hasAssessments) return <LipedemaTestGuide />
+
+  // Modulo sconosciuto, senza né test né valutazioni: nessun test PT/soccer mostrato
   if (!hasPercentileTests) {
     const assessmentsLabel = (terminology?.assessments ?? 'Valutazioni').toLowerCase()
     return (
