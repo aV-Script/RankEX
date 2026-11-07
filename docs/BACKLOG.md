@@ -1220,10 +1220,9 @@ confrontabile nel tempo, come richiesto da tutti e 5 i documenti.
   rappresenta prove multiple + metadati — forzarlo dentro creerebbe ambiguità con PT/
   Soccer; volume dati per paziente più alto (prove grezze × test × valutazioni) →
   verificare impatto sui limiti Firestore piano Spark
-- **Status:** IN PROGRESS — infrastruttura DONE (Sprint #11, `cc42e34`, verificata su
-  rankex-app-dev 31/10). Criteri aperti: validità per prova + best sulle valide, dolore
-  per lato, lato dominante → Sprint #12 con STORY-036; guida dei 5 test in
-  `TestGuidePage` → con STORY-037/038
+- **Status:** DONE — infrastruttura Sprint #11 (`cc42e34`), criteri bilaterali Sprint #12 con
+  STORY-036, guida dei 5 test in `TestGuidePage` Sprint #13 (`6a47362`, verificata su
+  rankex-app-dev il 07/11/2026)
 
 ### [STORY-034] Test 01 — 2-Minute Walk Test (2MWT)
 **Come** professionista **voglio** registrare un 2MWT inserendo tratti e frazione finale
@@ -1359,8 +1358,7 @@ valutazioni eseguite nelle stesse condizioni.
         deviazione
 - **Dependencies:** STORY-036
 - **Risks:** fissaggio diverso tra retest = dato non comparabile (gestito da STORY-039)
-- **Status:** IN QA — Sprint #13: codice e review fatti (ADR-017), non committato né deployato;
-  QA dal vivo TP-064…066 a fine sprint
+- **Status:** DONE — Sprint #13: commit `e651a9e`, QA TP-064…066 PASS su rankex-dev il 07/11/2026
 
 ### [STORY-038] Test 05 — One-Leg Standing (OLS)
 **Come** professionista **voglio** registrare 2 prove per gamba con tempo e motivo di
@@ -1393,8 +1391,8 @@ massimo.
 - **Dependencies:** STORY-036
 - **Risks:** senza sezione UI nel docx, il flusso di inserimento va disegnato da
   ux-ui-designer senza riferimento dell'autore
-- **Status:** IN QA — Sprint #13: codice fatto (ADR-018), non committato né deployato; QA dal vivo
-  TP-067…069 a fine sprint. Da confermare con l'autore: motivo di fine facoltativo sulle prove non valide
+- **Status:** DONE — Sprint #13: commit `c0b706f`, QA TP-067…069 PASS su rankex-dev il 07/11/2026.
+  Da confermare con l'autore: motivo di fine facoltativo sulle prove non valide
 
 ### [STORY-039] Storico, trend e avviso di non comparabilità per test
 **Come** professionista **voglio** vedere per ogni test lo storico delle valutazioni, un
@@ -1501,7 +1499,9 @@ valutazioni **per** condividerlo con la paziente o con altri curanti.
   - [ ] Ogni test resta una valutazione separata: nessuna modifica a `assessments` né alle rules
 - **Dependencies:** STORY-037, STORY-038 per i test 4 e 5
 - **Priority:** P1 (Sprint #13)
-- **Status:** READY — Sprint #13
+- **Status:** IN QA — commit `8aa0656` e `3174e31`, QA TP-070…071 PASS su rankex-dev il 07/11/2026.
+  Aperti BUG-014 e le scelte da confermare: bottone SALTA, test salvati non riapribili, nessuna voce
+  "visita completa", testo "SALVA E PASSA A…" su mobile
 
 ### STORY-043 — Bottone principale pieno e colori allineati al canvas
 - **Contesto:** decisione utente del 06/11/2026. In `components/ui/index.jsx` il bottone primario

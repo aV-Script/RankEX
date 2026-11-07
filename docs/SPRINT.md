@@ -33,11 +33,11 @@ STORY-044 ("Da sistemare").
 
 | Task | Status | Note |
 |------|--------|------|
-| STORY-037 — HHD | IN QA | Codice e review medium fatti, test verdi (ADR-017). Da fare: commit, deploy functions e hosting su dev, QA TP-064…066. |
-| STORY-038 — OLS | IN QA | Codice fatto, test verdi (ADR-018). Da fare: commit, deploy functions e hosting su dev, QA TP-067…069. |
-| STORY-042 — sequenza di visita | IN QA | Codice fatto, solo client: nessuna modifica ad `assessments`, rules o functions. Da fare: review, commit, deploy hosting su dev, QA TP-070…071. |
-| Guida dei 5 test | READY | Si scrive quando tutti e 5 i test sono registrabili. |
-| STORY-041 — QA automatica | READY | Mai contro `fitquest-60a09`: lo script verifica il projectId. |
+| STORY-037 — HHD | DONE | Commit `e651a9e`, su rankex-dev. QA TP-064…066 PASS il 07/11. |
+| STORY-038 — OLS | DONE | Commit `c0b706f`, su rankex-dev. QA TP-067…069 PASS il 07/11. Resta da confermare con l'autore: motivo di fine facoltativo sulle prove non valide. |
+| STORY-042 — sequenza di visita | IN QA (PASS, in attesa di conferma) | Commit `8aa0656` e `3174e31`, su rankex-dev. Review medium fatta. QA TP-070…071 PASS il 07/11, l'OLS precompila la gamba dominante dall'HHD appena salvato. Aperti: BUG-014 (barra su 3 righe a 360 px) e le scelte da confermare: bottone SALTA, test salvati non riapribili, nessuna voce "visita completa", testo "SALVA E PASSA A…" su mobile. |
+| Guida dei 5 test | DONE | Commit `6a47362`, su rankex-dev. Verificata su mobile e desktop il 07/11; istruzioni verbali e checklist confrontate col testo dei docx. Chiude STORY-033. |
+| STORY-041 — QA automatica | READY (in attesa di conferma dell'utente) | Mai contro `fitquest-60a09`: lo script verifica il projectId. |
 | STORY-029 — requisiti non-codice | BLOCKED (fuori capacità developer) | Blocca il go-live, non la chiusura dello sprint. |
 
 **Punti di attenzione:**

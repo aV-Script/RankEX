@@ -1107,6 +1107,19 @@ export const RUNBOOK_SUITES = [
         ],
         expected: ['Un test saltato non genera documenti; quanto salvato prima dell\'interruzione resta salvato; la correzione resta fuori dalla sequenza'],
       },
+      {
+        id: 'TP-072', usId: 'STORY-033', severity: 'important', title: 'Guida dei 5 test del modulo Lipedema',
+        preconditions: 'Utente di un\'org Lipedema. Prova su mobile e desktop. Per l\'ultimo passo: un utente di un\'org PT.',
+        steps: [
+          'GUIDA TEST: "Batteria CORE · protocollo 1.0", 5 test (2MWT, 30s-STS, Handgrip, Quadricipite, One-Leg), nessun test PT o soccer',
+          'Per ogni test: attrezzatura, prove, risultato, durata, procedura, istruzione verbale e quando interrompere',
+          'Confrontare l\'istruzione verbale di ogni test con il docx: testo identico',
+          '2MWT e 30s-STS mostrano la checklist operatore, gli altri tre no',
+          'Mobile: i test scorrono in orizzontale e la pagina non scorre di lato; nessuna scritta tagliata',
+          'Org PT: la guida resta quella per categoria, invariata',
+        ],
+        expected: ['La guida mostra solo i test del modulo, con l\'istruzione verbale testuale dei protocolli e nessun giudizio sui valori'],
+      },
     ],
   },
 ]

@@ -184,8 +184,17 @@ Formato:
 ## [BUG-016] Dopo SALVA E CHIUDI la lista non ha ancora l'ultima valutazione e + NUOVA è attivo
 **Severity:** P3
 **Modulo/Ruolo:** lipedema — trainer/org_admin. Introdotto dalla review di STORY-042 (rilettura in background)
-**Status:** FIXED — da verificare sull'hosting dopo il deploy
+**Status:** VERIFIED (07/11/2026, commit 3174e31, rankex-app-dev): dopo SALVA E CHIUDI il bottone resta disabilitato e si riattiva quando compare la nuova riga
 **Reproduction steps:** salvare con SALVA E CHIUDI e aprire subito + NUOVA VALUTAZIONE, prima che la rilettura finisca.
 **Expected:** nessuna nuova valutazione da uno storico senza l'ultima salvata (precompilato e confronti sbagliati).
 **Actual:** per la durata della rilettura la lista è quella vecchia (ancora senza la nuova riga 500 ms dopo la chiusura) e il bottone è attivo.
 **Fix:** `refreshAfterSave` imposta `isLoading` finché la rilettura non termina: + NUOVA VALUTAZIONE resta disabilitato. La lista resta visibile senza scheletro.
+
+## [BUG-017] Super admin: "Creato il: Invalid Date" nel dettaglio di Demo Lipedema
+**Severity:** P3
+**Modulo/Ruolo:** super_admin, `OrgDetailView`. Trovato di passaggio nella QA Sprint #13, fuori dal perimetro della QA
+**Status:** OPEN
+**Reproduction steps:** rankex-admin-dev → Organizzazioni → Demo Lipedema.
+**Expected:** la data di creazione dell'org.
+**Actual:** "Invalid Date". L'org è creata da `scripts/seed-demo-lipedema.mjs` con `createdAt` come timestamp Firestore; causa da confermare (formato atteso dalla vista).
+**Suggested fix:** gestire il timestamp Firestore nella formattazione della data.
