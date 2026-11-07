@@ -92,6 +92,30 @@ export const HHD_QUADRICEPS = {
   maxContractionS:      30,
 }
 
+// Test 05 — protocollo 1.0 (docx 05, ADR-018). Occhi aperti, braccia lungo i
+// fianchi e nessun ausilio sono fissi nel protocollo. Il tetto non è un input:
+// un limite diverso è un altro protocollo (docx 05 §19)
+export const ONE_LEG_STANDING = {
+  protocolVersion:    '1.0',
+  sides:              ['R', 'L'],
+  validTrialsPerSide: 2,
+  maxInvalidPerSide:  3,
+  canonicalUnit:      's',
+  unitFactors:        { s: 1 },
+  inputDecimals:      1,
+  maxValue:           null,
+  ceiling:            60,
+  invalidReasons:     ['technique_error', 'timing_error', 'support_or_assistance', 'external_interruption', 'other'],
+}
+
+// Come è finita una prova OLS (docx 05 §12): 'ceiling' solo a 60,0 s
+export const OLS_END_REASONS = ['foot_touch', 'support_used', 'stance_shift', 'subject_request', 'ceiling', 'safety_stop']
+
+export const OLS_FOOTWEAR = ['barefoot', 'shoes']
+
+// Superficie: catalogo chiuso come il sensore, con 'other' la nota è obbligatoria
+export const OLS_SURFACES = ['hard_floor', 'other']
+
 // Fissaggio del dinamometro, unico per entrambe le gambe (docx 04 §18)
 export const FIXATION_METHODS = ['belt', 'manual']
 
@@ -169,6 +193,8 @@ export const TEXT_LIMITS = {
   deviceField:         60,
   gripSetting:         40,
   sensorPositionNote:  200,
+  surfaceNote:         200,
+  symptomsNote:        500,
 }
 
 export const MAX_TESTS_PER_VISIT = 5
@@ -257,6 +283,19 @@ export function computeHhdComparability({ brand, model, serial, fixationMethod, 
     kneeAngleDeg,
     hipAngleDeg,
     sensorPositionKey: sensorPosition === 'other' ? `other|${normalizeKey(sensorPositionNote)}` : sensorPosition,
+  }
+}
+
+/**
+ * Snapshot di comparabilità dell'OLS (ADR-012, ADR-018): lo salva il server e lo
+ * usa il form per avvisare prima del salvataggio.
+ */
+export function computeOlsComparability({ footwear, surface, surfaceNote }) {
+  return {
+    protocolVersion: ONE_LEG_STANDING.protocolVersion,
+    maxDurationS:    ONE_LEG_STANDING.ceiling,
+    footwear,
+    surfaceKey:      surface === 'other' ? `other|${normalizeKey(surfaceNote)}` : surface,
   }
 }
 
@@ -767,11 +806,76 @@ function validateHhdQuadriceps(input, context) {
   }
 }
 
+function validateOneLegStanding(input, context) {
+  const errors = {}
+  const fail   = makeFail(errors)
+  const src        = asObject(input)
+  const setup      = asObject(src.setup)
+  const events     = asObject(src.events)
+  const clinicalIn = asObject(src.clinical)
+  const spec       = ONE_LEG_STANDING
+
+  const performedAt = readPerformedAt(src.performedAt, context, fail)
+
+  // Setup (docx 05 §21): l'ausilio è quello abituale, nella prova non è ammesso
+  const dominantSide = readDominantSide(setup.dominantSide, fail)
+  const footwear = setup.footwear
+  if (!OLS_FOOTWEAR.includes(footwear)) fail('setup.footwear', 'Seleziona le calzature')
+  const surface = setup.surface
+  if (!OLS_SURFACES.includes(surface)) fail('setup.surface', 'Seleziona la superficie')
+  const surfaceText = readText(setup.surfaceNote, TEXT_LIMITS.surfaceNote, 'setup.surfaceNote', fail)
+  if (surface === 'other' && !surfaceText) fail('setup.surfaceNote', 'Descrivi la superficie')
+  const surfaceNote = surface === 'other' ? surfaceText : null
+  const { assistiveDevice, assistiveDeviceNote } = readAssistiveDevice(setup, fail)
+
+  // Prove e derivati: logica bilaterale generica, in più il motivo di fine
+  const { nativeUnit, trials } = readBilateralTrials(src, spec, fail, readOlsTrialExtra)
+  const result = trials ? computeBilateralResult(trials, spec) : null
+  const { stoppedEarly, stopReasonCode, stopReasonNote } = readLimbStop(events, clinicalIn, result, fail, errors)
+
+  // Dolore: valore unico per la valutazione, non per prova (docx 05 §22)
+  const pain = readRangeValue(clinicalIn.pain, PAIN_RANGE, 'clinical.pain', fail)
+  const symptomsNote = readText(clinicalIn.symptomsNote, TEXT_LIMITS.symptomsNote, 'clinical.symptomsNote', fail)
+  const conditionsNote = readText(clinicalIn.conditionsNote, TEXT_LIMITS.conditionsNote, 'clinical.conditionsNote', fail)
+  const deviation = readDeviation(src.deviation, fail)
+  const notes = readText(src.notes, TEXT_LIMITS.notes, 'notes', fail)
+
+  if (hasErrors(errors)) return { errors, value: null }
+
+  return {
+    errors,
+    value: {
+      testId:  LIPEDEMA_TEST_IDS.ONE_LEG_STANDING,
+      protocolVersion: spec.protocolVersion,
+      performedAt,
+      outcome: stoppedEarly ? ASSESSMENT_OUTCOME.STOPPED_EARLY : ASSESSMENT_OUTCOME.COMPLETE,
+      setup: {
+        dominantSide,
+        footwear,
+        surface,
+        surfaceNote,
+        assistiveDevice,
+        assistiveDeviceNote,
+        maxDurationS: spec.ceiling,
+        nativeUnit,
+      },
+      trials,
+      events:  { stoppedEarly },
+      result,
+      comparability: computeOlsComparability({ footwear, surface, surfaceNote }),
+      clinical: { painScale: PAIN_SCALE, pain, symptomsNote, stopReasonCode, stopReasonNote, conditionsNote },
+      deviation,
+      notes,
+    },
+  }
+}
+
 const ASSESSMENT_VALIDATORS = {
   [LIPEDEMA_TEST_IDS.TWO_MINUTE_WALK]:  validateTwoMinuteWalk,
   [LIPEDEMA_TEST_IDS.SIT_TO_STAND_30S]: validateSitToStand30s,
   [LIPEDEMA_TEST_IDS.HANDGRIP]:         validateHandgrip,
   [LIPEDEMA_TEST_IDS.HHD_QUADRICEPS]:   validateHhdQuadriceps,
+  [LIPEDEMA_TEST_IDS.ONE_LEG_STANDING]: validateOneLegStanding,
 }
 
 // ── Logica bilaterale generica (ADR-016 §1-3) ────────────────────────────────
@@ -850,6 +954,30 @@ function readBilateralTrials(src, spec, fail, readTrialExtra) {
     return readTrialExtra ? { ...trial, ...readTrialExtra(trialSrc, trial, field, fail) } : trial
   })
   return { nativeUnit, trials }
+}
+
+/**
+ * Motivo di fine di una prova OLS (ADR-018): obbligatorio sulle valide, facoltativo
+ * sulle non valide (una interruzione esterna non è tra i motivi di fine). Tetto e
+ * motivo devono coincidere: una prova valida a 60,0 s è finita per il tetto.
+ */
+function readOlsTrialExtra(trialSrc, trial, field, fail) {
+  const raw = trialSrc.endReason
+  if (raw === undefined || raw === null || raw === '') {
+    if (trial.valid) fail(field('endReason'), 'Seleziona il motivo di fine')
+    return { endReason: null }
+  }
+  if (!OLS_END_REASONS.includes(raw)) {
+    fail(field('endReason'), 'Motivo di fine non valido')
+    return { endReason: null }
+  }
+  const limit = formatDecimal(ONE_LEG_STANDING.ceiling)
+  if (raw === 'ceiling' && !trial.ceiling) {
+    fail(field('endReason'), `Il tempo massimo vale solo per una prova di ${limit} s`)
+  } else if (raw !== 'ceiling' && trial.valid && trial.ceiling) {
+    fail(field('endReason'), `A ${limit} s la prova finisce per il tempo massimo`)
+  }
+  return { endReason: raw }
 }
 
 /**

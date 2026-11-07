@@ -1435,3 +1435,62 @@ canvas. Qui solo le scelte che quei documenti lasciavano aperte.
   stesso test, quindi va esteso quando esiste l'OLS.
 - `seed-demo-lipedema.mjs` non crea HHD: per ora si inseriscono a mano.
 
+## [ADR-018] Lipedema — One-Leg Standing (STORY-038, Sprint #13)
+**Data:** 2026-11-06
+**Contesto:** il Test 05 riusa la logica bilaterale di ADR-016. Fonti: docx 05, ADR-009 §2,
+ADR-012, ADR-016, tavola `ValutazioneOLS` del canvas (il docx non ha una sezione UI). Qui
+solo le scelte che quei documenti lasciavano aperte.
+
+**Decisione:**
+1. **`ONE_LEG_STANDING`** nel CORE, `testId: 'lipedema_ols'`: 2 prove valide per lato, 3 non
+   valide, secondi con 1 decimale, `ceiling: 60`, `maxValue: null`. Motivi di prova non valida
+   senza `device_error` (solo un cronometro; l'errore di cronometraggio è `timing_error`).
+2. **Durata massima non modificabile.** La tavola la mostra come campo, qui è in sola lettura:
+   il docx §19 dice che un limite diverso è un altro protocollo, e un campo aperto produrrebbe
+   proprio quel dato con la stessa `protocolVersion`. Il server scrive `setup.maxDurationS` dalla
+   specifica e ignora un valore inviato. È anche un criterio di comparabilità, così un protocollo
+   futuro con un altro limite è riconoscibile.
+3. **`endReason` per prova**, `OLS_END_REASONS`: i codici di ADR-009 più `safety_stop` (AC).
+   - Obbligatorio sulle prove valide, facoltativo sulle non valide: una interruzione esterna non
+     è tra i motivi di fine. Una deroga all'AC "per ogni prova", da confermare con l'autore.
+   - Coerente con il tetto: `ceiling` solo a 60,0 s, e una prova valida a 60,0 s ha `ceiling`. Il
+     form lo imposta da solo se il motivo è vuoto e lo toglie se il tempo cambia. Un motivo scelto a
+     mano non si sovrascrive: un refuso di passaggio (6 → 60 → 6,0) non deve farlo perdere, e
+     l'incoerenza la segnala la validazione.
+   - "Uso di supporto" è una fine di prova (docx §12), "Appoggio o assistenza" una prova non valida
+     (docx §16). Il docx non traccia il confine: lo decide chi valuta, il server non li collega.
+   - `safety_stop` non implica `events.stoppedEarly`: la seduta può proseguire sull'altra gamba.
+4. **`readTrialExtra` è un parametro di `readBilateralTrials`, non un campo della specifica**
+   (precisa ADR-016 §1): il test di parità confronta le costanti del CORE per valore, e una
+   funzione dentro la specifica non sarebbe mai uguale tra le due copie.
+5. **Setup:** `dominantSide`, `footwear` (`barefoot|shoes`), `surface` (`hard_floor|other`, con nota
+   se `other`), `assistiveDevice` + nota, `maxDurationS`, `nativeUnit: 's'`. Calzature e gamba
+   dominante senza default (come ADR-017 §3). `assistiveDevice` è l'ausilio **abituale** (docx §7),
+   nella prova non è ammesso (docx §27): non è un criterio di comparabilità. Occhi aperti, braccia
+   lungo i fianchi e nessun ausilio sono fissi nel protocollo: non sono input, un'esecuzione
+   diversa si registra come deviazione. Una superficie "Altro" non richiede la deviazione: può
+   essere piana e stabile.
+6. **Dolore a valore unico:** `clinical.pain` (AC, docx §22 `pain_0_10`), niente dolore per prova
+   nel form e niente `painMaxBySide`. Non è in `CLINICAL_RANGES`: una chiave in più lì entrerebbe
+   anche nel 2MWT, che le legge tutte, e cambierebbe il suo output (ADR-016 §9).
+   `clinical.symptomsNote` (ADR-009 §3) facoltativo, separato dalle condizioni concomitanti.
+7. **Comparabilità:** `protocolVersion`, `maxDurationS`, `footwear`, `surfaceKey` (`other|nota
+   normalizzata`). `computeOlsComparability` è nel CORE, come per l'HHD.
+8. **Gamba dominante condivisa:** `createForm` riceve anche `latestByTest`, e HHD e OLS partono
+   dall'ultima valutazione valida tra le due (ADR-016 §5, chiude la conseguenza di ADR-017). Una
+   riga dedicata lo dice a chi compila, in entrambi i form: la data della precompilazione del setup
+   non vale per questo campo, che può venire dall'altro test.
+9. **Tetto a schermo:** badge `TETTO 60 s · D` nello storico e nel riepilogo paziente, riga sì/no per
+   lato nel dettaglio ("—" sul lato senza best), mai "≥ 60". Il lato col valore maggiore si chiama
+   "Tempo maggiore" (`strongestLabel` nel config): "più forte" non vale per un tempo.
+
+**Conseguenze:**
+- `firestore.rules`, indici e `aggiungiValutazione`: nessuna modifica.
+- Copia speculare toccata: `shared/lipedema.js`, quindi vanno ridistribuite le functions.
+- Il flag nel trend resta da mostrare in STORY-039: i dati ci sono già.
+- L'anteprima dei test bilaterali ignora i valori oltre i limiti della specifica: vale anche per
+  Handgrip e HHD, dove un refuso oltre il massimo appariva come best fino al salvataggio.
+- Le righe di prova hanno sempre `endReason` nello stato del form, vuoto per Handgrip e HHD, che non
+  lo inviano: nessun cambiamento nei loro documenti né in `isSameAssessmentData`.
+- `seed-demo-lipedema.mjs` non crea OLS: per ora si inseriscono a mano.
+

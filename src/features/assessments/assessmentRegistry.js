@@ -8,11 +8,13 @@ import { TwoMinuteWalkForm } from './TwoMinuteWalkForm'
 import { SitToStandForm }    from './SitToStandForm'
 import { HandgripForm }      from './HandgripForm'
 import { HhdForm }           from './HhdForm'
+import { OlsForm }           from './OlsForm'
 import {
   TwoMinuteWalkResultInfo, TwoMinuteWalkDetail, SitToStandResultInfo, SitToStandDetail,
-  BilateralResultInfo, HandgripDetail, HhdDetail,
+  BilateralResultInfo, HandgripDetail, HhdDetail, OlsDetail,
 } from './AssessmentTestDetails'
 import { getLatestDominantLeg } from './bilateralFormModel'
+import { createOlsForm, olsFormFromAssessment } from './olsFormModel'
 import { createTwoMinuteWalkForm, formFromAssessment as twoMinuteWalkFormFromAssessment } from './twoMinuteWalkFormModel'
 import { createSitToStandForm, sitToStandFormFromAssessment } from './sitToStandFormModel'
 import { createHandgripForm, handgripFormFromAssessment }     from './handgripFormModel'
@@ -25,6 +27,9 @@ const HANDGRIP_UNIT     = LIPEDEMA_TESTS[HANDGRIP_ID].unit
 const HHD_ID            = LIPEDEMA_TEST_IDS.HHD_QUADRICEPS
 const HHD_DECIMALS      = BILATERAL_TESTS[HHD_ID].displayDecimals
 const HHD_UNIT          = LIPEDEMA_TESTS[HHD_ID].unit
+const OLS_ID            = LIPEDEMA_TEST_IDS.ONE_LEG_STANDING
+const OLS_DECIMALS      = BILATERAL_TESTS[OLS_ID].displayDecimals
+const OLS_UNIT          = LIPEDEMA_TESTS[OLS_ID].unit
 
 /**
  * Per ogni test:
@@ -71,6 +76,15 @@ export const ASSESSMENT_UI = {
     formFromAssessment: hhdFormFromAssessment,
     formatPrimary:      assessment => formatBilateralPrimary(assessment, HHD_UNIT, HHD_DECIMALS),
     formatDelta:        entry => formatBilateralDelta(entry, HHD_UNIT, HHD_DECIMALS),
+  },
+  [OLS_ID]: {
+    Form:               OlsForm,
+    ResultInfo:         BilateralResultInfo,
+    Detail:             OlsDetail,
+    createForm:         (nowLocal, previous, latestByTest) => createOlsForm(nowLocal, previous, getLatestDominantLeg(latestByTest)),
+    formFromAssessment: olsFormFromAssessment,
+    formatPrimary:      assessment => formatBilateralPrimary(assessment, OLS_UNIT, OLS_DECIMALS),
+    formatDelta:        entry => formatBilateralDelta(entry, OLS_UNIT, OLS_DECIMALS),
   },
 }
 

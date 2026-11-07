@@ -3,7 +3,7 @@
 // senza label, come testsMeta.js). Protocolli: lipidemia/*.docx.
 // Comportamento per test (form, dettaglio, formattazione) nel registro
 // features/assessments/assessmentRegistry.js: qui solo dati.
-import { LIPEDEMA_TEST_IDS, TWO_MINUTE_WALK, SIT_TO_STAND_30S, HANDGRIP, HHD_QUADRICEPS } from '../utils/lipedema'
+import { LIPEDEMA_TEST_IDS, TWO_MINUTE_WALK, SIT_TO_STAND_30S, HANDGRIP, HHD_QUADRICEPS, ONE_LEG_STANDING } from '../utils/lipedema'
 
 export const ASSISTIVE_DEVICE_OPTIONS = [
   { value: 'none',     label: 'Nessuno' },
@@ -73,6 +73,26 @@ export const SENSOR_POSITION_OPTIONS = [
   { value: 'other',                 label: 'Altro' },
 ]
 
+// OLS: come è finita la prova, calzature e superficie (OLS_END_REASONS, OLS_FOOTWEAR, OLS_SURFACES)
+export const OLS_END_REASON_OPTIONS = [
+  { value: 'foot_touch',      label: "Piede libero tocca il pavimento o l'altro arto" },
+  { value: 'support_used',    label: 'Uso di supporto' },
+  { value: 'stance_shift',    label: "Spostamento dell'arto di appoggio" },
+  { value: 'subject_request', label: 'Richiesta della paziente' },
+  { value: 'ceiling',         label: '60,0 s raggiunti' },
+  { value: 'safety_stop',     label: 'Stop per sicurezza' },
+]
+
+export const FOOTWEAR_OPTIONS = [
+  { value: 'barefoot', label: 'SCALZA' },
+  { value: 'shoes',    label: 'SCARPE' },
+]
+
+export const SURFACE_OPTIONS = [
+  { value: 'hard_floor', label: 'Pavimento rigido' },
+  { value: 'other',      label: 'Altro' },
+]
+
 // Motivi di non comparabilità (utils/lipedema.js → COMPARABILITY_RULES)
 export const COMPARABILITY_REASON_LABELS = {
   protocol:    'protocollo diverso',
@@ -87,6 +107,9 @@ export const COMPARABILITY_REASON_LABELS = {
   kneeAngle:   'angolo del ginocchio diverso',
   hipAngle:    "angolo dell'anca diverso",
   sensor:      'punto del sensore diverso',
+  maxDuration: 'durata massima diversa',
+  footwear:    'calzature diverse',
+  surface:     'superficie diversa',
 }
 
 // Parametri clinici facoltativi: una riga per misura, colonne PRE | POST.
@@ -111,6 +134,15 @@ const LIMB_INVALID_REASON_OPTIONS = INVALID_TRIAL_REASON_OPTIONS.filter(option =
 const HHD_INVALID_REASON_OPTIONS = LIMB_INVALID_REASON_OPTIONS.map(option => (
   option.value === 'technique_error' ? { ...option, label: 'Errore di tecnica (posizione, compensazione, cinghia)' } : option
 ))
+
+// OLS: nessun dispositivo; l'appoggio è il motivo tipico di una prova non valida
+const OLS_INVALID_REASON_OPTIONS = INVALID_TRIAL_REASON_OPTIONS
+  .filter(option => ONE_LEG_STANDING.invalidReasons.includes(option.value))
+  .map(option => {
+    if (option.value === 'technique_error') return { ...option, label: 'Errore di tecnica (posizione o avvio)' }
+    if (option.value === 'timing_error') return { ...option, label: 'Errore di cronometraggio' }
+    return option
+  })
 
 /**
  * Una voce per test implementato. `stopReasonOptions` e `clinicalRows` sono
@@ -159,6 +191,20 @@ export const LIPEDEMA_TESTS = {
     clinicalRows:         [],
     invalidReasonOptions: HHD_INVALID_REASON_OPTIONS,
   },
+  [LIPEDEMA_TEST_IDS.ONE_LEG_STANDING]: {
+    id:        LIPEDEMA_TEST_IDS.ONE_LEG_STANDING,
+    shortName: 'OLS',
+    name:      'One-Leg Standing',
+    unit:      ONE_LEG_STANDING.canonicalUnit,
+    limbName:  'gamba',
+    protocolVersion:      ONE_LEG_STANDING.protocolVersion,
+    stopReasonOptions:    LIMB_STOP_REASON_OPTIONS,
+    clinicalRows:         [],
+    invalidReasonOptions: OLS_INVALID_REASON_OPTIONS,
+    endReasonOptions:     OLS_END_REASON_OPTIONS,
+    strongestLabel:       'Tempo maggiore',
+    hasTrialPain:         false,
+  },
 }
 
 // Ordine di visualizzazione nello storico, nel selettore e nel riepilogo paziente
@@ -167,6 +213,7 @@ export const LIPEDEMA_TEST_ORDER = [
   LIPEDEMA_TEST_IDS.SIT_TO_STAND_30S,
   LIPEDEMA_TEST_IDS.HANDGRIP,
   LIPEDEMA_TEST_IDS.HHD_QUADRICEPS,
+  LIPEDEMA_TEST_IDS.ONE_LEG_STANDING,
 ]
 
 export function getFixationLabel(value) {
@@ -175,6 +222,14 @@ export function getFixationLabel(value) {
 
 export function getSensorPositionLabel(value) {
   return SENSOR_POSITION_OPTIONS.find(option => option.value === value)?.label ?? value
+}
+
+export function getFootwearLabel(value) {
+  return FOOTWEAR_OPTIONS.find(option => option.value === value)?.label ?? value
+}
+
+export function getSurfaceLabel(value) {
+  return SURFACE_OPTIONS.find(option => option.value === value)?.label ?? value
 }
 
 /** Etichetta del motivo di fine, dalle `endReasonOptions` del test */

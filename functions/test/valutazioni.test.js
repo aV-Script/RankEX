@@ -388,6 +388,27 @@ describe('aggiungiValutazione — Handgrip (STORY-036)', () => {
     expect(doc.result.sideStatus).toEqual({ R: 'complete', L: 'complete' })
   })
 
+  it('OLS: tetto, best e motivo di fine dal server; il client non può imporre il tetto', async () => {
+    const stance = (side, nativeValue, endReason) => ({ side, valid: true, nativeValue, endReason, ceiling: false, value: 1 })
+    const ols = {
+      testId: 'lipedema_ols', performedAt: HANDGRIP.performedAt,
+      setup: { dominantSide: 'R', footwear: 'barefoot', surface: 'hard_floor', assistiveDevice: 'none', nativeUnit: 's', maxDurationS: 30 },
+      trials: numbered([stance('R', 60, 'ceiling'), stance('L', 23.4, 'foot_touch'), stance('R', 41, 'stance_shift'), stance('L', 31.8, 'foot_touch')]),
+      events: { stoppedEarly: false }, clinical: { pain: 1 }, deviation: { present: false },
+    }
+    await aggiungiValutazione(req('trainer1', { tests: [ols] }))
+    const [[, doc]] = assessments()
+    expect(doc).toMatchObject({
+      testId: 'lipedema_ols', outcome: 'complete', protocolVersion: '1.0',
+      setup: { maxDurationS: 60, footwear: 'barefoot' },
+      result: { unit: 's', bestBySide: { R: 60, L: 31.8 }, ceilingBySide: { R: true, L: false } },
+      comparability: { maxDurationS: 60, footwear: 'barefoot', surfaceKey: 'hard_floor' },
+      clinical: { pain: 1 },
+    })
+    expect(doc.trials[0]).toMatchObject({ value: 60, ceiling: true, endReason: 'ceiling' })
+    expect(doc.trials[1]).toMatchObject({ value: 23.4, ceiling: false })
+  })
+
   it.each([
     ['oltre 60,0 s',            { nativeValue: 60.1, endReason: 'ceiling' }],
     ['60,0 s con altro motivo', { nativeValue: 60, endReason: 'foot_touch' }],

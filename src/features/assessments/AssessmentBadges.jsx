@@ -45,6 +45,10 @@ function getBadges(assessment, nonComparable) {
     const which = SIDE_LABELS[side]?.short ?? side
     add(`side-${side}`, WARNING, status === BILATERAL_SIDE_STATUS.NOT_TESTED ? `LATO ${which} NON ESEGUITO` : `LATO ${which} INCOMPLETO`)
   }
+  // Tetto OLS: dato da leggere accanto al valore, non un giudizio (docx 05 §13)
+  for (const [side, isCeiling] of Object.entries(result.ceilingBySide ?? {})) {
+    if (isCeiling === true) add(`ceiling-${side}`, 'var(--rx-accent)', `TETTO ${setup.maxDurationS} s · ${SIDE_LABELS[side]?.short ?? side}`)
+  }
   if (nonComparable) {
     add('non-comparable', WARNING, `NON CONFRONTABILE · ${nonComparable.map(reason => COMPARABILITY_REASON_LABELS[reason] ?? reason).join(', ')}`)
   }

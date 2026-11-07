@@ -3,7 +3,7 @@ import {
   computeTwoMinuteWalkResult, validateAssessmentInput, validatePrivacyNoticeInput, validateVoidReason,
   patientAgeAt, requiresPrivacyNotice, buildTestHistory, getLatestValidByTest, getComparabilityIssues,
   isPrivacyNoticeMissingError, PRIVACY_NOTICE_MISSING, isSameAssessmentData, nowLocalDateTime, todayLocalDate, LOCAL_TIME_ZONE,
-  computeBilateralResult, HANDGRIP, getSideDifference,
+  computeBilateralResult, HANDGRIP, ONE_LEG_STANDING, getSideDifference,
 } from '../../utils/lipedema.js'
 import { getModule, MODULES } from '../../config/modules.config.js'
 import { LIPEDEMA_TESTS, getInvalidTrialReasonLabel } from '../../config/lipedemaTests.config.js'
@@ -17,6 +17,9 @@ import {
   createHandgripForm, buildHandgripInput, handgripFormFromAssessment,
 } from '../../features/assessments/handgripFormModel.js'
 import { createPlannedTrials, proposeNextSide, getLatestDominantLeg, toPreviewTrials } from '../../features/assessments/bilateralFormModel.js'
+import {
+  createOlsForm, buildOlsInput, olsFormFromAssessment, olsComparabilityOf, applyOlsRowPatch, getOlsComparabilityWarnings,
+} from '../../features/assessments/olsFormModel.js'
 import {
   createHhdForm, buildHhdInput, hhdFormFromAssessment, hhdComparabilityOf, isHhdDeviationRequired,
   applyContractionChange, getHhdComparabilityWarnings,
@@ -687,6 +690,228 @@ describe('form HHD ↔ input della callable', () => {
     const label = testId => getInvalidTrialReasonLabel('technique_error', LIPEDEMA_TESTS[testId].invalidReasonOptions)
     expect(label('lipedema_hhd_quadriceps')).toContain('cinghia')
     expect(label('lipedema_handgrip')).toContain('impugnatura')
+  })
+})
+
+describe('validateAssessmentInput — One-Leg Standing (ADR-018)', () => {
+  const stance = (side, nativeValue, endReason = 'foot_touch', extra = {}) => ({ side, valid: true, nativeValue, endReason, ...extra })
+  const numbered = trials => trials.map((item, i) => ({ seq: i + 1, ...item }))
+  const FOUR = [stance('R', 60, 'ceiling'), stance('L', 23.4), stance('R', 41), stance('L', 31.8, 'stance_shift')]
+  const SETUP = { dominantSide: 'R', footwear: 'barefoot', surface: 'hard_floor', assistiveDevice: 'none', nativeUnit: 's' }
+  const BASE_OLS = {
+    testId: 'lipedema_ols', performedAt: '2026-10-30T10:30', setup: SETUP,
+    trials: numbered(FOUR), events: { stoppedEarly: false }, clinical: { pain: 1, symptomsNote: ' lieve capogiro ' }, deviation: { present: false },
+  }
+  const ols = override => validateAssessmentInput({ ...BASE_OLS, ...override }, CONTEXT)
+  const withSetup = patch => ols({ setup: { ...SETUP, ...patch } })
+  const withFirstTrial = trial => ols({ trials: numbered([trial, ...FOUR.slice(1)]) })
+
+  it('4 prove: best in secondi, ceiling per lato, simmetria, protocollo e durata massima', () => {
+    const { errors, value } = ols({})
+    expect(errors).toEqual({})
+    expect(value).toMatchObject({
+      testId: 'lipedema_ols', protocolVersion: '1.0', outcome: 'complete',
+      setup: { dominantSide: 'R', footwear: 'barefoot', surface: 'hard_floor', surfaceNote: null, maxDurationS: 60, nativeUnit: 's' },
+      result: { unit: 's', bestBySide: { R: 60, L: 31.8 }, ceilingBySide: { R: true, L: false }, strongestSide: 'R', symmetryPct: 31.8 / 60 * 100 },
+      comparability: { protocolVersion: '1.0', maxDurationS: 60, footwear: 'barefoot', surfaceKey: 'hard_floor' },
+      clinical: { painScale: 'nrs_0_10', pain: 1, symptomsNote: 'lieve capogiro' },
+    })
+    expect(value.trials[0]).toMatchObject({ nativeValue: 60, nativeUnit: 's', value: 60, ceiling: true, endReason: 'ceiling' })
+    expect(value.trials[1]).toMatchObject({ value: 23.4, ceiling: false, endReason: 'foot_touch' })
+    expect(value.clinical).not.toHaveProperty('painMaxBySide')
+  })
+
+  it('il tetto non è modificabile: flag e durata massima li decide il server', () => {
+    const { value } = ols({ setup: { ...SETUP, maxDurationS: 30 }, trials: numbered([{ ...FOUR[0], ceiling: false, value: 1 }, ...FOUR.slice(1)]) })
+    expect(value.setup.maxDurationS).toBe(60)
+    expect(value.trials[0]).toMatchObject({ value: 60, ceiling: true })
+  })
+
+  it('tempo: oltre 60,0 s rifiutato, un decimale, maggiore di 0', () => {
+    expect(withFirstTrial(stance('R', 60.1, 'ceiling')).errors).toHaveProperty(['trials.0.nativeValue'])
+    expect(withFirstTrial(stance('R', 30.25)).errors).toHaveProperty(['trials.0.nativeValue'])
+    expect(withFirstTrial(stance('R', 0)).errors).toHaveProperty(['trials.0.nativeValue'])
+    expect(withFirstTrial(stance('R', 59.9)).errors).toEqual({})
+  })
+
+  it('motivo di fine: obbligatorio sulle valide, catalogo chiuso, coerente con il tetto', () => {
+    expect(withFirstTrial(stance('R', 30, null)).errors).toHaveProperty(['trials.0.endReason'])
+    expect(withFirstTrial(stance('R', 30, 'volo')).errors).toHaveProperty(['trials.0.endReason'])
+    expect(withFirstTrial(stance('R', 30, 'ceiling')).errors).toHaveProperty(['trials.0.endReason'])
+    expect(withFirstTrial(stance('R', 60, 'foot_touch')).errors).toHaveProperty(['trials.0.endReason'])
+    for (const reason of ['support_used', 'subject_request', 'safety_stop']) {
+      expect(withFirstTrial(stance('R', 30, reason)).errors).toEqual({})
+    }
+  })
+
+  it('prova non valida: conservata e ripetuta, fuori dal best, motivo di fine facoltativo', () => {
+    const invalid = stance('L', 59, null, { valid: false, invalidReason: 'support_or_assistance' })
+    const { errors, value } = ols({ trials: numbered([FOUR[0], invalid, ...FOUR.slice(1)]) })
+    expect(errors).toEqual({})
+    expect(value.trials[1]).toMatchObject({ valid: false, invalidReason: 'support_or_assistance', value: 59, endReason: null })
+    expect(value.result.bestBySide.L).toBe(31.8)
+    // Lo strumento non c'è: il motivo non è ammesso
+    expect(ols({ trials: numbered([stance('R', null, null, { valid: false, invalidReason: 'device_error' }), ...FOUR]) }).errors).toHaveProperty(['trials.0.invalidReason'])
+    // Tetto delle non valide: 2 valide + 3 non valide per lato
+    const tooMany = Array(4).fill(stance('L', null, null, { valid: false, invalidReason: 'timing_error' }))
+    expect(ols({ trials: numbered([...FOUR, ...tooMany]) }).errors).toHaveProperty(['trials.7.valid'])
+  })
+
+  it('stop con una gamba incompleta: best e ceiling vuoti solo su quel lato', () => {
+    const partial = numbered(FOUR.slice(0, 3))
+    expect(ols({ trials: partial }).errors.trials).toBe("Completa le prove o segna l'interruzione")
+    const { value } = ols({ trials: partial, events: { stoppedEarly: true }, clinical: { stopReasonCode: 'dizziness' } })
+    expect(value).toMatchObject({
+      outcome: 'stopped_early',
+      result: { bestBySide: { R: 60, L: null }, ceilingBySide: { R: true, L: null }, sideStatus: { R: 'complete', L: 'incomplete' }, symmetryPct: null },
+    })
+  })
+
+  it('setup: calzature e superficie obbligatorie, "Altro" con descrizione', () => {
+    expect(withSetup({ dominantSide: null }).errors).toHaveProperty(['setup.dominantSide'])
+    expect(withSetup({ footwear: null }).errors).toHaveProperty(['setup.footwear'])
+    expect(withSetup({ surface: 'prato' }).errors).toHaveProperty(['setup.surface'])
+    expect(withSetup({ surface: 'other' }).errors).toHaveProperty(['setup.surfaceNote'])
+    expect(withSetup({ surfaceNote: 'residuo' }).value.setup.surfaceNote).toBeNull()
+    expect(withSetup({ surface: 'other', surfaceNote: ' Linoleum ' }).value.comparability.surfaceKey).toBe('other|linoleum')
+    expect(withSetup({ assistiveDevice: 'cane' }).errors).toEqual({})
+    expect(ols({ clinical: { pain: 11 } }).errors).toHaveProperty(['clinical.pain'])
+  })
+
+  it('comparabilità: calzature, superficie e durata massima; gamba dominante e ausilio abituale no', () => {
+    const at = patch => ({ testId: 'lipedema_ols', comparability: withSetup(patch).value.comparability })
+    const base = at({})
+    expect(getComparabilityIssues(at({ footwear: 'shoes' }), base)).toEqual(['footwear'])
+    expect(getComparabilityIssues(at({ surface: 'other', surfaceNote: 'linoleum' }), base)).toEqual(['surface'])
+    expect(getComparabilityIssues(at({ dominantSide: 'L', assistiveDevice: 'cane' }), base)).toEqual([])
+    expect(getComparabilityIssues({ ...base, comparability: { ...base.comparability, maxDurationS: 30 } }, base)).toEqual(['maxDuration'])
+  })
+
+  it('storico: delta per lato a un decimale, primario con un decimale, mai "≥ 60"', () => {
+    const doc = (id, performedAt, values) => ({
+      ...ols({ trials: numbered(values.map((value, i) => stance(i % 2 === 0 ? 'R' : 'L', value, value === 60 ? 'ceiling' : 'foot_touch'))) }).value,
+      id, performedAt, status: 'valid',
+    })
+    const history = buildTestHistory([doc('a', '2026-08-01T10:00', [20.1, 30, 22.2, 28]), doc('b', '2026-09-01T10:00', [60, 23.4, 41, 31.8])], 'lipedema_ols')
+    const latest = history.find(entry => entry.assessment.id === 'b')
+    expect(latest.deltaBySide).toEqual({ R: 37.8, L: 1.8 })
+    expect(formatBilateralPrimary(latest.assessment, 's', 1)).toBe('D 60,0 · S 31,8 s')
+    expect(formatBilateralDelta(latest, 's', 1)).toBe('D +37,8 s · S +1,8 s rispetto al 01/08')
+  })
+})
+
+describe('form OLS ↔ input della callable', () => {
+  const PREVIOUS = {
+    performedAt: '2026-09-03T10:00',
+    setup: { dominantSide: 'L', footwear: 'shoes', surface: 'other', surfaceNote: 'linoleum', assistiveDevice: 'cane', assistiveDeviceNote: null },
+  }
+  const fill = (form, values = ['60', '23,4', '41', '31,8']) => ({
+    ...form,
+    trials: form.trials.map((row, i) => ({ ...row, nativeValue: values[i], endReason: values[i] === '60' ? 'ceiling' : 'foot_touch' })),
+  })
+
+  it('form nuovo: 4 prove D-S-D-S, calzature e gamba dominante da scegliere', () => {
+    const form = createOlsForm('2026-10-30T10:30')
+    expect(form).toMatchObject({ footwear: '', dominantSide: '', surface: 'hard_floor', assistiveDevice: 'none' })
+    expect(form.trials.map(row => row.side)).toEqual(['R', 'L', 'R', 'L'])
+  })
+
+  it('precompilazione dal precedente OLS; dolore e sintomi restano vuoti', () => {
+    expect(createOlsForm('2026-10-30T10:30', PREVIOUS)).toMatchObject({
+      dominantSide: 'L', footwear: 'shoes', surface: 'other', surfaceNote: 'linoleum', assistiveDevice: 'cane',
+      clinical: { pain: '', symptomsNote: '' },
+    })
+  })
+
+  it('gamba dominante dall\'ultima tra HHD e OLS (ADR-016 §5)', () => {
+    const hhd = { performedAt: '2026-10-01T10:00', setup: { dominantSide: 'L' } }
+    const olsDoc = { performedAt: '2026-09-01T10:00', setup: { dominantSide: 'R' } }
+    expect(getLatestDominantLeg({ lipedema_hhd_quadriceps: hhd, lipedema_ols: olsDoc })).toBe('L')
+    expect(getLatestDominantLeg({ lipedema_hhd_quadriceps: { ...hhd, performedAt: '2026-08-01T10:00' }, lipedema_ols: olsDoc })).toBe('R')
+    expect(getLatestDominantLeg({ lipedema_handgrip: { performedAt: '2026-10-01T10:00', setup: { dominantSide: 'both' } } })).toBeNull()
+    expect(getLatestDominantLeg()).toBeNull()
+    // Stessa visita, stesso minuto: decide la registrazione più recente
+    const sameMinute = createdAt => ({ performedAt: '2026-10-01T10:00', createdAt, setup: { dominantSide: createdAt === 'b' ? 'L' : 'R' } })
+    expect(getLatestDominantLeg({ lipedema_hhd_quadriceps: sameMinute('a'), lipedema_ols: sameMinute('b') })).toBe('L')
+    expect(createOlsForm('x', null, 'L').dominantSide).toBe('L')
+    expect(createOlsForm('x', PREVIOUS, 'R').dominantSide).toBe('R')
+    expect(createHhdForm('x', null, 'L').dominantSide).toBe('L')
+  })
+
+  it('a 60 s il motivo di fine si imposta da solo e si toglie se il tempo cambia', () => {
+    const row = createOlsForm('x').trials[0]
+    const at60 = applyOlsRowPatch(row, { ...row, nativeValue: '60' })
+    expect(at60.endReason).toBe('ceiling')
+    expect(applyOlsRowPatch(row, { ...row, nativeValue: '60,0' }).endReason).toBe('ceiling')
+    expect(applyOlsRowPatch(at60, { ...at60, nativeValue: '59,5' }).endReason).toBe('')
+    const manual = { ...row, nativeValue: '30', endReason: 'support_used' }
+    expect(applyOlsRowPatch(manual, { ...manual, nativeValue: '31' }).endReason).toBe('support_used')
+  })
+
+  it('un motivo scelto a mano non si perde per un refuso né cambiando la validità', () => {
+    const row = { ...createOlsForm('x').trials[0], nativeValue: '6', endReason: 'foot_touch' }
+    const typo = applyOlsRowPatch(row, { ...row, nativeValue: '60' })
+    expect(typo.endReason).toBe('foot_touch')
+    expect(applyOlsRowPatch(typo, { ...typo, nativeValue: '6,0' }).endReason).toBe('foot_touch')
+    // Di nuovo valida a 60 s senza motivo: il tetto si imposta da solo
+    const invalid = { ...createOlsForm('x').trials[0], nativeValue: '60', endReason: '', valid: false }
+    expect(applyOlsRowPatch(invalid, { ...invalid, valid: true }).endReason).toBe('ceiling')
+  })
+
+  it('anteprima: un tempo oltre il tetto non diventa un best', () => {
+    const preview = form => toPreviewTrials(buildOlsInput(form), ONE_LEG_STANDING)
+    const form = fill(createOlsForm('x'), ['600', '20', '41', '30'])
+    expect(preview(form).map(trial => trial.value)).toEqual([null, 20, 41, 30])
+    expect(computeBilateralResult(preview(form), ONE_LEG_STANDING).bestBySide).toEqual({ R: null, L: 30 })
+    expect(preview(fill(createOlsForm('x'), ['60', '20', '41', '30']))[0].value).toBe(60)
+  })
+
+  it('il form ha la sua unità, per le etichette delle prove comuni', () => {
+    expect(createOlsForm('x').nativeUnit).toBe('s')
+    expect(olsFormFromAssessment({ performedAt: 'x', trials: [] }).nativeUnit).toBe('s')
+    expect(buildOlsInput(createOlsForm('x')).setup.nativeUnit).toBe('s')
+  })
+
+  it('il form produce un input valido, lo stesso snapshot del server; Correggi identico', () => {
+    const form = {
+      ...fill(createOlsForm('2026-10-30T10:30', PREVIOUS)),
+      assistiveDevice: 'other', assistiveDeviceNote: 'tutore', clinical: { pain: '2', symptomsNote: 'lieve capogiro' },
+    }
+    const { errors, value: original } = validateAssessmentInput(buildOlsInput(form), CONTEXT)
+    expect(errors).toEqual({})
+    expect(original.result.bestBySide).toEqual({ R: 60, L: 31.8 })
+    expect(olsComparabilityOf(form)).toEqual(original.comparability)
+    const again = validateAssessmentInput(buildOlsInput(olsFormFromAssessment(original)), CONTEXT).value
+    expect(isSameAssessmentData(again, original)).toBe(true)
+  })
+
+  it('con lo stop le righe vuote non si salvano, quelle con il motivo sì', () => {
+    const form = { ...createOlsForm('2026-10-30T10:30'), stoppedEarly: true }
+    form.trials = form.trials.map((row, i) => (i === 0 ? { ...row, nativeValue: '20', endReason: 'safety_stop' } : row))
+    expect(buildOlsInput(form).trials).toHaveLength(1)
+    expect(buildOlsInput(form).trials[0]).toMatchObject({ seq: 1, endReason: 'safety_stop' })
+    form.trials = form.trials.map((row, i) => (i === 1 ? { ...row, endReason: 'foot_touch' } : row))
+    expect(buildOlsInput(form).trials).toHaveLength(2)
+  })
+
+  it('avvisi di comparabilità solo sui campi già validi', () => {
+    const previous = { comparability: olsComparabilityOf({ footwear: 'barefoot', surface: 'hard_floor' }) }
+    const filled = { ...fill(createOlsForm('2026-10-30T10:30')), footwear: 'barefoot', dominantSide: 'R' }
+    const warnings = form => getOlsComparabilityWarnings(form, validateAssessmentInput(buildOlsInput(form), CONTEXT).errors, previous)
+    expect(warnings(filled)).toEqual([])
+    expect(getOlsComparabilityWarnings(filled, {}, null)).toEqual([])
+    expect(warnings({ ...filled, footwear: 'shoes' })).toEqual(['footwear'])
+    expect(warnings({ ...filled, footwear: '' })).toEqual([])
+    expect(warnings({ ...filled, surface: 'other', surfaceNote: '' })).toEqual([])
+    expect(warnings({ ...filled, surface: 'other', surfaceNote: 'linoleum' })).toEqual(['surface'])
+  })
+
+  it('config: appoggio tra i motivi di prova non valida, niente strumento né dolore per prova', () => {
+    const test = LIPEDEMA_TESTS.lipedema_ols
+    expect(test.invalidReasonOptions.map(option => option.value)).toEqual(['technique_error', 'timing_error', 'support_or_assistance', 'external_interruption', 'other'])
+    expect(test.endReasonOptions.map(option => option.value)).toEqual(['foot_touch', 'support_used', 'stance_shift', 'subject_request', 'ceiling', 'safety_stop'])
+    expect(test.hasTrialPain).toBe(false)
+    expect(LIPEDEMA_TESTS.lipedema_handgrip.hasTrialPain).toBeUndefined()
   })
 })
 

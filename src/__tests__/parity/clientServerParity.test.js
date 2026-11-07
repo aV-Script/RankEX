@@ -215,11 +215,13 @@ describe('Lipedema — valutazioni e informativa (ADR-014 rischio #3)', () => {
     'CLINICAL_RANGES', 'TEXT_LIMITS', 'MAX_TESTS_PER_VISIT',
     'SIT_TO_STAND_30S', 'HANDGRIP', 'INVALID_TRIAL_REASONS', 'LIMB_STOP_REASON_CODES',
     'DOMINANT_SIDES', 'BILATERAL_SIDE_STATUS', 'HHD_QUADRICEPS', 'FIXATION_METHODS', 'SENSOR_POSITIONS',
+    'ONE_LEG_STANDING', 'OLS_END_REASONS', 'OLS_FOOTWEAR', 'OLS_SURFACES',
   ]
   const CORE_FUNCTIONS = [
     'requiresPrivacyNotice', 'computeTwoMinuteWalkResult', 'validateAssessmentInput',
     'validatePrivacyNoticeInput', 'validateVoidReason', 'patientAgeAt', 'formatLocalDateTime',
     'computeSitToStandResult', 'computeBilateralResult', 'normalizeKey', 'isStandardChairHeight', 'computeHhdComparability',
+    'computeOlsComparability',
   ]
   const CONTEXT = { nowLocal: '2026-10-30T11:00', birthDate: '1985-03-12' }
   const BASE = {
@@ -328,6 +330,37 @@ describe('Lipedema — valutazioni e informativa (ADR-014 rischio #3)', () => {
     { ...HHD_BASE, trials: numbered([grip('R', 30, { valid: false, invalidReason: 'support_or_assistance' }), ...SIX_RAW]) },
   ]
 
+  // One-Leg Standing (ADR-018)
+  const stance = (side, nativeValue, endReason = 'foot_touch', extra = {}) => ({ side, valid: true, nativeValue, endReason, ...extra })
+  const OLS_SETUP = { dominantSide: 'R', footwear: 'barefoot', surface: 'hard_floor', assistiveDevice: 'none', nativeUnit: 's' }
+  const FOUR_RAW = [stance('R', 60, 'ceiling'), stance('L', 23.4), stance('R', 60, 'ceiling'), stance('L', 31.8, 'stance_shift')]
+  const OLS_BASE = {
+    testId: 'lipedema_ols', performedAt: '2026-10-30T10:30', setup: OLS_SETUP,
+    trials: numbered(FOUR_RAW), events: { stoppedEarly: false }, clinical: { pain: 1, symptomsNote: ' lieve capogiro ' }, deviation: { present: false },
+  }
+  const withOlsSetup = patch => ({ ...OLS_BASE, setup: { ...OLS_SETUP, ...patch } })
+  const OLS_CASES = [
+    OLS_BASE,
+    withOlsSetup({ footwear: 'shoes', surface: 'other', surfaceNote: ' Linoleum ' }),
+    withOlsSetup({ footwear: 'tacchi', surface: 'prato' }),
+    withOlsSetup({ surface: 'other' }),
+    withOlsSetup({ assistiveDevice: 'other' }),
+    withOlsSetup({ nativeUnit: 'min' }),
+    { ...OLS_BASE, clinical: { pain: 11, symptomsNote: 'x'.repeat(501) } },
+    { ...OLS_BASE, trials: numbered([stance('R', 60.1, 'ceiling'), ...FOUR_RAW.slice(1)]) },
+    { ...OLS_BASE, trials: numbered([stance('R', 60), ...FOUR_RAW.slice(1)]) },
+    { ...OLS_BASE, trials: numbered([stance('R', 30, 'ceiling'), ...FOUR_RAW.slice(1)]) },
+    { ...OLS_BASE, trials: numbered([stance('R', 30.25), ...FOUR_RAW.slice(1)]) },
+    { ...OLS_BASE, trials: numbered([stance('R', 30, null), ...FOUR_RAW.slice(1)]) },
+    { ...OLS_BASE, trials: numbered([stance('R', 30, 'volo'), ...FOUR_RAW.slice(1)]) },
+    { ...OLS_BASE, trials: numbered([stance('R', 12, null, { valid: false, invalidReason: 'support_or_assistance' }), ...FOUR_RAW]) },
+    { ...OLS_BASE, trials: numbered([stance('R', null, null, { valid: false, invalidReason: 'device_error' }), ...FOUR_RAW]) },
+    { ...OLS_BASE, trials: numbered([...FOUR_RAW, stance('R', 44)]) },
+    { ...OLS_BASE, trials: numbered(FOUR_RAW.slice(0, 3)) },
+    { ...OLS_BASE, trials: numbered(FOUR_RAW.slice(0, 3)), events: { stoppedEarly: true }, clinical: { stopReasonCode: 'dizziness' } },
+    { ...OLS_BASE, trials: numbered([stance('R', 18, 'safety_stop')]), events: { stoppedEarly: true }, clinical: { stopReasonCode: 'instability' } },
+  ]
+
   const coreFile = relativePath => readFileSync(new URL(relativePath, import.meta.url), 'utf8').replace(/\r\n/g, '\n')
   const SERVER_FILE = '../../../functions/src/shared/lipedema.js'
 
@@ -360,8 +393,8 @@ describe('Lipedema — valutazioni e informativa (ADR-014 rischio #3)', () => {
     expect(text).not.toMatch(/\bimport\s*\(/)
   })
 
-  it.each([...STS_CASES, ...HANDGRIP_CASES, ...HHD_CASES].map((input, i) => [i, input.testId, input]))(
-    'validateAssessmentInput STS/Handgrip/HHD caso %i (%s): stessi errori e stesso valore salvato',
+  it.each([...STS_CASES, ...HANDGRIP_CASES, ...HHD_CASES, ...OLS_CASES].map((input, i) => [i, input.testId, input]))(
+    'validateAssessmentInput STS/Handgrip/HHD/OLS caso %i (%s): stessi errori e stesso valore salvato',
     (_i, _testId, input) => {
       expect(serverLipedema.validateAssessmentInput(input, CONTEXT)).toEqual(clientLipedema.validateAssessmentInput(input, CONTEXT))
     },
@@ -371,6 +404,12 @@ describe('Lipedema — valutazioni e informativa (ADR-014 rischio #3)', () => {
     const input = { brand: ' Hoggan ', model: 'microFET2', serial: '', fixationMethod: 'belt', kneeAngleDeg: 90, hipAngleDeg: 90 }
     for (const position of [{ sensorPosition: 'distal_anterior_tibia' }, { sensorPosition: 'other', sensorPositionNote: ' Metà Tibia ' }]) {
       expect(serverLipedema.computeHhdComparability({ ...input, ...position })).toEqual(clientLipedema.computeHhdComparability({ ...input, ...position }))
+    }
+  })
+
+  it('computeOlsComparability identico', () => {
+    for (const input of [{ footwear: 'barefoot', surface: 'hard_floor' }, { footwear: 'shoes', surface: 'other', surfaceNote: ' Linoleum ' }]) {
+      expect(serverLipedema.computeOlsComparability(input)).toEqual(clientLipedema.computeOlsComparability(input))
     }
   })
 

@@ -1,7 +1,7 @@
 import { ASSESSMENT_OUTCOME, BILATERAL_SIDE_STATUS, BILATERAL_TESTS, getSideDifference } from '../../utils/lipedema'
 import {
   getAssistiveDeviceLabel, getStopReasonLabel, getInvalidTrialReasonLabel, getDominantSideLabel, getFixationLabel,
-  getSensorPositionLabel, getStrongestLabel, getEndReasonLabel, LIPEDEMA_TESTS, SIDE_LABELS,
+  getSensorPositionLabel, getStrongestLabel, getFootwearLabel, getSurfaceLabel, getEndReasonLabel, LIPEDEMA_TESTS, SIDE_LABELS,
 } from '../../config/lipedemaTests.config'
 import { Badge } from '../../components/ui'
 import { DetailSection, Row } from './AssessmentDetailParts'
@@ -229,6 +229,28 @@ export function HhdDetail({ assessment, test }) {
         <Row label="Unità dello strumento" value={setup.nativeUnit} />
         <Row label="Dolore pre-test (NRS)" value={clinical.painPre ?? '—'} />
         <Row label="Ausilio" value={`${getAssistiveDeviceLabel(setup.assistiveDevice)}${setup.assistiveDeviceNote ? ` — ${setup.assistiveDeviceNote}` : ''}`} />
+        {assessment.outcome === ASSESSMENT_OUTCOME.STOPPED_EARLY && <StopReasonRow clinical={clinical} />}
+      </DetailSection>
+    </>
+  )
+}
+
+export function OlsDetail({ assessment, test }) {
+  const { setup = {}, clinical = {} } = assessment
+  const { displayDecimals } = BILATERAL_TESTS[assessment.testId]
+  return (
+    <>
+      <BilateralTrialsDetail assessment={assessment} />
+      <DetailSection title="Setup">
+        <Row label="Protocollo" value={`${test.shortName} · ${assessment.protocolVersion}`} />
+        <Row label="Esecuzione" value="Occhi aperti, braccia lungo i fianchi, nessun ausilio" />
+        <Row label="Durata massima per prova" value={`${formatNumber(setup.maxDurationS, displayDecimals)} s`} />
+        <Row label="Gamba dominante" value={getDominantSideLabel(setup.dominantSide)} />
+        <Row label="Calzature" value={getFootwearLabel(setup.footwear)} />
+        <Row label="Superficie" value={`${getSurfaceLabel(setup.surface)}${setup.surfaceNote ? ` — ${setup.surfaceNote}` : ''}`} />
+        <Row label="Ausilio abituale" value={`${getAssistiveDeviceLabel(setup.assistiveDevice)}${setup.assistiveDeviceNote ? ` — ${setup.assistiveDeviceNote}` : ''}`} />
+        <Row label="Dolore (NRS)" value={clinical.pain ?? '—'} />
+        <Row label="Sintomi" value={clinical.symptomsNote ?? '—'} />
         {assessment.outcome === ASSESSMENT_OUTCOME.STOPPED_EARLY && <StopReasonRow clinical={clinical} />}
       </DetailSection>
     </>
