@@ -162,3 +162,30 @@ Formato:
 **Expected:** l'ultimo valore mostrato porta lo stesso stato dello storico (badge VARIANTE 20 m), o la card mostra l'ultimo valore confrontabile.
 **Actual:** card "Ultime valutazioni": "2MWT · 31/10/2026 · 113 m", nessun indicatore di variante; nello storico la stessa riga ha "VARIANTE 20 m · NON CONFRONTABILE".
 **Suggested fix:** riusare `AssessmentBadges` in `LatestAssessmentsCard` (almeno VARIANTE/INTERROTTA).
+
+## [BUG-014] Sequenza di visita: su telefoni stretti i bottoni della barra vanno su 3 righe
+**Severity:** P2
+**Modulo/Ruolo:** lipedema — trainer/org_admin, mobile (STORY-042)
+**Status:** OPEN — dipende dalla scelta aperta sul testo dei bottoni (vedi STORY-042)
+**Reproduction steps:** viewport 360×640 → Valutazioni → + NUOVA VALUTAZIONE → Handgrip, unità kgf, 6 prove compilate.
+**Expected:** barra su 2 righe di bottoni, come a 390 px; il form resta la parte principale dello schermo.
+**Actual:** INDIETRO, SALTA e SALVA E CHIUDI non stanno su una riga e l'ultimo va a capo. Altezza misurata: 233 px su 640 (36 %) col riepilogo pieno, 193 px a form vuoto. A 390×844 è 148–188 px (18–22 %) su 2 righe. I campi restano raggiungibili: `pb-72` basta e nessun campo finisce sotto la barra.
+**Suggested fix:** etichette più corte su mobile (es. "SALVA E AVANTI" e "CHIUDI") o padding ridotto dei secondari. Da decidere insieme alla scelta "SALVA E PASSA A…" su mobile.
+
+## [BUG-015] Riepilogo per screen reader dei test bilaterali: "prove inserite" conta anche le righe vuote
+**Severity:** P3
+**Modulo/Ruolo:** lipedema — Handgrip, HHD, OLS (`BilateralSummary`, testo `sr-only` in area `aria-live`)
+**Status:** OPEN
+**Reproduction steps:** aprire un form bilaterale senza compilare nulla e leggere il riepilogo con uno screen reader.
+**Expected:** il numero di prove compilate (0).
+**Actual:** "6 prove inserite" (OLS: 4), perché usa `form.trials.length`.
+**Suggested fix:** contare le sole righe con un valore.
+
+## [BUG-016] Dopo SALVA E CHIUDI la lista non ha ancora l'ultima valutazione e + NUOVA è attivo
+**Severity:** P3
+**Modulo/Ruolo:** lipedema — trainer/org_admin. Introdotto dalla review di STORY-042 (rilettura in background)
+**Status:** FIXED — da verificare sull'hosting dopo il deploy
+**Reproduction steps:** salvare con SALVA E CHIUDI e aprire subito + NUOVA VALUTAZIONE, prima che la rilettura finisca.
+**Expected:** nessuna nuova valutazione da uno storico senza l'ultima salvata (precompilato e confronti sbagliati).
+**Actual:** per la durata della rilettura la lista è quella vecchia (ancora senza la nuova riga 500 ms dopo la chiusura) e il bottone è attivo.
+**Fix:** `refreshAfterSave` imposta `isLoading` finché la rilettura non termina: + NUOVA VALUTAZIONE resta disabilitato. La lista resta visibile senza scheletro.

@@ -53,6 +53,8 @@ export function useAssessments(orgId, clientId, { enabled = true } = {}) {
   const refreshAfterSave = useCallback(async () => {
     requestSeqRef.current += 1
     const seq = requestSeqRef.current
+    // Finché non arriva, niente nuova valutazione da uno storico senza l'ultima salvata
+    setIsLoading(true)
     try {
       const data = await getAssessments(orgId, clientId)
       if (seq === requestSeqRef.current) {
