@@ -27,7 +27,7 @@ const DEVIATION_LOCK_HELP = 'Sedia con braccioli o braccia non incrociate: la de
  * dall'interruzione; errore tecnico distinto da deviazione e note.
  * @param {object|null} props.previous — ultima 30s-STS valida (avviso sedia diversa)
  */
-export function SitToStandForm({ client, examinerName, initialForm, supersedes, previous, onSave, onBack, onPrivacyNoticeMissing, onDirtyChange }) {
+export function SitToStandForm({ client, examinerName, initialForm, supersedes, visit, previous, onSave, onBack, onPrivacyNoticeMissing, onDirtyChange }) {
   const [isClinicalOpen, setIsClinicalOpen] = useState(() => countSitToStandClinicalFilled(initialForm) > 0)
 
   const handleRevealField = useCallback((field) => {
@@ -36,7 +36,7 @@ export function SitToStandForm({ client, examinerName, initialForm, supersedes, 
 
   const formState = useAssessmentForm({
     initialForm, buildInput: buildSitToStandInput, getFieldOrder: getSitToStandFieldOrder,
-    onRevealField: handleRevealField, birthDate: client.dataNascita ?? null, supersedes,
+    onRevealField: handleRevealField, birthDate: client.dataNascita ?? null, supersedes, visit,
     onSave, onBack, onPrivacyNoticeMissing, onDirtyChange,
   })
   const { form, setForm, setField, setValue, setClinical, input, errors, visibleErrors, nowLocal } = formState
@@ -99,6 +99,7 @@ export function SitToStandForm({ client, examinerName, initialForm, supersedes, 
       test={TEST}
       client={client}
       supersedes={supersedes}
+      visit={visit}
       formState={formState}
       onBack={onBack}
       summary={<ResultSummary preview={preview} input={input} />}

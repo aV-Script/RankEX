@@ -149,6 +149,7 @@ const OLS_INVALID_REASON_OPTIONS = INVALID_TRIAL_REASON_OPTIONS
  * quelli del test (catalogo stop filtrato per test, righe cliniche ammesse).
  * Bilaterali, facoltativi: `strongestLabel` (default "Più forte"),
  * `endReasonOptions` (motivo di fine per prova), `hasTrialPain: false`.
+ * `visitLabel`, facoltativo: etichetta nella sequenza di visita (default `shortName`).
  */
 export const LIPEDEMA_TESTS = {
   [LIPEDEMA_TEST_IDS.TWO_MINUTE_WALK]: {
@@ -172,6 +173,7 @@ export const LIPEDEMA_TESTS = {
   [LIPEDEMA_TEST_IDS.HANDGRIP]: {
     id:        LIPEDEMA_TEST_IDS.HANDGRIP,
     shortName: 'Handgrip',
+    visitLabel: 'HANDGRIP',
     name:      'Handgrip Dynamometry',
     unit:      HANDGRIP.canonicalUnit,
     limbName:  'mano',

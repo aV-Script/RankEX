@@ -22,7 +22,7 @@ const TRIALS_INTRO = 'Destra e sinistra alternate, circa 60 s di recupero prima 
  * Dolore per prova, facoltativo: il massimo per mano lo deriva il server.
  * @param {object|null} props.previous — ultima Handgrip valida (precompilazione + avviso dinamometro)
  */
-export function HandgripForm({ client, examinerName, initialForm, supersedes, previous, onSave, onBack, onPrivacyNoticeMissing, onDirtyChange }) {
+export function HandgripForm({ client, examinerName, initialForm, supersedes, visit, previous, onSave, onBack, onPrivacyNoticeMissing, onDirtyChange }) {
   const [isClinicalOpen, setIsClinicalOpen] = useState(() => initialForm.conditionsNote.trim() !== '')
   const extrasState = useTrialExtras(initialForm.trials)
   const { revealTrialField } = extrasState
@@ -35,7 +35,7 @@ export function HandgripForm({ client, examinerName, initialForm, supersedes, pr
 
   const formState = useAssessmentForm({
     initialForm, buildInput: buildHandgripInput, getFieldOrder: getHandgripFieldOrder,
-    onRevealField: handleRevealField, birthDate: client.dataNascita ?? null, supersedes,
+    onRevealField: handleRevealField, birthDate: client.dataNascita ?? null, supersedes, visit,
     onSave, onBack, onPrivacyNoticeMissing, onDirtyChange,
   })
   const { form, setField, setValue, setClinical, visibleErrors, nowLocal } = formState
@@ -52,6 +52,7 @@ export function HandgripForm({ client, examinerName, initialForm, supersedes, pr
       test={TEST}
       client={client}
       supersedes={supersedes}
+      visit={visit}
       formState={formState}
       onBack={onBack}
       summary={<BilateralSummary spec={HANDGRIP} formState={formState} trialsState={trialsState} />}

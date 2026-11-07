@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import { useFocusTrap } from '../../hooks/useFocusTrap'
 import { Button } from '../ui'
 import { useEscapeKey } from '../../hooks/useEscapeKey'
@@ -13,13 +13,17 @@ export function ConfirmDialog({ title, description, confirmLabel = 'CONFERMA', c
   const dialogRef = useRef(null)
   useFocusTrap(dialogRef, true)
 
-  useEscapeKey(onCancel)
+  // Mentre l'azione è in corso non si chiude: né Esc né il clic fuori, come il bottone
+  const handleDismiss = useCallback(() => {
+    if (!loading) onCancel?.()
+  }, [loading, onCancel])
+  useEscapeKey(handleDismiss)
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center px-4"
       style={{ background: 'rgba(8,12,18,0.9)' }}
-      onClick={onCancel}
+      onClick={handleDismiss}
     >
       <div
         ref={dialogRef}

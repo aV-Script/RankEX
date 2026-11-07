@@ -40,6 +40,7 @@ import { useAssessments }                    from '../../hooks/useAssessments'
 import { usePrivacyNotice }                  from '../assessments/usePrivacyNotice'
 import { AssessmentsSection }                from '../assessments/AssessmentsSection'
 import { ASSESSMENT_UI }                     from '../assessments/assessmentRegistry'
+import { buildVisitProgress, getNextVisitTestId } from '../assessments/assessmentVisit'
 import { PrivacyNoticeBanner, PrivacyNoticeModal, PRIVACY_BANNER_ID } from '../assessments/PrivacyNotice'
 import {
   requiresPrivacyNotice, isPrivacyNoticeMissingError, nowLocalDateTime, getLatestValidByTest,
@@ -82,8 +83,9 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
   const [printMode,       setPrintMode]       = useState('dark')
   const [showActions,     setShowActions]     = useState(false)
   const [resetState,   setResetState]  = useState('idle')
-  // Valutazione in corso: { testId, initialForm, supersedes, previous } — supersedes =
-  // valutazione da correggere, previous = ultima valida dello stesso test (precompilazione, avvisi)
+  // Valutazione in corso: { testId, initialForm, supersedes, previous, visitSavedIds } — supersedes =
+  // valutazione da correggere, previous = ultima valida dello stesso test (precompilazione, avvisi),
+  // visitSavedIds = test già salvati in questa sequenza di visita (STORY-042)
   const [assessmentDraft,  setAssessmentDraft]  = useState(null)
   const [showPrivacyModal, setShowPrivacyModal] = useState(false)
   // Form a schermo intero (campionamento/BIA/valutazione) con dati non salvati:
@@ -200,16 +202,22 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
     setShowDelete(true)
   }, [])
 
-  const handleNewAssessment = useCallback((testId) => {
-    const previous = getLatestValidByTest(assessmentsState.assessments)[testId] ?? null
+  const openVisitTest = useCallback((testId, assessments, visitSavedIds) => {
+    const latestByTest = getLatestValidByTest(assessments)
+    const previous     = latestByTest[testId] ?? null
     setAssessmentDraft({
       testId,
-      initialForm: ASSESSMENT_UI[testId].createForm(nowLocalDateTime(), previous),
+      initialForm: ASSESSMENT_UI[testId].createForm(nowLocalDateTime(), previous, latestByTest),
       supersedes:  null,
       previous,
+      visitSavedIds,
     })
     setView('valutazione')
-  }, [assessmentsState.assessments])
+  }, [])
+
+  const handleNewAssessment = useCallback((testId) => {
+    openVisitTest(testId, assessmentsState.assessments, [])
+  }, [openVisitTest, assessmentsState.assessments])
 
   const handleCorrectAssessment = useCallback((assessment) => {
     const others   = assessmentsState.assessments.filter(item => item.id !== assessment.id)
@@ -228,6 +236,37 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
     setActiveTab('valutazioni')
     setView('dashboard')
   }, [])
+
+  // Il prossimo form si precompila dallo storico appena riletto: la gamba dominante
+  // dell'OLS viene dall'HHD salvato un attimo prima. Se la rilettura è fallita si
+  // usa lo storico già in memoria: quel solo precompilato si perde, il test no.
+  const handleSaveAndNext = useCallback((refreshedAssessments) => {
+    const visitSavedIds = [...assessmentDraft.visitSavedIds, assessmentDraft.testId]
+    const nextTestId    = getNextVisitTestId(assessmentDraft.testId, visitSavedIds)
+    if (nextTestId) openVisitTest(nextTestId, refreshedAssessments ?? assessmentsState.assessments, visitSavedIds)
+    else handleCloseAssessment()
+  }, [assessmentDraft, assessmentsState.assessments, openVisitTest, handleCloseAssessment])
+
+  // Cambiare test senza salvare: con dati inseriti chiede conferma (guardLeave)
+  const handleSelectVisitTest = useCallback((testId) => {
+    guardLeave(() => openVisitTest(testId, assessmentsState.assessments, assessmentDraft.visitSavedIds))
+  }, [guardLeave, openVisitTest, assessmentsState.assessments, assessmentDraft])
+
+  const handleSkipVisitTest = useCallback(() => {
+    const nextTestId = getNextVisitTestId(assessmentDraft.testId, assessmentDraft.visitSavedIds)
+    if (nextTestId) handleSelectVisitTest(nextTestId)
+  }, [assessmentDraft, handleSelectVisitTest])
+
+  // Una correzione riguarda una sola valutazione: niente sequenza
+  const assessmentVisit = useMemo(() => {
+    if (!assessmentDraft || assessmentDraft.supersedes) return undefined
+    return {
+      ...buildVisitProgress(assessmentDraft.testId, assessmentDraft.visitSavedIds),
+      onSaveAndNext: handleSaveAndNext,
+      onSkip:        handleSkipVisitTest,
+      onSelectTest:  handleSelectVisitTest,
+    }
+  }, [assessmentDraft, handleSaveAndNext, handleSkipVisitTest, handleSelectVisitTest])
 
   const handleOpenPrivacyModal = useCallback(() => setShowPrivacyModal(true), [])
 
@@ -289,6 +328,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
           initialForm={assessmentDraft.initialForm}
           supersedes={assessmentDraft.supersedes}
           previous={assessmentDraft.previous}
+          visit={assessmentVisit}
           onSave={assessmentsState.handleAddAssessment}
           onBack={handleCloseAssessment}
           onPrivacyNoticeMissing={handlePrivacyMissingForClient}

@@ -28,7 +28,7 @@ const STOP_FIELDS = ['clinical.stopReasonCode', 'clinical.stopReasonNote']
  * `onDirtyChange(boolean)`: il genitore chiede conferma prima di smontare un
  * form modificato (tab, back dell'header).
  */
-export function TwoMinuteWalkForm({ client, examinerName, initialForm, supersedes, onSave, onBack, onPrivacyNoticeMissing, onDirtyChange }) {
+export function TwoMinuteWalkForm({ client, examinerName, initialForm, supersedes, visit, onSave, onBack, onPrivacyNoticeMissing, onDirtyChange }) {
   const [isClinicalOpen, setIsClinicalOpen] = useState(() => countClinicalFilled(initialForm) > 0)
 
   const handleRevealField = useCallback((field) => {
@@ -37,7 +37,7 @@ export function TwoMinuteWalkForm({ client, examinerName, initialForm, supersede
 
   const formState = useAssessmentForm({
     initialForm, buildInput: buildTwoMinuteWalkInput, getFieldOrder: getTwoMinuteWalkFieldOrder,
-    onRevealField: handleRevealField, birthDate: client.dataNascita ?? null, supersedes,
+    onRevealField: handleRevealField, birthDate: client.dataNascita ?? null, supersedes, visit,
     onSave, onBack, onPrivacyNoticeMissing, onDirtyChange,
   })
   const { form, setField, setValue, setClinical, setForm, input, errors, visibleErrors, nowLocal } = formState
@@ -71,6 +71,7 @@ export function TwoMinuteWalkForm({ client, examinerName, initialForm, supersede
       test={TEST}
       client={client}
       supersedes={supersedes}
+      visit={visit}
       formState={formState}
       onBack={onBack}
       summary={<ResultSummary preview={preview} input={input} isStopped={form.stoppedEarly} />}

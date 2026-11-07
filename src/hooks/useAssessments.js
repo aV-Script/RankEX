@@ -1,9 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { getAssessments }        from '../firebase/services/assessments'
 import { addAssessmentUseCase }  from '../usecases/addAssessmentUseCase'
 import { voidAssessmentUseCase } from '../usecases/voidAssessmentUseCase'
 import { useToast }              from './useToast'
 import { getFirebaseErrorMessage } from '../utils/firebaseErrors'
+
+const LOAD_ERROR = 'Impossibile caricare le valutazioni'
 
 /**
  * Valutazioni di un paziente (modulo lipedema). Lettura diretta (service),
@@ -22,31 +24,59 @@ export function useAssessments(orgId, clientId, { enabled = true } = {}) {
   const [isLoading,   setIsLoading]   = useState(enabled)
   const [loadError,   setLoadError]   = useState(null)
   const [reloadKey,   setReloadKey]   = useState(0)
+  // Vale solo l'ultima lettura partita: né il paziente precedente (vedi useNotes), né
+  // un caricamento più vecchio sopra lo storico riletto dopo un salvataggio
+  const requestSeqRef = useRef(0)
 
   useEffect(() => {
+    requestSeqRef.current += 1
+    const seq = requestSeqRef.current
     if (!enabled || !orgId || !clientId) {
       setIsLoading(false)
-      return undefined
+      return
     }
-    // Vedi useNotes: ignora la risposta di un paziente non più selezionato
-    let cancelled = false
     // Niente storico del paziente precedente mentre si carica il nuovo
     setAssessments([])
     setIsLoading(true)
     setLoadError(null)
     getAssessments(orgId, clientId)
-      .then(data => { if (!cancelled) setAssessments(data) })
-      .catch(() => { if (!cancelled) setLoadError('Impossibile caricare le valutazioni') })
-      .finally(() => { if (!cancelled) setIsLoading(false) })
-    return () => { cancelled = true }
+      .then(data => { if (seq === requestSeqRef.current) setAssessments(data) })
+      .catch(() => { if (seq === requestSeqRef.current) setLoadError(LOAD_ERROR) })
+      .finally(() => { if (seq === requestSeqRef.current) setIsLoading(false) })
   }, [enabled, orgId, clientId, reloadKey])
 
   const reload = useCallback(() => setReloadKey(key => key + 1), [])
 
+  // Rilegge senza svuotare la lista, a differenza di reload: durante la sequenza di
+  // visita il form successivo si precompila dallo storico. Mai rilanciare: il
+  // salvataggio è già riuscito, una lettura fallita non deve sembrare un errore di salvataggio.
+  const refreshAfterSave = useCallback(async () => {
+    requestSeqRef.current += 1
+    const seq = requestSeqRef.current
+    try {
+      const data = await getAssessments(orgId, clientId)
+      if (seq === requestSeqRef.current) {
+        setAssessments(data)
+        setLoadError(null)
+        setIsLoading(false)
+      }
+      return data
+    } catch {
+      if (seq === requestSeqRef.current) {
+        setLoadError(LOAD_ERROR)
+        setIsLoading(false)
+      }
+      return null
+    }
+  }, [orgId, clientId])
+
   /**
    * @param {object[]} tests — input grezzi (shared/lipedema.js → validateAssessmentInput)
    * @param {{ supersedes?: string, voidReason?: string }} [correction]
-   * Rilancia l'errore: il form resta aperto con i dati inseriti.
+   * @returns {Promise<{ refreshed: Promise<object[]|null> }>} `refreshed` è la rilettura dello
+   * storico già partita (null se fallisce): la aspetta solo chi deve precompilare il test
+   * successivo. In un oggetto perché un async non risolva anche quella.
+   * Rilancia l'errore di salvataggio: il form resta aperto con i dati inseriti.
    */
   const handleAddAssessment = useCallback(async (tests, correction) => {
     try {
@@ -56,8 +86,8 @@ export function useAssessments(orgId, clientId, { enabled = true } = {}) {
       throw err
     }
     toastSuccess(correction?.supersedes ? 'Valutazione corretta' : 'Valutazione salvata')
-    reload()
-  }, [orgId, clientId, reload, toastSuccess, toastError])
+    return { refreshed: refreshAfterSave() }
+  }, [orgId, clientId, refreshAfterSave, toastSuccess, toastError])
 
   /** Rilancia l'errore: il dialog resta aperto con il motivo inserito. */
   const handleVoidAssessment = useCallback(async (assessmentId, voidReason) => {

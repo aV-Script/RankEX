@@ -24,7 +24,7 @@ const TRIALS_INTRO = `Occhi aperti, braccia lungo i fianchi, nessun ausilio. ${O
  * è del protocollo, non si modifica: un limite diverso è un altro protocollo.
  * @param {object|null} props.previous — ultimo OLS valido (precompilazione + avviso)
  */
-export function OlsForm({ client, examinerName, initialForm, supersedes, previous, onSave, onBack, onPrivacyNoticeMissing, onDirtyChange }) {
+export function OlsForm({ client, examinerName, initialForm, supersedes, visit, previous, onSave, onBack, onPrivacyNoticeMissing, onDirtyChange }) {
   const [isClinicalOpen, setIsClinicalOpen] = useState(() => initialForm.conditionsNote.trim() !== '')
   const extrasState = useTrialExtras(initialForm.trials)
   const { revealTrialField } = extrasState
@@ -37,7 +37,7 @@ export function OlsForm({ client, examinerName, initialForm, supersedes, previou
 
   const formState = useAssessmentForm({
     initialForm, buildInput: buildOlsInput, getFieldOrder: getOlsFieldOrder,
-    onRevealField: handleRevealField, birthDate: client.dataNascita ?? null, supersedes,
+    onRevealField: handleRevealField, birthDate: client.dataNascita ?? null, supersedes, visit,
     onSave, onBack, onPrivacyNoticeMissing, onDirtyChange,
   })
   const { form, setField, setValue, setClinical, errors, visibleErrors, nowLocal } = formState
@@ -52,6 +52,7 @@ export function OlsForm({ client, examinerName, initialForm, supersedes, previou
       test={TEST}
       client={client}
       supersedes={supersedes}
+      visit={visit}
       formState={formState}
       onBack={onBack}
       summary={<BilateralSummary spec={ONE_LEG_STANDING} formState={formState} trialsState={trialsState} />}

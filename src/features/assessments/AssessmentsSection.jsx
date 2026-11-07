@@ -78,7 +78,8 @@ export function AssessmentsSection({
             <Button
               size="sm"
               onClick={handleRequestNew}
-              disabled={needsPrivacyNotice}
+              // Senza storico il form non saprebbe cosa precompilare né cosa confrontare
+              disabled={needsPrivacyNotice || isLoading || Boolean(loadError)}
               aria-describedby={needsPrivacyNotice ? PRIVACY_BANNER_ID : undefined}
             >
               + NUOVA VALUTAZIONE

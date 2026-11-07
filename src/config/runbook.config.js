@@ -1083,6 +1083,30 @@ export const RUNBOOK_SUITES = [
         ],
         expected: ['Una prova non valida resta conservata e non entra nel best; un lato incompleto resta senza best né tetto'],
       },
+      {
+        id: 'TP-070', usId: 'STORY-042', severity: 'blocker', title: 'Sequenza di visita: i 5 test uno dopo l\'altro',
+        preconditions: 'Paziente con informativa e senza valutazioni.',
+        steps: [
+          '+ NUOVA VALUTAZIONE → 2MWT: compare "1 DI 5", la barra con i 5 test e "SALVA E PASSA A 30s-STS"',
+          'Compilare e salvare con "SALVA E PASSA A 30s-STS", confermando: si apre il 30s-STS dall\'alto della pagina, "2 DI 5", 2MWT segnato ✓ e non cliccabile',
+          'Proseguire con Handgrip e HHD indicando la gamba dominante nell\'HHD: l\'OLS si apre con quella gamba già precompilata',
+          'Sull\'OLS, "5 DI 5": il primario è "SALVA E CHIUDI LA VISITA". Salvare: si torna al tab Valutazioni con 5 valutazioni separate nello storico',
+        ],
+        expected: ['Una valutazione per test, ognuna con la propria data e ora; il test successivo si precompila anche da quanto salvato un attimo prima'],
+      },
+      {
+        id: 'TP-071', usId: 'STORY-042', severity: 'blocker', title: 'Sequenza di visita: saltare un test e interrompere',
+        preconditions: 'Paziente con informativa.',
+        steps: [
+          'Dal 2MWT vuoto, SALTA: si passa al 30s-STS senza conferma e senza salvare nulla',
+          'Inserire un dato nel 30s-STS e premere SALTA: chiede conferma; ESCI passa all\'Handgrip, INDIETRO resta sul form con i dati',
+          'Salvare l\'Handgrip con "SALVA E PASSA A HHD", poi dalla barra tornare al 2MWT saltato e salvarlo con "SALVA E PASSA A 30s-STS": l\'Handgrip non viene riproposto',
+          'Nel test successivo, inserire un dato, aprire un altro tab della scheda e confermare l\'uscita: nello storico restano i test già salvati, nessun altro',
+          'Riaprire + NUOVA VALUTAZIONE: la sequenza riparte, nessun test segnato ✓',
+          'Da "Correggi" su una valutazione: nessuna barra, nessun "n DI 5", bottone "SALVA VALUTAZIONE"',
+        ],
+        expected: ['Un test saltato non genera documenti; quanto salvato prima dell\'interruzione resta salvato; la correzione resta fuori dalla sequenza'],
+      },
     ],
   },
 ]

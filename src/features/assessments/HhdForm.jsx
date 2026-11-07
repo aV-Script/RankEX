@@ -30,7 +30,7 @@ const DEVIATION_LOCK_HELP = `Contrazione diversa da ${standardContractionS} s: l
  * comparabilità con l'ultima valutazione è segnalato prima di salvare.
  * @param {object|null} props.previous — ultima HHD valida (precompilazione + avviso)
  */
-export function HhdForm({ client, examinerName, initialForm, supersedes, previous, onSave, onBack, onPrivacyNoticeMissing, onDirtyChange }) {
+export function HhdForm({ client, examinerName, initialForm, supersedes, visit, previous, onSave, onBack, onPrivacyNoticeMissing, onDirtyChange }) {
   const [isClinicalOpen, setIsClinicalOpen] = useState(() => initialForm.conditionsNote.trim() !== '')
   const extrasState = useTrialExtras(initialForm.trials)
   const { revealTrialField } = extrasState
@@ -43,7 +43,7 @@ export function HhdForm({ client, examinerName, initialForm, supersedes, previou
 
   const formState = useAssessmentForm({
     initialForm, buildInput: buildHhdInput, getFieldOrder: getHhdFieldOrder,
-    onRevealField: handleRevealField, birthDate: client.dataNascita ?? null, supersedes,
+    onRevealField: handleRevealField, birthDate: client.dataNascita ?? null, supersedes, visit,
     onSave, onBack, onPrivacyNoticeMissing, onDirtyChange,
   })
   const { form, setForm, setField, setValue, setClinical, errors, visibleErrors, nowLocal } = formState
@@ -64,6 +64,7 @@ export function HhdForm({ client, examinerName, initialForm, supersedes, previou
       test={TEST}
       client={client}
       supersedes={supersedes}
+      visit={visit}
       formState={formState}
       onBack={onBack}
       summary={<BilateralSummary spec={HHD_QUADRICEPS} formState={formState} trialsState={trialsState} />}
