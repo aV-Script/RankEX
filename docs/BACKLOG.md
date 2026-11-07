@@ -724,7 +724,7 @@ raccolta dati di terze parti non disclosata.
 - **Risks:** dimensione bundle leggermente maggiore (font come asset del progetto
   invece che da CDN con cache condivisa cross-sito) — trascurabile
 - **Status attuale (24/10/2026):** DONE — font serviti dall'app (@fontsource-variable), CSP senza Google Fonts, in produzione 24/10/2026
-- **Status:** BACKLOG
+- **Status:** DONE (riallineato il 06/11/2026)
 
 ### [STORY-023] Backup dei dati di produzione
 **Come** super_admin **voglio** che i dati di produzione (`fitquest-60a09`) abbiano un
@@ -749,8 +749,7 @@ incidente, dato che il piano Spark non include backup automatici pianificati.
 - **Risks:** uno script manuale dipende dalla disciplina di eseguirlo — non sostituisce
   un vero backup automatico pianificato
 - **Status attuale (24/10/2026):** DONE — backup giornaliero gestito da Firestore su fitquest-60a09, conservato 7 giorni (24/10/2026)
-- **Status:** BACKLOG (per lo script interim — la domanda su Blaze resta aperta e non
-  blocca questa story)
+- **Status:** DONE (riallineato il 06/11/2026): il backup gestito ha sostituito lo script interim
 
 ### [STORY-024] Minimizzare i dati sensibili leggibili da `staff_readonly`
 **Come** org_admin **voglio** che un membro `staff_readonly` non possa leggere dati
@@ -809,7 +808,7 @@ bottone reale con un comportamento di cancellazione incompleto.
 - **Risks:** nessuno per l'Opzione A (pura rimozione di codice non raggiungibile);
   l'Opzione B è uno sforzo paragonabile a un'epic a sé
 - **Status attuale (24/10/2026):** DONE — Cloud Function eliminaOrganizzazione (cascade completo, solo super_admin) + scripts/export-org.mjs, in produzione 24/10/2026
-- **Status:** BACKLOG
+- **Status:** DONE (riallineato il 06/11/2026)
 
 ### [STORY-026] Definire una policy di retention per gli storici cliente
 **Come** team RankEX **vogliamo** definire per quanto tempo conservare
@@ -858,7 +857,7 @@ sistema di consenso cookie a monte.
   impostazioni del repo (l'utente, non il developer, gestisce i secret)
 - **Risks:** nessuno — chiave non usata, nessuna funzionalità dipende da essa
 - **Status attuale (24/10/2026):** DONE — chiave rimossa da config, .env.example e workflow (ott 2026); i secret GitHub si possono cancellare
-- **Status:** BACKLOG
+- **Status:** DONE (riallineato il 06/11/2026)
 
 ### [STORY-028] Export dati strutturato per il cliente finale
 **Come** cliente (atleta o genitore) **voglio** poter scaricare i miei dati in un
@@ -1360,7 +1359,8 @@ valutazioni eseguite nelle stesse condizioni.
         deviazione
 - **Dependencies:** STORY-036
 - **Risks:** fissaggio diverso tra retest = dato non comparabile (gestito da STORY-039)
-- **Status:** BACKLOG — candidata Sprint #13 (dopo STORY-036)
+- **Status:** IN QA — Sprint #13: codice e review fatti (ADR-017), non committato né deployato;
+  QA dal vivo TP-064…066 a fine sprint
 
 ### [STORY-038] Test 05 — One-Leg Standing (OLS)
 **Come** professionista **voglio** registrare 2 prove per gamba con tempo e motivo di
@@ -1393,7 +1393,8 @@ massimo.
 - **Dependencies:** STORY-036
 - **Risks:** senza sezione UI nel docx, il flusso di inserimento va disegnato da
   ux-ui-designer senza riferimento dell'autore
-- **Status:** BACKLOG — candidata Sprint #13 (dopo STORY-036)
+- **Status:** IN QA — Sprint #13: codice fatto (ADR-018), non committato né deployato; QA dal vivo
+  TP-067…069 a fine sprint. Da confermare con l'autore: motivo di fine facoltativo sulle prove non valide
 
 ### [STORY-039] Storico, trend e avviso di non comparabilità per test
 **Come** professionista **voglio** vedere per ogni test lo storico delle valutazioni, un
@@ -1485,4 +1486,42 @@ valutazioni **per** condividerlo con la paziente o con altri curanti.
   - [ ] Ogni test ripulisce i dati che crea (o usa dati con prefisso e pulizia a fine suite)
   - [ ] Script npm documentato in CLAUDE.md; esecuzione manuale (non in CI per ora)
 - **Priority:** P1 (Sprint #13)
+- **Status:** READY — Sprint #13
+
+### STORY-042 — Sequenza di visita: i 5 test uno dopo l'altro
+- **Contesto:** oggi ogni test del modulo Lipedema si registra da solo. Sul prototipo la visita
+  li propone nell'ordine dei protocolli (2MWT, 30s-STS, Handgrip, HHD, OLS). Decisione utente
+  del 06/11/2026: si tiene.
+- **Riferimento UI:** canvas RankEX, tavole `Valutazione2MWT`, `ValutazioneSTS`, `Valutazione`,
+  `ValutazioneHHD`, `ValutazioneOLS` e versioni `Mobile*`.
+- **Modulo:** Lipedema
+- **Acceptance Criteria:**
+  - [ ] Dopo il salvataggio di un test, il form propone il successivo con "SALVA E PASSA A…" e "n DI 5"
+  - [ ] Ogni test si può saltare e ogni test già salvato resta salvato se la visita si interrompe
+  - [ ] Ogni test resta una valutazione separata: nessuna modifica a `assessments` né alle rules
+- **Dependencies:** STORY-037, STORY-038 per i test 4 e 5
+- **Priority:** P1 (Sprint #13)
+- **Status:** READY — Sprint #13
+
+### STORY-043 — Bottone principale pieno e colori allineati al canvas
+- **Contesto:** decisione utente del 06/11/2026. In `components/ui/index.jsx` il bottone primario
+  è una tinta al 7% con bordo al 35%; sul canvas è pieno, uno per schermata, con testo scuro
+  `#04140a` in tutti i temi. La tinta resta per le azioni secondarie. Il tema predefinito RankEX
+  resta com'è nel codice: accent ciano, accent-2 verde.
+- **Riferimento UI:** canvas RankEX, tavole `DesignSystem` e `TemiConfronto`.
+- **Modulo:** tutti
+- **Acceptance Criteria:**
+  - [ ] Variante `primary` piena e nuova variante `secondary` tinta; i bottoni esistenti scelgono
+        la variante giusta, massimo un primario per schermata
+  - [ ] Testo del primario a contrasto almeno 4,5:1 in tutti e 7 i temi
+  - [ ] Modifica già presente, non committata, in `src/config/themes.config.js`: Mint con accent-2
+        `#6F86FF` al posto di `#3D5AFE`, per superare 4,5:1. Va inclusa qui
+- **Priority:** P2 (dopo Sprint #13)
 - **Status:** BACKLOG
+
+### STORY-044 — Elenco "Da sistemare" nella panoramica organizzazione
+- **Contesto:** proposta nata sul prototipo: elenco delle cose che richiedono un intervento
+  dell'org_admin. Decisione utente del 06/11/2026: rimandata, tolta dal canvas. La scheda "Al limite
+  del piano" del super_admin è stata invece scartata e non ha story.
+- **Priority:** P3
+- **Status:** BACKLOG — da ridisegnare sul canvas prima di svilupparla

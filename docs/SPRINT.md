@@ -7,7 +7,93 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-### SPRINT #12 — EPIC-010 Lipedema Edition, terza ondata (30s-STS + Handgrip bilaterale) — aperto il 2026-10-31, chiuso il 2026-10-31 (goal raggiunto: review con 4 MEDIUM corretti, QA TP-054…063 PASS sull'hosting rankex-dev, nessun bug; non verificati per budget: layout mobile dei nuovi form, painMaxBySide, badge cambio dinamometro)
+### SPRINT #13 — EPIC-010 Lipedema Edition, quarta ondata (HHD + OLS + sequenza di visita) — aperto il 2026-11-06
+
+**Branch:** `feature/lipedema-module`. Rules e functions si deployano solo da qui (ADR-014
+rischio #4). **Nessun deploy in prod del modulo** (DPA non firmato, STORY-029).
+
+**Goal:** il professionista registra tutti e 5 i test di una visita, uno dopo l'altro, e la
+regressione dei flussi critici si lancia con un comando.
+
+**Riferimento UI:** canvas RankEX (https://claude.ai/artifact/XxYxNXzRYT7gRLko4HEeuL), tavole
+`ValutazioneHHD`, `ValutazioneOLS`, `Valutazione2MWT`, `ValutazioneSTS`, `Valutazione`, versioni
+`Mobile*`, `Guida` e `StatiValutazione`.
+
+**Story selezionate, nell'ordine:**
+1. **STORY-037** — HHD quadricipite, sulla logica bilaterale di STORY-036.
+2. **STORY-038** — One-Leg Standing.
+3. **STORY-042** — sequenza di visita con i 5 test.
+4. **Guida dei 5 test** in `TestGuidePage`, ultimo criterio aperto di STORY-033.
+5. **STORY-041** — QA automatica contro `rankex-dev`.
+
+**Fuori dal #13:** STORY-039 (trend), STORY-040 (PDF), STORY-043 (bottone principale nel codice),
+STORY-044 ("Da sistemare").
+
+**Status board:**
+
+| Task | Status | Note |
+|------|--------|------|
+| STORY-037 — HHD | IN QA | Codice e review medium fatti, test verdi (ADR-017). Da fare: commit, deploy functions e hosting su dev, QA TP-064…066. |
+| STORY-038 — OLS | IN QA | Codice fatto, test verdi (ADR-018). Da fare: commit, deploy functions e hosting su dev, QA TP-067…069. |
+| STORY-042 — sequenza di visita | IN QA | Codice fatto, solo client: nessuna modifica ad `assessments`, rules o functions. Da fare: review, commit, deploy hosting su dev, QA TP-070…071. |
+| Guida dei 5 test | READY | Si scrive quando tutti e 5 i test sono registrabili. |
+| STORY-041 — QA automatica | READY | Mai contro `fitquest-60a09`: lo script verifica il projectId. |
+| STORY-029 — requisiti non-codice | BLOCKED (fuori capacità developer) | Blocca il go-live, non la chiusura dello sprint. |
+
+**Punti di attenzione:**
+- **Implementazione in una sessione nuova:** regola "una sessione per sprint".
+- **Copia speculare** `utils/lipedema.js` ↔ `shared/lipedema.js`: il test di parità è condizione di DONE.
+- **Se il tempo non basta**, STORY-041 passa al #14: non si tagliano i test.
+
+---
+
+## Piano sprint successivi (proposta Scrum Master, da confermare)
+
+**Aggiornamento 2026-10-30:** la coda corrente è EPIC-010 (Lipedema Edition) — vedi i
+candidati in fondo a Sprint #12. Il piano sotto (EPIC-007/EPIC-005) è precedente e va
+rivisto dal Product Owner prima di riaprirlo.
+
+Sequenza indicativa, non calendarizzata — un solo sviluppatore, quindi ogni sprint parte
+solo a chiusura del precedente. Priorità e ordine sono una proposta di ingegneria, non
+una decisione di business: rivedere prima di aprire ciascuno sprint.
+
+EPIC-003 (Streak presenze) ed EPIC-004 (Obiettivi trainer) erano **già implementate**
+prima di aprire i rispettivi sprint. EPIC-005 (Avatar + Negozio) è stata scoperta
+(Sprint #3, raccomandazione di non procedere) ma l'utente ha scelto comunque uno spike
+tecnico ridotto (Sprint #4, STORY-014, override esplicito — vedi ADR-003), deployato
+su prod. TD-001/TD-002 risolti. EPIC-002 chiusa (Sprint #5).
+
+**EPIC-007 (Privacy & Data Protection) ha ora priorità massima — richiesta esplicita
+dell'utente sui risultati del Privacy & Data Protection Audit — e precede EPIC-005
+completa nella coda.** Sprint #6 (sopra) copre le sole P0 tecniche. Candidati per gli
+sprint successivi, in ordine:
+
+**Candidati aperti (in ordine di priorità):**
+1. **Resto di EPIC-007, P0 rimaste bloccate** — STORY-019 (Privacy Policy/Cookie Policy)
+   e STORY-020 (consenso genitoriale minori), non appena il contenuto legale/la
+   decisione dell'utente arrivano dal track parallelo aperto in Sprint #6. Priorità
+   massima non appena sbloccate, a prescindere da cos'altro è in coda in quel momento.
+2. **EPIC-007, P1** — STORY-021 (verifica regione Firestore, bloccata sull'utente ma
+   verifica leggera), STORY-022 (self-hosting font, READY, nessun blocco), STORY-023
+   (script di backup interim, READY per la parte tecnica). Candidati naturali per
+   **Sprint #7**, dimensionati per stare insieme in un solo sprint senza ripetere il
+   pattern "troppe story a metà".
+3. **EPIC-007, P2** — STORY-024 (minimizzazione dati sensibili per `staff_readonly`),
+   STORY-025 (rimuovere/correggere `deleteOrganization`, READY), STORY-026 (policy di
+   retention, BLOCKED su decisione utente — stesso track parallelo di STORY-019/020).
+4. **EPIC-007, P3** — STORY-027 (rimuovere `VITE_FIREBASE_MEASUREMENT_ID`, READY),
+   STORY-028 (export dati strutturato per il cliente, READY ma richiede una scelta di
+   flusso UX minima prima di stimare).
+5. **EPIC-005 completa — Avatar + Negozio**, dopo EPIC-007, se/quando le domande aperte
+   in `docs/BACKLOG.md` hanno risposta (asset grafici, priorità rispetto alla
+   gamification esistente, bilanciamento economia). Non riconsiderare prima che
+   EPIC-007 sia sostanzialmente chiusa, salvo diversa istruzione esplicita dell'utente.
+
+---
+
+## Storico sprint chiusi
+
+# SPRINT #12 — EPIC-010 Lipedema Edition, terza ondata (30s-STS + Handgrip bilaterale) — aperto il 2026-10-31, chiuso il 2026-10-31 (goal raggiunto: review con 4 MEDIUM corretti, QA TP-054…063 PASS sull'hosting rankex-dev, nessun bug; non verificati per budget: layout mobile dei nuovi form, painMaxBySide, badge cambio dinamometro)
 
 **Branch:** `feature/lipedema-module` (allineato a `origin/dev` in `27bfc55` all'apertura).
 Rules e functions si deployano solo da qui (ADR-014 rischio #4). **Nessun deploy in prod
@@ -89,52 +175,6 @@ emerso non pianificato → `docs/BACKLOG.md`.
 4. Bug P3 lipedema (BUG-003, BUG-010) se il Product Owner li vuole prima del go-live
 
 ---
-
-## Piano sprint successivi (proposta Scrum Master, da confermare)
-
-**Aggiornamento 2026-10-30:** la coda corrente è EPIC-010 (Lipedema Edition) — vedi i
-candidati in fondo a Sprint #12. Il piano sotto (EPIC-007/EPIC-005) è precedente e va
-rivisto dal Product Owner prima di riaprirlo.
-
-Sequenza indicativa, non calendarizzata — un solo sviluppatore, quindi ogni sprint parte
-solo a chiusura del precedente. Priorità e ordine sono una proposta di ingegneria, non
-una decisione di business: rivedere prima di aprire ciascuno sprint.
-
-EPIC-003 (Streak presenze) ed EPIC-004 (Obiettivi trainer) erano **già implementate**
-prima di aprire i rispettivi sprint. EPIC-005 (Avatar + Negozio) è stata scoperta
-(Sprint #3, raccomandazione di non procedere) ma l'utente ha scelto comunque uno spike
-tecnico ridotto (Sprint #4, STORY-014, override esplicito — vedi ADR-003), deployato
-su prod. TD-001/TD-002 risolti. EPIC-002 chiusa (Sprint #5).
-
-**EPIC-007 (Privacy & Data Protection) ha ora priorità massima — richiesta esplicita
-dell'utente sui risultati del Privacy & Data Protection Audit — e precede EPIC-005
-completa nella coda.** Sprint #6 (sopra) copre le sole P0 tecniche. Candidati per gli
-sprint successivi, in ordine:
-
-**Candidati aperti (in ordine di priorità):**
-1. **Resto di EPIC-007, P0 rimaste bloccate** — STORY-019 (Privacy Policy/Cookie Policy)
-   e STORY-020 (consenso genitoriale minori), non appena il contenuto legale/la
-   decisione dell'utente arrivano dal track parallelo aperto in Sprint #6. Priorità
-   massima non appena sbloccate, a prescindere da cos'altro è in coda in quel momento.
-2. **EPIC-007, P1** — STORY-021 (verifica regione Firestore, bloccata sull'utente ma
-   verifica leggera), STORY-022 (self-hosting font, READY, nessun blocco), STORY-023
-   (script di backup interim, READY per la parte tecnica). Candidati naturali per
-   **Sprint #7**, dimensionati per stare insieme in un solo sprint senza ripetere il
-   pattern "troppe story a metà".
-3. **EPIC-007, P2** — STORY-024 (minimizzazione dati sensibili per `staff_readonly`),
-   STORY-025 (rimuovere/correggere `deleteOrganization`, READY), STORY-026 (policy di
-   retention, BLOCKED su decisione utente — stesso track parallelo di STORY-019/020).
-4. **EPIC-007, P3** — STORY-027 (rimuovere `VITE_FIREBASE_MEASUREMENT_ID`, READY),
-   STORY-028 (export dati strutturato per il cliente, READY ma richiede una scelta di
-   flusso UX minima prima di stimare).
-5. **EPIC-005 completa — Avatar + Negozio**, dopo EPIC-007, se/quando le domande aperte
-   in `docs/BACKLOG.md` hanno risposta (asset grafici, priorità rispetto alla
-   gamification esistente, bilanciamento economia). Non riconsiderare prima che
-   EPIC-007 sia sostanzialmente chiusa, salvo diversa istruzione esplicita dell'utente.
-
----
-
-## Storico sprint chiusi
 
 # SPRINT #11 — chiuso il 2026-10-31
 
