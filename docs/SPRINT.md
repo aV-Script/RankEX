@@ -136,6 +136,78 @@ regressione dei flussi critici si lancia con un comando. **Raggiunto.**
 ## Prossimo sprint (candidati)
 STORY-039 (storico, trend, non comparabilità) e, se ci sta, STORY-040 (PDF) → Sprint #14.
 
+## Retrospettiva
+Dati: 13 commit (`e651a9e`…`4a9a310`), 5/5 voci pianificate DONE, 0 rework di story; bug
+BUG-014/016/018 trovati in QA (014 e 016 VERIFIED, 018 FIXED), BUG-015 e BUG-017 aperti P3;
+nessun nuovo TD numerato.
+
+**WHAT WENT WELL**
+- La logica bilaterale di STORY-036 è stata riusata da HHD e OLS senza riscriverla: 037 e 038
+  sono un commit ciascuno. Causa: nel #12 si è scelto di chiudere 035+036 prima di costruirci
+  sopra (vedi "Fuori dal #12").
+- Scope rispettato: le 5 voci previste, STORY-039/040/043/044 fuori, nessuna deriva. Causa:
+  elenco "Fuori dal #N" scritto in apertura.
+- La review `high` su STORY-041 ha preso 4 guardie deboli prima che la suite girasse su dati
+  reali; QA sull'hosting reale (lezione BUG-009) ormai prassi.
+
+**WHAT WENT WRONG / CAUSED BUGS**
+- BUG-018 è lo stesso difetto di BUG-010 (plurale con quantità 1): i messaggi con un numero
+  sono costruiti con template inline, non con un helper di pluralizzazione. ROOT CAUSE: nessun
+  punto unico per "n + sostantivo", ogni messaggio nuovo lo reimplementa. IMPACT: stesso bug
+  due volte in due sprint, fix da fare su due copie (client + server, parità). ACTION: azione 2.
+- BUG-016 introdotto dalla review stessa di STORY-042 (rilettura in background senza stato di
+  caricamento). ROOT CAUSE: operazione asincrona aggiunta senza chiedersi "cosa può fare
+  l'utente mentre è in corso". IMPACT: valutazione iniziata su storico stale (precompilato e
+  confronti sbagliati). ACTION: azione 3.
+- BUG-014 (barra a 3 righe a 360 px) trovato solo in QA manuale. ROOT CAUSE: il layout della
+  barra è stato verificato a 390 px, non alla larghezza minima supportata; BUG-012 del #11
+  era della stessa famiglia (barra mobile). IMPACT: P2 corretto con 1 commit, ma costo di un
+  giro QA. ACTION: azione 4.
+- BUG-015 e BUG-013 (#11): stesso schema, un dato derivato (conteggio prove, ultimo valore)
+  calcolato su una fonte diversa da quella mostrata (`trials.length` vs righe compilate; card
+  vs storico). Aperti/corretti singolarmente, senza regola comune.
+
+**WHAT CAUSED REWORK**
+- Il fix `36ff9e4` dopo la review high: STORY-041 era stata scritta con guardie solo
+  sull'ingresso (project_id nel JSON). ROOT CAUSE: codice distruttivo con Admin SDK scritto
+  prima di una checklist di guardie. IMPACT: 1 commit di rework, nessun danno (18/18 verdi,
+  nessun residuo) ma il rischio era cancellare account di un'altra org. ACTION: azione 1.
+- Due decisioni (avviso "Non salvati", motivo OLS facoltativo) rimaste "da confermare" fino
+  alla chiusura. ROOT CAUSE: domande all'utente poste a fine sprint, non al momento del
+  design. IMPACT: nessuna modifica di codice, ma lo stato delle story è rimasto ambiguo
+  per 3 giorni e il canvas non è riallineato.
+
+**WHAT WAS SLOW**
+- Riallineamento a mano del canvas (SALTA, avviso "Non salvati"): il canvas è la spec UI ma
+  non si aggiorna dal codice, quindi diverge a ogni scelta presa in QA. Non è costo di
+  codice ma si accumula: oggi 2 tavole in ritardo.
+- STORY-041 ha richiesto seed, setup, teardown e 2 giri di guardie: investimento una tantum,
+  ora ammortizzato dal comando `npm run qa:dev`.
+
+**WHAT CREATED TECHNICAL DEBT**
+- Nessun TD numerato, ma 2 bug P3 (BUG-015, BUG-017) e il canvas restano aperti; BUG-017 è
+  di scripts/seed, non del modulo.
+- Lo "Tech debt emerso" in coda alla sezione (guardie di cancellazione, nota STORY-039) è già
+  tracciato; non duplicato in `docs/TECH-DEBT.md`.
+
+**ACTION ITEM per lo Sprint #14** (max 5, da portare nella status board)
+1. STORY-039: prima di scrivere il codice di storico/trend, fissare con l'utente le decisioni
+   su delta e badge NON CONFRONTABILE (nota del 09/11) e loggarle in `docs/DECISIONS.md`;
+   chiudere la story con almeno 1 caso `qa:dev` per il trend. Misura: 0 decisioni "da
+   confermare" a fine sprint.
+2. Helper unico di pluralizzazione per i messaggi con un numero (`utils/lipedema.js`, copia in
+   `shared/lipedema.js`, test di parità) e adozione nei messaggi di STORY-039/040; fix di
+   BUG-010 con lo stesso helper. Misura: grep di `${...} decimali`-style a zero nel modulo.
+3. Regola di DONE per ogni nuova operazione asincrona in UI (rilettura, salvataggio): stato di
+   caricamento che disabilita le azioni dipendenti, con un caso nel runbook o in `qa:dev`.
+   Applicare a STORY-039 (carico dello storico per il trend).
+4. QA mobile a 360 px (non solo 390) per le viste nuove di STORY-039/040; aggiungere un caso
+   Playwright a 360×640 sul form bilaterale che verifica l'assenza di scroll orizzontale e che
+   la barra resti sotto il 30 % dell'altezza. Misura: BUG di layout mobile trovati in QA = 0.
+5. Correggere BUG-015 (contare le sole prove compilate) e BUG-017 (`createdAt` Timestamp in
+   `OrgDetailView`) all'inizio dello sprint, dopo conferma dell'utente: due fix piccoli che
+   evitano che P3 aperti si accumulino, ciascuno con un test.
+
 ---
 
 # SPRINT #12 — EPIC-010 Lipedema Edition, terza ondata (30s-STS + Handgrip bilaterale) — aperto il 2026-10-31, chiuso il 2026-10-31 (goal raggiunto: review con 4 MEDIUM corretti, QA TP-054…063 PASS sull'hosting rankex-dev, nessun bug; non verificati per budget: layout mobile dei nuovi form, painMaxBySide, badge cambio dinamometro)
