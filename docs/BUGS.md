@@ -166,7 +166,7 @@ Formato:
 ## [BUG-014] Sequenza di visita: su telefoni stretti i bottoni della barra vanno su 3 righe
 **Severity:** P2
 **Modulo/Ruolo:** lipedema — trainer/org_admin, mobile (STORY-042)
-**Status:** OPEN — dipende dalla scelta aperta sul testo dei bottoni (vedi STORY-042)
+**Status:** VERIFIED (09/11/2026, commit 6be2314, rankex-app-dev): testi invariati, padding laterale dei secondari 10 px. A 360×640, Handgrip in kgf con 6 prove: INDIETRO, SALTA e SALVA E CHIUDI su una riga, barra 188 px (29 %) contro 233. A 320×568 SALVA E CHIUDI va ancora a capo (barra 233 px, 41 %), accettato. Nessuno scroll orizzontale.
 **Reproduction steps:** viewport 360×640 → Valutazioni → + NUOVA VALUTAZIONE → Handgrip, unità kgf, 6 prove compilate.
 **Expected:** barra su 2 righe di bottoni, come a 390 px; il form resta la parte principale dello schermo.
 **Actual:** INDIETRO, SALTA e SALVA E CHIUDI non stanno su una riga e l'ultimo va a capo. Altezza misurata: 233 px su 640 (36 %) col riepilogo pieno, 193 px a form vuoto. A 390×844 è 148–188 px (18–22 %) su 2 righe. I campi restano raggiungibili: `pb-72` basta e nessun campo finisce sotto la barra.
@@ -198,3 +198,12 @@ Formato:
 **Expected:** la data di creazione dell'org.
 **Actual:** "Invalid Date". L'org è creata da `scripts/seed-demo-lipedema.mjs` con `createdAt` come timestamp Firestore; causa da confermare (formato atteso dalla vista).
 **Suggested fix:** gestire il timestamp Firestore nella formattazione della data.
+
+## [BUG-018] Errore sui decimali dei test bilaterali: "al massimo 1 decimali"
+**Severity:** P3
+**Modulo/Ruolo:** lipedema — Handgrip, HHD, OLS (`utils/lipedema.js`, messaggio con `spec.inputDecimals`). Trovato nella QA del 09/11/2026 (TP-067)
+**Status:** OPEN
+**Reproduction steps:** OLS, prova 1 a 30,25 → SALVA.
+**Expected:** "Inserisci il valore con al massimo un decimale", come negli altri campi del modulo.
+**Actual:** "Inserisci il valore con al massimo 1 decimali". Il blocco funziona: l'errore compare e il salvataggio non parte.
+**Suggested fix:** singolare/plurale in base a `inputDecimals`. Va allineata anche la copia server se il messaggio esiste lì (test di parità).

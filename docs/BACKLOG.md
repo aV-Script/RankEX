@@ -1395,6 +1395,11 @@ massimo.
   Da confermare con l'autore: motivo di fine facoltativo sulle prove non valide
 
 ### [STORY-039] Storico, trend e avviso di non comparabilità per test
+> **Nota (09/11/2026, da riformulare in questa story):** oggi una riga dello storico può mostrare
+> insieme un delta e il badge NON CONFRONTABILE (delta sull'ultima confrontabile, badge sulla
+> precedente). Es. OLS "QA Visita Sprint13" del 09/11 corretto con SCARPE: "D +1,0 s · S +6,8 s rispetto
+> al 07/11" accanto a "NON CONFRONTABILE · calzature diverse". Riformulare il badge (es. "calzature
+> diverse dalla precedente") dopo aver ricontrollato ADR-012. Non cambiato nello Sprint #13.
 **Come** professionista **voglio** vedere per ogni test lo storico delle valutazioni, un
 grafico dell'andamento e il delta rispetto alla precedente, con un avviso quando due
 valutazioni non sono confrontabili **per** interpretare correttamente l'evoluzione della
@@ -1499,9 +1504,10 @@ valutazioni **per** condividerlo con la paziente o con altri curanti.
   - [ ] Ogni test resta una valutazione separata: nessuna modifica a `assessments` né alle rules
 - **Dependencies:** STORY-037, STORY-038 per i test 4 e 5
 - **Priority:** P1 (Sprint #13)
-- **Status:** IN QA — commit `8aa0656` e `3174e31`, QA TP-070…071 PASS su rankex-dev il 07/11/2026.
-  Aperti BUG-014 e le scelte da confermare: bottone SALTA, test salvati non riapribili, nessuna voce
-  "visita completa", testo "SALVA E PASSA A…" su mobile
+- **Status:** DONE — Sprint #13: commit `8aa0656`, `3174e31`, `6be2314`, `e841900`; QA TP-070…071 PASS su
+  rankex-dev il 07/11 e il 09/11/2026. BUG-014 chiuso. Confermati: SALTA (non sull'ultimo test), test
+  salvati non riapribili dalla barra (Correggi), nessuna voce "visita completa", testi mobile invariati.
+  La conferma di "SALVA E CHIUDI LA VISITA" elenca i test non salvati, senza bloccare
 
 ### STORY-043 — Bottone principale pieno e colori allineati al canvas
 - **Contesto:** decisione utente del 06/11/2026. In `components/ui/index.jsx` il bottone primario

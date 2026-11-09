@@ -33,9 +33,9 @@ STORY-044 ("Da sistemare").
 
 | Task | Status | Note |
 |------|--------|------|
-| STORY-037 — HHD | DONE | Commit `e651a9e`, su rankex-dev. QA TP-064…066 PASS il 07/11. |
-| STORY-038 — OLS | DONE | Commit `c0b706f`, su rankex-dev. QA TP-067…069 PASS il 07/11. Resta da confermare con l'autore: motivo di fine facoltativo sulle prove non valide. |
-| STORY-042 — sequenza di visita | IN QA (PASS, in attesa di conferma) | Commit `8aa0656` e `3174e31`, su rankex-dev. Review medium fatta. QA TP-070…071 PASS il 07/11, l'OLS precompila la gamba dominante dall'HHD appena salvato. Aperti: BUG-014 (barra su 3 righe a 360 px) e le scelte da confermare: bottone SALTA, test salvati non riapribili, nessuna voce "visita completa", testo "SALVA E PASSA A…" su mobile. |
+| STORY-037 — HHD | DONE | Commit `e651a9e`, su rankex-dev. QA TP-064…066 PASS il 07/11; il 09/11 PASS anche HHD interrotta con una gamba completa e deviazione che resta attiva dopo la descrizione (TP-066). |
+| STORY-038 — OLS | DONE | Commit `c0b706f`, su rankex-dev. QA TP-067…069 PASS il 07/11; il 09/11 PASS i passi rimasti: errori al salvataggio con 60,5 e 30,25 (TP-067, testo da correggere: BUG-018), Correggi su un OLS salvato col motivo (TP-068), vista staff_readonly (TP-069). Resta da confermare con l'autore: motivo di fine facoltativo sulle prove non valide. |
+| STORY-042 — sequenza di visita | DONE | Commit `8aa0656`, `3174e31`, `6be2314` (BUG-014) e `e841900` (avviso "Non salvati in questa visita"), su rankex-dev. QA TP-070…071 PASS il 07/11 e il 09/11. Scelte confermate dall'utente: SALTA resta (non sull'ultimo test), i test salvati non si riaprono dalla barra (si usa Correggi), nessun documento "visita completa", su mobile "SALVA E PASSA A…" e "SALVA E CHIUDI". Da riportare sul canvas: SALTA e il nuovo avviso nelle tavole Valutazione*. |
 | Guida dei 5 test | DONE | Commit `6a47362`, su rankex-dev. Verificata su mobile e desktop il 07/11; istruzioni verbali e checklist confrontate col testo dei docx. Chiude STORY-033. |
 | STORY-041 — QA automatica | READY (in attesa di conferma dell'utente) | Mai contro `fitquest-60a09`: lo script verifica il projectId. |
 | STORY-029 — requisiti non-codice | BLOCKED (fuori capacità developer) | Blocca il go-live, non la chiusura dello sprint. |
