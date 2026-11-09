@@ -1186,6 +1186,21 @@ export const RUNBOOK_SUITES = [
         ],
         expected: ['Nessuno scroll orizzontale a 360 px; nessuna correzione o annullamento su uno storico non aggiornato'],
       },
+      {
+        id: 'TP-078', usId: 'STORY-040', severity: 'blocker', title: 'PDF paziente Lipedema, anche per staff_readonly',
+        preconditions: 'Paziente Lipedema con informativa e almeno 2 valutazioni di 2MWT e Handgrip fatte in giorni diversi (una con percorso diverso, una interrotta), un test mai eseguito, una valutazione annullata, dolore/Borg compilati, BIA se disponibile. Provare come trainer e come staff_readonly.',
+        steps: [
+          'Scheda paziente → menu "⋮" → "Esporta PDF" (visibile anche a staff_readonly): si apre subito l\'anteprima, senza scelta del tema',
+          'Intestazione: nome, età, sesso, peso, altezza, professionista/i e informativa (versione · data); terminologia del modulo ("Valutazioni funzionali", "Ultima valutazione per test")',
+          'Una riga per i 5 test nell\'ordine ufficiale, ognuno con l\'ultima valutazione VALIDA e la propria data (anche se di giorni diversi); l\'annullata non compare; il test mai eseguito dice "Non ancora eseguito"',
+          'Delta con la data ("rispetto al gg/mm") e note di comparabilità identiche alla tab Valutazioni (DIVERSA DALLA PRECEDENTE, INFO seriale, interrotta)',
+          'Condizioni: setup e protocollo del test; sotto, dolore/Borg/parametri fisiologici e note se compilati; BIA se presente',
+          'Nessun grafico, rank, percentile, XP, badge o colore buono/cattivo; in fondo la nota "senza valori normativi né giudizio clinico" e l\'avviso art. 9 GDPR',
+          'STAMPA / SALVA PDF: A4 leggibile, le righe non si spezzano tra due pagine, la barra di controllo non è stampata',
+          'Org PT e Soccer: "Esporta PDF" invariato (scelta del tema, scheda atleta); nessun PDF di gruppo nel modulo Lipedema',
+        ],
+        expected: ['Il PDF riporta solo valori grezzi per test con data e comparabilità, per ogni ruolo che vede il paziente'],
+      },
     ],
   },
 ]

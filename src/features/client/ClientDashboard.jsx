@@ -49,6 +49,9 @@ import { useUnsavedChanges }                 from '../../context/UnsavedChangesC
 
 // Montato solo dietro il flusso di export PDF — lazy-load per non pesare
 // sul bundle iniziale della dashboard cliente.
+const LipedemaReportPrint = lazy(() =>
+  import('../assessments/LipedemaReportPrint').then(m => ({ default: m.LipedemaReportPrint }))
+)
 const ClientReportPrint = lazy(() =>
   import('./client-dashboard/ClientReportPrint').then(m => ({ default: m.ClientReportPrint }))
 )
@@ -138,6 +141,9 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
   // (getActorName), qui lo stesso valore dal profilo solo per mostrarlo
   const currentUserName = userName ?? terminology.trainer
 
+  // PDF: moduli con rank come prima; Lipedema per ogni ruolo (staff_readonly incluso), a storico caricato
+  const canExportPdf = capabilities.hasRank ||
+    (capabilities.hasAssessments && !assessmentsState.isLoading && !assessmentsState.loadError)
   // staff_readonly (BUG-004): dal menu ⋮ niente azioni che scrivono o mandano email
   const canResetPassword = !readonly && capabilities.hasClientLogin && Boolean(client.clientAuthUid && client.email)
 
@@ -187,10 +193,12 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
     setShowActions(v => !v)
   }, [])
 
+  // Lipedema: report a tabelle su fondo bianco, nessun tema da scegliere (STORY-040)
   const handleExportPdf = useCallback(() => {
     setShowActions(false)
-    setShowPrintPicker(true)
-  }, [])
+    if (capabilities.hasAssessments) setShowReport(true)
+    else setShowPrintPicker(true)
+  }, [capabilities.hasAssessments])
 
   const handleResetPasswordFromMenu = useCallback(() => {
     setShowActions(false)
@@ -292,7 +300,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
         onSelectTab={handleSelectTab}
         visibleTabIds={visibleTabIds}
         terminology={terminology}
-        canExportPdf={capabilities.hasRank}
+        canExportPdf={canExportPdf}
         canResetPassword={canResetPassword}
         canDelete={!readonly}
         showActions={showActions}
@@ -531,7 +539,11 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
       )}
       {showReport && (
         <Suspense fallback={null}>
-          <ClientReportPrint client={client} color={brandGreen} rankObj={rankObj} mode={printMode} onClose={() => setShowReport(false)} />
+          {capabilities.hasAssessments ? (
+            <LipedemaReportPrint client={client} assessments={assessmentsState.assessments} terminology={terminology} onClose={() => setShowReport(false)} />
+          ) : (
+            <ClientReportPrint client={client} color={brandGreen} rankObj={rankObj} mode={printMode} onClose={() => setShowReport(false)} />
+          )}
         </Suspense>
       )}
     </div>
