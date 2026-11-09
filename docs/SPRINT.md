@@ -164,6 +164,85 @@ Proposta, non pianificazione (decide l'utente):
    `createdAt`/`joinedAt` a ISO sulle org di rankex-dev.
 6. **STORY-029** resta BLOCKED (utente/legale).
 
+## Retrospettiva
+Dati: 7 commit (`fd14a3b`…`6809306`: 3 feature, 2 fix, 2 docs), 2/2 story DONE più la
+decisione "ora stesso giorno" (`798a399`), 0 rework di story; bug BUG-019 (nuovo, VERIFIED),
+BUG-015 VERIFIED, BUG-010 e BUG-017 FIXED non verificati dal vivo, BUG-018 deployato non
+riverificato; nessun nuovo TD numerato; QA `qa:dev` 19/19.
+
+**Verifica degli action item del #13**
+1. Decisioni di STORY-039 prima del codice: **parziale**. Le decisioni su delta e badge sono
+   state fissate in apertura (ADR-019), caso `qa:dev` aggiunto. Ma 2 decisioni (bilaterali
+   interrotti, ora nello stesso giorno) sono state poste solo a fine sprint. Misura "0 da
+   confermare" raggiunta, ma alla chiusura, non al design.
+2. Helper unico di plurale: **no**. `countLabel` è usato nei messaggi nuovi, ma BUG-010 è
+   corretto con ternari inline in 4 file e BUG-019 è emerso per un'unità del delta fuori da
+   `countLabel`. Terzo plurale in tre sprint.
+3. Stato di caricamento sulle riletture: **sì nel codice, parziale nella prova**. Implementato,
+   ma TP-077 ("Aggiornamento in corso…") non verificato dal vivo.
+4. QA a 360 px: **sì**. Desktop e 360 px per trend, badge, ora; 0 bug di layout mobile trovati.
+5. BUG-015 e BUG-017 a inizio sprint: **no**. Esclusi in apertura, corretti a fine sprint
+   (`50f6779`) su decisione dell'utente.
+
+**WHAT WENT WELL**
+- Storico/trend e PDF riusano un solo modello (`assessmentBadgeRules.js`, `assessmentFormat.js`,
+  `lipedemaReportModel.js`): STORY-040 è un commit su STORY-039. Causa: ADR-019 scritto prima
+  del codice, con le 3 domande risolte prima di partire.
+- La parità client/server su `countLabel` e il caso `qa:dev` sono entrati nei commit di feature
+  (19/19 dopo ogni deploy); le review medium hanno corretto motivo di interruzione e data BIA
+  del PDF prima della QA.
+- QA dal vivo sul nuovo ha preso BUG-019 e le scelte sull'ora; scope rispettato (043/044 fuori).
+
+**WHAT WENT WRONG / CAUSED BUGS**
+- BUG-019 (+1 ripetizioni), dopo BUG-010 e BUG-018. ROOT CAUSE: il plurale è ancora
+  "n + sostantivo" costruito localmente; `countLabel` sta in `utils/lipedema.js`
+  (modulo-specifico) e non copre unità dei delta né gli altri moduli. IMPACT: stesso difetto
+  tre volte in tre sprint, trovato in QA dal vivo e non dai test. ACTION: azione 1.
+- Verifiche dal vivo rimaste indietro (TP-077, tastiera sulle schede, BUG-010/017/018, PDF
+  multipagina). ROOT CAUSE: la QA copre "solo il nuovo" e il deploy di chiusura arriva dopo
+  i fix; mancano account di test pronti (org_admin su free, super_admin). IMPACT: 3 fix
+  dichiarati FIXED senza prova. ACTION: azione 2.
+
+**WHAT CAUSED REWORK**
+- `798a399` (ora nelle date brevi) tocca 9 file, 5 già toccati da STORY-039/040 (`assessmentFormat`,
+  `Registry`, `Trend`, `ReportModel`, `DetailModal`). ROOT CAUSE: il caso "due valutazioni lo
+  stesso giorno" non era tra i casi limite di ADR-019. IMPACT: 1 commit di ~140 righe, dopo
+  PDF e QA già fatti. ACTION: azione 3.
+- Decisione "bilaterali interrotti" chiesta a fine sprint e confermata senza modifiche:
+  stato ambiguo di STORY-039 fino all'ultimo (stesso schema del #13). ACTION: azione 3.
+
+**WHAT WAS SLOW**
+- Giri di QA e deploy ripetuti nello stesso giorno (deploy dopo STORY-039/040, dopo `798a399`,
+  dopo `50f6779`) perché i fix P3 sono arrivati dopo la prima QA. Non un blocco, ma 3 giri.
+- Canvas in ritardo da 2 sprint, ora 4 tavole (SALTA, "Non salvati", PazienteTrend/Mobile,
+  ReportLipedema): è la spec UI ma si aggiorna solo a mano. ACTION: azione 4.
+
+**WHAT CREATED TECHNICAL DEBT**
+- Plurali inline in 4 file (vedi "Tech debt emerso"): debito creato da BUG-010 per non
+  spostare `countLabel` fuori dal modulo.
+- `createdAt` org a tipi misti su rankex-dev (Timestamp/ISO) e `joinedAt` dei seed:
+  `orderBy('createdAt')` ordina per tipo. Lettura normalizzata, dati no. ACTION: azione 5.
+- Cosmetici non tracciati: ultima etichetta dell'asse X tagliata, etichette vicine a 360 px.
+
+**ACTION ITEM per lo Sprint #15** (max 5)
+1. Helper di plurale generico fuori dal modulo lipedema (`utils/`, con copia e parità solo se
+   serve al server), usato da `MembersPage`, `OrgSettingsPage`, `NewClientView`,
+   `CloseSessionModal` e `formatMonoDelta`. Misura: 0 ternari `=== 1 ?` per plurali inline
+   nei file elencati (grep) e un test con quantità 0/1/2 per ogni unità; 0 nuovi bug di plurale.
+2. Giro QA breve a inizio sprint sulle verifiche rimaste: TP-077, tastiera sulle schede,
+   BUG-010 (org_admin su free), BUG-017 (super_admin), BUG-018, PDF di più pagine. Misura:
+   BUG-010/017/018 a VERIFIED e 0 voci "non verificato" nel "Non completato" del #15.
+3. Sezione "Decisioni aperte e casi limite" in SPRINT.md all'apertura di ogni story UI, con
+   elenco dei casi limite (stesso giorno, dati interrotti, un solo elemento). Misura: 0
+   decisioni poste a fine sprint e 0 commit di feature dopo la QA della story.
+4. Allineare il canvas come primo task, con time-box di mezza giornata: 4 tavole (SALTA,
+   "Non salvati", PazienteTrend/Mobile, ReportLipedema). Misura: 0 tavole in ritardo a fine
+   sprint; se non fatto, scalare lo sprint, non rimandare di nuovo.
+5. Script una tantum per portare `createdAt`/`joinedAt` a ISO sulle org di rankex-dev
+   (idempotente, solo rankex-dev) e togliere la normalizzazione di lettura se superflua.
+   Misura: 0 doc con `createdAt` Timestamp (conteggio nello script) e ordine corretto in
+   `getOrganizations`.
+
 # SPRINT #13 — EPIC-010 Lipedema Edition, quarta ondata (HHD + OLS + sequenza di visita) — aperto il 2026-11-06, chiuso il 2026-11-09 (goal raggiunto)
 
 **Branch:** `feature/lipedema-module`. Rules e functions si deployano solo da qui (ADR-014
