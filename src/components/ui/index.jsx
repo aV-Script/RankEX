@@ -237,8 +237,8 @@ function variantStyles(variant, accentColor) {
   }[variant]
 }
 
-export function Button({ variant = 'primary', size = 'md', loading, disabled, accentColor = 'var(--rx-accent)', className = '', children, ...props }) {
-  const padding = size === 'sm' ? '8px 14px' : '12px 16px'
+export function Button({ variant = 'primary', size = 'md', padding: customPadding, loading, disabled, accentColor = 'var(--rx-accent)', className = '', children, ...props }) {
+  const padding = customPadding ?? (size === 'sm' ? '8px 14px' : '12px 16px')
   return (
     <button
       disabled={loading || disabled}

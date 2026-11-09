@@ -4,6 +4,10 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { TEXT_LIMITS }   from '../../utils/lipedema'
 import { formatDateTime } from './assessmentFormat'
 
+// Secondari della visita: meno padding laterale perché a 360 px INDIETRO, SALTA e
+// SALVA E CHIUDI stiano su una riga (BUG-014)
+const VISIT_SECONDARY_PADDING = '8px 10px'
+
 /**
  * Cornice comune dei form di valutazione a schermo intero: titolo, avviso di
  * correzione, sezioni del test (children), barra con riepilogo live + azioni
@@ -188,9 +192,9 @@ function VisitActions({ visit, isSaving, onBack, onRequestSave }) {
         SALVA E PASSA A {nextLabel}
       </Button>
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" variant="ghost" onClick={onBack} className="flex-auto whitespace-nowrap" disabled={isSaving}>INDIETRO</Button>
-        <Button size="sm" variant="ghost" onClick={onSkip} className="flex-auto whitespace-nowrap" disabled={isSaving}>SALTA</Button>
-        <Button size="sm" variant="ghost" onClick={() => onRequestSave()} className="flex-auto whitespace-nowrap" disabled={isSaving}>SALVA E CHIUDI</Button>
+        <Button size="sm" variant="ghost" onClick={onBack} padding={VISIT_SECONDARY_PADDING} className="flex-auto whitespace-nowrap" disabled={isSaving}>INDIETRO</Button>
+        <Button size="sm" variant="ghost" onClick={onSkip} padding={VISIT_SECONDARY_PADDING} className="flex-auto whitespace-nowrap" disabled={isSaving}>SALTA</Button>
+        <Button size="sm" variant="ghost" onClick={() => onRequestSave()} padding={VISIT_SECONDARY_PADDING} className="flex-auto whitespace-nowrap" disabled={isSaving}>SALVA E CHIUDI</Button>
       </div>
     </div>
   )

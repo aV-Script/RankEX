@@ -1091,6 +1091,7 @@ export const RUNBOOK_SUITES = [
           'Compilare e salvare con "SALVA E PASSA A 30s-STS", confermando: si apre il 30s-STS dall\'alto della pagina, "2 DI 5", 2MWT segnato ✓ e non cliccabile',
           'Proseguire con Handgrip e HHD indicando la gamba dominante nell\'HHD: l\'OLS si apre con quella gamba già precompilata',
           'Sull\'OLS, "5 DI 5": il primario è "SALVA E CHIUDI LA VISITA". Salvare: si torna al tab Valutazioni con 5 valutazioni separate nello storico',
+          'Mobile 360×640, Handgrip in kgf con 6 prove: INDIETRO, SALTA e SALVA E CHIUDI stanno su una riga sotto "SALVA E PASSA A HHD" (a 320 px possono andare a capo)',
         ],
         expected: ['Una valutazione per test, ognuna con la propria data e ora; il test successivo si precompila anche da quanto salvato un attimo prima'],
       },
