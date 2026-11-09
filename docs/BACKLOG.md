@@ -1448,7 +1448,7 @@ paziente senza ricorrere a valori normativi.
 - **Risks:** definizione esatta di "stesso dispositivo" (confronto per seriale? per
   marca+modello?) e tolleranza su altezza sedia/angolo ginocchio (43,2 vs 43,0 cm è un
   cambio?) — da decidere con Tech Lead/autore protocolli
-- **Status:** BACKLOG
+- **Status:** DONE (Sprint #14, commit `fd14a3b` + `fa8ffef`; ADR-019, QA dal vivo 09/11 su rankex-dev)
 
 ### [STORY-040] Export PDF paziente Lipedema
 **Come** professionista **voglio** esportare un report PDF del paziente con le
@@ -1472,7 +1472,7 @@ valutazioni **per** condividerlo con la paziente o con altri curanti.
 - **Risks:** il PDF esce dall'app → una volta stampato i dati sanitari non sono più
   controllabili dall'app; la custodia del documento è responsabilità del titolare
   (da citare nell'informativa/DPA, STORY-029)
-- **Status:** BACKLOG
+- **Status:** DONE (Sprint #14, commit `fa8ffef`; gruppo assente, niente grafici, ultima valida per test — decisioni utente 09/11 in ADR-019)
 
 ### STORY-041 — QA automatica contro rankex-dev (riduzione costi di sviluppo)
 - **Contesto:** la QA dal vivo fatta da un agente con il browser ricrea 3 organizzazioni a ogni

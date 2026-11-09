@@ -618,7 +618,7 @@ del doc annullato. Lo storico cresce di un doc per ogni correzione, trascurabile
 ---
 
 ## [ADR-012] Regole di non comparabilità e precisione numerica
-**Stato:** parzialmente rivisto da ADR-015 (§7 2MWT: niente lapLengthM; unità N/kgf confermate) e da ADR-016 (§4 precisione/delta, §7 chiavi normalizzate del dispositivo, tolleranze, livello `info` rimandato a STORY-039, delta per lato)
+**Stato:** parzialmente rivisto da ADR-015 (§7 2MWT: niente lapLengthM; unità N/kgf confermate), da ADR-016 (§4 precisione/delta, §7 chiavi normalizzate del dispositivo, tolleranze, livello `info` rimandato a STORY-039, delta per lato) e da ADR-019 (badge "diversa dalla precedente", livello `info` del seriale, grafico a tratti)
 **Data:** 2026-10-24
 **Contesto:** STORY-036 (decimali dopo kgf→N) e STORY-039 (cosa rende due valutazioni
 non confrontabili, seriale o modello).
@@ -1493,4 +1493,351 @@ solo le scelte che quei documenti lasciavano aperte.
 - Le righe di prova hanno sempre `endReason` nello stato del form, vuoto per Handgrip e HHD, che non
   lo inviano: nessun cambiamento nei loro documenti né in `isSameAssessmentData`.
 - `seed-demo-lipedema.mjs` non crea OLS: per ora si inseriscono a mano.
+
+## [ADR-019] Lipedema — storico, trend e comparabilità (STORY-039)
+**Data:** 2026-11-09
+**Contesto:** STORY-039 (storico per test, grafico, delta e avviso di non comparabilità) con le
+decisioni dell'utente del 09/11/2026, vincolanti: (1) grafico a tratti, la linea si interrompe a
+ogni differenza di livello `warning`, interrotte/invalidate come cerchio ambra fuori dalla linea,
+tetto OLS marcato, una serie per lato, annullate fuori dal grafico; (2) delta sempre rispetto
+all'ultima valutazione valida confrontabile, con la data, e badge "DIVERSA DALLA PRECEDENTE" quando
+la precedente immediata è diversa ma un riferimento esiste; (3) calzature e superficie OLS restano
+`warning`, si aggiunge il livello `info` per il seriale del dinamometro; (4) nessun colore
+buono/cattivo, nessuna media. Action item della retrospettiva #13 (SPRINT.md, Sprint #14 1-4).
+Fonti: ADR-012, ADR-016 §7 e addendum, ADR-017 §5, ADR-018 §7/§9, tavole `PazienteTrend`,
+`MobilePazienteTrend`, `Paziente`, `ReportLipedema` del canvas.
+
+**Stato di partenza verificato nel codice:**
+- `buildTestHistory` (parte client di `utils/lipedema.js`, fuori dal CORE) calcola già
+  `nonComparable` (motivi rispetto alla precedente valida immediata), `reference`/`delta` (ultima
+  valida confrontabile), `deltaUnavailable`, e per i bilaterali `deltaBySide`/`referenceBySide`.
+  Il caso della nota del 09/11 (delta e badge insieme) è proprio `nonComparable` + `reference`.
+- **Il seriale normalizzato è già nello snapshot salvato:** `comparability.deviceSerialKey`
+  (`normalizeKey(serial)` o `null`) nell'Handgrip dal primo giorno (ADR-016 §7) e nell'HHD
+  (`computeHhdComparability`, ADR-017 §5). Niente da toccare in `aggiungiValutazione`.
+- Recharts 2.12 è già una dipendenza (`BiaHistoryChart`, `MisureSection`, `XPTrendChart`, …,
+  con `utils/chartTheme`).
+- Consumer di `buildTestHistory` / `nonComparable` oggi: `AssessmentsSection` (`HistoryRow`),
+  `AssessmentDetailModal`, `AssessmentBadges`, `assessmentFormat.formatMonoDelta` /
+  `formatBilateralDelta` (via `assessmentRegistry.formatDelta`), `__tests__/utils/lipedema.test.js`.
+  `LatestAssessmentsCard` usa `AssessmentBadges` senza entry dello storico.
+
+**Decisione:**
+
+1. **Dove vive la UI: nella tab VALUTAZIONI esistente (`AssessmentsSection`), con un selettore
+   di test.** Niente nuova pagina, route o vista in `ClientDashboard`.
+   - Sopra la lista: selettore a schede `role="tablist"` con i 5 `shortName` di
+     `LIPEDEMA_TEST_ORDER` (bottoni `role="tab"`, `aria-selected`), in `flex-wrap`, non in uno
+     scroller orizzontale (vincolo 360 px). Un test mai eseguito resta selezionabile e mostra
+     "Nessuna valutazione di questo test".
+   - Sotto: grafico (§3) + legenda + storico del solo test selezionato (le righe di oggi).
+   - Test selezionato: stato locale `selectedTestId`, default **derivato** (non salvato) = test
+     della valutazione valida più recente, altrimenti il primo di `LIPEDEMA_TEST_ORDER`. Dopo una
+     visita il componente si rimonta e mostra l'ultimo test salvato senza codice in più.
+   - Motivo: il canvas (`PazienteTrend`) è proprio "storico di un test con selettore", e la tab
+     VALUTAZIONI è già lo storico (stesso `assessmentsState`, stessi dialog di dettaglio, Correggi,
+     Annulla). Una vista separata duplicherebbe dialog e stato; 5 grafici impilati non stanno a
+     360 px. Il "STORICO E TREND →" del canvas resta il "VEDI TUTTE" di `LatestAssessmentsCard`.
+   - Espansione riga: si tiene il dettaglio in modale (`AssessmentDetailModal`, già con prove
+     grezze e metadati), non l'espansione inline del canvas: l'AC "espandibile" è soddisfatto e non
+     si duplica il dettaglio.
+   - **Conseguenza sulla QA esistente:** le righe di un test sono visibili solo con quel test
+     selezionato. `e2e/qa-dev/tests/lipedema.spec.js` (asserzioni `132 m`, `11 rip.`, `D 226 · S
+     195 N` e la correzione) va aggiornato con `getByRole('tab', { name: '2MWT' })` ecc.; i casi
+     della suite `lipedema` di `runbook.config.js` che leggono più test nella tab VALUTAZIONI vanno
+     riletti e corretti nei passi.
+
+2. **Riga di storico (AC "almeno data, risultato, delta, versione e setup").** Oggi mancano setup,
+   versione e professionista. Si aggiunge al registro `ASSESSMENT_UI` una voce
+   `formatSetup(assessment)` per test (+ `formatAssessmentSetup` come `formatAssessmentPrimary`),
+   letta dai campi salvati, con le etichette già nel config:
+   - 2MWT: `percorso 30 m · nessun ausilio · protocollo 1.0`
+   - 30s-STS: `sedia 43,2 cm · senza braccioli · braccia incrociate · protocollo 1.0`
+   - Handgrip: `Jamar Plus · impugnatura 2 · protocollo 1.0` (marca + modello, non il seriale)
+   - HHD: `Marca Modello · cinghia · ginocchio 90° · anca 90° · protocollo 1.0`
+   - OLS: `scalza · pavimento rigido · protocollo 1.0`
+
+   Seguono `examinerName` e, sotto i badge, la nota di comparabilità (§5). Ordine della riga: data ·
+   risultato; delta; setup · professionista; badge; nota.
+
+3. **Grafico: funzione pura `buildTrendSeries(assessments, testId)` in `utils/lipedema.js`, parte
+   client (dopo il CORE), non nel server.** Non entra in nessun valore salvato: è presentazione
+   derivata da snapshot salvati, come la comparabilità (ADR-012, conseguenze). Una copia server
+   sarebbe codice duplicato senza consumer.
+   ```js
+   /**
+    * @returns {{
+    *   sides: Array<'value'|'R'|'L'>,          // ['value'] per i monolaterali, spec.sides per i bilaterali
+    *   points: Array<{
+    *     assessmentId, performedAt,             // in ordine cronologico crescente
+    *     side,                                  // 'value' | 'R' | 'L'
+    *     value,                                 // già arrotondato alla precisione mostrata (roundToDecimals)
+    *     kind,                                  // 'line' | 'apart'
+    *     segment,                               // indice del tratto per lato (0..), null se 'apart'
+    *     outcome,                               // per tooltip e testo
+    *     ceiling,                               // true solo OLS con ceilingBySide[side] === true
+    *   }>,
+    *   segmentCountBySide: { [side]: number },
+    *   apartCount: number,
+    * }}
+    */
+   ```
+   Regole:
+   - Solo valutazioni `valid` del test; annullate escluse. Ordine `byMostRecent` invertito.
+   - **Monolaterali** (2MWT, STS): `kind: 'apart'` se `outcome ∈ NON_ORDINARY_OUTCOMES`
+     (`stopped_early`, `invalidated`), al suo valore salvato (lo 0 di uno STS invalidato si
+     distingue per il marcatore e il testo, mai dal numero, come ADR-016 §6). Altrimenti `'line'`.
+   - **Bilaterali:** un punto per lato solo se `sideStatus[side] === 'complete'` (c'è un best).
+     Il lato completo di una valutazione interrotta è `'line'`: è un best di 3 (o 2) prove valide e
+     ha già un delta per lato (ADR-016 §7); il lato non completo non ha punto. Così grafico e delta
+     dicono la stessa cosa. Il badge INTERROTTA resta sulla riga e nel tooltip.
+   - **Tratti:** per lato, un punto `'line'` apre un nuovo tratto se
+     `getComparabilityIssues(punto, ultimoPuntoLineaDelLato).length > 0`. Si confronta con l'ultimo
+     punto della linea, non con gli `'apart'` (che non spezzano né uniscono nulla). A(20 m) → B(15
+     m) → C(20 m) = tre tratti: "consecutive confrontabili", C non si ricongiunge ad A. Il livello
+     `info` non spezza mai il tratto.
+   - Il tetto OLS resta sulla linea (è un valore valido) con un marcatore proprio.
+   - Adattatore per Recharts `toTrendChartRows(series)` in
+     `features/assessments/assessmentTrend.js` (pura, testabile): una riga per valutazione
+     (`x` = indice, etichetta `formatShortDate`), chiavi `${side}:${segment}` per ogni tratto e
+     `${side}:apart`. Render in `AssessmentTrendChart.jsx`: `ComposedChart` con un `<Line
+     connectNulls>` per tratto (attraversa le righe degli `'apart'` e dell'altro lato, ma non si
+     unisce agli altri tratti perché ha un'altra chiave), `<Scatter>` per gli `'apart'` (cerchio
+     vuoto `var(--rx-warning)`), `dot` personalizzato per il tetto. Asse X a categorie (le date non
+     sono equispaziate, ma due valutazioni dello stesso giorno restano distinte). Asse Y automatico,
+     **nessuna** `ReferenceArea`/`ReferenceLine`, nessuna fascia, nessuna media.
+   - Colori: monolaterale e lato D `var(--rx-accent)` con marcatore cerchio, lato S
+     `var(--rx-accent-2)` con marcatore quadrato (distinguibili senza colore). Tutti i tratti dello
+     stesso lato con lo stesso colore: il colore indica il lato, mai un giudizio.
+   - Grafico solo con almeno 2 punti nel test; altrimenti il testo "Servono almeno 2 valutazioni per
+     il grafico." e lo storico sotto. Altezza 180 px, `ResponsiveContainer` 100 %.
+
+4. **`buildTestHistory`: campi nuovi, nessuno rimosso.**
+   ```js
+   entry = {
+     assessment, reference, delta, deltaUnavailable,      // invariati
+     nonComparable,                                        // invariato (motivi vs precedente immediata)
+     deltaBySide, referenceBySide,                         // invariati (solo bilaterali)
+     previous,      // NUOVO: precedente valida immediata (older[0]) o null
+     comparison,    // NUOVO: 'first' | 'same' | 'differs' | 'none_comparable' | null (annullata)
+     info,          // NUOVO: [{ reason: 'serial' | 'serialMissing', missingOn: 'current' | 'reference' | null, reference }] — [] se nessuna
+   }
+   ```
+   - `comparison`: `'first'` se non c'è `previous`; `'same'` se `nonComparable` è null;
+     `'differs'` se `nonComparable` e `reference` esiste; `'none_comparable'` se `nonComparable` e
+     nessun riferimento. Per i bilaterali vale `reference` (la più recente confrontabile), anche se
+     un lato ha un riferimento più vecchio: i motivi sono sempre rispetto a `previous`, che è unica.
+   - `info` (nuovo `getComparabilityInfo(current, reference)` e `COMPARABILITY_INFO_RULES`, parte
+     client): solo Handgrip e HHD, `[{ key: 'deviceSerialKey' }]`. Per una coppia **già
+     confrontabile** (stesso modello): entrambi presenti e diversi → `serial`; uno solo `null` →
+     `serialMissing` con `missingOn`; entrambi `null` → nulla (ADR-012: "mancante su una delle
+     due"; due assenze non dicono niente di nuovo). Calcolato rispetto a ogni riferimento usato da
+     un delta: `reference` per i monolaterali, i valori distinti di `referenceBySide` per i
+     bilaterali (deduplicati per motivo + id).
+   - **Documenti senza il campo:** chiave assente letta come `null` (`?? null`), quindi rientra
+     nella regola "seriale mancante". Nessuna migrazione, nessuna modifica alle functions per il
+     seriale.
+   - Consumer da adeguare: `AssessmentBadges` (§5), `AssessmentDetailModal`, `HistoryRow`.
+     `formatMonoDelta`/`formatBilateralDelta` invariati (hanno già la data del riferimento). I test
+     esistenti su `nonComparable`/`delta` restano verdi senza modifiche: è la prova di
+     compatibilità.
+
+5. **Testi esatti.** Etichette dei motivi: `COMPARABILITY_REASON_LABELS` invariate; nuove
+   `COMPARABILITY_INFO_LABELS = { serial: 'seriale diverso', serialMissing: 'seriale non
+   registrato' }` in `config/lipedemaTests.config.js`. Date `gg/mm` (`formatShortDate`), come il
+   delta di oggi.
+   - **Badge** (`AssessmentBadges` riceve `entry` facoltativo al posto di `nonComparable`;
+     `LatestAssessmentsCard` non lo passa e resta com'è):
+     - `differs` → `DIVERSA DALLA PRECEDENTE · calzature diverse` (motivi uniti da ", "), colore
+       `var(--rx-warning)`
+     - `none_comparable` → `NON CONFRONTABILE · calzature diverse` (testo di oggi), `var(--rx-warning)`
+     - `info` → `INFO · seriale diverso` / `INFO · seriale non registrato`, `var(--rx-text-muted)`:
+       informativo, non un avviso
+   - **Nota** (`formatComparisonNote(entry)` in `assessmentFormat.js`, `string[]`, in riga sotto i
+     badge e nel dettaglio sotto il delta). `<Motivi>` = etichette unite con ", " e " e " prima
+     dell'ultima, prima lettera maiuscola:
+     - `differs`, con delta: `Calzature diverse dalla valutazione del 07/11: delta rispetto al 05/11.`
+       Bilaterale con riferimenti diversi per lato: `…: delta rispetto al 05/11 (D) e al 20/10 (S).`
+     - `differs`, senza delta (estremo interrotto/invalidato o nessun lato completo in comune):
+       `Calzature diverse dalla valutazione del 07/11: il confronto è con la valutazione del 05/11.`
+     - `none_comparable`: `Calzature diverse dalla valutazione del 07/11: non confrontabile con
+       nessuna valutazione precedente, delta non calcolato.`
+     - `serial`: `Stesso modello di dinamometro, seriale diverso dalla valutazione del 05/11: il
+       delta resta valido.`
+     - `serialMissing`, `missingOn: 'current'`: `Seriale del dinamometro non registrato in questa
+       valutazione (presente in quella del 05/11): il delta resta valido.`
+     - `serialMissing`, `missingOn: 'reference'`: `Seriale del dinamometro non registrato nella
+       valutazione del 05/11: il delta resta valido.`
+   - **Legenda** (sotto il grafico, 11 px, testo + simbolo, mai solo colore):
+     - tutti: `● confrontabili, unite dalla linea` · `La linea si interrompe dove cambia un parametro di protocollo o di setup`
+     - monolaterali: `○ interrotta o invalidata, fuori dalla linea`
+     - bilaterali: `● D destra · ■ S sinistra`
+     - OLS: `▲ tetto 60 s`
+     - nota fissa: `Il delta è sempre rispetto all'ultima valutazione precedente confrontabile,
+       indicata con la data. Nessun valore normativo né giudizio clinico. Le valutazioni annullate
+       non sono nel grafico.`
+   - **Accessibilità:** il contenitore del grafico ha `role="img"` e `aria-label` da
+     `describeTrend(series, test)` (pura, in `assessmentTrend.js`); niente `accessibilityLayer`
+     dentro un `role="img"`. Alternativa testuale: lo storico sotto il grafico elenca già ogni
+     valore con data, stato e delta; il grafico ha `aria-describedby` verso il titolo dello storico
+     e un testo `sr-only` "I valori del grafico sono elencati nello storico qui sotto." Nessuna
+     tabella duplicata.
+     - monolaterale: `Andamento 2-Minute Walk Test in metri: 4 valutazioni dal 06/08/2026 al
+       29/10/2026, 2 tratti confrontabili, fuori dalla linea 1 valutazione interrotta o invalidata.`
+       (l'ultima parte solo se `apartCount > 0`)
+     - bilaterale: `Andamento Handgrip Dynamometry in newton, una serie per lato: destra 3 valori in
+       1 tratto, sinistra 2 valori in 1 tratto.` OLS aggiunge `, 1 tetto a 60 s` se presente.
+     - unità per esteso: nuovo campo `unitLabel` in `LIPEDEMA_TESTS` (`metri`, `ripetizioni`,
+       `newton`, `newton`, `secondi`).
+
+6. **Helper di pluralizzazione (action item 2): `countLabel(count, singular, plural)` nel CORE.**
+   `→ \`${count} ${count === 1 ? singular : plural}\``. In entrambe le copie (CORE identico),
+   esportato e aggiunto a `CORE_FUNCTIONS` del test di parità, con casi 0/1/2. Usato da tutti i
+   messaggi nuovi con un numero (`describeTrend`, "Servono almeno 2 valutazioni" resta fisso). Nel
+   server oggi non ha consumer: c'è perché i messaggi del validatore (BUG-010/015) lo adotteranno
+   quando l'utente deciderà quei fix, che **non** fanno parte di questo ADR. `maxDecimalsMessage`
+   (BUG-018) resta com'è: "un decimale" non è "n + sostantivo".
+
+7. **Stato di caricamento sulle riletture (action item 3).** `refreshAfterSave` tiene la lista e
+   mette `isLoading: true`; `reload` (dopo un annullamento) svuota la lista e mostra gli scheletri
+   (comportamento invariato).
+   - Durante una rilettura con lista presente: grafico e storico restano visibili con
+     `aria-busy="true"` sul contenitore del test e il testo `Aggiornamento in corso…` accanto al
+     titolo; `+ NUOVA VALUTAZIONE` disabilitato (già oggi); nel dettaglio CORREGGI e ANNULLA
+     VALUTAZIONE disabilitati (nuova prop `isBusy` di `AssessmentDetailModal`: una correzione da uno
+     storico non aggiornato potrebbe sostituire un documento già sostituito). Selettore di test,
+     "Nascondi annullate" e apertura del dettaglio restano attivi (solo lettura locale).
+   - Caso nel runbook (§9) e controllo in `qa:dev` (§10).
+
+8. **Layout a 360 px (action item 4).** Selettore in `flex-wrap`, grafico al 100 % senza larghezza
+   minima, margine sinistro dell'asse Y ridotto come in `BiaHistoryChart`, badge già in
+   `flex-wrap`, nota a capo libero. Il caso `qa:dev` verifica a 360×640
+   `document.documentElement.scrollWidth <= 360` nella tab VALUTAZIONI con il grafico visibile.
+
+9. **Runbook** (`config/runbook.config.js`, suite `lipedema`, `usId: 'STORY-039'`; ultimo id oggi
+   TP-072):
+   - TP-073 (blocker) — 2MWT A standard, B percorso diverso, C standard: B "NON CONFRONTABILE ·
+     percorso diverso" con la nota "non confrontabile con nessuna valutazione precedente"; C
+     "DIVERSA DALLA PRECEDENTE · percorso diverso", delta "rispetto al <data di A>" e nota con le
+     due date.
+   - TP-074 (important) — Handgrip stesso modello: seriale diverso, poi seriale mancante → badge
+     INFO, delta presente, la linea non si spezza; modello diverso → tratto nuovo e avviso.
+   - TP-075 (blocker) — grafico: tratti per cambio di protocollo, 2MWT interrotto e STS invalidato
+     come cerchio fuori dalla linea, annullata assente, bilaterale con due serie, OLS con tetto
+     marcato; nessun colore di giudizio, nessuna fascia.
+   - TP-076 (important) — accessibilità: lettore di schermo legge l'`aria-label` del grafico, il
+     selettore si usa da tastiera (schede).
+   - TP-077 (important) — 360 px e riletture: nessuno scroll orizzontale; durante "Aggiornamento in
+     corso…" dopo un salvataggio, CORREGGI/ANNULLA e + NUOVA VALUTAZIONE disabilitati.
+   - Rilettura dei casi esistenti della suite che contano su più test visibili insieme (§1).
+
+10. **`qa:dev`** (`e2e/qa-dev/tests/lipedema.spec.js`, serial, stessa paziente `E2E-`, nessun
+    cleanup nuovo: il teardown cancella già paziente e valutazioni):
+    - aggiornare le asserzioni esistenti con il selettore (§1);
+    - nuovo `test('storico e trend: tratti e badge di comparabilità')`: 2MWT su percorso variante
+      (20 m, conferma variante) poi standard → scheda 2MWT, badge `DIVERSA DALLA PRECEDENTE ·
+      percorso diverso`, testo `rispetto al`, `getByRole('img', { name: /2 tratti/ })`; Handgrip con
+      stesso modello e seriale `E2E-1` → `INFO · seriale non registrato` e delta presente;
+    - stesso test a `setViewportSize({ width: 360, height: 640 })`: `scrollWidth <= 360` con il
+      grafico visibile; e `+ NUOVA VALUTAZIONE` disabilitato subito dopo un salvataggio finché la
+      rilettura non finisce (lo stesso `toBeEnabled({ timeout })` di oggi, preceduto da
+      `toBeDisabled()`).
+
+11. **Cosa non cambia.**
+    - `firestore.rules`: nessuna modifica. Indici: nessuno. `aggiungiValutazione`: nessuna
+      modifica. Piani SaaS: nessun impatto (non si creano trainer né pazienti). `orgId`: nessun
+      nuovo consumer; tutto passa da `assessmentsState`, già prop di `AssessmentsSection`.
+    - Copie speculari: solo `utils/lipedema.js` ↔ `shared/lipedema.js` per `countLabel` (§6). Il
+      resto è fuori dal CORE. **Functions da ridistribuire su dev** (`cd functions && npm run
+      deploy:dev`) per tenere il codice distribuito uguale al repository, senza cambiamenti di
+      comportamento; prod non prevista (DPA, ADR-016 §9).
+    - Delta dopo una valutazione interrotta/invalidata: resta l'addendum di ADR-016 (la successiva
+      mostra "—" con il motivo). Il testo del canvas "Interrotta: non usata come riferimento per il
+      delta" non si applica.
+
+**File da toccare:**
+- `src/utils/lipedema.js` — CORE: `countLabel`; parte client: `COMPARABILITY_INFO_RULES`,
+  `getComparabilityInfo`, `buildTestHistory` (§4), `buildTrendSeries` (§3)
+- `functions/src/shared/lipedema.js` — CORE: `countLabel` (identico)
+- `src/config/lipedemaTests.config.js` — `COMPARABILITY_INFO_LABELS`, `unitLabel`
+- `src/features/assessments/assessmentFormat.js` — `formatComparisonNote`, unione dei motivi
+- `src/features/assessments/assessmentRegistry.js` — `formatSetup` per test, `formatAssessmentSetup`
+- `src/features/assessments/assessmentTrend.js` (nuovo) — `toTrendChartRows`, `describeTrend`
+- `src/features/assessments/AssessmentTrendChart.jsx` (nuovo) — grafico + legenda
+- `src/features/assessments/AssessmentsSection.jsx` — selettore, grafico, riga (§2), stato di rilettura
+- `src/features/assessments/AssessmentBadges.jsx` — prop `entry`, badge `differs`/`info`
+- `src/features/assessments/AssessmentDetailModal.jsx` — nota, badge con `entry`, prop `isBusy`
+- `src/config/runbook.config.js` — TP-073…077 + revisione casi esistenti
+- `e2e/qa-dev/tests/lipedema.spec.js` — selettore + nuovo test
+- Test: `src/__tests__/utils/lipedema.test.js`, `src/__tests__/parity/clientServerParity.test.js`,
+  `src/__tests__/features/assessmentTrend.test.js` (nuovo)
+
+**Test Vitest da aggiungere:**
+- `buildTestHistory`: `comparison` nei 4 casi (first/same/differs/none_comparable), `previous`;
+  `info` con seriale diverso, mancante su `current`, mancante su `reference`, entrambi null
+  (nessuna info), chiave assente nel documento (= null), modello diverso (nessuna info, solo
+  warning); bilaterale con riferimenti diversi per lato (info su entrambi, deduplicata). Casi
+  esistenti invariati.
+- `buildTrendSeries`: annullate escluse; ordine crescente; tratto nuovo su `warning`, non su
+  `info`; A-B-C con B diverso = 3 tratti; `apart` per `stopped_early`/`invalidated` che non spezza
+  il tratto; bilaterale con lato incompleto senza punto e lato completo di un'interrotta sulla
+  linea; tetto OLS; valori arrotondati alla precisione mostrata.
+- `formatComparisonNote` (tutti i testi del §5), `countLabel` (0/1/2, anche in parità),
+  `toTrendChartRows` (chiavi per tratto, righe `apart`), `describeTrend` (mono, bilaterale, OLS).
+
+**Valutazione STORY-040 (PDF) nello stesso sprint: sì, come seconda story, solo dopo che STORY-039
+è chiusa** (review + QA). Motivo: riusa senza modifiche `getLatestValidByTest`, `buildTestHistory`,
+`formatAssessmentPrimary`/`Delta`/`Setup`, `formatComparisonNote` e (se si vogliono grafici)
+`AssessmentTrendChart`; nessuna functions, rules o dato nuovo. Il grosso del rischio (testi e
+comparabilità) lo chiude STORY-039. Approccio sintetico:
+- `LipedemaReportPrint.jsx` lazy in `features/assessments/`, `window.print()` e `reportPrintKit`
+  come `ClientReportPrint`; in `ClientDashboard` il PDF si abilita con `capabilities.hasAssessments`
+  oltre a `hasRank` (oggi `canExportPdf={capabilities.hasRank}` lo nasconde), senza
+  `PrintPickerModal`, per tutti i ruoli che vedono il paziente (staff_readonly incluso).
+- Contenuto: anagrafica, professionista, informativa (versione/data); una riga per test con
+  risultato, delta con data, setup, badge come testo e nota di comparabilità; parametri clinici;
+  BIA se presente; piè di pagina art. 9 del canvas. Terminologia del modulo, nessun
+  rank/percentile/XP/badge.
+- Grafici nel PDF: con larghezza fissa (niente `ResponsiveContainer` in stampa), solo se l'utente li
+  vuole (domanda 2).
+- Report di gruppo: oggi già assente nel modulo (`GroupDetailView` passa
+  `canExportPdf={hasGroupRanking}`, `false` per lipedema); la scelta resta all'utente (domanda 1).
+
+**Domande aperte per l'utente:** nessuna per STORY-039. Bloccano solo STORY-040:
+1. Report di gruppo nel modulo: assente (com'è oggi) oppure presente senza classifiche (cosa
+   mostrerebbe: elenco pazienti con l'ultima data per test?)
+2. Grafici nel PDF: sì o no, e quali (il canvas mostra 2MWT e Handgrip destra).
+3. "Ultima valutazione per ciascun test" (AC) o "ultima visita" (il canvas: "ULTIMA VISITA ·
+   29/10/2026"): se i test sono stati fatti in giorni diversi, il PDF mostra l'ultimo di ciascuno con
+   la sua data (proposta) o solo quelli dell'ultimo giorno?
+
+**Risposte dell'utente (09/11/2026), sbloccano STORY-040:**
+1. Report di gruppo: **assente** nel modulo lipedema (resta `canExportPdf={hasGroupRanking}`).
+2. Grafici nel PDF: **no**, solo tabelle.
+3. **Ultima valutazione valida per ciascun test**, ognuna con la propria data.
+
+**Alternative scartate:**
+- Vista "Storico e trend" separata (route o `view` di `ClientDashboard`): duplica dialog di
+  dettaglio/correzione/annullamento e stato, per un contenuto che la tab VALUTAZIONI ha già.
+- Un grafico per test impilati nella tab: illeggibile a 360 px, e il canvas mostra un test alla
+  volta.
+- `buildTrendSeries` nel CORE con copia server: nessun consumer server, solo più superficie da
+  tenere identica.
+- Seriale come `warning`: escluso da ADR-012 e dalla decisione dell'utente (3).
+- Info anche con entrambi i seriali assenti: segnalerebbe ogni valutazione di chi non registra mai
+  il seriale, senza informazione nuova.
+- Rinominare `nonComparable` o cambiarne il significato: rompe i test e i consumer esistenti; si
+  aggiunge `comparison` accanto.
+- Lato completo di un bilaterale interrotto come cerchio fuori dalla linea: il grafico direbbe
+  "non ordinario" mentre il delta per lato (ADR-016 §7) lo tratta come valore ordinario.
+- Tabella dati duplicata sotto il grafico per l'accessibilità: lo storico è già l'alternativa
+  testuale completa.
+
+**Conseguenze:**
+- Il selettore cambia la tab VALUTAZIONI per chi la usa oggi (un test alla volta): spec `qa:dev` e
+  passi del runbook vanno aggiornati nello stesso cambio.
+- `buildTestHistory` resta O(n²) per test: con decine di valutazioni per paziente è trascurabile.
+- Il livello `info` vale da subito anche per gli Handgrip/HHD già salvati (lo snapshot c'è):
+  nessuna migrazione.
+- `countLabel` nel server senza consumer finché l'utente non decide BUG-010/015.
 

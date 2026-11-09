@@ -7,7 +7,46 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-_Nessuno sprint aperto: vedi Sprint #14 quando pianificato._
+# SPRINT #14 — EPIC-010 Lipedema Edition, quinta ondata (storico e trend + PDF) — aperto il 2026-11-09
+
+**Branch:** `feature/lipedema-module`. Deploy solo su `rankex-dev`, **nessun deploy in prod
+del modulo** (DPA non firmato, STORY-029).
+
+**Goal:** il professionista legge per ogni test l'andamento della paziente, con delta e
+avvisi di comparabilità corretti, e (se approvata) ne esporta il report PDF.
+
+**Riferimento UI:** canvas RankEX, tavole `PazienteTrend`, `MobilePazienteTrend`, `Paziente`,
+`ReportLipedema` (sola lettura). Approccio tecnico: ADR-019.
+
+**Decisioni dell'utente (09/11), vincolanti per STORY-039:** grafico a tratti spezzato a ogni
+cambio di protocollo, interrotte/invalidate come cerchio ambra fuori linea, ceiling OLS marcato,
+una serie per lato; delta sempre sull'ultima valida confrontabile con la data; badge
+"DIVERSA DALLA PRECEDENTE · motivi" quando la precedente immediata differisce; OLS calzature e
+superficie restano warning; livello `info` per il seriale del dinamometro; nessun colore
+buono/cattivo, nessuna media.
+
+**Story selezionate, nell'ordine:**
+1. **STORY-039** — storico, trend e avviso di comparabilità (ADR-019).
+2. **STORY-040** — PDF paziente, solo dopo review e QA di STORY-039 e dopo le risposte
+   dell'utente alle 3 domande di ADR-019 (report di gruppo, grafici nel PDF, quali valutazioni).
+
+**Action item della retrospettiva #13 inclusi:** helper unico `countLabel` client/server con
+parità (adottato nei messaggi nuovi); stato di caricamento sulle riletture dello storico;
+verifica a 360 px; almeno un caso `qa:dev` per trend e badge; caso runbook per l'avviso di
+comparabilità. **Esclusi:** BUG-010, BUG-015, BUG-017 restano aperti (decide l'utente).
+
+**Fuori dal #14:** STORY-043 (bottone principale, `themes.config.js` non committato), STORY-044.
+
+**Status board:**
+
+| Task | Status | Note |
+|------|--------|------|
+| STORY-039 — storico e trend | DONE | Commit `fd14a3b`, review medium (1 MEDIUM + 3 LOW, corretti quelli sullo spec e sulla nota), functions (`countLabel`) e hosting su rankex-dev. QA dal vivo 09/11 desktop e 360 px: badge "DIVERSA DALLA PRECEDENTE", nota con le date, tratti OLS, schede a capo senza scroll orizzontale, staff_readonly in sola lettura. Runbook TP-073…077, caso qa:dev nuovo. |
+| STORY-040 — PDF | DONE | Commit `fa8ffef`, review medium (motivo di interruzione e data BIA corretti). QA dal vivo 09/11: contenuto del PDF da trainer e da staff_readonly. Non verificati: stampa A4 reale e interruzioni di pagina. Runbook TP-078. |
+| BUG-019 — "+1 ripetizioni" | FIXED + VERIFIED | Emerso nella QA del PDF, corretto con unità singolare/plurale nel delta. |
+| BUG-018 su hosting dev | DONE | Deployato con lo sprint, non riverificato dal vivo. |
+| Regressione `npm run qa:dev` | 19/19 | Dopo l'ultimo deploy del 09/11. |
+| STORY-029 — requisiti non-codice | BLOCKED (fuori capacità developer) | Blocca il go-live, non lo sprint. |
 
 ---
 

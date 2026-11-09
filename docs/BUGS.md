@@ -202,8 +202,17 @@ Formato:
 ## [BUG-018] Errore sui decimali dei test bilaterali: "al massimo 1 decimali"
 **Severity:** P3
 **Modulo/Ruolo:** lipedema — Handgrip, HHD, OLS (`utils/lipedema.js`, messaggio con `spec.inputDecimals`). Trovato nella QA del 09/11/2026 (TP-067)
-**Status:** FIXED (09/11/2026) — `maxDecimalsMessage` nel blocco CORE di `utils/lipedema.js` e `shared/lipedema.js` ("un decimale" / "n decimali" / "valore intero"), test in `lipedema.test.js`, parità verde, functions su rankex-dev. Hosting dev con lo Sprint #14
+**Status:** FIXED (09/11/2026) — `maxDecimalsMessage` nel blocco CORE di `utils/lipedema.js` e `shared/lipedema.js` ("un decimale" / "n decimali" / "valore intero"), test in `lipedema.test.js`, parità verde, functions su rankex-dev. Hosting dev deployato il 09/11 con lo Sprint #14 (non riverificato dal vivo: la QA dello sprint copre solo il nuovo)
 **Reproduction steps:** OLS, prova 1 a 30,25 → SALVA.
 **Expected:** "Inserisci il valore con al massimo un decimale", come negli altri campi del modulo.
 **Actual:** "Inserisci il valore con al massimo 1 decimali". Il blocco funziona: l'errore compare e il salvataggio non parte.
 **Suggested fix:** singolare/plurale in base a `inputDecimals`. Va allineata anche la copia server se il messaggio esiste lì (test di parità).
+
+## [BUG-019] Delta del 30s-STS: "+1 ripetizioni"
+**Severity:** P3
+**Modulo/Ruolo:** lipedema — storico valutazioni e PDF (STORY-040), tutti i ruoli. Preesistente da `fe08df0`, emerso nella QA dal vivo dello Sprint #14 (PDF di "QA Visita Sprint13")
+**Status:** FIXED + VERIFIED (09/11/2026, rankex-app-dev, staff_readonly): "+1 ripetizione rispetto al 07/11"
+**Reproduction steps:** paziente con due 30s-STS confrontabili che differiscono di 1 ripetizione → tab VALUTAZIONI → 30s-STS, oppure Esporta PDF.
+**Expected:** "+1 ripetizione rispetto al gg/mm" (e "0 ripetizioni", "+2 ripetizioni").
+**Actual:** "+1 ripetizioni rispetto al gg/mm".
+**Fix:** `formatMonoDelta` accetta un'unità numerabile `{ singular, plural }`; il registro del 30s-STS la usa. Test in `lipedema.test.js`. Stessa famiglia di BUG-010 (che resta aperto, decide l'utente).
