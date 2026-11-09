@@ -61,7 +61,9 @@ export function formatMonoDelta(entry, unitLabel, decimals = 0) {
       : `quella precedente è ${UNAVAILABLE_OUTCOME_TEXT[reference.outcome] ?? deltaUnavailable}`
     return `— ${since}: ${which}`
   }
-  return `${formatSignedNumber(delta, decimals)} ${unitLabel} ${since}`
+  // Unità numerabile ({ singular, plural }): "+1 ripetizione", "+2 ripetizioni"
+  const unit = typeof unitLabel === 'string' ? unitLabel : (Math.abs(delta) === 1 ? unitLabel.singular : unitLabel.plural)
+  return `${formatSignedNumber(delta, decimals)} ${unit} ${since}`
 }
 
 /**

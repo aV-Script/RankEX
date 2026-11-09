@@ -1015,6 +1015,13 @@ describe('testo del delta (registro)', () => {
     const reference = { performedAt: '2026-09-03T10:00', outcome: 'complete' }
     expect(formatMonoDelta({ assessment: { outcome: 'complete' }, reference, delta: 2, deltaUnavailable: null }, 'ripetizioni'))
       .toBe('+2 ripetizioni rispetto al 03/09')
+    const reps = { singular: 'ripetizione', plural: 'ripetizioni' }
+    expect(formatMonoDelta({ assessment: { outcome: 'complete' }, reference, delta: 1, deltaUnavailable: null }, reps))
+      .toBe('+1 ripetizione rispetto al 03/09')
+    expect(formatMonoDelta({ assessment: { outcome: 'complete' }, reference, delta: -1, deltaUnavailable: null }, reps))
+      .toBe('−1 ripetizione rispetto al 03/09')
+    expect(formatMonoDelta({ assessment: { outcome: 'complete' }, reference, delta: 0, deltaUnavailable: null }, reps))
+      .toBe('0 ripetizioni rispetto al 03/09')
     expect(formatMonoDelta({ assessment: { outcome: 'invalidated' }, reference, delta: null, deltaUnavailable: 'invalidated' }, 'ripetizioni'))
       .toBe('— rispetto al 03/09: questa valutazione è invalidata (protocollo non valido)')
     expect(formatMonoDelta({ assessment: { outcome: 'complete' }, reference: { ...reference, outcome: 'stopped_early' }, delta: null, deltaUnavailable: 'stopped_early' }, 'm'))

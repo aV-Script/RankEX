@@ -59,7 +59,7 @@ export const ASSESSMENT_UI = {
     createForm:         nowLocal => createSitToStandForm(nowLocal),
     formFromAssessment: sitToStandFormFromAssessment,
     formatPrimary:      assessment => `${formatNumber(getPrimaryResult(assessment))} rip.`,
-    formatDelta:        entry => formatMonoDelta(entry, 'ripetizioni'),
+    formatDelta:        entry => formatMonoDelta(entry, { singular: 'ripetizione', plural: 'ripetizioni' }),
     formatSetup:        formatSitToStandSetup,
   },
   [HANDGRIP_ID]: {
