@@ -7,43 +7,7 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-### SPRINT #13 — EPIC-010 Lipedema Edition, quarta ondata (HHD + OLS + sequenza di visita) — aperto il 2026-11-06
-
-**Branch:** `feature/lipedema-module`. Rules e functions si deployano solo da qui (ADR-014
-rischio #4). **Nessun deploy in prod del modulo** (DPA non firmato, STORY-029).
-
-**Goal:** il professionista registra tutti e 5 i test di una visita, uno dopo l'altro, e la
-regressione dei flussi critici si lancia con un comando.
-
-**Riferimento UI:** canvas RankEX (https://claude.ai/artifact/XxYxNXzRYT7gRLko4HEeuL), tavole
-`ValutazioneHHD`, `ValutazioneOLS`, `Valutazione2MWT`, `ValutazioneSTS`, `Valutazione`, versioni
-`Mobile*`, `Guida` e `StatiValutazione`.
-
-**Story selezionate, nell'ordine:**
-1. **STORY-037** — HHD quadricipite, sulla logica bilaterale di STORY-036.
-2. **STORY-038** — One-Leg Standing.
-3. **STORY-042** — sequenza di visita con i 5 test.
-4. **Guida dei 5 test** in `TestGuidePage`, ultimo criterio aperto di STORY-033.
-5. **STORY-041** — QA automatica contro `rankex-dev`.
-
-**Fuori dal #13:** STORY-039 (trend), STORY-040 (PDF), STORY-043 (bottone principale nel codice),
-STORY-044 ("Da sistemare").
-
-**Status board:**
-
-| Task | Status | Note |
-|------|--------|------|
-| STORY-037 — HHD | DONE | Commit `e651a9e`, su rankex-dev. QA TP-064…066 PASS il 07/11; il 09/11 PASS anche HHD interrotta con una gamba completa e deviazione che resta attiva dopo la descrizione (TP-066). |
-| STORY-038 — OLS | DONE | Commit `c0b706f`, su rankex-dev. QA TP-067…069 PASS il 07/11; il 09/11 PASS i passi rimasti: errori al salvataggio con 60,5 e 30,25 (TP-067, testo da correggere: BUG-018), Correggi su un OLS salvato col motivo (TP-068), vista staff_readonly (TP-069). Resta da confermare con l'autore: motivo di fine facoltativo sulle prove non valide. |
-| STORY-042 — sequenza di visita | DONE | Commit `8aa0656`, `3174e31`, `6be2314` (BUG-014) e `e841900` (avviso "Non salvati in questa visita"), su rankex-dev. QA TP-070…071 PASS il 07/11 e il 09/11. Scelte confermate dall'utente: SALTA resta (non sull'ultimo test), i test salvati non si riaprono dalla barra (si usa Correggi), nessun documento "visita completa", su mobile "SALVA E PASSA A…" e "SALVA E CHIUDI". Da riportare sul canvas: SALTA e il nuovo avviso nelle tavole Valutazione*. |
-| Guida dei 5 test | DONE | Commit `6a47362`, su rankex-dev. Verificata su mobile e desktop il 07/11; istruzioni verbali e checklist confrontate col testo dei docx. Chiude STORY-033. |
-| STORY-041 — QA automatica | DONE | Commit `3237093` + fix della review high del 09/11 (guardie su identità del service account e Firestore effettivo, pulizia che ricontrolla prefisso e login del cliente, seed che non tocca account fuori da `qadev.*` né di altre org). `npm run qa:dev`: 18/18 verdi dopo i fix, nessun residuo. |
-| STORY-029 — requisiti non-codice | BLOCKED (fuori capacità developer) | Blocca il go-live, non la chiusura dello sprint. |
-
-**Punti di attenzione:**
-- **Implementazione in una sessione nuova:** regola "una sessione per sprint".
-- **Copia speculare** `utils/lipedema.js` ↔ `shared/lipedema.js`: il test di parità è condizione di DONE.
-- **Se il tempo non basta**, STORY-041 passa al #14: non si tagliano i test.
+_Nessuno sprint aperto: vedi Sprint #14 quando pianificato._
 
 ---
 
@@ -92,6 +56,87 @@ sprint successivi, in ordine:
 ---
 
 ## Storico sprint chiusi
+
+# SPRINT #13 — EPIC-010 Lipedema Edition, quarta ondata (HHD + OLS + sequenza di visita) — aperto il 2026-11-06, chiuso il 2026-11-09 (goal raggiunto)
+
+**Branch:** `feature/lipedema-module`. Rules e functions si deployano solo da qui (ADR-014
+rischio #4). **Nessun deploy in prod del modulo** (DPA non firmato, STORY-029).
+
+**Goal:** il professionista registra tutti e 5 i test di una visita, uno dopo l'altro, e la
+regressione dei flussi critici si lancia con un comando.
+
+**Riferimento UI:** canvas RankEX (https://claude.ai/artifact/XxYxNXzRYT7gRLko4HEeuL), tavole
+`ValutazioneHHD`, `ValutazioneOLS`, `Valutazione2MWT`, `ValutazioneSTS`, `Valutazione`, versioni
+`Mobile*`, `Guida` e `StatiValutazione`.
+
+**Story selezionate, nell'ordine:**
+1. **STORY-037** — HHD quadricipite, sulla logica bilaterale di STORY-036.
+2. **STORY-038** — One-Leg Standing.
+3. **STORY-042** — sequenza di visita con i 5 test.
+4. **Guida dei 5 test** in `TestGuidePage`, ultimo criterio aperto di STORY-033.
+5. **STORY-041** — QA automatica contro `rankex-dev`.
+
+**Fuori dal #13:** STORY-039 (trend), STORY-040 (PDF), STORY-043 (bottone principale nel codice),
+STORY-044 ("Da sistemare").
+
+**Status board:**
+
+| Task | Status | Note |
+|------|--------|------|
+| STORY-037 — HHD | DONE | Commit `e651a9e`, su rankex-dev. QA TP-064…066 PASS il 07/11; il 09/11 PASS anche HHD interrotta con una gamba completa e deviazione che resta attiva dopo la descrizione (TP-066). |
+| STORY-038 — OLS | DONE | Commit `c0b706f`, su rankex-dev. QA TP-067…069 PASS il 07/11; il 09/11 PASS i passi rimasti: errori al salvataggio con 60,5 e 30,25 (TP-067, testo da correggere: BUG-018), Correggi su un OLS salvato col motivo (TP-068), vista staff_readonly (TP-069). Confermato dall'utente il 09/11: il motivo di fine sulle prove non valide resta facoltativo. |
+| STORY-042 — sequenza di visita | DONE | Commit `8aa0656`, `3174e31`, `6be2314` (BUG-014) e `e841900` (avviso "Non salvati in questa visita"), su rankex-dev. QA TP-070…071 PASS il 07/11 e il 09/11. Scelte confermate dall'utente: SALTA resta (non sull'ultimo test), i test salvati non si riaprono dalla barra (si usa Correggi), nessun documento "visita completa", su mobile "SALVA E PASSA A…" e "SALVA E CHIUDI". Da riportare sul canvas: SALTA e il nuovo avviso nelle tavole Valutazione*. |
+| Guida dei 5 test | DONE | Commit `6a47362`, su rankex-dev. Verificata su mobile e desktop il 07/11; istruzioni verbali e checklist confrontate col testo dei docx. Chiude STORY-033. |
+| STORY-041 — QA automatica | DONE | Commit `3237093` + fix della review high del 09/11 (guardie su identità del service account e Firestore effettivo, pulizia che ricontrolla prefisso e login del cliente, seed che non tocca account fuori da `qadev.*` né di altre org). `npm run qa:dev`: 18/18 verdi dopo i fix, nessun residuo. |
+| BUG-018 — "al massimo 1 decimali" | DONE | Commit `68fa4f8`, testo identico client/server (parità), functions su rankex-dev; hosting dev con lo Sprint #14. |
+| STORY-029 — requisiti non-codice | BLOCKED (fuori capacità developer) | Blocca il go-live, non la chiusura dello sprint. |
+
+**Punti di attenzione:**
+- **Implementazione in una sessione nuova:** regola "una sessione per sprint".
+- **Copia speculare** `utils/lipedema.js` ↔ `shared/lipedema.js`: il test di parità è condizione di DONE.
+- **Se il tempo non basta**, STORY-041 passa al #14: non si tagliano i test.
+
+## Goal
+Il professionista registra tutti e 5 i test di una visita, uno dopo l'altro, e la
+regressione dei flussi critici si lancia con un comando. **Raggiunto.**
+
+## Completato
+- **STORY-037 — HHD quadricipite** (`e651a9e`) sulla logica bilaterale comune. QA TP-064…066 PASS.
+- **STORY-038 — One-Leg Standing** (`c0b706f`): tetto 60 s, motivo di fine per prova. QA TP-067…069 PASS.
+- **STORY-042 — sequenza di visita** (`8aa0656`, `3174e31`, `6be2314`, `e841900`). QA TP-070…071 PASS.
+- **Guida dei 5 test** in `TestGuidePage` (`6a47362`): chiude STORY-033.
+- **STORY-041 — QA automatica** (`3237093` + `36ff9e4` dalla review high): 18 test su
+  rankex-app-dev, seed idempotente, pulizia `E2E-`. 18/18 verdi dopo i fix.
+- **Bug:** BUG-014 e BUG-016 VERIFIED; BUG-018 FIXED (`68fa4f8`).
+- **Decisioni confermate dall'utente il 09/11:** "SALVA E CHIUDI" a metà visita non mostra
+  l'avviso "Non salvati in questa visita" (resta solo su "SALVA E CHIUDI LA VISITA"); il
+  motivo di fine sulle prove OLS non valide resta facoltativo. Nessuna modifica al codice.
+
+## Non completato (motivo)
+- **BUG-015** (riepilogo screen reader dei bilaterali) e **BUG-017** ("Invalid Date" nel
+  dettaglio org del super admin): aperti, P3, non correggerli senza conferma dell'utente.
+- **STORY-029, requisiti non-codice** (DPA, testo informativa): BLOCKED, utente/legale. Blocca
+  il go-live, non lo sprint.
+- **Canvas da aggiornare** (non toccato dal codice): SALTA e l'avviso "Non salvati in questa
+  visita" sulle tavole `Valutazione*`.
+
+## Blockers
+- Nessuno tecnico. DPA / informativa: unico blocco al go-live di EPIC-010.
+
+## Tech debt emerso
+- **Review high di STORY-041:** le guardie controllavano solo il campo `project_id` del JSON
+  del service account; la pulizia si fidava del chiamante e cancellava l'account Auth del
+  cliente senza verificarne org e `clientId`; il seed cancellava un account "rimasto" con
+  l'email del cliente di base senza guardarne l'org; il limite del range di prefisso era un
+  carattere invisibile (U+F8FF). Tutto corretto in `36ff9e4`. Lezione: ogni funzione che
+  cancella con l'Admin SDK verifica da sé il progetto, non solo il punto d'ingresso.
+- **Nota di STORY-039 (09/11):** delta e badge NON CONFRONTABILE sulla stessa riga. Passa
+  allo Sprint #14 con le decisioni dell'utente.
+
+## Prossimo sprint (candidati)
+STORY-039 (storico, trend, non comparabilità) e, se ci sta, STORY-040 (PDF) → Sprint #14.
+
+---
 
 # SPRINT #12 — EPIC-010 Lipedema Edition, terza ondata (30s-STS + Handgrip bilaterale) — aperto il 2026-10-31, chiuso il 2026-10-31 (goal raggiunto: review con 4 MEDIUM corretti, QA TP-054…063 PASS sull'hosting rankex-dev, nessun bug; non verificati per budget: layout mobile dei nuovi form, painMaxBySide, badge cambio dinamometro)
 

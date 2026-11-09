@@ -1392,7 +1392,7 @@ massimo.
 - **Risks:** senza sezione UI nel docx, il flusso di inserimento va disegnato da
   ux-ui-designer senza riferimento dell'autore
 - **Status:** DONE — Sprint #13: commit `c0b706f`, QA TP-067…069 PASS su rankex-dev il 07/11/2026.
-  Da confermare con l'autore: motivo di fine facoltativo sulle prove non valide
+  Confermato dall'utente il 09/11/2026: motivo di fine facoltativo sulle prove non valide
 
 ### [STORY-039] Storico, trend e avviso di non comparabilità per test
 > **Nota (09/11/2026, da riformulare in questa story):** oggi una riga dello storico può mostrare
