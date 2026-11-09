@@ -1,21 +1,25 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useId, useRef } from 'react'
 import { Button, EmptyState, Modal, SectionLabel } from '../../components/ui'
-import { buildTestHistory, isValidAssessment, getLatestValidByTest, ASSESSMENT_OUTCOME } from '../../utils/lipedema'
+import { buildTestHistory, buildTrendSeries, byMostRecent, isValidAssessment, getLatestValidByTest, ASSESSMENT_OUTCOME } from '../../utils/lipedema'
 import { LIPEDEMA_TESTS, LIPEDEMA_TEST_ORDER } from '../../config/lipedemaTests.config'
-import { formatAssessmentPrimary } from './assessmentRegistry'
+import { formatAssessmentPrimary, formatAssessmentSetup } from './assessmentRegistry'
 import { ICON_TEST }              from '../client/client-dashboard/clientDashboardIcons'
 import { AssessmentBadges }       from './AssessmentBadges'
 import { AssessmentDetailModal }  from './AssessmentDetailModal'
 import { VoidAssessmentDialog }   from './VoidAssessmentDialog'
-import { DeltaText }              from './DeltaText'
+import { DeltaText, ComparisonNote } from './DeltaText'
+import { AssessmentTrendChart }  from './AssessmentTrendChart'
 import { PrivacyNoticeBanner, PRIVACY_BANNER_ID } from './PrivacyNotice'
 import { formatDateTime, formatShortDate } from './assessmentFormat'
 
 const PLACEHOLDER_COUNT = 3
 
+const TAB_KEYS = { next: 'ArrowRight', previous: 'ArrowLeft', first: 'Home', last: 'End' }
+
 /**
- * Tab "Valutazioni" della dashboard paziente (modulo lipedema): storico per
- * test, dalla più recente, con delta neutro e stati speciali (ADR-011/012).
+ * Tab "Valutazioni" della dashboard paziente (modulo lipedema): un test alla
+ * volta (selettore a schede), con grafico di andamento e storico dalla più
+ * recente, delta neutro e stati speciali (ADR-011/012/019).
  * Le annullate sono visibili di default, barrate, con un toggle per nasconderle.
  * "+ NUOVA VALUTAZIONE" chiede quale test (solo se ce n'è più d'uno):
  * `onNewAssessment(testId)`.
@@ -29,18 +33,25 @@ export function AssessmentsSection({
   const [detailEntry,  setDetailEntry]  = useState(null)
   const [voidTarget,   setVoidTarget]   = useState(null)
   const [showPicker,   setShowPicker]   = useState(false)
+  const [selectedTestId, setSelectedTestId] = useState(null)
+  const tabsId = useId()
 
-  // Delta e confronti sempre sullo storico completo; "Nascondi annullate" filtra
-  // solo le righe, e un test con sole annullate sparisce
-  const histories = useMemo(
-    () => LIPEDEMA_TEST_ORDER
-      .map(testId => {
-        const entries = buildTestHistory(assessments, testId)
-        return { testId, entries: hideVoided ? entries.filter(entry => isValidAssessment(entry.assessment)) : entries }
-      })
-      .filter(history => history.entries.length > 0),
-    [assessments, hideVoided],
-  )
+  // Test mostrato: la scelta dell'utente, altrimenti (derivato, non salvato) quello
+  // della valutazione valida più recente e, senza storico, il primo
+  const defaultTestId = useMemo(() => {
+    const [latest] = assessments.filter(isValidAssessment).sort(byMostRecent)
+    return latest?.testId ?? LIPEDEMA_TEST_ORDER[0]
+  }, [assessments])
+  const activeTestId = selectedTestId ?? defaultTestId
+
+  // Delta e confronti sempre sullo storico completo; "Nascondi annullate" filtra solo le righe
+  const entries = useMemo(() => {
+    const all = buildTestHistory(assessments, activeTestId)
+    return hideVoided ? all.filter(entry => isValidAssessment(entry.assessment)) : all
+  }, [assessments, activeTestId, hideVoided])
+  const series = useMemo(() => buildTrendSeries(assessments, activeTestId), [assessments, activeTestId])
+  // Rilettura dopo un salvataggio: la lista resta, solo lettura locale finché non arriva
+  const isRefreshing = isLoading && assessments.length > 0
   const voidedCount = assessments.filter(assessment => !isValidAssessment(assessment)).length
   const canCreate   = !readonly && !needsPrivacyNotice
 
@@ -121,14 +132,19 @@ export function AssessmentsSection({
           />
         )}
 
-        {!loadError && histories.map(({ testId, entries }) => (
-          <TestHistory
-            key={testId}
-            testId={testId}
-            entries={entries}
-            onOpen={setDetailEntry}
-          />
-        ))}
+        {!loadError && assessments.length > 0 && (
+          <>
+            <TestSelector tabsId={tabsId} activeTestId={activeTestId} onSelect={setSelectedTestId} />
+            <TestHistory
+              tabsId={tabsId}
+              testId={activeTestId}
+              entries={entries}
+              series={series}
+              isRefreshing={isRefreshing}
+              onOpen={setDetailEntry}
+            />
+          </>
+        )}
       </div>
 
       {detailEntry && (
@@ -136,6 +152,7 @@ export function AssessmentsSection({
           entry={detailEntry}
           assessments={assessments}
           readonly={readonly}
+          isBusy={isRefreshing}
           onClose={() => setDetailEntry(null)}
           onCorrect={handleCorrect}
           onVoid={handleRequestVoid}
@@ -157,20 +174,86 @@ export function AssessmentsSection({
 
 // ── Componenti locali ─────────────────────────────────────────────────────────
 
-function TestHistory({ testId, entries, onOpen }) {
-  const test = LIPEDEMA_TESTS[testId]
+/** Schede dei test (role="tablist"): a capo, non in uno scroller (360 px); frecce, Home e Fine */
+function TestSelector({ tabsId, activeTestId, onSelect }) {
+  const tabRefs = useRef({})
+
+  const handleKeyDown = useCallback((e, index) => {
+    const last = LIPEDEMA_TEST_ORDER.length - 1
+    const targets = {
+      [TAB_KEYS.next]:     index === last ? 0 : index + 1,
+      [TAB_KEYS.previous]: index === 0 ? last : index - 1,
+      [TAB_KEYS.first]:    0,
+      [TAB_KEYS.last]:     last,
+    }
+    const target = targets[e.key]
+    if (target === undefined) return
+    e.preventDefault()
+    const testId = LIPEDEMA_TEST_ORDER[target]
+    onSelect(testId)
+    tabRefs.current[testId]?.focus()
+  }, [onSelect])
+
   return (
-    <div className="flex flex-col gap-2">
-      <h3 className="font-display text-[12px] font-bold tracking-[1px] text-white m-0">
-        {test.shortName} · {test.name}
-      </h3>
-      <ul className="flex flex-col gap-2 list-none m-0 p-0">
-        {entries.map(entry => (
-          <li key={entry.assessment.id}>
-            <HistoryRow entry={entry} onOpen={onOpen} />
-          </li>
-        ))}
-      </ul>
+    <div role="tablist" aria-label="Test" className="flex flex-wrap gap-1.5">
+      {LIPEDEMA_TEST_ORDER.map((testId, index) => {
+        const isActive = testId === activeTestId
+        return (
+          <button
+            key={testId}
+            ref={node => { tabRefs.current[testId] = node }}
+            id={getTabId(tabsId, testId)}
+            type="button"
+            role="tab"
+            aria-selected={isActive}
+            aria-controls={getPanelId(tabsId)}
+            tabIndex={isActive ? 0 : -1}
+            onClick={() => onSelect(testId)}
+            onKeyDown={e => handleKeyDown(e, index)}
+            className="px-3 py-1.5 rounded-[3px] font-display text-[11px] border cursor-pointer transition-all"
+            style={isActive
+              ? { background: 'color-mix(in srgb, var(--rx-accent) 20%, transparent)', borderColor: 'color-mix(in srgb, var(--rx-accent) 40%, transparent)', color: 'var(--rx-accent)' }
+              : { background: 'transparent', borderColor: 'var(--rx-border)', color: 'var(--rx-text-muted)' }}
+          >
+            {LIPEDEMA_TESTS[testId].shortName}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function TestHistory({ tabsId, testId, entries, series, isRefreshing, onOpen }) {
+  const test    = LIPEDEMA_TESTS[testId]
+  const titleId = useId()
+  return (
+    <div
+      role="tabpanel"
+      id={getPanelId(tabsId)}
+      aria-labelledby={getTabId(tabsId, testId)}
+      aria-busy={isRefreshing}
+      className="flex flex-col gap-3"
+    >
+      <div className="flex items-baseline justify-between gap-x-3 gap-y-1 flex-wrap">
+        <h3 id={titleId} className="font-display text-[12px] font-bold tracking-[1px] text-white m-0">
+          {test.shortName} · {test.name}
+        </h3>
+        {isRefreshing && <span className="font-body text-[12px]" style={{ color: 'var(--rx-text-muted)' }}>Aggiornamento in corso…</span>}
+      </div>
+
+      <AssessmentTrendChart series={series} test={test} describedById={titleId} />
+
+      {entries.length === 0 ? (
+        <p className="font-body text-[13px] m-0" style={{ color: 'var(--rx-text-muted)' }}>Nessuna valutazione di questo test</p>
+      ) : (
+        <ul className="flex flex-col gap-2 list-none m-0 p-0">
+          {entries.map(entry => (
+            <li key={entry.assessment.id}>
+              <HistoryRow entry={entry} onOpen={onOpen} />
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }
@@ -180,6 +263,7 @@ function HistoryRow({ entry, onOpen }) {
   const isVoided = !isValidAssessment(assessment)
   // 0 da invalidazione in tono smorzato, non barrato: non è un valore ordinario
   const isInvalidated = assessment.outcome === ASSESSMENT_OUTCOME.INVALIDATED
+  const setupLine = [formatAssessmentSetup(assessment), assessment.examinerName].filter(Boolean).join(' · ')
   return (
     <button
       type="button"
@@ -197,7 +281,9 @@ function HistoryRow({ entry, onOpen }) {
         </span>
       </div>
       {!isVoided && <DeltaText entry={entry} />}
-      <AssessmentBadges assessment={assessment} nonComparable={entry.nonComparable} />
+      {setupLine && <span className="font-body text-[12px] break-words" style={{ color: 'var(--rx-text-muted)' }}>{setupLine}</span>}
+      <AssessmentBadges assessment={assessment} entry={entry} />
+      {!isVoided && <ComparisonNote entry={entry} />}
       {isVoided && assessment.voidReason && (
         <span className="font-body text-[12px]" style={{ color: 'var(--rx-text-muted)' }}>Motivo: {assessment.voidReason}</span>
       )}
@@ -234,4 +320,14 @@ function TestPicker({ assessments, onPick, onClose }) {
       </div>
     </Modal>
   )
+}
+
+// ── Funzioni helper pure ──────────────────────────────────────────────────────
+
+function getTabId(tabsId, testId) {
+  return `${tabsId}-tab-${testId}`
+}
+
+function getPanelId(tabsId) {
+  return `${tabsId}-panel`
 }

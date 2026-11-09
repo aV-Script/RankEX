@@ -221,7 +221,7 @@ describe('Lipedema — valutazioni e informativa (ADR-014 rischio #3)', () => {
     'requiresPrivacyNotice', 'computeTwoMinuteWalkResult', 'validateAssessmentInput',
     'validatePrivacyNoticeInput', 'validateVoidReason', 'patientAgeAt', 'formatLocalDateTime',
     'computeSitToStandResult', 'computeBilateralResult', 'normalizeKey', 'isStandardChairHeight', 'computeHhdComparability',
-    'computeOlsComparability',
+    'computeOlsComparability', 'countLabel',
   ]
   const CONTEXT = { nowLocal: '2026-10-30T11:00', birthDate: '1985-03-12' }
   const BASE = {
@@ -480,6 +480,13 @@ describe('Lipedema — valutazioni e informativa (ADR-014 rischio #3)', () => {
         }
       }
     }
+  })
+
+  it('countLabel identico su 0, 1 e 2', () => {
+    for (const count of [0, 1, 2, 11]) {
+      expect(serverLipedema.countLabel(count, 'valutazione', 'valutazioni')).toBe(clientLipedema.countLabel(count, 'valutazione', 'valutazioni'))
+    }
+    expect(clientLipedema.countLabel(1, 'tratto', 'tratti')).toBe('1 tratto')
   })
 
   it('informativa, motivo di annullamento, età e capability identici', () => {

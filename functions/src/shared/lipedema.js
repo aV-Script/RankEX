@@ -1250,6 +1250,11 @@ function maxDecimalsMessage(decimals) {
   return `Inserisci il valore con al massimo ${label}`
 }
 
+/** Numero + sostantivo con singolare e plurale: "1 valutazione", "2 valutazioni" */
+export function countLabel(count, singular, plural) {
+  return `${count} ${count === 1 ? singular : plural}`
+}
+
 function hasMaxDecimals(value, decimals) {
   const scaled = value * 10 ** decimals
   return Math.abs(scaled - Math.round(scaled)) < 1e-9

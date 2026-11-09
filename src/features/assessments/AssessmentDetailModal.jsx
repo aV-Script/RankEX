@@ -3,16 +3,18 @@ import { ASSESSMENT_OUTCOME, isValidAssessment } from '../../utils/lipedema'
 import { LIPEDEMA_TESTS } from '../../config/lipedemaTests.config'
 import { ASSESSMENT_UI, formatAssessmentPrimary } from './assessmentRegistry'
 import { AssessmentBadges } from './AssessmentBadges'
-import { DeltaText }        from './DeltaText'
+import { DeltaText, ComparisonNote } from './DeltaText'
 import { DetailSection, Row } from './AssessmentDetailParts'
 import { formatDateTime, formatTimestamp } from './assessmentFormat'
 
 /**
  * Dettaglio di una valutazione: risultato, prove grezze e setup (parte del test,
  * dal registro), parametri clinici e tracciabilità (ADR-011). Azioni solo se
- * scrivibile e valida; staff_readonly vede tutto senza footer.
+ * scrivibile e valida; staff_readonly vede tutto senza footer. Con `isBusy` (storico in
+ * rilettura) CORREGGI e ANNULLA sono disabilitati: uno storico non aggiornato potrebbe
+ * far correggere un documento già sostituito (ADR-019 §7).
  */
-export function AssessmentDetailModal({ entry, assessments, readonly, onClose, onCorrect, onVoid }) {
+export function AssessmentDetailModal({ entry, assessments, readonly, isBusy = false, onClose, onCorrect, onVoid }) {
   const { assessment } = entry
   const test       = LIPEDEMA_TESTS[assessment.testId]
   const ui         = ASSESSMENT_UI[assessment.testId]
@@ -40,7 +42,8 @@ export function AssessmentDetailModal({ entry, assessments, readonly, onClose, o
             </span>
             {ui && <ui.ResultInfo assessment={assessment} />}
             <DeltaText entry={entry} />
-            <AssessmentBadges assessment={assessment} nonComparable={entry.nonComparable} />
+            <AssessmentBadges assessment={assessment} entry={entry} />
+            <ComparisonNote entry={entry} />
           </div>
         </DetailSection>
 
@@ -98,8 +101,8 @@ export function AssessmentDetailModal({ entry, assessments, readonly, onClose, o
 
         {canAct && (
           <div className="flex gap-3 pt-2">
-            <Button size="sm" variant="ghost" className="flex-1" onClick={() => onCorrect(assessment)}>CORREGGI</Button>
-            <Button size="sm" variant="dangerGhost" className="flex-1" onClick={() => onVoid(assessment)}>ANNULLA VALUTAZIONE</Button>
+            <Button size="sm" variant="ghost" className="flex-1" disabled={isBusy} onClick={() => onCorrect(assessment)}>CORREGGI</Button>
+            <Button size="sm" variant="dangerGhost" className="flex-1" disabled={isBusy} onClick={() => onVoid(assessment)}>ANNULLA VALUTAZIONE</Button>
           </div>
         )}
       </div>

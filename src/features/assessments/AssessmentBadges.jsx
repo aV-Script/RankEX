@@ -1,6 +1,6 @@
 import { Badge } from '../../components/ui'
-import { ASSESSMENT_OUTCOME, ASSESSMENT_STATUS, BILATERAL_SIDE_STATUS } from '../../utils/lipedema'
-import { COMPARABILITY_REASON_LABELS, SIDE_LABELS } from '../../config/lipedemaTests.config'
+import { ASSESSMENT_OUTCOME, ASSESSMENT_STATUS, BILATERAL_SIDE_STATUS, COMPARISON } from '../../utils/lipedema'
+import { COMPARABILITY_REASON_LABELS, COMPARABILITY_INFO_LABELS, SIDE_LABELS } from '../../config/lipedemaTests.config'
 import { formatLength } from './assessmentFormat'
 
 const WARNING = 'var(--rx-warning)'
@@ -8,13 +8,14 @@ const WARNING = 'var(--rx-warning)'
 /**
  * Stati che non sono "valori ordinari" (ADR-012, ADR-016): interrotta,
  * invalidata, variante (percorso o sedia), fuori protocollo, errore tecnico,
- * lato incompleto, non confrontabile con la precedente, annullata. Letti dai
- * campi salvati, non dal testId. Mai colori di giudizio sul valore.
- * @param {object}   props.assessment
- * @param {string[]} [props.nonComparable] — motivi da buildTestHistory
+ * lato incompleto, annullata; con `entry` anche la comparabilità con la
+ * precedente (diversa / non confrontabile) e le info sul seriale (ADR-019).
+ * Letti dai campi salvati, non dal testId. Mai colori di giudizio sul valore.
+ * @param {object} props.assessment
+ * @param {object} [props.entry] — riga di buildTestHistory (assente nella card "Ultime valutazioni")
  */
-export function AssessmentBadges({ assessment, nonComparable }) {
-  const badges = getBadges(assessment, nonComparable)
+export function AssessmentBadges({ assessment, entry }) {
+  const badges = getBadges(assessment, entry)
   if (badges.length === 0) return null
   return (
     <div className="flex flex-wrap gap-1.5">
@@ -25,7 +26,7 @@ export function AssessmentBadges({ assessment, nonComparable }) {
 
 // ── Funzioni helper pure ──────────────────────────────────────────────────────
 
-function getBadges(assessment, nonComparable) {
+function getBadges(assessment, entry) {
   const { setup = {}, events = {}, result = {} } = assessment
   const badges = []
   const add = (key, color, label) => badges.push({ key, color, label })
@@ -49,8 +50,15 @@ function getBadges(assessment, nonComparable) {
   for (const [side, isCeiling] of Object.entries(result.ceilingBySide ?? {})) {
     if (isCeiling === true) add(`ceiling-${side}`, 'var(--rx-accent)', `TETTO ${setup.maxDurationS} s · ${SIDE_LABELS[side]?.short ?? side}`)
   }
+  const nonComparable = entry?.nonComparable
   if (nonComparable) {
-    add('non-comparable', WARNING, `NON CONFRONTABILE · ${nonComparable.map(reason => COMPARABILITY_REASON_LABELS[reason] ?? reason).join(', ')}`)
+    const reasons = nonComparable.map(reason => COMPARABILITY_REASON_LABELS[reason] ?? reason).join(', ')
+    const lead = entry.comparison === COMPARISON.DIFFERS ? 'DIVERSA DALLA PRECEDENTE' : 'NON CONFRONTABILE'
+    add('non-comparable', WARNING, `${lead} · ${reasons}`)
+  }
+  // Un badge per motivo anche se due lati hanno riferimenti diversi (le note li distinguono)
+  for (const reason of new Set((entry?.info ?? []).map(item => item.reason))) {
+    add(`info-${reason}`, 'var(--rx-text-muted)', `INFO · ${COMPARABILITY_INFO_LABELS[reason]}`)
   }
   return badges
 }

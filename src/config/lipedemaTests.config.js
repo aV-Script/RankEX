@@ -112,6 +112,12 @@ export const COMPARABILITY_REASON_LABELS = {
   surface:     'superficie diversa',
 }
 
+// Differenze solo informative (utils/lipedema.js → COMPARABILITY_INFO_RULES), ADR-019
+export const COMPARABILITY_INFO_LABELS = {
+  serial:        'seriale diverso',
+  serialMissing: 'seriale non registrato',
+}
+
 // Parametri clinici facoltativi: una riga per misura, colonne PRE | POST.
 // Nessun colore o giudizio sui valori (docx 01 §23)
 export const CLINICAL_ROWS = [
@@ -150,6 +156,7 @@ const OLS_INVALID_REASON_OPTIONS = INVALID_TRIAL_REASON_OPTIONS
  * Bilaterali, facoltativi: `strongestLabel` (default "Più forte"),
  * `endReasonOptions` (motivo di fine per prova), `hasTrialPain: false`.
  * `visitLabel`, facoltativo: etichetta nella sequenza di visita (default `shortName`).
+ * `unitLabel`: unità per esteso, per l'alternativa testuale del grafico.
  */
 export const LIPEDEMA_TESTS = {
   [LIPEDEMA_TEST_IDS.TWO_MINUTE_WALK]: {
@@ -157,6 +164,7 @@ export const LIPEDEMA_TESTS = {
     shortName: '2MWT',
     name:      '2-Minute Walk Test',
     unit:      'm',
+    unitLabel: 'metri',
     protocolVersion:   TWO_MINUTE_WALK.protocolVersion,
     stopReasonOptions: STOP_REASON_OPTIONS,
     clinicalRows:      CLINICAL_ROWS,
@@ -166,6 +174,7 @@ export const LIPEDEMA_TESTS = {
     shortName: '30s-STS',
     name:      'Test Sit-to-Stand di 30 secondi',
     unit:      'rip.',
+    unitLabel: 'ripetizioni',
     protocolVersion:   SIT_TO_STAND_30S.protocolVersion,
     stopReasonOptions: STOP_REASON_OPTIONS,
     clinicalRows:      SIT_TO_STAND_CLINICAL_ROWS,
@@ -176,6 +185,7 @@ export const LIPEDEMA_TESTS = {
     visitLabel: 'HANDGRIP',
     name:      'Handgrip Dynamometry',
     unit:      HANDGRIP.canonicalUnit,
+    unitLabel: 'newton',
     limbName:  'mano',
     protocolVersion:      HANDGRIP.protocolVersion,
     stopReasonOptions:    LIMB_STOP_REASON_OPTIONS,
@@ -187,6 +197,7 @@ export const LIPEDEMA_TESTS = {
     shortName: 'HHD',
     name:      'Handheld Dynamometry · Quadricipite',
     unit:      HHD_QUADRICEPS.canonicalUnit,
+    unitLabel: 'newton',
     limbName:  'gamba',
     protocolVersion:      HHD_QUADRICEPS.protocolVersion,
     stopReasonOptions:    LIMB_STOP_REASON_OPTIONS,
@@ -198,6 +209,7 @@ export const LIPEDEMA_TESTS = {
     shortName: 'OLS',
     name:      'One-Leg Standing',
     unit:      ONE_LEG_STANDING.canonicalUnit,
+    unitLabel: 'secondi',
     limbName:  'gamba',
     protocolVersion:      ONE_LEG_STANDING.protocolVersion,
     stopReasonOptions:    LIMB_STOP_REASON_OPTIONS,

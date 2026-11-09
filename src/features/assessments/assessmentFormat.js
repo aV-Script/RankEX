@@ -1,6 +1,7 @@
 // Formattazione a schermo delle valutazioni (it-IT). Solo presentazione: i
 // valori salvati e i delta li decidono utils/lipedema.js e il server.
-import { SIDE_LABELS } from '../../config/lipedemaTests.config'
+import { COMPARISON } from '../../utils/lipedema'
+import { SIDE_LABELS, COMPARABILITY_REASON_LABELS } from '../../config/lipedemaTests.config'
 
 // Esiti senza delta (buildTestHistory → deltaUnavailable), come li si legge
 const UNAVAILABLE_OUTCOME_TEXT = {
@@ -76,6 +77,65 @@ export function formatBilateralDelta(entry, unit, decimals = 0) {
   const dates = new Set(sides.map(side => entry.referenceBySide[side].performedAt))
   if (dates.size === 1) return `${sides.map(part).join(' · ')} ${since(sides[0])}`
   return sides.map(side => `${part(side)} ${since(side)}`).join(' · ')
+}
+
+/**
+ * Etichette unite con ", " e " e " prima dell'ultima, la prima maiuscola:
+ * "Calzature diverse e superficie diversa".
+ */
+export function joinReasons(reasons) {
+  const labels = reasons.map(reason => COMPARABILITY_REASON_LABELS[reason] ?? reason)
+  const text   = labels.length > 1 ? `${labels.slice(0, -1).join(', ')} e ${labels[labels.length - 1]}` : (labels[0] ?? '')
+  return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
+/**
+ * Note di comparabilità di una riga di storico (ADR-019 §5), una per frase: la
+ * differenza di protocollo rispetto alla precedente (con la data del delta) e le
+ * differenze informative (seriale). [] se non c'è niente da dire.
+ * @param {object} entry — buildTestHistory
+ */
+export function formatComparisonNote(entry) {
+  const notes = []
+  const { comparison, previous, nonComparable } = entry
+  if (previous && nonComparable) {
+    const lead = `${joinReasons(nonComparable)} dalla valutazione del ${formatShortDate(previous.performedAt)}`
+    if (comparison === COMPARISON.NONE_COMPARABLE) {
+      notes.push(`${lead}: non confrontabile con nessuna valutazione precedente, delta non calcolato.`)
+    } else if (comparison === COMPARISON.DIFFERS) {
+      const since = formatDeltaSince(entry)
+      notes.push(since ? `${lead}: delta ${since}.` : `${lead}: delta non calcolato.`)
+    }
+  }
+  for (const item of entry.info ?? []) {
+    const date = formatShortDate(item.reference.performedAt)
+    if (item.reason === 'serial') {
+      notes.push(`Stesso modello di dinamometro, seriale diverso dalla valutazione del ${date}: il delta resta valido.`)
+    } else if (item.missingOn === 'current') {
+      notes.push(`Seriale del dinamometro non registrato in questa valutazione (presente in quella del ${date}): il delta resta valido.`)
+    } else {
+      notes.push(`Seriale del dinamometro non registrato nella valutazione del ${date}: il delta resta valido.`)
+    }
+  }
+  return notes
+}
+
+/**
+ * "rispetto al 05/11", con riferimenti diversi per lato "rispetto al 05/11 (D) e
+ * al 20/10 (S)". null se la riga non ha delta (estremo interrotto/invalidato o
+ * nessun lato completo in comune).
+ */
+function formatDeltaSince(entry) {
+  if (entry.deltaBySide) {
+    const sides = Object.keys(entry.deltaBySide).filter(side => entry.deltaBySide[side] !== null)
+    if (sides.length === 0) return null
+    const dates = new Set(sides.map(side => entry.referenceBySide[side].performedAt))
+    if (dates.size === 1) return `rispetto al ${formatShortDate(entry.referenceBySide[sides[0]].performedAt)}`
+    const parts = sides.map(side => `al ${formatShortDate(entry.referenceBySide[side].performedAt)} (${SIDE_LABELS[side].short})`)
+    return `rispetto ${parts.join(' e ')}`
+  }
+  if (entry.delta === null) return null
+  return `rispetto al ${formatShortDate(entry.reference.performedAt)}`
 }
 
 /** Best per lato: "D 245 · S 231 N" ("—" sul lato senza best) */

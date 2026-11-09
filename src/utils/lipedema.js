@@ -1252,6 +1252,11 @@ function maxDecimalsMessage(decimals) {
   return `Inserisci il valore con al massimo ${label}`
 }
 
+/** Numero + sostantivo con singolare e plurale: "1 valutazione", "2 valutazioni" */
+export function countLabel(count, singular, plural) {
+  return `${count} ${count === 1 ? singular : plural}`
+}
+
 function hasMaxDecimals(value, decimals) {
   const scaled = value * 10 ** decimals
   return Math.abs(scaled - Math.round(scaled)) < 1e-9
@@ -1342,6 +1347,14 @@ export const COMPARABILITY_RULES = {
   ],
 }
 
+// Differenze solo informative tra due valutazioni già confrontabili (ADR-019):
+// non spezzano il tratto del grafico né tolgono il delta. Il seriale è nello
+// snapshot da sempre; una chiave assente (documento vecchio) vale null.
+export const COMPARABILITY_INFO_RULES = {
+  [LIPEDEMA_TEST_IDS.HANDGRIP]:       [{ key: 'deviceSerialKey' }],
+  [LIPEDEMA_TEST_IDS.HHD_QUADRICEPS]: [{ key: 'deviceSerialKey' }],
+}
+
 // Valore primario dei test monolaterali, già arrotondato alla precisione
 // mostrata: il delta si calcola su questo, così è coerente con i due numeri a schermo
 const PRIMARY_RESULT_KEY = {
@@ -1360,6 +1373,18 @@ export const BILATERAL_TESTS = {
 // Esiti che non sono valori ordinari: nessun delta se uno dei due estremi lo è
 // (ADR-012, ADR-016 §7). Per i bilaterali vale il delta per lato
 const NON_ORDINARY_OUTCOMES = [ASSESSMENT_OUTCOME.STOPPED_EARLY, ASSESSMENT_OUTCOME.INVALIDATED]
+
+// Confronto con la precedente immediata (buildTestHistory → comparison)
+export const COMPARISON = {
+  FIRST:           'first',
+  SAME:            'same',
+  DIFFERS:         'differs',
+  NONE_COMPARABLE: 'none_comparable',
+}
+
+// Punti del grafico di andamento (buildTrendSeries)
+export const TREND_KIND = { LINE: 'line', APART: 'apart' }
+export const MONO_SIDE  = 'value'
 
 export function isValidAssessment(assessment) {
   return assessment?.status === ASSESSMENT_STATUS.VALID
@@ -1412,11 +1437,38 @@ export function getComparabilityIssues(current, reference) {
 }
 
 /**
+ * Differenze informative (ADR-019) tra due valutazioni già confrontabili: seriale
+ * del dinamometro diverso (`serial`) o registrato solo su una delle due
+ * (`serialMissing`, con `missingOn`). Due assenze non dicono niente di nuovo.
+ * Vuoto se la coppia non è confrontabile (lì parla già l'avviso).
+ * @returns {Array<{ reason: 'serial'|'serialMissing', missingOn: 'current'|'reference'|null }>}
+ */
+export function getComparabilityInfo(current, reference) {
+  const rules = COMPARABILITY_INFO_RULES[current?.testId] ?? []
+  if (rules.length === 0 || getComparabilityIssues(current, reference).length > 0) return []
+  const a = current?.comparability ?? {}
+  const b = reference?.comparability ?? {}
+  const info = []
+  for (const rule of rules) {
+    const valueA = a[rule.key] ?? null
+    const valueB = b[rule.key] ?? null
+    if (valueA === valueB) continue
+    if (valueA !== null && valueB !== null) info.push({ reason: 'serial', missingOn: null })
+    else info.push({ reason: 'serialMissing', missingOn: valueA === null ? 'current' : 'reference' })
+  }
+  return info
+}
+
+/**
  * Storico di un test dalla più recente. Per ogni valutazione valida:
- * - `nonComparable`: motivi se la precedente valida immediata non è confrontabile
+ * - `previous`: la precedente valida immediata
+ * - `nonComparable`: motivi se `previous` non è confrontabile
+ * - `comparison`: 'first' | 'same' | 'differs' (precedente diversa ma un
+ *   riferimento esiste) | 'none_comparable' (nessun riferimento); null se annullata
  * - `delta`: differenza con la precedente valida E confrontabile (`reference`)
  * - `deltaUnavailable`: l'esito ('stopped_early' | 'invalidated') se uno dei due
  *   estremi non è un valore ordinario
+ * - `info`: differenze informative (seriale) rispetto ai riferimenti dei delta
  * Bilaterali: `delta` resta null e si aggiungono `deltaBySide` / `referenceBySide`:
  * per ogni lato completo, la precedente valida e confrontabile con quel lato
  * completo (un Handgrip interrotto con la destra completa ha il delta a destra).
@@ -1430,7 +1482,10 @@ export function buildTestHistory(assessments, testId) {
   const bilateral = BILATERAL_TESTS[testId] ?? null
 
   return ofTest.map(assessment => {
-    const entry = { assessment, nonComparable: null, reference: null, delta: null, deltaUnavailable: null }
+    const entry = {
+      assessment, nonComparable: null, reference: null, delta: null, deltaUnavailable: null,
+      previous: null, comparison: null, info: [],
+    }
     if (bilateral) {
       entry.deltaBySide     = Object.fromEntries(bilateral.spec.sides.map(side => [side, null]))
       entry.referenceBySide = Object.fromEntries(bilateral.spec.sides.map(side => [side, null]))
@@ -1438,21 +1493,29 @@ export function buildTestHistory(assessments, testId) {
     if (!isValidAssessment(assessment)) return entry
 
     const older = valid.slice(valid.indexOf(assessment) + 1)
-    if (older.length === 0) return entry
+    if (older.length === 0) {
+      entry.comparison = COMPARISON.FIRST
+      return entry
+    }
+    entry.previous = older[0]
 
     const immediateIssues = getComparabilityIssues(assessment, older[0])
     if (immediateIssues.length > 0) entry.nonComparable = immediateIssues
 
     const comparable = older.filter(candidate => getComparabilityIssues(assessment, candidate).length === 0)
     const reference  = comparable[0]
+    if (immediateIssues.length === 0) entry.comparison = COMPARISON.SAME
+    else entry.comparison = reference ? COMPARISON.DIFFERS : COMPARISON.NONE_COMPARABLE
     if (!reference) return entry
     entry.reference = reference
 
     if (bilateral) {
       fillDeltaBySide(entry, comparable, bilateral)
+      entry.info = collectInfo(assessment, Object.values(entry.referenceBySide).filter(Boolean))
       return entry
     }
 
+    entry.info = collectInfo(assessment, [reference])
     const unavailable = [assessment, reference]
       .map(item => item.outcome)
       .find(outcome => NON_ORDINARY_OUTCOMES.includes(outcome))
@@ -1463,6 +1526,63 @@ export function buildTestHistory(assessments, testId) {
     entry.delta = getPrimaryResult(assessment) - getPrimaryResult(reference)
     return entry
   })
+}
+
+/**
+ * Serie per il grafico di andamento di un test (ADR-019 §3): solo valutazioni
+ * valide, in ordine cronologico. Presentazione derivata da snapshot salvati: non
+ * entra in nessun valore salvato né nel CORE.
+ * - monolaterali: un punto per valutazione, `apart` se interrotta o invalidata
+ * - bilaterali: un punto per lato completo, sempre `line` (ha un delta per lato)
+ * - `segment`: la linea di un lato si interrompe quando un parametro di protocollo
+ *   o di setup (livello warning) differisce dall'ultimo punto `line` dello stesso
+ *   lato; i punti `apart` non spezzano né uniscono nulla
+ * Il livello informativo (seriale) non spezza mai il tratto.
+ * @returns {{ sides: string[], points: object[], segmentCountBySide: object, apartCount: number }}
+ */
+export function buildTrendSeries(assessments, testId) {
+  const bilateral = BILATERAL_TESTS[testId] ?? null
+  const sides     = bilateral ? bilateral.spec.sides : [MONO_SIDE]
+  const decimals  = bilateral ? bilateral.displayDecimals : 0
+  const valid     = assessments
+    .filter(assessment => assessment.testId === testId && isValidAssessment(assessment))
+    .sort((a, b) => byMostRecent(b, a))
+
+  const lastLineBySide     = {}
+  const segmentCountBySide = Object.fromEntries(sides.map(side => [side, 0]))
+  const points = []
+  let apartCount = 0
+
+  for (const assessment of valid) {
+    for (const side of sides) {
+      const raw = bilateral
+        ? (assessment.result?.sideStatus?.[side] === BILATERAL_SIDE_STATUS.COMPLETE ? assessment.result.bestBySide?.[side] : null)
+        : getPrimaryResult(assessment)
+      if (!isFiniteNumber(raw)) continue
+
+      const isApart = !bilateral && NON_ORDINARY_OUTCOMES.includes(assessment.outcome)
+      const point = {
+        assessmentId: assessment.id,
+        performedAt:  assessment.performedAt,
+        side,
+        value:        roundToDecimals(raw, decimals),
+        kind:         isApart ? TREND_KIND.APART : TREND_KIND.LINE,
+        segment:      null,
+        outcome:      assessment.outcome,
+        ceiling:      assessment.result?.ceilingBySide?.[side] === true,
+      }
+      if (isApart) {
+        apartCount += 1
+      } else {
+        const last = lastLineBySide[side]
+        if (!last || getComparabilityIssues(assessment, last).length > 0) segmentCountBySide[side] += 1
+        point.segment = segmentCountBySide[side] - 1
+        lastLineBySide[side] = assessment
+      }
+      points.push(point)
+    }
+  }
+  return { sides, points, segmentCountBySide, apartCount }
 }
 
 /** Ultima valutazione valida per ciascun test: { [testId]: assessment } */
@@ -1485,6 +1605,21 @@ function fillDeltaBySide(entry, comparable, { spec, displayDecimals }) {
     entry.referenceBySide[side] = reference
     entry.deltaBySide[side]     = roundToDecimals(delta, displayDecimals)
   }
+}
+
+/** Info (seriale) rispetto a ogni riferimento usato da un delta, senza doppioni per motivo + id */
+function collectInfo(current, references) {
+  const seen = new Set()
+  const info = []
+  for (const reference of references) {
+    for (const item of getComparabilityInfo(current, reference)) {
+      const key = `${item.reason}|${item.missingOn}|${reference.id}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      info.push({ ...item, reference })
+    }
+  }
+  return info
 }
 
 function isDifferent(a, b, tolerance) {

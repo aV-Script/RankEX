@@ -3,7 +3,7 @@ import {
   computeTwoMinuteWalkResult, validateAssessmentInput, validatePrivacyNoticeInput, validateVoidReason,
   patientAgeAt, requiresPrivacyNotice, buildTestHistory, getLatestValidByTest, getComparabilityIssues,
   isPrivacyNoticeMissingError, PRIVACY_NOTICE_MISSING, isSameAssessmentData, nowLocalDateTime, todayLocalDate, LOCAL_TIME_ZONE,
-  computeBilateralResult, HANDGRIP, ONE_LEG_STANDING, getSideDifference,
+  computeBilateralResult, HANDGRIP, ONE_LEG_STANDING, getSideDifference, getComparabilityInfo, countLabel,
 } from '../../utils/lipedema.js'
 import { getModule, MODULES } from '../../config/modules.config.js'
 import { LIPEDEMA_TESTS, getInvalidTrialReasonLabel } from '../../config/lipedemaTests.config.js'
@@ -1027,5 +1027,92 @@ describe('testo del delta (registro)', () => {
     expect(formatBilateralDelta({ deltaBySide: { R: 5, L: null }, referenceBySide: { R: ref, L: null } }, 'N')).toBe('D +5 N rispetto al 03/09')
     expect(formatBilateralDelta({ deltaBySide: { R: null, L: null }, referenceBySide: { R: null, L: null } }, 'N')).toBeNull()
     expect(formatBilateralPrimary({ result: { bestBySide: { R: 245.4, L: null } } }, 'N')).toBe('D 245 · S — N')
+  })
+})
+
+describe('countLabel', () => {
+  it('singolare solo con 1, plurale con 0 e 2', () => {
+    expect(countLabel(0, 'valutazione', 'valutazioni')).toBe('0 valutazioni')
+    expect(countLabel(1, 'valutazione', 'valutazioni')).toBe('1 valutazione')
+    expect(countLabel(2, 'valutazione', 'valutazioni')).toBe('2 valutazioni')
+  })
+})
+
+describe('storico: comparison, previous e info (ADR-019 §4)', () => {
+  const mono = (id, performedAt, distanceM, courseLengthM = 30, extra = {}) => ({
+    id, testId: 'lipedema_2mwt', performedAt, status: 'valid', outcome: 'complete', result: { distanceM },
+    comparability: { protocolVersion: '1.0', courseLengthM, assistiveDevice: 'none' }, ...extra,
+  })
+  const hg = (id, performedAt, serialKey, bestBySide = { R: 300, L: 280 }, extra = {}) => ({
+    id, testId: 'lipedema_handgrip', performedAt, status: 'valid', outcome: 'complete',
+    result: { bestBySide, sideStatus: { R: 'complete', L: 'complete' } },
+    comparability: { protocolVersion: '1.0', deviceModelKey: 'jamar|plus', gripSettingKey: '2', deviceSerialKey: serialKey }, ...extra,
+  })
+  const byId = (history, id) => history.find(entry => entry.assessment.id === id)
+
+  it('first / same / differs / none_comparable, con la precedente immediata', () => {
+    const history = buildTestHistory([
+      mono('a', '2026-09-01T10:00', 130),
+      mono('b', '2026-09-15T10:00', 120, 20),
+      mono('c', '2026-10-01T10:00', 135),
+      mono('d', '2026-10-15T10:00', 140),
+    ], 'lipedema_2mwt')
+    expect(byId(history, 'a')).toMatchObject({ comparison: 'first', previous: null })
+    expect(byId(history, 'b')).toMatchObject({ comparison: 'none_comparable', delta: null })
+    expect(byId(history, 'b').previous.id).toBe('a')
+    expect(byId(history, 'c')).toMatchObject({ comparison: 'differs', nonComparable: ['course'], delta: 5 })
+    expect(byId(history, 'c').previous.id).toBe('b')
+    expect(byId(history, 'c').reference.id).toBe('a')
+    expect(byId(history, 'd')).toMatchObject({ comparison: 'same', nonComparable: null, delta: 5 })
+  })
+
+  it("l'annullata non ha comparison né previous", () => {
+    const entry = byId(buildTestHistory([mono('v', '2026-09-01T10:00', 100, 30, { status: 'voided' })], 'lipedema_2mwt'), 'v')
+    expect(entry).toMatchObject({ comparison: null, previous: null, info: [] })
+  })
+
+  it('seriale diverso: info `serial`, il delta resta', () => {
+    const entry = byId(buildTestHistory([hg('a', '2026-09-01T10:00', 'e2e-1'), hg('b', '2026-10-01T10:00', 'e2e-2', { R: 310, L: 290 })], 'lipedema_handgrip'), 'b')
+    expect(entry.info).toEqual([{ reason: 'serial', missingOn: null, reference: expect.objectContaining({ id: 'a' }) }])
+    expect(entry.deltaBySide).toEqual({ R: 10, L: 10 })
+  })
+
+  it('seriale mancante sulla corrente o sul riferimento', () => {
+    const missingCurrent = byId(buildTestHistory([hg('a', '2026-09-01T10:00', 'e2e-1'), hg('b', '2026-10-01T10:00', null)], 'lipedema_handgrip'), 'b')
+    expect(missingCurrent.info.map(item => [item.reason, item.missingOn])).toEqual([['serialMissing', 'current']])
+    const missingReference = byId(buildTestHistory([hg('a', '2026-09-01T10:00', null), hg('b', '2026-10-01T10:00', 'e2e-1')], 'lipedema_handgrip'), 'b')
+    expect(missingReference.info.map(item => [item.reason, item.missingOn])).toEqual([['serialMissing', 'reference']])
+  })
+
+  it('entrambi i seriali assenti, o chiave assente nel documento: nessuna info', () => {
+    const both = byId(buildTestHistory([hg('a', '2026-09-01T10:00', null), hg('b', '2026-10-01T10:00', null)], 'lipedema_handgrip'), 'b')
+    expect(both.info).toEqual([])
+    const legacy = hg('a', '2026-09-01T10:00', null)
+    delete legacy.comparability.deviceSerialKey
+    const withLegacyKey = byId(buildTestHistory([legacy, hg('b', '2026-10-01T10:00', 'e2e-1')], 'lipedema_handgrip'), 'b')
+    expect(withLegacyKey.info.map(item => item.reason)).toEqual(['serialMissing'])
+    const bothLegacy = hg('b', '2026-10-01T10:00', null)
+    delete bothLegacy.comparability.deviceSerialKey
+    expect(byId(buildTestHistory([legacy, bothLegacy], 'lipedema_handgrip'), 'b').info).toEqual([])
+  })
+
+  it('modello diverso: nessuna info, solo non confrontabile', () => {
+    const other = hg('a', '2026-09-01T10:00', 'x', undefined, { comparability: { protocolVersion: '1.0', deviceModelKey: 'camry|eh101', gripSettingKey: '2', deviceSerialKey: 'x' } })
+    const entry = byId(buildTestHistory([other, hg('b', '2026-10-01T10:00', 'y')], 'lipedema_handgrip'), 'b')
+    expect(entry.info).toEqual([])
+    expect(entry.comparison).toBe('none_comparable')
+    expect(getComparabilityInfo(entry.assessment, other)).toEqual([])
+  })
+
+  it('bilaterale con riferimenti diversi per lato: info su entrambi, senza doppioni per motivo e id', () => {
+    const history = buildTestHistory([
+      hg('a', '2026-08-01T10:00', 'e2e-1', { R: 300, L: 280 }),
+      hg('b', '2026-09-01T10:00', 'e2e-1', { R: 305, L: null }, { outcome: 'stopped_early', result: { bestBySide: { R: 305, L: null }, sideStatus: { R: 'complete', L: 'incomplete' } } }),
+      hg('c', '2026-10-01T10:00', 'e2e-2', { R: 310, L: 290 }),
+    ], 'lipedema_handgrip')
+    const entry = byId(history, 'c')
+    expect(entry.referenceBySide.R.id).toBe('b')
+    expect(entry.referenceBySide.L.id).toBe('a')
+    expect(entry.info.map(item => [item.reason, item.reference.id])).toEqual([['serial', 'b'], ['serial', 'a']])
   })
 })

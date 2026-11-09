@@ -3,7 +3,7 @@
 // ramificano su testId. Dati e etichette in config/lipedemaTests.config.js.
 // Un test nuovo = una voce qui + una in LIPEDEMA_TESTS/ORDER.
 import { LIPEDEMA_TEST_IDS, BILATERAL_TESTS, getPrimaryResult } from '../../utils/lipedema'
-import { LIPEDEMA_TESTS } from '../../config/lipedemaTests.config'
+import { LIPEDEMA_TESTS, getAssistiveDeviceLabel, getFootwearLabel, getSurfaceLabel } from '../../config/lipedemaTests.config'
 import { TwoMinuteWalkForm } from './TwoMinuteWalkForm'
 import { SitToStandForm }    from './SitToStandForm'
 import { HandgripForm }      from './HandgripForm'
@@ -19,7 +19,7 @@ import { createTwoMinuteWalkForm, formFromAssessment as twoMinuteWalkFormFromAss
 import { createSitToStandForm, sitToStandFormFromAssessment } from './sitToStandFormModel'
 import { createHandgripForm, handgripFormFromAssessment }     from './handgripFormModel'
 import { createHhdForm, hhdFormFromAssessment }               from './hhdFormModel'
-import { formatNumber, formatMonoDelta, formatBilateralDelta, formatBilateralPrimary } from './assessmentFormat'
+import { formatNumber, formatLength, formatMonoDelta, formatBilateralDelta, formatBilateralPrimary } from './assessmentFormat'
 
 const HANDGRIP_ID       = LIPEDEMA_TEST_IDS.HANDGRIP
 const HANDGRIP_DECIMALS = BILATERAL_TESTS[HANDGRIP_ID].displayDecimals
@@ -39,6 +39,7 @@ const OLS_UNIT          = LIPEDEMA_TESTS[OLS_ID].unit
  * - `formFromAssessment(assessment)` — form di Correggi
  * - `formatPrimary(assessment)` — valore principale a schermo
  * - `formatDelta(entry)`        — testo del delta (buildTestHistory), null se assente
+ * - `formatSetup(assessment)`   — setup e versione del protocollo, in una riga (dai campi salvati)
  */
 export const ASSESSMENT_UI = {
   [LIPEDEMA_TEST_IDS.TWO_MINUTE_WALK]: {
@@ -49,6 +50,7 @@ export const ASSESSMENT_UI = {
     formFromAssessment: twoMinuteWalkFormFromAssessment,
     formatPrimary:      assessment => `${formatNumber(getPrimaryResult(assessment))} m`,
     formatDelta:        entry => formatMonoDelta(entry, 'm'),
+    formatSetup:        formatTwoMinuteWalkSetup,
   },
   [LIPEDEMA_TEST_IDS.SIT_TO_STAND_30S]: {
     Form:               SitToStandForm,
@@ -58,6 +60,7 @@ export const ASSESSMENT_UI = {
     formFromAssessment: sitToStandFormFromAssessment,
     formatPrimary:      assessment => `${formatNumber(getPrimaryResult(assessment))} rip.`,
     formatDelta:        entry => formatMonoDelta(entry, 'ripetizioni'),
+    formatSetup:        formatSitToStandSetup,
   },
   [HANDGRIP_ID]: {
     Form:               HandgripForm,
@@ -67,6 +70,7 @@ export const ASSESSMENT_UI = {
     formFromAssessment: handgripFormFromAssessment,
     formatPrimary:      assessment => formatBilateralPrimary(assessment, HANDGRIP_UNIT, HANDGRIP_DECIMALS),
     formatDelta:        entry => formatBilateralDelta(entry, HANDGRIP_UNIT, HANDGRIP_DECIMALS),
+    formatSetup:        formatHandgripSetup,
   },
   [HHD_ID]: {
     Form:               HhdForm,
@@ -76,6 +80,7 @@ export const ASSESSMENT_UI = {
     formFromAssessment: hhdFormFromAssessment,
     formatPrimary:      assessment => formatBilateralPrimary(assessment, HHD_UNIT, HHD_DECIMALS),
     formatDelta:        entry => formatBilateralDelta(entry, HHD_UNIT, HHD_DECIMALS),
+    formatSetup:        formatHhdSetup,
   },
   [OLS_ID]: {
     Form:               OlsForm,
@@ -85,6 +90,7 @@ export const ASSESSMENT_UI = {
     formFromAssessment: olsFormFromAssessment,
     formatPrimary:      assessment => formatBilateralPrimary(assessment, OLS_UNIT, OLS_DECIMALS),
     formatDelta:        entry => formatBilateralDelta(entry, OLS_UNIT, OLS_DECIMALS),
+    formatSetup:        formatOlsSetup,
   },
 }
 
@@ -95,4 +101,57 @@ export function formatAssessmentPrimary(assessment) {
 
 export function formatAssessmentDelta(entry) {
   return ASSESSMENT_UI[entry?.assessment?.testId]?.formatDelta(entry) ?? null
+}
+
+/** Setup e protocollo in una riga; vuoto per un testId senza voce */
+export function formatAssessmentSetup(assessment) {
+  return ASSESSMENT_UI[assessment?.testId]?.formatSetup(assessment) ?? ''
+}
+
+// ── Setup per test (ADR-019 §2) ───────────────────────────────────────────────
+
+const FIXATION_SHORT_LABELS = { belt: 'cinghia', manual: 'manuale' }
+
+function joinSetup(parts, assessment) {
+  return [...parts, `protocollo ${assessment.protocolVersion}`].join(' · ')
+}
+
+function formatTwoMinuteWalkSetup(assessment) {
+  const { setup = {} } = assessment
+  const assistive = setup.assistiveDevice === 'none'
+    ? 'nessun ausilio'
+    : `ausilio ${(setup.assistiveDeviceNote ?? getAssistiveDeviceLabel(setup.assistiveDevice)).toLowerCase()}`
+  return joinSetup([`percorso ${formatLength(setup.courseLengthM)} m`, assistive], assessment)
+}
+
+function formatSitToStandSetup(assessment) {
+  const { setup = {} } = assessment
+  return joinSetup([
+    `sedia ${formatLength(setup.chairHeightCm)} cm`,
+    setup.chairHasArmrests ? 'con braccioli' : 'senza braccioli',
+    setup.armsCrossed ? 'braccia incrociate' : 'braccia non incrociate',
+  ], assessment)
+}
+
+function formatHandgripSetup(assessment) {
+  const { device = {}, gripSetting } = assessment.setup ?? {}
+  return joinSetup([`${device.brand} ${device.model}`, `impugnatura ${gripSetting}`], assessment)
+}
+
+function formatHhdSetup(assessment) {
+  const { device = {}, fixationMethod, kneeAngleDeg, hipAngleDeg } = assessment.setup ?? {}
+  return joinSetup([
+    `${device.brand} ${device.model}`,
+    FIXATION_SHORT_LABELS[fixationMethod] ?? fixationMethod,
+    `ginocchio ${kneeAngleDeg}°`,
+    `anca ${hipAngleDeg}°`,
+  ], assessment)
+}
+
+function formatOlsSetup(assessment) {
+  const { footwear, surface, surfaceNote } = assessment.setup ?? {}
+  return joinSetup([
+    getFootwearLabel(footwear).toLowerCase(),
+    surfaceNote ?? getSurfaceLabel(surface).toLowerCase(),
+  ], assessment)
 }
