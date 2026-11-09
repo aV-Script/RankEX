@@ -25,6 +25,9 @@ export function AssessmentFormShell({ test, client, supersedes, formState, summa
     correctionReason, setCorrectionReason, reasonCheck, handleRequestSave, handleConfirmSave, handleBack,
   } = formState
   const headingRef = useRef(null)
+  // Senza un test successivo il salvataggio chiude la visita: si ricorda cosa resta fuori,
+  // senza bloccare. La correzione non ha visit, quindi niente avviso
+  const closesVisitWithUnsaved = Boolean(visit && !visit.nextLabel && visit.unsavedLabels?.length)
 
   // Il form di ogni test si monta nuovo: si riparte dall'alto, altrimenti si aprirebbe
   // a metà pagina, con il focus perso
@@ -99,6 +102,11 @@ export function AssessmentFormShell({ test, client, supersedes, formState, summa
             <span>{formatDateTime(form.performedAt)} · {test.shortName}</span>
             {confirmSummary}
           </div>
+          {closesVisitWithUnsaved && (
+            <WarningNote title="Visita" className="mb-4">
+              Non salvati in questa visita: {visit.unsavedLabels.join(', ')}
+            </WarningNote>
+          )}
           {supersedes && (
             <div className="mb-4">
               <Field label="Motivo della correzione" htmlFor="assessment-correction-reason" error={correctionReason && reasonCheck.error ? reasonCheck.error : undefined}>

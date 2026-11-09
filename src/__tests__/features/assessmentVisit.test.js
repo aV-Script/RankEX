@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildVisitProgress, getNextVisitTestId, getVisitLabel } from '../../features/assessments/assessmentVisit'
+import { buildVisitProgress, getNextVisitTestId, getUnsavedVisitLabels, getVisitLabel } from '../../features/assessments/assessmentVisit'
 import { LIPEDEMA_TEST_ORDER } from '../../config/lipedemaTests.config'
 import { LIPEDEMA_TEST_IDS } from '../../utils/lipedema'
 
@@ -54,6 +54,21 @@ describe('buildVisitProgress', () => {
     const progress = buildVisitProgress(ONE_LEG_STANDING)
     expect(progress.position).toBe(5)
     expect(progress.nextLabel).toBeNull()
+  })
+})
+
+describe('getUnsavedVisitLabels', () => {
+  it('elenca i test non salvati, escluso quello corrente, nell\'ordine della visita', () => {
+    // 2MWT e HHD saltati, si chiude dall'OLS
+    expect(getUnsavedVisitLabels(buildVisitProgress(ONE_LEG_STANDING, [SIT_TO_STAND_30S, HANDGRIP]).steps)).toEqual(['2MWT', 'HHD'])
+  })
+
+  it('con tutti gli altri test salvati non resta nulla', () => {
+    expect(getUnsavedVisitLabels(buildVisitProgress(ONE_LEG_STANDING, [TWO_MINUTE_WALK, SIT_TO_STAND_30S, HANDGRIP, HHD_QUADRICEPS]).steps)).toEqual([])
+  })
+
+  it('arriva in buildVisitProgress', () => {
+    expect(buildVisitProgress(ONE_LEG_STANDING, [SIT_TO_STAND_30S, HANDGRIP, HHD_QUADRICEPS]).unsavedLabels).toEqual(['2MWT'])
   })
 })
 

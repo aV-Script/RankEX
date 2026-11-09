@@ -21,18 +21,30 @@ export function getNextVisitTestId(currentTestId, savedTestIds = [], order = LIP
   return order.slice(currentIndex + 1).find(testId => !savedTestIds.includes(testId)) ?? null
 }
 
-/** Dati di AssessmentFormShell: posizione "n di 5", prossimo test, stato di ogni test */
+/**
+ * Test della visita non salvati, escluso quello corrente (che si sta salvando):
+ * l'avviso, non bloccante, nella conferma di "SALVA E CHIUDI LA VISITA".
+ * Dagli stessi steps della barra, così avviso e ✓ non possono divergere.
+ * @returns {string[]} etichette, nell'ordine della visita
+ */
+export function getUnsavedVisitLabels(steps) {
+  return steps.filter(step => !step.isSaved && !step.isCurrent).map(step => step.label)
+}
+
+/** Dati di AssessmentFormShell: posizione "n di 5", prossimo test, test non salvati, stato di ogni test */
 export function buildVisitProgress(currentTestId, savedTestIds = [], order = LIPEDEMA_TEST_ORDER) {
   const nextTestId = getNextVisitTestId(currentTestId, savedTestIds, order)
+  const steps = order.map(testId => ({
+    testId,
+    label:     getVisitLabel(testId),
+    isCurrent: testId === currentTestId,
+    isSaved:   savedTestIds.includes(testId),
+  }))
   return {
-    position:  order.indexOf(currentTestId) + 1,
-    total:     order.length,
-    nextLabel: nextTestId ? getVisitLabel(nextTestId) : null,
-    steps:     order.map(testId => ({
-      testId,
-      label:     getVisitLabel(testId),
-      isCurrent: testId === currentTestId,
-      isSaved:   savedTestIds.includes(testId),
-    })),
+    position:      order.indexOf(currentTestId) + 1,
+    total:         order.length,
+    nextLabel:     nextTestId ? getVisitLabel(nextTestId) : null,
+    unsavedLabels: getUnsavedVisitLabels(steps),
+    steps,
   }
 }
