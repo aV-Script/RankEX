@@ -137,13 +137,13 @@ export function CloseSessionModal({ slot, clients, hasGamification, terminology,
         >
           <div className="flex items-center gap-3">
             <span className="font-display text-[12px] text-emerald-400">
-              {presentCount} presenti
+              {presentCount} {presentCount === 1 ? 'presente' : 'presenti'}
             </span>
             {absentCount > 0 && (
               <>
                 <span className="text-white/20">·</span>
                 <span className="font-display text-[12px] text-red-400">
-                  {absentCount} assenti
+                  {absentCount} {absentCount === 1 ? 'assente' : 'assenti'}
                 </span>
               </>
             )}

@@ -77,7 +77,7 @@ async function ensureOrgAndStaff(moduleKey, org) {
     await orgRef.set({
       name: org.name, moduleType: org.moduleType, terminologyVariant: org.terminologyVariant,
       plan: 'pro', status: 'active', ownerId: null,
-      memberCount: 0, clientCount: 0, createdAt: FieldValue.serverTimestamp(),
+      memberCount: 0, clientCount: 0, createdAt: new Date().toISOString(),
     })
   }
 

@@ -16,7 +16,7 @@ import {
 import {
   createHandgripForm, buildHandgripInput, handgripFormFromAssessment,
 } from '../../features/assessments/handgripFormModel.js'
-import { createPlannedTrials, proposeNextSide, getLatestDominantLeg, toPreviewTrials } from '../../features/assessments/bilateralFormModel.js'
+import { createPlannedTrials, countFilledTrialRows, proposeNextSide, getLatestDominantLeg, toPreviewTrials } from '../../features/assessments/bilateralFormModel.js'
 import {
   createOlsForm, buildOlsInput, olsFormFromAssessment, olsComparabilityOf, applyOlsRowPatch, getOlsComparabilityWarnings,
 } from '../../features/assessments/olsFormModel.js'
@@ -992,6 +992,14 @@ describe('form 30s-STS e Handgrip ↔ input della callable', () => {
       dominantSide: 'L', deviceBrand: 'Jamar', deviceModel: 'Plus', deviceSerial: '', gripSetting: '2', nativeUnit: 'kgf',
     })
     expect(createHandgripForm('2026-10-30T10:30')).toMatchObject({ dominantSide: '', nativeUnit: 'N' })
+  })
+
+  it('countFilledTrialRows: conta solo le prove con almeno un dato, non le righe pianificate vuote', () => {
+    const rows = createPlannedTrials(HANDGRIP)
+    expect(countFilledTrialRows(rows)).toBe(0)
+    rows[0].nativeValue = '30'
+    rows[1].valid = false
+    expect(countFilledTrialRows(rows)).toBe(2)
   })
 
   it('Handgrip: con lo stop le righe pianificate vuote non si salvano; Correggi identico', () => {

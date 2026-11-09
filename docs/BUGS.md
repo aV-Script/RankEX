@@ -124,11 +124,12 @@ Formato:
 ## [BUG-010] Lipedema: plurale con quantità 1 nei limiti piano ("massimo 1 professionisti")
 **Severity:** P3
 **Modulo/Ruolo:** lipedema — org_admin (introdotto da b119bfb); simile, preesistente, in tutti i moduli: "1 presenti" nel modal di chiusura
-**Status:** OPEN
+**Status:** FIXED (09/11/2026, da verificare in QA)
 **Reproduction steps:** org lipedema su piano free con ≥1 membro → org_admin → Team (banner limite) → IMPOSTAZIONI; calendario → chiudi un appuntamento con 1 presente.
 **Expected:** "massimo 1 professionista", "Max 1 professionista", "1 presente".
 **Actual:** `MembersPage` "Il piano FREE consente massimo 1 professionisti."; `OrgSettingsPage` "Max 1 professionisti · Max 10 pazienti"; `CloseSessionModal` "1 presenti". PT/soccer non visibili ("trainer"/"coach" invariabili).
 **Suggested fix:** scegliere singolare/plurale in base al numero (`limit === 1 ? terminology.trainer : terminology.trainers`, idem per i presenti).
+**Fix:** singolare/plurale in base al numero in `MembersPage` (`terminology.trainer` con limite 1), `OrgSettingsPage` (professionisti e pazienti), `NewClientView` (pazienti) e `CloseSessionModal` ("1 presente", "1 assente").
 
 ## [BUG-011] Lipedema: form 2MWT/BIA compilato perso senza conferma (nav principale; INDIETRO della BIA)
 **Severity:** P2
@@ -175,11 +176,12 @@ Formato:
 ## [BUG-015] Riepilogo per screen reader dei test bilaterali: "prove inserite" conta anche le righe vuote
 **Severity:** P3
 **Modulo/Ruolo:** lipedema — Handgrip, HHD, OLS (`BilateralSummary`, testo `sr-only` in area `aria-live`)
-**Status:** OPEN
+**Status:** FIXED (09/11/2026, da verificare in QA)
 **Reproduction steps:** aprire un form bilaterale senza compilare nulla e leggere il riepilogo con uno screen reader.
 **Expected:** il numero di prove compilate (0).
 **Actual:** "6 prove inserite" (OLS: 4), perché usa `form.trials.length`.
 **Suggested fix:** contare le sole righe con un valore.
+**Fix:** `countFilledTrialRows` in `bilateralFormModel.js` (righe con almeno un dato, stessa definizione di `isEmptyTrialRow`) e `countLabel`: "1 prova inserita". Test in `lipedema.test.js`.
 
 ## [BUG-016] Dopo SALVA E CHIUDI la lista non ha ancora l'ultima valutazione e + NUOVA è attivo
 **Severity:** P3
@@ -193,11 +195,12 @@ Formato:
 ## [BUG-017] Super admin: "Creato il: Invalid Date" nel dettaglio di Demo Lipedema
 **Severity:** P3
 **Modulo/Ruolo:** super_admin, `OrgDetailView`. Trovato di passaggio nella QA Sprint #13, fuori dal perimetro della QA
-**Status:** OPEN
+**Status:** FIXED (09/11/2026, da verificare in QA)
 **Reproduction steps:** rankex-admin-dev → Organizzazioni → Demo Lipedema.
 **Expected:** la data di creazione dell'org.
 **Actual:** "Invalid Date". L'org è creata da `scripts/seed-demo-lipedema.mjs` con `createdAt` come timestamp Firestore; causa da confermare (formato atteso dalla vista).
 **Suggested fix:** gestire il timestamp Firestore nella formattazione della data.
+**Fix:** `getOrganizations`/`getOrganization` normalizzano `createdAt` (Timestamp → ISO) con `utils/orgDates.js`, così anche i dati già su rankex-dev si leggono; i due seed scrivono `new Date().toISOString()` solo alla creazione dell'org. Test in `orgDates.test.js`.
 
 ## [BUG-018] Errore sui decimali dei test bilaterali: "al massimo 1 decimali"
 **Severity:** P3

@@ -52,6 +52,11 @@ export function isEmptyTrialRow(row) {
   return row.nativeValue.trim() === '' && !row.endReason && row.note.trim() === '' && row.pain.trim() === '' && row.valid
 }
 
+/** Prove con almeno un dato inserito: le righe pianificate ancora vuote non contano */
+export function countFilledTrialRows(rows) {
+  return rows.filter(row => !isEmptyTrialRow(row)).length
+}
+
 export function nextTrialKey(trials) {
   return trials.reduce((max, trial) => Math.max(max, trial.key), 0) + 1
 }

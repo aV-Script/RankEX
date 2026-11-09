@@ -66,7 +66,7 @@ export function OrgSettingsPage({ org, orgId }) {
           <div className="font-body text-[11px] text-white/60 mt-1.5">
             {limits.trainers === Infinity
               ? `${terminology.trainers} e ${terminology.clients.toLowerCase()} illimitati`
-              : `Max ${limits.trainers} ${terminology.trainers.toLowerCase()} · Max ${limits.clients} ${terminology.clients.toLowerCase()}`
+              : `Max ${limits.trainers} ${(limits.trainers === 1 ? terminology.trainer : terminology.trainers).toLowerCase()} · Max ${limits.clients} ${(limits.clients === 1 ? terminology.client : terminology.clients).toLowerCase()}`
             }
             {' — '}solo il super admin può cambiare il piano.
           </div>

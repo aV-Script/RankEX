@@ -4,18 +4,19 @@ import {
 } from 'firebase/firestore'
 import { db } from './db'
 import { membersPath } from '../paths'
+import { normalizeOrgData } from '../../utils/orgDates'
 
 // ── Organizzazioni ────────────────────────────────────────────────────────────
 
 export const getOrganizations = async () => {
   const q    = query(collection(db, 'organizations'), orderBy('createdAt', 'desc'))
   const snap = await getDocs(q)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return snap.docs.map(d => ({ id: d.id, ...normalizeOrgData(d.data()) }))
 }
 
 export const getOrganization = async (orgId) => {
   const snap = await getDoc(doc(db, 'organizations', orgId))
-  return snap.exists() ? { id: snap.id, ...snap.data() } : null
+  return snap.exists() ? { id: snap.id, ...normalizeOrgData(snap.data()) } : null
 }
 
 export const createOrganization = (orgId, data) =>

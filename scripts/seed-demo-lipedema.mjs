@@ -66,7 +66,7 @@ if ((await orgRef.get()).exists) {
 await orgRef.set({
   name: 'Demo Lipedema', moduleType: 'lipedema', terminologyVariant: 'lipedema',
   plan: 'pro', status: 'active', ownerId: null,
-  memberCount: 0, clientCount: 0, createdAt: FieldValue.serverTimestamp(),
+  memberCount: 0, clientCount: 0, createdAt: new Date().toISOString(),
 })
 const uids = {}
 for (const user of USERS) {

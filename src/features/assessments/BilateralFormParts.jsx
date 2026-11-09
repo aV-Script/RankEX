@@ -1,7 +1,7 @@
 import { Badge, Button, Field, Input, SectionLabel, SegmentedToggle, WarningNote } from '../../components/ui'
-import { BILATERAL_TESTS, TEXT_LIMITS } from '../../utils/lipedema'
+import { BILATERAL_TESTS, TEXT_LIMITS, countLabel } from '../../utils/lipedema'
 import { SIDE_LABELS, getStrongestLabel } from '../../config/lipedemaTests.config'
-import { isEmptyTrialRow } from './bilateralFormModel'
+import { isEmptyTrialRow, countFilledTrialRows } from './bilateralFormModel'
 import { fieldId } from './formModelUtils'
 import { YesNoField, ChoiceField, StopReasonFields } from './AssessmentFormFields'
 import { formatNumber } from './assessmentFormat'
@@ -164,7 +164,7 @@ export function BilateralSummary({ spec, formState, trialsState }) {
           Letti: {spec.sides.filter(side => nativeBest(side) !== null).map(side => `${SIDE_LABELS[side].short} ${formatNumber(nativeBest(side), NATIVE_DECIMALS)} kgf`).join(' · ')}
         </span>
       )}
-      <span className="sr-only">{form.trials.length} prove inserite</span>
+      <span className="sr-only">{countLabel(countFilledTrialRows(form.trials), 'prova inserita', 'prove inserite')}</span>
     </div>
   )
 }

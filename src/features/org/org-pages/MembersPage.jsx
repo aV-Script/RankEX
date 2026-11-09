@@ -24,6 +24,7 @@ export function MembersPage({ orgId, org, onNavigate }) {
   const [removing,          setRemoving]          = useState(false)
 
   const planLimits    = getPlanLimits(org?.plan)
+  const limitTrainersLabel = planLimits.trainers === 1 ? terminology.trainer.toLowerCase() : trainersLabel
   const atTrainerLimit = members.length >= planLimits.trainers
 
   const fetchMembers = useCallback(() => {
@@ -105,7 +106,7 @@ export function MembersPage({ orgId, org, onNavigate }) {
             </div>
             <div className="font-body text-[12px] text-white/40">
               Il piano <span className="text-white/60">{(org?.plan ?? 'free').toUpperCase()}</span> consente
-              massimo <span className="text-white/60">{planLimits.trainers} {trainersLabel}</span>.
+              massimo <span className="text-white/60">{planLimits.trainers} {limitTrainersLabel}</span>.
               Aggiorna il piano per aggiungere altri membri.
             </div>
           </div>
