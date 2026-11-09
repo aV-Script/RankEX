@@ -710,6 +710,25 @@ per la logica pura). `docs/test-plan.md` è superseded.
 
 Dettagli: docs/ARCHITECTURE-NOTES.md → Runbook manuale (QA)
 
+## QA automatica contro rankex-dev (STORY-041)
+
+Suite Playwright sull'hosting `rankex-app-dev.web.app` (non vite locale: copre anche CSP/header),
+esecuzione manuale, non in CI. Separata da `playwright.config.js` (vite locale + CI, account di
+`seed-test-accounts.mjs`).
+```
+npm run qa:dev:seed   → scripts/seed-qa-orgs.mjs [service-account-rankex-dev.json]: org fisse
+                        qa-pt / qa-soccer / qa-lipedema, org_admin+trainer+staff_readonly
+                        (qadev.<modulo>.<ruolo>@test.rankex) e un cliente di base. Idempotente
+npm run qa:dev        → playwright.qa-dev.config.js, spec in e2e/qa-dev/tests/
+```
+- Solo rankex-dev: seed, setup e teardown rifiutano un service account o un `.env.development`
+  di un altro progetto, e un host diverso (`e2e/qa-dev/qaDev.config.js`).
+- `.env.test` (gitignored): `QA_DEV_SERVICE_ACCOUNT` (path) e `QA_DEV_PASSWORD`, scritti dal seed.
+- Gli spec creano solo clienti `E2E-…`; setup e teardown li cancellano con slot, ricorrenze,
+  notifiche, valutazioni e account (Admin SDK, `e2e/qa-dev/cleanup.js`).
+- Il seed non tocca mai un account esistente di un'altra org (prefisso `qadev.`: `qa.*` è della
+  QA manuale).
+
 ## Calendario
 
 Vista default settimana (`month | week | day`). `handleCloseSlot(slotId, attendeeIds, clientsData)` → XP solo

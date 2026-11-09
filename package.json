@@ -17,6 +17,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:setup": "node -e \"import('./e2e/global.setup.js').then(m => m.default())\"",
     "test:all": "npm run test:run && npm run test:e2e",
+    "qa:dev:seed": "node scripts/seed-qa-orgs.mjs",
+    "qa:dev": "playwright test -c playwright.qa-dev.config.js",
     "deploy:rules": "cross-env NODE_OPTIONS=--dns-result-order=ipv4first firebase deploy --only firestore:rules --project fitquest-60a09",
     "deploy:rules:dev": "cross-env NODE_OPTIONS=--dns-result-order=ipv4first firebase deploy --only firestore:rules --project rankex-dev",
     "deploy:indexes": "cross-env NODE_OPTIONS=--dns-result-order=ipv4first firebase deploy --only firestore:indexes --project fitquest-60a09",

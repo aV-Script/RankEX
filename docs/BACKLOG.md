@@ -1479,17 +1479,21 @@ valutazioni **per** condividerlo con la paziente o con altri curanti.
   giro ed è la voce più costosa in token (decisione utente 31/10/2026). La regressione va
   automatizzata; la QA con agente resta una volta a fine sprint, solo sul nuovo.
 - **Acceptance criteria:**
-  - [ ] Org di test fissa su rankex-dev per ogni modulo (PT, soccer, lipedema) con utenti per
+  - [x] Org di test fissa su rankex-dev per ogni modulo (PT, soccer, lipedema) con utenti per
         ruolo (org_admin, trainer, staff_readonly) e dati minimi, creata da uno script
         idempotente in `scripts/` (mai contro fitquest-60a09: lo script verifica il projectId)
-  - [ ] Suite Playwright eseguibile contro l'hosting `rankex-app-dev.web.app` (non vite
+  - [x] Suite Playwright eseguibile contro l'hosting `rankex-app-dev.web.app` (non vite
         locale: copre anche header/CSP, vedi BUG-009) con i flussi critici: login per ruolo,
         creazione cliente/paziente, chiusura sessione/appuntamento, BIA, valutazione 2MWT,
         STS e Handgrip, annulla/correggi, staff_readonly in sola lettura
-  - [ ] Ogni test ripulisce i dati che crea (o usa dati con prefisso e pulizia a fine suite)
-  - [ ] Script npm documentato in CLAUDE.md; esecuzione manuale (non in CI per ora)
+  - [x] Ogni test ripulisce i dati che crea (o usa dati con prefisso e pulizia a fine suite)
+  - [x] Script npm documentato in CLAUDE.md; esecuzione manuale (non in CI per ora)
+- **Decisioni utente (09/11/2026):** config Playwright nuova e separata (la suite esistente e
+  `e2e.yml` restano com'erano); seed nuovo con Admin SDK e org dedicate `qa-*`; pulizia dei dati
+  con prefisso `E2E-` via Admin SDK nel teardown.
 - **Priority:** P1 (Sprint #13)
-- **Status:** READY — Sprint #13
+- **Status:** IMPLEMENTATA, da rivedere — `npm run qa:dev:seed` + `npm run qa:dev`: 18 test verdi
+  su rankex-dev il 09/11/2026, nessun residuo dopo il teardown. Review non ancora fatta
 
 ### STORY-042 — Sequenza di visita: i 5 test uno dopo l'altro
 - **Contesto:** oggi ogni test del modulo Lipedema si registra da solo. Sul prototipo la visita
