@@ -202,7 +202,7 @@ Formato:
 ## [BUG-018] Errore sui decimali dei test bilaterali: "al massimo 1 decimali"
 **Severity:** P3
 **Modulo/Ruolo:** lipedema — Handgrip, HHD, OLS (`utils/lipedema.js`, messaggio con `spec.inputDecimals`). Trovato nella QA del 09/11/2026 (TP-067)
-**Status:** OPEN
+**Status:** FIXED (09/11/2026) — `maxDecimalsMessage` nel blocco CORE di `utils/lipedema.js` e `shared/lipedema.js` ("un decimale" / "n decimali" / "valore intero"), test in `lipedema.test.js`, parità verde, functions su rankex-dev. Hosting dev con lo Sprint #14
 **Reproduction steps:** OLS, prova 1 a 30,25 → SALVA.
 **Expected:** "Inserisci il valore con al massimo un decimale", come negli altri campi del modulo.
 **Actual:** "Inserisci il valore con al massimo 1 decimali". Il blocco funziona: l'errore compare e il salvataggio non parte.

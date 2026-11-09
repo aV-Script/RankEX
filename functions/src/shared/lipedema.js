@@ -1018,7 +1018,7 @@ function readTrialValue(value, isRequired, nativeUnit, spec, field, fail) {
     return null
   }
   if (!hasMaxDecimals(value, spec.inputDecimals)) {
-    fail(field, `Inserisci il valore con al massimo ${spec.inputDecimals} decimali`)
+    fail(field, maxDecimalsMessage(spec.inputDecimals))
     return null
   }
   if (nativeUnit === null) return value
@@ -1241,6 +1241,13 @@ function isFiniteNumber(value) {
 
 function isIntegerInRange(value, min, max) {
   return Number.isInteger(value) && value >= min && value <= max
+}
+
+/** Messaggio sui decimali ammessi, con singolare e plurale (BUG-018) */
+function maxDecimalsMessage(decimals) {
+  if (decimals === 0) return 'Inserisci un valore intero'
+  const label = decimals === 1 ? 'un decimale' : `${decimals} decimali`
+  return `Inserisci il valore con al massimo ${label}`
 }
 
 function hasMaxDecimals(value, decimals) {

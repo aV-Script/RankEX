@@ -729,7 +729,8 @@ describe('validateAssessmentInput — One-Leg Standing (ADR-018)', () => {
 
   it('tempo: oltre 60,0 s rifiutato, un decimale, maggiore di 0', () => {
     expect(withFirstTrial(stance('R', 60.1, 'ceiling')).errors).toHaveProperty(['trials.0.nativeValue'])
-    expect(withFirstTrial(stance('R', 30.25)).errors).toHaveProperty(['trials.0.nativeValue'])
+    // BUG-018: singolare, non "al massimo 1 decimali"
+    expect(withFirstTrial(stance('R', 30.25)).errors['trials.0.nativeValue']).toBe('Inserisci il valore con al massimo un decimale')
     expect(withFirstTrial(stance('R', 0)).errors).toHaveProperty(['trials.0.nativeValue'])
     expect(withFirstTrial(stance('R', 59.9)).errors).toEqual({})
   })
