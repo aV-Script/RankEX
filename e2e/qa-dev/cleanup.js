@@ -5,24 +5,29 @@
  * account è verificato da loadDevServiceAccount prima di arrivare qui.
  */
 import { FieldValue } from 'firebase-admin/firestore'
-import { E2E_PREFIX, QA_ORGS } from './qaDev.config.js'
+import { E2E_PREFIX, QA_ORGS, assertDevFirestore } from './qaDev.config.js'
 
-// Ultimo carattere stampabile: name >= 'E2E-' && name < 'E2E-' = inizia con il prefisso
-const PREFIX_END = `${E2E_PREFIX}`
+// '\uf8ff' (ultimo code point BMP d'uso comune): name >= 'E2E-' && name < 'E2E-\uf8ff'
+// equivale a "inizia con E2E-". Scritto come escape: il carattere è invisibile
+const PREFIX_END = `${E2E_PREFIX}\uf8ff`
 
 /** @returns {Promise<number>} clienti cancellati */
 export async function cleanupE2EData(db, adminAuth) {
+  // Seconda guardia, indipendente dal chiamante: niente cancellazioni fuori da rankex-dev
+  assertDevFirestore(db)
   let deleted = 0
   for (const { orgId } of Object.values(QA_ORGS)) {
     const orgRef  = db.doc(`organizations/${orgId}`)
     const clients = await orgRef.collection('clients')
       .where('name', '>=', E2E_PREFIX).where('name', '<', PREFIX_END).get()
 
-    for (const clientDoc of clients.docs) {
+    // Ricontrollo in memoria del prefisso: la query per range non deve essere l'unica difesa
+    const e2eClients = clients.docs.filter(doc => String(doc.data().name ?? '').startsWith(E2E_PREFIX))
+    for (const clientDoc of e2eClients) {
       await deleteClientTraces(db, adminAuth, orgRef, clientDoc)
       deleted++
     }
-    if (clients.size) await orgRef.update({ clientCount: FieldValue.increment(-clients.size) })
+    if (e2eClients.length) await orgRef.update({ clientCount: FieldValue.increment(-e2eClients.length) })
   }
   return deleted
 }
@@ -32,10 +37,18 @@ async function deleteClientTraces(db, adminAuth, orgRef, clientDoc) {
   const { clientAuthUid } = clientDoc.data()
 
   if (clientAuthUid) {
-    await adminAuth.deleteUser(clientAuthUid).catch(err => {
-      if (err.code !== 'auth/user-not-found') throw err
-    })
-    await db.doc(`users/${clientAuthUid}`).delete()
+    // Si cancella l'account solo se è davvero il login di questo cliente E2E
+    const userRef = db.doc(`users/${clientAuthUid}`)
+    const profile = (await userRef.get()).data()
+    const isOwnLogin = profile?.role === 'client' && profile.orgId === orgRef.id && profile.clientId === clientId
+    if (isOwnLogin) {
+      await adminAuth.deleteUser(clientAuthUid).catch(err => {
+        if (err.code !== 'auth/user-not-found') throw err
+      })
+      await userRef.delete()
+    } else if (profile) {
+      console.warn(`cleanup: ${clientAuthUid} non è il login del cliente ${clientId}, account lasciato intatto`)
+    }
   }
 
   // Appuntamenti e ricorrenze del solo cliente E2E si cancellano; quelli condivisi lo perdono

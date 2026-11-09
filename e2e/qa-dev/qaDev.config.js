@@ -22,6 +22,9 @@ export const AUTH_DIR      = join(ROOT, 'e2e', '.auth', 'qa-dev')
 
 const ROLE_SLUG = { org_admin: 'admin', trainer: 'trainer', staff_readonly: 'staff' }
 
+/** Prefisso email riservato alla suite: il seed non tocca account fuori da qui */
+export const QA_EMAIL_PREFIX = 'qadev.'
+
 /** Le 3 org fisse, una per modulo, con un cliente/paziente di base */
 export const QA_ORGS = {
   pt: {
@@ -56,7 +59,7 @@ export function qaUsers(moduleKey) {
   return Object.entries(ROLE_SLUG).map(([role, slug]) => ({
     role,
     key:   `${moduleKey}-${slug}`,
-    email: `qadev.${moduleKey}.${slug}@test.rankex`,
+    email: `${QA_EMAIL_PREFIX}${moduleKey}.${slug}@test.rankex`,
     name:  `QA ${moduleKey} ${slug}`,
   }))
 }
@@ -76,7 +79,18 @@ export function loadDevServiceAccount(path) {
   if (serviceAccount.project_id !== DEV_PROJECT_ID) {
     throw new Error(`Rifiutato: il service account è di "${serviceAccount.project_id}", non di ${DEV_PROJECT_ID}`)
   }
+  // project_id è un campo libero del JSON: anche l'identità deve essere di rankex-dev
+  if (!String(serviceAccount.client_email ?? '').endsWith(`@${DEV_PROJECT_ID}.iam.gserviceaccount.com`)) {
+    throw new Error(`Rifiutato: ${serviceAccount.client_email} non è un service account di ${DEV_PROJECT_ID}`)
+  }
   return serviceAccount
+}
+
+/** Il Firestore Admin effettivamente inizializzato deve essere quello di rankex-dev */
+export function assertDevFirestore(db) {
+  if (db.projectId !== DEV_PROJECT_ID) {
+    throw new Error(`Rifiutato: Firestore Admin punta a "${db.projectId}", non a ${DEV_PROJECT_ID}`)
+  }
 }
 
 /** .env.development deve puntare a rankex-dev (il seed usa la sua API key per le callable) */

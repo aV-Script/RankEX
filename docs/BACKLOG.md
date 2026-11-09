@@ -1492,8 +1492,8 @@ valutazioni **per** condividerlo con la paziente o con altri curanti.
   `e2e.yml` restano com'erano); seed nuovo con Admin SDK e org dedicate `qa-*`; pulizia dei dati
   con prefisso `E2E-` via Admin SDK nel teardown.
 - **Priority:** P1 (Sprint #13)
-- **Status:** IMPLEMENTATA, da rivedere — `npm run qa:dev:seed` + `npm run qa:dev`: 18 test verdi
-  su rankex-dev il 09/11/2026, nessun residuo dopo il teardown. Review non ancora fatta
+- **Status:** DONE — Sprint #13: commit `3237093` + fix della review high del 09/11/2026; `npm run qa:dev`
+  18/18 verdi su rankex-dev dopo i fix, nessun residuo dopo il teardown
 
 ### STORY-042 — Sequenza di visita: i 5 test uno dopo l'altro
 - **Contesto:** oggi ogni test del modulo Lipedema si registra da solo. Sul prototipo la visita

@@ -15,8 +15,8 @@ import {
 import { cleanupE2EData } from './cleanup.js'
 
 export default async function globalSetup(config) {
-  const baseURL = config.projects[0].use.baseURL
-  assertQaBaseUrl(baseURL)
+  // Ogni progetto, non solo il primo: un baseURL diverso in un progetto aggiunto passerebbe
+  for (const project of config.projects) assertQaBaseUrl(project.use.baseURL ?? '')
 
   const env = readEnvTest()
   if (!env.QA_DEV_PASSWORD) throw new Error('QA_DEV_PASSWORD mancante in .env.test: lancia prima npm run qa:dev:seed')

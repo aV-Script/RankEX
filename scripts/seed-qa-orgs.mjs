@@ -24,8 +24,8 @@ import { initializeApp, deleteApp }               from 'firebase/app'
 import { getAuth, signInWithEmailAndPassword }    from 'firebase/auth'
 import { getFunctions, httpsCallable }            from 'firebase/functions'
 import {
-  QA_ORGS, qaUsers, ENV_TEST_PATH, QA_BASE_URL,
-  loadDevServiceAccount, loadDevClientEnv, readEnvTest,
+  QA_ORGS, qaUsers, ENV_TEST_PATH, QA_BASE_URL, QA_EMAIL_PREFIX,
+  loadDevServiceAccount, loadDevClientEnv, readEnvTest, assertDevFirestore,
 } from '../e2e/qa-dev/qaDev.config.js'
 import { cleanupE2EData } from '../e2e/qa-dev/cleanup.js'
 
@@ -41,6 +41,7 @@ const clientEnv      = loadDevClientEnv()
 initAdmin({ credential: cert(serviceAccount) })
 const db        = getFirestore()
 const adminAuth = getAdminAuth()
+assertDevFirestore(db)
 
 const password = envTest.QA_DEV_PASSWORD || `QaDev${randomBytes(5).toString('hex')}7`
 writeEnvTest({ QA_DEV_SERVICE_ACCOUNT: saPath, QA_DEV_PASSWORD: password })
@@ -66,8 +67,13 @@ process.exit(0)
 
 /** Org (creata solo se manca) e staff per ruolo, come CreateOrgForm + creaMembroTeam */
 async function ensureOrgAndStaff(moduleKey, org) {
-  const orgRef = db.doc(`organizations/${org.orgId}`)
-  if (!(await orgRef.get()).exists) {
+  const orgRef  = db.doc(`organizations/${org.orgId}`)
+  const orgSnap = await orgRef.get()
+  // Un'org con lo stesso id ma un altro modulo non è una delle nostre: non si tocca
+  if (orgSnap.exists && orgSnap.data().moduleType !== org.moduleType) {
+    throw new Error(`Rifiutato: ${org.orgId} esiste con moduleType "${orgSnap.data().moduleType}", non ${org.moduleType}`)
+  }
+  if (!orgSnap.exists) {
     await orgRef.set({
       name: org.name, moduleType: org.moduleType, terminologyVariant: org.terminologyVariant,
       plan: 'pro', status: 'active', ownerId: null,
@@ -98,6 +104,7 @@ async function ensureOrgAndStaff(moduleKey, org) {
  * si tocca mai: il seed si ferma (password e profilo di qualcun altro non vanno riscritti)
  */
 async function upsertAuthUser(email, displayName, orgId) {
+  assertQaEmail(email)
   const existing = await adminAuth.getUserByEmail(email).catch(err => {
     if (err.code === 'auth/user-not-found') return null
     throw err
@@ -106,10 +113,7 @@ async function upsertAuthUser(email, displayName, orgId) {
     const { uid } = await adminAuth.createUser({ email, password, displayName })
     return uid
   }
-  const profile = (await db.doc(`users/${existing.uid}`).get()).data()
-  if (profile && profile.orgId !== orgId) {
-    throw new Error(`Rifiutato: ${email} esiste già nell'org "${profile.orgId}", non in ${orgId}. Nessuna modifica all'account`)
-  }
+  assertAccountInOrg(email, (await db.doc(`users/${existing.uid}`).get()).data(), orgId)
   await adminAuth.updateUser(existing.uid, { password, displayName })
   return existing.uid
 }
@@ -128,7 +132,19 @@ async function ensureBaseClient(moduleKey, org, users) {
 
   const hasLogin = Boolean(clientEmail)
   // Un account Auth rimasto da un seed interrotto bloccherebbe creaCliente (email già in uso)
-  if (hasLogin) await adminAuth.getUserByEmail(clientEmail).then(({ uid }) => adminAuth.deleteUser(uid)).catch(() => {})
+  // (solo se è un account della stessa org o senza profilo: mai quello di un'altra org)
+  if (hasLogin) {
+    assertQaEmail(clientEmail)
+    const stale = await adminAuth.getUserByEmail(clientEmail).catch(err => {
+      if (err.code === 'auth/user-not-found') return null
+      throw err
+    })
+    if (stale) {
+      assertAccountInOrg(clientEmail, (await db.doc(`users/${stale.uid}`).get()).data(), org.orgId)
+      await adminAuth.deleteUser(stale.uid)
+      await db.doc(`users/${stale.uid}`).delete()
+    }
+  }
 
   const app = initializeApp({
     apiKey: clientEnv.VITE_FIREBASE_API_KEY, authDomain: clientEnv.VITE_FIREBASE_AUTH_DOMAIN,
@@ -145,6 +161,22 @@ async function ensureBaseClient(moduleKey, org, users) {
     console.log(`  cliente di base: ${formData.name}`)
   } finally {
     await deleteApp(app)
+  }
+}
+
+/** Solo email con il prefisso riservato alla suite (qa.* è della QA manuale) */
+function assertQaEmail(email) {
+  if (!email.startsWith(QA_EMAIL_PREFIX)) throw new Error(`Rifiutato: ${email} non ha il prefisso ${QA_EMAIL_PREFIX}`)
+}
+
+/**
+ * Un account esistente si riusa solo se è di questa org, o se non ha profilo (seed
+ * interrotto tra la creazione Auth e il batch). Mai super_admin, mai un'altra org
+ */
+function assertAccountInOrg(email, profile, orgId) {
+  if (!profile) return
+  if (profile.role === 'super_admin' || profile.orgId !== orgId) {
+    throw new Error(`Rifiutato: ${email} appartiene a "${profile.orgId ?? profile.role}", non a ${orgId}. Nessuna modifica all'account`)
   }
 }
 
