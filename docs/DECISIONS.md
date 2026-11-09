@@ -1591,6 +1591,9 @@ Fonti: ADR-012, ADR-016 §7 e addendum, ADR-017 §5, ADR-018 §7/§9, tavole `Pa
      Il lato completo di una valutazione interrotta è `'line'`: è un best di 3 (o 2) prove valide e
      ha già un delta per lato (ADR-016 §7); il lato non completo non ha punto. Così grafico e delta
      dicono la stessa cosa. Il badge INTERROTTA resta sulla riga e nel tooltip.
+     **Confermato dall'utente (09/11/2026, chiusura Sprint #14):** la regola "interrotte come cerchio
+     ambra mai unito alla linea" vale solo per i monolaterali; nei bilaterali il lato completo di
+     un'interrotta resta sulla linea.
    - **Tratti:** per lato, un punto `'line'` apre un nuovo tratto se
      `getComparabilityIssues(punto, ultimoPuntoLineaDelLato).length > 0`. Si confronta con l'ultimo
      punto della linea, non con gli `'apart'` (che non spezzano né uniscono nulla). A(20 m) → B(15

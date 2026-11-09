@@ -7,46 +7,8 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-# SPRINT #14 — EPIC-010 Lipedema Edition, quinta ondata (storico e trend + PDF) — aperto il 2026-11-09
-
-**Branch:** `feature/lipedema-module`. Deploy solo su `rankex-dev`, **nessun deploy in prod
-del modulo** (DPA non firmato, STORY-029).
-
-**Goal:** il professionista legge per ogni test l'andamento della paziente, con delta e
-avvisi di comparabilità corretti, e (se approvata) ne esporta il report PDF.
-
-**Riferimento UI:** canvas RankEX, tavole `PazienteTrend`, `MobilePazienteTrend`, `Paziente`,
-`ReportLipedema` (sola lettura). Approccio tecnico: ADR-019.
-
-**Decisioni dell'utente (09/11), vincolanti per STORY-039:** grafico a tratti spezzato a ogni
-cambio di protocollo, interrotte/invalidate come cerchio ambra fuori linea, ceiling OLS marcato,
-una serie per lato; delta sempre sull'ultima valida confrontabile con la data; badge
-"DIVERSA DALLA PRECEDENTE · motivi" quando la precedente immediata differisce; OLS calzature e
-superficie restano warning; livello `info` per il seriale del dinamometro; nessun colore
-buono/cattivo, nessuna media.
-
-**Story selezionate, nell'ordine:**
-1. **STORY-039** — storico, trend e avviso di comparabilità (ADR-019).
-2. **STORY-040** — PDF paziente, solo dopo review e QA di STORY-039 e dopo le risposte
-   dell'utente alle 3 domande di ADR-019 (report di gruppo, grafici nel PDF, quali valutazioni).
-
-**Action item della retrospettiva #13 inclusi:** helper unico `countLabel` client/server con
-parità (adottato nei messaggi nuovi); stato di caricamento sulle riletture dello storico;
-verifica a 360 px; almeno un caso `qa:dev` per trend e badge; caso runbook per l'avviso di
-comparabilità. **Esclusi:** BUG-010, BUG-015, BUG-017 restano aperti (decide l'utente).
-
-**Fuori dal #14:** STORY-043 (bottone principale, `themes.config.js` non committato), STORY-044.
-
-**Status board:**
-
-| Task | Status | Note |
-|------|--------|------|
-| STORY-039 — storico e trend | DONE | Commit `fd14a3b`, review medium (1 MEDIUM + 3 LOW, corretti quelli sullo spec e sulla nota), functions (`countLabel`) e hosting su rankex-dev. QA dal vivo 09/11 desktop e 360 px: badge "DIVERSA DALLA PRECEDENTE", nota con le date, tratti OLS, schede a capo senza scroll orizzontale, staff_readonly in sola lettura. Runbook TP-073…077, caso qa:dev nuovo. |
-| STORY-040 — PDF | DONE | Commit `fa8ffef`, review medium (motivo di interruzione e data BIA corretti). QA dal vivo 09/11: contenuto del PDF da trainer e da staff_readonly. Non verificati: stampa A4 reale e interruzioni di pagina. Runbook TP-078. |
-| BUG-019 — "+1 ripetizioni" | FIXED + VERIFIED | Emerso nella QA del PDF, corretto con unità singolare/plurale nel delta. |
-| BUG-018 su hosting dev | DONE | Deployato con lo sprint, non riverificato dal vivo. |
-| Regressione `npm run qa:dev` | 19/19 | Dopo l'ultimo deploy del 09/11. |
-| STORY-029 — requisiti non-codice | BLOCKED (fuori capacità developer) | Blocca il go-live, non lo sprint. |
+Nessuno sprint aperto: il #14 è chiuso (vedi storico). Candidati per il #15 in fondo al #14,
+da confermare con l'utente.
 
 ---
 
@@ -95,6 +57,112 @@ sprint successivi, in ordine:
 ---
 
 ## Storico sprint chiusi
+
+# SPRINT #14 — EPIC-010 Lipedema Edition, quinta ondata (storico e trend + PDF) — aperto il 2026-11-09, chiuso il 2026-11-09 (goal raggiunto)
+
+**Branch:** `feature/lipedema-module`. Deploy solo su `rankex-dev`, **nessun deploy in prod
+del modulo** (DPA non firmato, STORY-029).
+
+**Goal:** il professionista legge per ogni test l'andamento della paziente, con delta e
+avvisi di comparabilità corretti, e (se approvata) ne esporta il report PDF.
+
+**Riferimento UI:** canvas RankEX, tavole `PazienteTrend`, `MobilePazienteTrend`, `Paziente`,
+`ReportLipedema` (sola lettura). Approccio tecnico: ADR-019.
+
+**Decisioni dell'utente (09/11), vincolanti per STORY-039:** grafico a tratti spezzato a ogni
+cambio di protocollo, interrotte/invalidate come cerchio ambra fuori linea, ceiling OLS marcato,
+una serie per lato; delta sempre sull'ultima valida confrontabile con la data; badge
+"DIVERSA DALLA PRECEDENTE · motivi" quando la precedente immediata differisce; OLS calzature e
+superficie restano warning; livello `info` per il seriale del dinamometro; nessun colore
+buono/cattivo, nessuna media.
+
+**Story selezionate, nell'ordine:**
+1. **STORY-039** — storico, trend e avviso di comparabilità (ADR-019).
+2. **STORY-040** — PDF paziente, solo dopo review e QA di STORY-039 e dopo le risposte
+   dell'utente alle 3 domande di ADR-019 (report di gruppo, grafici nel PDF, quali valutazioni).
+
+**Action item della retrospettiva #13 inclusi:** helper unico `countLabel` client/server con
+parità (adottato nei messaggi nuovi); stato di caricamento sulle riletture dello storico;
+verifica a 360 px; almeno un caso `qa:dev` per trend e badge; caso runbook per l'avviso di
+comparabilità. **Esclusi:** BUG-010, BUG-015, BUG-017 restano aperti (decide l'utente).
+
+**Fuori dal #14:** STORY-043 (bottone principale, `themes.config.js` non committato), STORY-044.
+
+**Status board:**
+
+| Task | Status | Note |
+|------|--------|------|
+| STORY-039 — storico e trend | DONE | Commit `fd14a3b`, review medium (1 MEDIUM + 3 LOW, corretti quelli sullo spec e sulla nota), functions (`countLabel`) e hosting su rankex-dev. QA dal vivo 09/11 desktop e 360 px: badge "DIVERSA DALLA PRECEDENTE", nota con le date, tratti OLS, schede a capo senza scroll orizzontale, staff_readonly in sola lettura. Runbook TP-073…077, caso qa:dev nuovo. |
+| STORY-040 — PDF | DONE | Commit `fa8ffef`, review medium (motivo di interruzione e data BIA corretti). QA dal vivo 09/11: contenuto del PDF da trainer e da staff_readonly. Non verificati: stampa A4 reale e interruzioni di pagina. Runbook TP-078. |
+| BUG-019 — "+1 ripetizioni" | FIXED + VERIFIED | Emerso nella QA del PDF, corretto con unità singolare/plurale nel delta. |
+| BUG-018 su hosting dev | DONE | Deployato con lo sprint, non riverificato dal vivo. |
+| Regressione `npm run qa:dev` | 19/19 | Dopo l'ultimo deploy del 09/11. |
+| STORY-029 — requisiti non-codice | BLOCKED (fuori capacità developer) | Blocca il go-live, non lo sprint. |
+
+**Aggiornamento di chiusura (09/11, dopo la board sopra):**
+
+| Task | Status | Note |
+|------|--------|------|
+| Decisione 1 — bilaterali interrotti con un lato completo | CONFERMATA | L'utente tiene la scelta del tech-lead: il lato completo resta sulla linea (ADR-019 §3, nota del 09/11). Nessuna modifica al codice. |
+| Decisione 2 — più valutazioni nello stesso giorno | DONE | Commit `798a399`, review medium (APPROVED, solo LOW). Ora accanto alla data breve solo se un'altra valutazione valida dello stesso test ha la stessa data: asse X, note, delta nello storico, dettaglio e PDF. Runbook TP-079. QA dal vivo desktop e 360 px. |
+| BUG-010 / BUG-015 / BUG-017 (P3) | FIXED (015 VERIFIED) | Commit `50f6779`, su decisione dell'utente. BUG-015 verificato dal vivo; BUG-010 e BUG-017 coperti da unit test, non verificati dal vivo (servono un org_admin su piano free e un super_admin). |
+| Hosting rankex-dev | DONE | `npm run deploy:all:dev` dopo `50f6779`; functions non toccate, non ridistribuite. |
+| Regressione `npm run qa:dev` | 19/19 | Dopo il deploy di chiusura. |
+| Stampa A4 del PDF | VERIFICATA (parziale) | Motore di stampa di Chromium (`page.pdf`, A4, media print) sul paziente QA Visita Sprint13: una pagina, impaginazione corretta. Interruzioni di pagina non esercitate (report di una sola pagina); stampante fisica non provata. |
+
+## Goal
+Il professionista legge per ogni test l'andamento della paziente, con delta e avvisi di
+comparabilità corretti, e ne esporta il report PDF. **Raggiunto.**
+
+## Completato
+- **STORY-039 — storico e trend** (`fd14a3b`): grafico a tratti, badge "DIVERSA DALLA
+  PRECEDENTE", livello `info` del seriale, `countLabel` client/server con parità. TP-073…077.
+- **STORY-040 — PDF paziente** (`fa8ffef`): senza report di gruppo, solo tabelle, ultima valida
+  per test, anche da staff_readonly. TP-078.
+- **Ora nelle date dello stesso giorno** (`798a399`, decisione 2). TP-079.
+- **Bug:** BUG-019 FIXED + VERIFIED (`3301529`); BUG-015 VERIFIED; BUG-010 e BUG-017 FIXED (`50f6779`).
+- **Decisioni dell'utente prese tutte nello sprint:** le 3 domande di ADR-019 e le decisioni
+  1-3 di chiusura. Nessuna resta "da confermare".
+
+## Non completato (motivo)
+- **Verifiche dal vivo mancanti:** "Aggiornamento in corso…" (TP-077), navigazione da tastiera
+  tra le schede dei test, BUG-018 su hosting dev, BUG-010 (banner Team/impostazioni con limite 1,
+  "1 presente" nel calendario) e BUG-017 (rankex-admin-dev). Interruzioni di pagina del PDF con
+  un report di più pagine e stampa su carta.
+- **STORY-029, requisiti non-codice** (DPA, testo informativa): BLOCKED, utente/legale. Blocca
+  il go-live, non lo sprint.
+- **Canvas da aggiornare** (non toccato dal codice): SALTA e l'avviso "Non salvati in questa
+  visita" sulle tavole `Valutazione*` (dal #13); trend e PDF realizzati da allineare alle tavole
+  `PazienteTrend`/`MobilePazienteTrend` e `ReportLipedema`.
+
+## Blockers
+- Nessuno tecnico. DPA / informativa: unico blocco al go-live di EPIC-010.
+
+## Tech debt emerso
+- **Plurali ancora inline:** BUG-010 è corretto con ternari locali in `MembersPage`,
+  `OrgSettingsPage`, `NewClientView`, `CloseSessionModal`, perché `countLabel` vive in
+  `utils/lipedema.js` (modulo-specifico). L'action item 2 del #13 ("fix di BUG-010 con lo
+  stesso helper") è rispettato solo nel modulo lipedema.
+- **`createdAt` delle org a tipi misti su rankex-dev:** le org create dai seed prima di `50f6779`
+  hanno un Timestamp, le altre una stringa ISO. La lettura è normalizzata (`utils/orgDates.js`),
+  ma `orderBy('createdAt')` in `getOrganizations` ordina per tipo; `joinedAt` dei membri nei seed
+  è ancora un `serverTimestamp`.
+- **Asse X del trend:** l'ultima etichetta a destra è tagliata su desktop ("09/1"); con l'ora
+  le etichette a 360 px si toccano quasi. Cosmetico, non tracciato come bug.
+- **Due valutazioni nello stesso minuto** (es. 07/11 10:29 ×2 nei dati QA) restano
+  indistinguibili anche con l'ora. Caso limite dei dati di test, nessuna azione.
+
+## Prossimo sprint (candidati)
+Proposta, non pianificazione (decide l'utente):
+1. **STORY-043 — bottone principale** (`themes.config.js` già modificato, non committato).
+2. **STORY-044 — "Da sistemare".**
+3. **Allineamento canvas** (SALTA, "Non salvati", PazienteTrend, ReportLipedema): fuori codice,
+   ma è la spec UI e accumula ritardo da due sprint.
+4. **Verifiche dal vivo rimaste** (TP-077, tastiera sulle schede, BUG-010/017/018) in un giro QA
+   breve, con un org_admin su piano free e un super_admin di rankex-dev.
+5. **Debito minore:** helper di plurale generico fuori dal modulo lipedema; migrazione
+   `createdAt`/`joinedAt` a ISO sulle org di rankex-dev.
+6. **STORY-029** resta BLOCKED (utente/legale).
 
 # SPRINT #13 — EPIC-010 Lipedema Edition, quarta ondata (HHD + OLS + sequenza di visita) — aperto il 2026-11-06, chiuso il 2026-11-09 (goal raggiunto)
 

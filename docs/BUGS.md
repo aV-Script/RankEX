@@ -176,7 +176,7 @@ Formato:
 ## [BUG-015] Riepilogo per screen reader dei test bilaterali: "prove inserite" conta anche le righe vuote
 **Severity:** P3
 **Modulo/Ruolo:** lipedema — Handgrip, HHD, OLS (`BilateralSummary`, testo `sr-only` in area `aria-live`)
-**Status:** FIXED (09/11/2026, da verificare in QA)
+**Status:** VERIFIED (09/11/2026, commit `50f6779`, hosting rankex-dev: form Handgrip vuoto "0 prove inserite", dopo un valore "1 prova inserita")
 **Reproduction steps:** aprire un form bilaterale senza compilare nulla e leggere il riepilogo con uno screen reader.
 **Expected:** il numero di prove compilate (0).
 **Actual:** "6 prove inserite" (OLS: 4), perché usa `form.trials.length`.
