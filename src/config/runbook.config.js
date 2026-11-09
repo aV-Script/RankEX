@@ -1201,6 +1201,18 @@ export const RUNBOOK_SUITES = [
         ],
         expected: ['Il PDF riporta solo valori grezzi per test con data e comparabilità, per ogni ruolo che vede il paziente'],
       },
+      {
+        id: 'TP-079', usId: 'STORY-039', severity: 'important', title: 'Ora nelle date brevi solo se due valutazioni dello stesso test cadono nello stesso giorno',
+        preconditions: 'Paziente Lipedema con informativa e 3 valutazioni di 2MWT: due nello stesso giorno (es. 07/11 alle 09:00 e alle 11:00, la seconda con percorso diverso) e una in un altro giorno. Un secondo test con valutazioni solo in giorni diversi.',
+        steps: [
+          'Tab Valutazioni → 2MWT: l\'asse X del grafico mostra "07/11 09:00" e "07/11 11:00" per le due dello stesso giorno, la data semplice per l\'altra',
+          'Le note dello storico e il delta citano il riferimento con l\'ora ("dalla valutazione del 07/11 09:00") quando quel giorno ha più valutazioni',
+          'Annullare una delle due valutazioni del 07/11: le date tornano senza ora',
+          'Aprire il secondo test (giorni tutti diversi): date brevi senza ora, come prima',
+          'Esporta PDF: le note e il delta dei test con valutazioni nello stesso giorno riportano l\'ora, gli altri no',
+        ],
+        expected: ['L\'ora compare nelle date brevi solo dove serve a distinguere due valutazioni dello stesso giorno; le date complete (con ora) restano invariate'],
+      },
     ],
   },
 ]

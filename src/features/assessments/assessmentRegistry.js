@@ -38,7 +38,7 @@ const OLS_UNIT          = LIPEDEMA_TESTS[OLS_ID].unit
  * - `createForm(nowLocal, previous, latestByTest)` — form nuovo (previous = ultima valida dello stesso test, latestByTest = ultima valida per test: precompilazione)
  * - `formFromAssessment(assessment)` — form di Correggi
  * - `formatPrimary(assessment)` — valore principale a schermo
- * - `formatDelta(entry)`        — testo del delta (buildTestHistory), null se assente
+ * - `formatDelta(entry, sameDayDates)` — testo del delta (buildTestHistory), null se assente
  * - `formatSetup(assessment)`   — setup e versione del protocollo, in una riga (dai campi salvati)
  */
 export const ASSESSMENT_UI = {
@@ -49,7 +49,7 @@ export const ASSESSMENT_UI = {
     createForm:         nowLocal => createTwoMinuteWalkForm(nowLocal),
     formFromAssessment: twoMinuteWalkFormFromAssessment,
     formatPrimary:      assessment => `${formatNumber(getPrimaryResult(assessment))} m`,
-    formatDelta:        entry => formatMonoDelta(entry, 'm'),
+    formatDelta:        (entry, sameDayDates) => formatMonoDelta(entry, 'm', 0, sameDayDates),
     formatSetup:        formatTwoMinuteWalkSetup,
   },
   [LIPEDEMA_TEST_IDS.SIT_TO_STAND_30S]: {
@@ -59,7 +59,7 @@ export const ASSESSMENT_UI = {
     createForm:         nowLocal => createSitToStandForm(nowLocal),
     formFromAssessment: sitToStandFormFromAssessment,
     formatPrimary:      assessment => `${formatNumber(getPrimaryResult(assessment))} rip.`,
-    formatDelta:        entry => formatMonoDelta(entry, { singular: 'ripetizione', plural: 'ripetizioni' }),
+    formatDelta:        (entry, sameDayDates) => formatMonoDelta(entry, { singular: 'ripetizione', plural: 'ripetizioni' }, 0, sameDayDates),
     formatSetup:        formatSitToStandSetup,
   },
   [HANDGRIP_ID]: {
@@ -69,7 +69,7 @@ export const ASSESSMENT_UI = {
     createForm:         createHandgripForm,
     formFromAssessment: handgripFormFromAssessment,
     formatPrimary:      assessment => formatBilateralPrimary(assessment, HANDGRIP_UNIT, HANDGRIP_DECIMALS),
-    formatDelta:        entry => formatBilateralDelta(entry, HANDGRIP_UNIT, HANDGRIP_DECIMALS),
+    formatDelta:        (entry, sameDayDates) => formatBilateralDelta(entry, HANDGRIP_UNIT, HANDGRIP_DECIMALS, sameDayDates),
     formatSetup:        formatHandgripSetup,
   },
   [HHD_ID]: {
@@ -79,7 +79,7 @@ export const ASSESSMENT_UI = {
     createForm:         (nowLocal, previous, latestByTest) => createHhdForm(nowLocal, previous, getLatestDominantLeg(latestByTest)),
     formFromAssessment: hhdFormFromAssessment,
     formatPrimary:      assessment => formatBilateralPrimary(assessment, HHD_UNIT, HHD_DECIMALS),
-    formatDelta:        entry => formatBilateralDelta(entry, HHD_UNIT, HHD_DECIMALS),
+    formatDelta:        (entry, sameDayDates) => formatBilateralDelta(entry, HHD_UNIT, HHD_DECIMALS, sameDayDates),
     formatSetup:        formatHhdSetup,
   },
   [OLS_ID]: {
@@ -89,7 +89,7 @@ export const ASSESSMENT_UI = {
     createForm:         (nowLocal, previous, latestByTest) => createOlsForm(nowLocal, previous, getLatestDominantLeg(latestByTest)),
     formFromAssessment: olsFormFromAssessment,
     formatPrimary:      assessment => formatBilateralPrimary(assessment, OLS_UNIT, OLS_DECIMALS),
-    formatDelta:        entry => formatBilateralDelta(entry, OLS_UNIT, OLS_DECIMALS),
+    formatDelta:        (entry, sameDayDates) => formatBilateralDelta(entry, OLS_UNIT, OLS_DECIMALS, sameDayDates),
     formatSetup:        formatOlsSetup,
   },
 }
@@ -99,8 +99,8 @@ export function formatAssessmentPrimary(assessment) {
   return ASSESSMENT_UI[assessment?.testId]?.formatPrimary(assessment) ?? '—'
 }
 
-export function formatAssessmentDelta(entry) {
-  return ASSESSMENT_UI[entry?.assessment?.testId]?.formatDelta(entry) ?? null
+export function formatAssessmentDelta(entry, sameDayDates) {
+  return ASSESSMENT_UI[entry?.assessment?.testId]?.formatDelta(entry, sameDayDates) ?? null
 }
 
 /** Setup e protocollo in una riga; vuoto per un testId senza voce */

@@ -1,6 +1,6 @@
 // Formattazione a schermo delle valutazioni (it-IT). Solo presentazione: i
 // valori salvati e i delta li decidono utils/lipedema.js e il server.
-import { COMPARISON } from '../../utils/lipedema'
+import { COMPARISON, isValidAssessment } from '../../utils/lipedema'
 import { SIDE_LABELS, COMPARABILITY_REASON_LABELS } from '../../config/lipedemaTests.config'
 
 // Esiti senza delta (buildTestHistory → deltaUnavailable), come li si legge
@@ -8,6 +8,9 @@ const UNAVAILABLE_OUTCOME_TEXT = {
   stopped_early: 'interrotta',
   invalidated:   'invalidata (protocollo non valido)',
 }
+
+const NO_SAME_DAY_DATES = new Set()
+const DAY_LENGTH = 10 // 'YYYY-MM-DD'
 
 export function formatNumber(value, decimals = 0) {
   if (value === null || value === undefined || Number.isNaN(value)) return '—'
@@ -33,9 +36,40 @@ export function formatDate(value) {
   return `${day}/${month}/${year}`
 }
 
-/** 'YYYY-MM-DD…' → '30/10' */
-export function formatShortDate(value) {
-  return formatDate(value).slice(0, 5)
+/**
+ * Giorni ('YYYY-MM-DD') presenti più di una volta tra gli istanti 'YYYY-MM-DDTHH:mm':
+ * dove la sola data breve non distinguerebbe due valutazioni.
+ */
+export function getSameDayDates(performedAts) {
+  const seen     = new Set()
+  const repeated = new Set()
+  for (const performedAt of performedAts) {
+    if (typeof performedAt !== 'string') continue
+    const day = performedAt.slice(0, DAY_LENGTH)
+    if (seen.has(day)) repeated.add(day)
+    seen.add(day)
+  }
+  return repeated
+}
+
+/** Giorni con più valutazioni valide (quelle che lo storico mostra come tali) dello stesso test */
+export function getSameDayDatesForTest(assessments, testId) {
+  return getSameDayDates(
+    assessments
+      .filter(assessment => assessment.testId === testId && isValidAssessment(assessment))
+      .map(assessment => assessment.performedAt),
+  )
+}
+
+/**
+ * 'YYYY-MM-DD…' → '30/10'; con l'ora ('30/10 10:30') solo se il giorno è in
+ * `sameDayDates` e il valore ha l'ora.
+ */
+export function formatShortDate(value, sameDayDates = NO_SAME_DAY_DATES) {
+  const short = formatDate(value).slice(0, 5)
+  if (typeof value !== 'string' || !sameDayDates.has(value.slice(0, DAY_LENGTH))) return short
+  const time = value.split('T')[1]
+  return time ? `${short} ${time}` : short
 }
 
 /** Numero con segno senza giudizio, "−" tipografico: "+8", "−3", "0" */
@@ -51,10 +85,10 @@ export function formatSignedNumber(delta, decimals = 0) {
  * interrotta". null se non c'è un riferimento.
  * @param {object} entry — buildTestHistory
  */
-export function formatMonoDelta(entry, unitLabel, decimals = 0) {
+export function formatMonoDelta(entry, unitLabel, decimals = 0, sameDayDates = NO_SAME_DAY_DATES) {
   const { assessment, reference, delta, deltaUnavailable } = entry
   if (!reference) return null
-  const since = `rispetto al ${formatShortDate(reference.performedAt)}`
+  const since = `rispetto al ${formatShortDate(reference.performedAt, sameDayDates)}`
   if (deltaUnavailable) {
     const which = UNAVAILABLE_OUTCOME_TEXT[assessment.outcome]
       ? `questa valutazione è ${UNAVAILABLE_OUTCOME_TEXT[assessment.outcome]}`
@@ -71,11 +105,11 @@ export function formatMonoDelta(entry, unitLabel, decimals = 0) {
  * al 03/09"; con riferimenti diversi per lato, la data accanto a ciascuno.
  * null se nessun lato ha un delta.
  */
-export function formatBilateralDelta(entry, unit, decimals = 0) {
+export function formatBilateralDelta(entry, unit, decimals = 0, sameDayDates = NO_SAME_DAY_DATES) {
   const sides = Object.keys(entry.deltaBySide ?? {}).filter(side => entry.deltaBySide[side] !== null)
   if (sides.length === 0) return null
   const part  = side => `${SIDE_LABELS[side].short} ${formatSignedNumber(entry.deltaBySide[side], decimals)} ${unit}`
-  const since = side => `rispetto al ${formatShortDate(entry.referenceBySide[side].performedAt)}`
+  const since = side => `rispetto al ${formatShortDate(entry.referenceBySide[side].performedAt, sameDayDates)}`
   const dates = new Set(sides.map(side => entry.referenceBySide[side].performedAt))
   if (dates.size === 1) return `${sides.map(part).join(' · ')} ${since(sides[0])}`
   return sides.map(side => `${part(side)} ${since(side)}`).join(' · ')
@@ -97,20 +131,20 @@ export function joinReasons(reasons) {
  * differenze informative (seriale). [] se non c'è niente da dire.
  * @param {object} entry — buildTestHistory
  */
-export function formatComparisonNote(entry) {
+export function formatComparisonNote(entry, sameDayDates = NO_SAME_DAY_DATES) {
   const notes = []
   const { comparison, previous, nonComparable } = entry
   if (previous && nonComparable) {
-    const lead = `${joinReasons(nonComparable)} dalla valutazione del ${formatShortDate(previous.performedAt)}`
+    const lead = `${joinReasons(nonComparable)} dalla valutazione del ${formatShortDate(previous.performedAt, sameDayDates)}`
     if (comparison === COMPARISON.NONE_COMPARABLE) {
       notes.push(`${lead}: non confrontabile con nessuna valutazione precedente, delta non calcolato.`)
     } else if (comparison === COMPARISON.DIFFERS) {
-      const since = formatDeltaSince(entry)
+      const since = formatDeltaSince(entry, sameDayDates)
       notes.push(since ? `${lead}: delta ${since}.` : `${lead}: delta non calcolato.`)
     }
   }
   for (const item of entry.info ?? []) {
-    const date = formatShortDate(item.reference.performedAt)
+    const date = formatShortDate(item.reference.performedAt, sameDayDates)
     if (item.reason === 'serial') {
       notes.push(`Stesso modello di dinamometro, seriale diverso dalla valutazione del ${date}: il delta resta valido.`)
     } else if (item.missingOn === 'current') {
@@ -127,17 +161,17 @@ export function formatComparisonNote(entry) {
  * al 20/10 (S)". null se la riga non ha delta (estremo interrotto/invalidato o
  * nessun lato completo in comune).
  */
-function formatDeltaSince(entry) {
+function formatDeltaSince(entry, sameDayDates) {
   if (entry.deltaBySide) {
     const sides = Object.keys(entry.deltaBySide).filter(side => entry.deltaBySide[side] !== null)
     if (sides.length === 0) return null
     const dates = new Set(sides.map(side => entry.referenceBySide[side].performedAt))
-    if (dates.size === 1) return `rispetto al ${formatShortDate(entry.referenceBySide[sides[0]].performedAt)}`
-    const parts = sides.map(side => `al ${formatShortDate(entry.referenceBySide[side].performedAt)} (${SIDE_LABELS[side].short})`)
+    if (dates.size === 1) return `rispetto al ${formatShortDate(entry.referenceBySide[sides[0]].performedAt, sameDayDates)}`
+    const parts = sides.map(side => `al ${formatShortDate(entry.referenceBySide[side].performedAt, sameDayDates)} (${SIDE_LABELS[side].short})`)
     return `rispetto ${parts.join(' e ')}`
   }
   if (entry.delta === null) return null
-  return `rispetto al ${formatShortDate(entry.reference.performedAt)}`
+  return `rispetto al ${formatShortDate(entry.reference.performedAt, sameDayDates)}`
 }
 
 /** Best per lato: "D 245 · S 231 N" ("—" sul lato senza best) */

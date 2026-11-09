@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { buildTrendSeries, buildTestHistory } from '../../utils/lipedema.js'
 import { LIPEDEMA_TESTS } from '../../config/lipedemaTests.config.js'
 import { toTrendChartRows, describeTrend } from '../../features/assessments/assessmentTrend.js'
-import { formatComparisonNote } from '../../features/assessments/assessmentFormat.js'
+import { formatComparisonNote, formatShortDate, getSameDayDates, getSameDayDatesForTest } from '../../features/assessments/assessmentFormat.js'
 import { formatAssessmentSetup } from '../../features/assessments/assessmentRegistry.js'
 
 const MWT = 'lipedema_2mwt'
@@ -110,6 +110,13 @@ describe('toTrendChartRows', () => {
     expect(toTrendChartRows(series).rows.map(row => row.x)).toEqual([0, 1])
   })
 
+  it("l'etichetta mostra l'ora solo per i giorni con più valutazioni", () => {
+    const series = buildTrendSeries([
+      mono('a', '2026-09-01T09:00', 130), mono('b', '2026-09-01T11:30', 131), mono('c', '2026-09-20T10:00', 135),
+    ], MWT)
+    expect(toTrendChartRows(series).rows.map(row => row.label)).toEqual(['01/09 09:00', '01/09 11:30', '20/09'])
+  })
+
   it('bilaterale: una riga per valutazione con una chiave per lato', () => {
     const series = buildTrendSeries([grip('a', '2026-09-01T10:00', { R: 300, L: 280 })], HANDGRIP)
     const { rows } = toTrendChartRows(series)
@@ -211,5 +218,40 @@ describe('formatAssessmentSetup', () => {
       .toBe('Lafayette MMT · cinghia · ginocchio 90° · anca 90° · protocollo 1.0')
     expect(formatAssessmentSetup({ testId: OLS, protocolVersion: '1.0', setup: { footwear: 'barefoot', surface: 'hard_floor', surfaceNote: null } }))
       .toBe('scalza · pavimento rigido · protocollo 1.0')
+  })
+})
+
+describe('data breve con ora solo se il giorno coincide', () => {
+  it('getSameDayDates: i giorni presenti più di una volta', () => {
+    expect(getSameDayDates(['2026-11-07T10:30', '2026-11-07T15:00', '2026-11-05T10:00'])).toEqual(new Set(['2026-11-07']))
+    expect(getSameDayDates([]).size).toBe(0)
+  })
+
+  it('getSameDayDatesForTest ignora annullate e altri test', () => {
+    const list = [
+      mono('a', '2026-11-07T10:30', 130), mono('v', '2026-11-07T12:00', 1, 30, { status: 'voided' }),
+      sts('s', '2026-11-07T13:00', 10),
+    ]
+    expect(getSameDayDatesForTest(list, MWT).size).toBe(0)
+    expect(getSameDayDatesForTest([...list, mono('b', '2026-11-07T16:00', 131)], MWT)).toEqual(new Set(['2026-11-07']))
+  })
+
+  it('formatShortDate: ora solo se il giorno è nel set', () => {
+    const same = new Set(['2026-11-07'])
+    expect(formatShortDate('2026-11-07T10:30', same)).toBe('07/11 10:30')
+    expect(formatShortDate('2026-11-05T10:30', same)).toBe('05/11')
+    expect(formatShortDate('2026-11-07T10:30')).toBe('07/11')
+  })
+
+  it('nota "07/11 rispetto al 07/11" → con ora; date diverse invariate', () => {
+    const list = [mono('a', '2026-11-07T09:00', 130), mono('b', '2026-11-07T11:00', 120, 20), mono('c', '2026-11-10T10:00', 100, 30)]
+    const history = buildTestHistory(list, MWT)
+    const same = getSameDayDatesForTest(list, MWT)
+    const entryB = history.find(item => item.assessment.id === 'b')
+    expect(formatComparisonNote(entryB, same)[0]).toMatch(/dalla valutazione del 07\/11 09:00/)
+    expect(formatComparisonNote(entryB)[0]).toMatch(/dalla valutazione del 07\/11:/)
+    const entryC = history.find(item => item.assessment.id === 'c')
+    expect(formatComparisonNote(entryC, same)[0]).toMatch(/dalla valutazione del 07\/11 11:00/)
+    expect(formatComparisonNote(entryC, new Set())[0]).toMatch(/dalla valutazione del 07\/11:/)
   })
 })

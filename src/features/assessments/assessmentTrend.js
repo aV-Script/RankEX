@@ -3,7 +3,7 @@
 // alternativo. Pure, senza React.
 import { countLabel, BILATERAL_TESTS, TREND_KIND } from '../../utils/lipedema'
 import { SIDE_LABELS } from '../../config/lipedemaTests.config'
-import { formatDate, formatShortDate } from './assessmentFormat'
+import { formatDate, formatShortDate, getSameDayDates } from './assessmentFormat'
 
 export function getLineKey(side, segment) {
   return `${side}:${segment}`
@@ -25,11 +25,15 @@ export function toTrendChartRows(series) {
   const rowById = new Map()
   const lines   = []
   const aparts  = []
+  // Giorni con più valutazioni: l'etichetta dell'asse mostra anche l'ora
+  const sameDayDates = getSameDayDates(
+    [...new Map(series.points.map(point => [point.assessmentId, point.performedAt])).values()],
+  )
 
   for (const point of series.points) {
     let row = rowById.get(point.assessmentId)
     if (!row) {
-      row = { x: rows.length, label: formatShortDate(point.performedAt), performedAt: point.performedAt, points: {} }
+      row = { x: rows.length, label: formatShortDate(point.performedAt, sameDayDates), performedAt: point.performedAt, points: {} }
       rowById.set(point.assessmentId, row)
       rows.push(row)
     }

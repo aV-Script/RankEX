@@ -10,7 +10,7 @@ import { VoidAssessmentDialog }   from './VoidAssessmentDialog'
 import { DeltaText, ComparisonNote } from './DeltaText'
 import { AssessmentTrendChart }  from './AssessmentTrendChart'
 import { PrivacyNoticeBanner, PRIVACY_BANNER_ID } from './PrivacyNotice'
-import { formatDateTime, formatShortDate } from './assessmentFormat'
+import { formatDateTime, formatShortDate, getSameDayDatesForTest } from './assessmentFormat'
 
 const PLACEHOLDER_COUNT = 3
 
@@ -50,6 +50,7 @@ export function AssessmentsSection({
     return hideVoided ? all.filter(entry => isValidAssessment(entry.assessment)) : all
   }, [assessments, activeTestId, hideVoided])
   const series = useMemo(() => buildTrendSeries(assessments, activeTestId), [assessments, activeTestId])
+  const sameDayDates = useMemo(() => getSameDayDatesForTest(assessments, activeTestId), [assessments, activeTestId])
   // Rilettura dopo un salvataggio: la lista resta, solo lettura locale finché non arriva
   const isRefreshing = isLoading && assessments.length > 0
   const voidedCount = assessments.filter(assessment => !isValidAssessment(assessment)).length
@@ -140,6 +141,7 @@ export function AssessmentsSection({
               testId={activeTestId}
               entries={entries}
               series={series}
+              sameDayDates={sameDayDates}
               isRefreshing={isRefreshing}
               onOpen={setDetailEntry}
             />
@@ -223,7 +225,7 @@ function TestSelector({ tabsId, activeTestId, onSelect }) {
   )
 }
 
-function TestHistory({ tabsId, testId, entries, series, isRefreshing, onOpen }) {
+function TestHistory({ tabsId, testId, entries, series, sameDayDates, isRefreshing, onOpen }) {
   const test    = LIPEDEMA_TESTS[testId]
   const titleId = useId()
   return (
@@ -249,7 +251,7 @@ function TestHistory({ tabsId, testId, entries, series, isRefreshing, onOpen }) 
         <ul className="flex flex-col gap-2 list-none m-0 p-0">
           {entries.map(entry => (
             <li key={entry.assessment.id}>
-              <HistoryRow entry={entry} onOpen={onOpen} />
+              <HistoryRow entry={entry} sameDayDates={sameDayDates} onOpen={onOpen} />
             </li>
           ))}
         </ul>
@@ -258,7 +260,7 @@ function TestHistory({ tabsId, testId, entries, series, isRefreshing, onOpen }) 
   )
 }
 
-function HistoryRow({ entry, onOpen }) {
+function HistoryRow({ entry, sameDayDates, onOpen }) {
   const { assessment } = entry
   const isVoided = !isValidAssessment(assessment)
   // 0 da invalidazione in tono smorzato, non barrato: non è un valore ordinario
@@ -280,10 +282,10 @@ function HistoryRow({ entry, onOpen }) {
           {formatAssessmentPrimary(assessment)}
         </span>
       </div>
-      {!isVoided && <DeltaText entry={entry} />}
+      {!isVoided && <DeltaText entry={entry} sameDayDates={sameDayDates} />}
       {setupLine && <span className="font-body text-[12px] break-words" style={{ color: 'var(--rx-text-muted)' }}>{setupLine}</span>}
       <AssessmentBadges assessment={assessment} entry={entry} />
-      {!isVoided && <ComparisonNote entry={entry} />}
+      {!isVoided && <ComparisonNote entry={entry} sameDayDates={sameDayDates} />}
       {isVoided && assessment.voidReason && (
         <span className="font-body text-[12px]" style={{ color: 'var(--rx-text-muted)' }}>Motivo: {assessment.voidReason}</span>
       )}

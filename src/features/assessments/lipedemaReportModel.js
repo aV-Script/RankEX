@@ -7,7 +7,7 @@ import { LIPEDEMA_TESTS, LIPEDEMA_TEST_ORDER, SIDE_LABELS, getStopReasonLabel } 
 import { BIA_PARAMS } from '../../constants/bia'
 import { formatAssessmentPrimary, formatAssessmentDelta, formatAssessmentSetup } from './assessmentRegistry'
 import { getAssessmentBadges } from './assessmentBadgeRules'
-import { formatComparisonNote, formatNumber } from './assessmentFormat'
+import { formatComparisonNote, formatNumber, getSameDayDatesForTest } from './assessmentFormat'
 
 export const FIRST_ASSESSMENT_TEXT = 'prima valutazione'
 export const NOT_PERFORMED_TEXT    = 'Non ancora eseguito'
@@ -34,16 +34,17 @@ export function buildLipedemaReportRows(assessments) {
       return { ...base, isPerformed: false, performedAt: null, examinerName: null, primary: null, delta: null, setup: null, badges: [], notes: [], clinical: [] }
     }
     const entry = buildTestHistory(assessments, testId).find(item => item.assessment.id === assessment.id)
+    const sameDayDates = getSameDayDatesForTest(assessments, testId)
     return {
       ...base,
       isPerformed:  true,
       performedAt:  assessment.performedAt,
       examinerName: assessment.examinerName ?? null,
       primary:      formatAssessmentPrimary(assessment),
-      delta:        formatAssessmentDelta(entry) ?? (entry.comparison === COMPARISON.FIRST ? FIRST_ASSESSMENT_TEXT : null),
+      delta:        formatAssessmentDelta(entry, sameDayDates) ?? (entry.comparison === COMPARISON.FIRST ? FIRST_ASSESSMENT_TEXT : null),
       setup:        formatAssessmentSetup(assessment),
       badges:       getAssessmentBadges(assessment, entry).map(badge => badge.label),
-      notes:        formatComparisonNote(entry),
+      notes:        formatComparisonNote(entry, sameDayDates),
       clinical:     getClinicalLines(assessment, test),
     }
   })

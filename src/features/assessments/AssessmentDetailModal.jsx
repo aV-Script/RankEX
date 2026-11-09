@@ -5,7 +5,7 @@ import { ASSESSMENT_UI, formatAssessmentPrimary } from './assessmentRegistry'
 import { AssessmentBadges } from './AssessmentBadges'
 import { DeltaText, ComparisonNote } from './DeltaText'
 import { DetailSection, Row } from './AssessmentDetailParts'
-import { formatDateTime, formatTimestamp } from './assessmentFormat'
+import { formatDateTime, formatTimestamp, getSameDayDatesForTest } from './assessmentFormat'
 
 /**
  * Dettaglio di una valutazione: risultato, prove grezze e setup (parte del test,
@@ -22,6 +22,7 @@ export function AssessmentDetailModal({ entry, assessments, readonly, isBusy = f
   const clinicalRows = test?.clinicalRows ?? []
   const filledRows = clinicalRows.filter(row => clinical[row.pre] != null || clinical[row.post] != null)
   const hasClinical = filledRows.length > 0 || Boolean(clinical.conditionsNote)
+  const sameDayDates = getSameDayDatesForTest(assessments, assessment.testId)
   const replaced   = assessments.find(item => item.id === assessment.supersedes)
   const replacedBy = assessments.find(item => item.id === assessment.supersededBy)
   // Correggere richiede il form del test: solo per i test nel registro
@@ -41,9 +42,9 @@ export function AssessmentDetailModal({ entry, assessments, readonly, isBusy = f
               {formatAssessmentPrimary(assessment)}
             </span>
             {ui && <ui.ResultInfo assessment={assessment} />}
-            <DeltaText entry={entry} />
+            <DeltaText entry={entry} sameDayDates={sameDayDates} />
             <AssessmentBadges assessment={assessment} entry={entry} />
-            <ComparisonNote entry={entry} />
+            <ComparisonNote entry={entry} sameDayDates={sameDayDates} />
           </div>
         </DetailSection>
 
