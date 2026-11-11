@@ -7,7 +7,127 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-Nessuno sprint attivo: il #16 è chiuso (storico sotto). Il #17 va aperto dall'utente.
+# SPRINT #17 — EPIC-010 Lipedema Edition, ottava ondata (dati del modulo, audit, sola lettura, verifiche rimaste) — aperto il 2026-11-11
+
+**Branch:** `feature/lipedema-module`. Commit solo in locale, nessun push, nessun merge;
+`lipidemia/` e `mobile-app/` non si committano. Deploy solo su `rankex-dev`. Il rilascio e' il #18.
+
+**Goal:** EPIC-010 Lipedema verso il go-live: chiudere i dati del modulo (badge e misure), la coerenza
+dell'audit, la sola lettura per `staff_readonly` e le verifiche rimaste.
+
+**Situazione iniziale (verificata nel repo, da ricontrollare in sviluppo):** rankex-dev hosting a `670313c`,
+functions ferme dal #14, `qa:dev` 21/21, unit test 634/634. HEAD `063f74b` (retrospettiva #16).
+
+**Vincolo:** **mai deploy su fitquest-60a09.** Le rules e le functions di prod restano indietro rispetto a
+rankex-dev fino al #18 (rules nuove della voce 1, functions della voce 2): il #18 le rilascia insieme al merge.
+
+**Riferimento UI:** canvas RankEX (sola lettura, non si tocca).
+
+**Voci, nell'ordine:**
+1. **BUG-003 + TD-005 + TD-006 — dati del modulo** (`docs/BUGS.md` r.52, `docs/TECH-DEBT.md` r.112 e r.130).
+   Decisione presa (opzione a): nella rule di update cliente, solo se `affectedKeys` tocca `peso`/`altezza`/
+   `misureHistory`/`badges`/`badgeShowcase`, `get()` di `/organizations/{orgId}`: se `moduleType == 'lipedema'`,
+   `badges`/`badgeShowcase` rifiutati e le misure ammesse solo con `resource.data.privacyNotice` presente.
+   Costo: +1 lettura (da 2 a 3) solo sulle scritture di misure/trofei, in tutti i moduli; nessun backfill,
+   nessun deploy functions. In lipedema senza informativa la UI misure va **disabilitata con un messaggio**, non
+   lasciata fallire con permission-denied. ADR nuovo (**ADR-020**) a cura del tech-lead.
+   *Fatto quando:* test in `tests/rules/firestore.rules.test.js` che falliscono senza la modifica; BUG-003
+   VERIFIED dal vivo con scrittura diretta da console; TD-005 e TD-006 RESOLVED. **Review high** (rules).
+2. **TD-009 — audit di creazione/cancellazione cliente** (`docs/TECH-DEBT.md` r.187). Per TUTTI i moduli
+   `CLIENT_CREATED` e `CLIENT_DELETED` scritti solo dalle callable (`creaCliente`, `eliminaCliente`), env
+   `'functions'`; il nome solo se il modulo lo permette (`getOrgCapabilities`, criterio sul modulo, ADR-015 §2);
+   tolte le scritture client-side (`usecases/createClientUseCase.js`, `hooks/useClients.js`).
+   *Fatto quando:* creazione e cancellazione di un paziente lipedema producono 1 audit ciascuna, env
+   `'functions'`, senza nome; in PT 1 ciascuna, con nome; unit test functions; `deploy:dev` functions; verifica
+   `audit_logs` su rankex-dev con Admin SDK; tabella "Audit log" aggiornata in `CLAUDE.md` e
+   `docs/ARCHITECTURE-NOTES.md`. **Review high** (dati sanitari).
+3. **Sola lettura per `staff_readonly`** (action item 1 del #16). BUG-022 -> **DUPLICATE di BUG-007**; BUG-007
+   (calendario: "+" della testata, "+" delle celle, click su area vuota, azioni di `SlotPopup`) e BUG-024 (gruppi).
+   Prima il **censimento con grep** di `PAGES`/`ORG_PAGES` e delle sotto-viste con azioni di scrittura senza
+   `useReadonly`/`ReadonlyGuard`, **mostrato all'utente, che decide voce per voce cosa entra**; il resto va in
+   TECH-DEBT. Decisioni: click su slot esistente in readonly = dettaglio in sola lettura (senza CHIUDI/SALTA/
+   Elimina/modifica); pagina Ricorrenze visibile in sola lettura.
+   *Fatto quando:* BUG-007 e BUG-024 VERIFIED con `staff_readonly` a desktop e 360 px in PT/Soccer/Lipedema;
+   caso `qa:dev` in `roles.spec.js` che verifica 0 azioni di scrittura su calendario e gruppi e **fallisce
+   rimettendo un bottone visibile**; caso runbook (id successivo a TP-083, cioe' TP-084). **Review medium.**
+4. **Verifiche rimaste del #16.** (a) Stampa PDF paziente da Firefox: `npx playwright install firefox`,
+   verifica una tantum con script usa e getta, `qa:dev` resta chromium. (b) Etichetta "Professionista/
+   Professionisti" nei PDF gruppo e paziente con 1 e 2 esaminatori. (c) Banner RICARICA: `deploy:app:dev`
+   dedicato, solo nuovo build, con una pagina aperta, **mai durante `qa:dev`**.
+   *Fatto quando:* ogni voce VERIFIED o con un BUG aperto.
+5. **Solo se resta capacita': TD-013** — 6 `.rx-btn-primary` -> `Button` (`ClientsPage` x2, `GroupsPage`,
+   `WorkoutPlanForm` CREA SCHEDA, `AvatarPicker`, `MisureSection`) + test Vitest sul cursore del `Button`
+   disabilitato. Decisione: la classe `.rx-btn-primary` resta in `index.css`, `Button` senza `type` di default
+   (invariato). Se non entra, candidato #18.
+   *Fatto quando:* `grep -rn "rx-btn-primary" src` senza usi fuori dalla definizione CSS, contrasto minimo
+   >= 5,29:1 verificato dal test, TD-013 RESOLVED, test sul `cursor` del `Button` disabilitato presente.
++ **Regola di processo:** "non deployare l'hosting mentre gira `npm run qa:dev`" nella sezione QA di
+  `CLAUDE.md` (richiesta dall'action item 3 del #16).
+
+**Fuori dal #17:** STORY-044 (da ridisegnare sul canvas), STORY-029 (b)/(c) (DPA e testo informativa, utente/
+legale), STORY-026 (retention, decisione utente), merge e deploy prod (#18), stampa su carta, canvas.
+
+**Casi limite da tracciare per ogni voce (coperti in sviluppo e QA):**
+- Moduli: PT/GYM/Soccer/Lipedema (badge e misure scrivibili fuori da lipedema).
+- Paziente lipedema con e senza `privacyNotice`.
+- Ruoli: `staff_readonly` vs `trainer` vs `org_admin`.
+- Chiamata diretta alla callable (non solo via UI): le callable restano il limite di sicurezza.
+- Temi non predefiniti; stato disabilitato e in caricamento; 360 px; liste vuote (0 gruppi, 0 slot).
+
+**Dipendenze bloccanti segnalate:**
+- Voce 1: modifica di `firestore.rules` (file a rischio) + deploy `rules:dev`; ADR-020 PRIMA del developer
+  (non partire senza analisi del tech-lead). Rules di prod indietro fino al #18.
+- Voce 2: modifica alle callable -> `deploy:dev` functions (manuale, da `functions/`); functions di prod
+  indietro fino al #18. Va dopo la voce 1 per non mescolare due deploy su rankex-dev.
+- Voce 3: il censimento deve essere approvato dall'utente prima del codice; il caso `qa:dev` richiede il
+  seed (`qa:dev:seed`) e l'hosting dev aggiornato.
+- Voce 4: Firefox installato; (c) richiede un deploy a pagina aperta, quindi **in coda** e mai in parallelo a
+  `qa:dev`. Ordine di deploy hosting consigliato: dopo 3, prima del giro `qa:dev` finale.
+- Lavoro emerso fuori da questo elenco va in `docs/BACKLOG.md` per il #18, non nel #17.
+
+**Status board:**
+
+| Task | Status | Note |
+|------|--------|------|
+| 1a. ADR-020 (tech-lead) | READY | Prima del codice. |
+| 1b. Rules + test rules (falliscono senza modifica) + UI misure disabilitata in lipedema senza informativa | BACKLOG | Dopo 1a. Review high. |
+| 1c. Deploy `rules:dev` + verifica dal vivo BUG-003; TD-005/TD-006 RESOLVED | BACKLOG | Scrittura diretta da console. |
+| 2a. Callable `creaCliente`/`eliminaCliente` scrivono l'audit; tolte le scritture client | BACKLOG | Dopo 1. Review high. |
+| 2b. Unit test functions + `deploy:dev` functions + verifica `audit_logs` (Admin SDK) | BACKLOG | Lipedema senza nome, PT con nome. |
+| 2c. Tabella Audit log in CLAUDE.md e ARCHITECTURE-NOTES.md | BACKLOG | |
+| 3a. Censimento grep `PAGES`/`ORG_PAGES` (readonly) | DONE | Approvato 11/11: entrano calendario (CalendarHeader, Month/Week/DayView, SlotPopup), gruppi (GroupsPage, GroupManageTab, GroupDetailHeader rinomina/elimina, GroupNotes) e ricorrenze (RecurrenceDetailHeader, Period/Schedule/ClientsSection). ProfilePage (email/password propria) resta attiva. ClientsPage e ClientDashboard gia' coperti. |
+| 3b. BUG-022 -> DUPLICATE di BUG-007; fix calendario + gruppi + ricorrenze | BACKLOG | Dopo approvazione 3a. Review medium. |
+| 3c. Caso `qa:dev` in `roles.spec.js` (0 azioni di scrittura) + prova negativa + runbook TP-084 | BACKLOG | |
+| 3d. VERIFIED dal vivo, staff_readonly, desktop e 360 px, PT/Soccer/Lipedema | BACKLOG | |
+| 4a. Playwright firefox + stampa PDF paziente da Firefox | READY | Installazione in apertura. |
+| 4b. "Professionista/i" nei PDF gruppo e paziente (1 e 2 esaminatori) | BACKLOG | |
+| 4c. Banner RICARICA (`deploy:app:dev` a pagina aperta) | BACKLOG | In coda, mai durante `qa:dev`. |
+| 5. TD-013 + test Vitest sul cursore del `Button` disabilitato | BACKLOG | Solo se resta capacita'; altrimenti candidato #18. |
+| Regola "no deploy hosting durante `qa:dev`" in CLAUDE.md | READY | Una riga, sezione QA. |
+| `npm run qa:dev` finale + unit + lint + build | BACKLOG | Dopo tutti i deploy. |
+| STORY-044 / STORY-029 (b)(c) / STORY-026 | fuori sprint | Canvas / utente-legale / decisione utente. |
+
+**Verifica prevista degli action item della retrospettiva #16 (a fine #17):**
+1. Audit readonly per ruolo — **voce 3.** Fatto quando: BUG-022/BUG-007 e BUG-024 VERIFIED con
+   `staff_readonly` a 1280 e 360 px; elenco pagine censite ed esito nel commit; caso `qa:dev` con
+   `qadev.<modulo>.staff_readonly` verifica 0 bottoni di creazione su calendario e gruppi; riga in TECH-DEBT
+   per il resto.
+2. Misurare prima di decidere sul layout mobile — **trasversale, voci 1 (messaggio misure disabilitate) e 3
+   (dettaglio slot in sola lettura, calendario a 360 px).** Fatto quando: ogni decisione di layout a 360 px
+   porta in apertura il calcolo in px (misurato con Playwright), 0 decisioni riviste dopo l'implementazione,
+   0 giri di review per asserzioni sul meccanismo (i test di layout asseriscono l'esito osservabile).
+3. Regola deploy/`qa:dev` e test sul cursore — **regola di processo + voce 5.** Fatto quando: la regola e'
+   in CLAUDE.md, esiste un test Vitest sul `cursor` del `Button` disabilitato, `qa:dev` del #17 senza giri
+   rossi per deploy concorrente.
+4. Prerequisiti delle verifiche in apertura — **voce 4.** Fatto quando: Firefox installato in apertura, ogni
+   voce (Firefox, "Professionista/i", RICARICA) VERIFIED o con BUG aperto, "Non completato" del #17 con al
+   piu' la stampa su carta.
+5. TD-013 — **voce 5 (condizionata alla capacita').** Fatto quando: `grep -rn "rx-btn-primary" src` senza
+   usi fuori dalla definizione CSS, contrasto >= 5,29:1, TD-013 RESOLVED; altrimenti candidato #18 dichiarato.
+
+**Rischi:** la voce 3 e' la piu' larga (censimento aperto): il perimetro lo fissa l'utente sul censimento,
+il resto va in TECH-DEBT. Le voci 1 e 2 toccano rules e functions: review high obbligatoria e nessun deploy
+in prod. Principio: finire > iniziare; la voce 5 parte solo con 1-4 chiuse.
 
 ---
 
