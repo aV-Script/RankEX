@@ -47,8 +47,12 @@ export const PrintThemeProvider = PrintCtx.Provider
  * Inietta il CSS @media print e avvia window.print() al mount/unmount.
  * `tr { break-inside: avoid }` evita che le righe delle tabelle (storico
  * campionamenti, classifica gruppo) si spezzino a metà tra una pagina e l'altra.
+ * `pageMargin`: margine della pagina A4. '0' (default) per i report a sfondo pieno;
+ * con un margine, le pagine successive alla prima non partono dal bordo del foglio
+ * e l'altezza minima del contenitore non forza una seconda pagina (BUG-020).
  */
-export function usePrintDocument(BG, onClose) {
+export function usePrintDocument(BG, onClose, { pageMargin = '0' } = {}) {
+  const minHeight = pageMargin === '0' ? '297mm' : 'auto'
   useEffect(() => {
     const style = document.createElement('style')
     style.id = 'rankex-print-style'
@@ -61,13 +65,13 @@ export function usePrintDocument(BG, onClose) {
           position: static !important;
           display: block !important;
           width: 100% !important;
-          min-height: 297mm !important;
+          min-height: ${minHeight} !important;
           overflow: visible !important;
           background: ${BG} !important;
         }
         #rankex-print-controls { display: none !important; }
         tr { break-inside: avoid; }
-        @page { margin: 0; size: A4 portrait; }
+        @page { margin: ${pageMargin}; size: A4 portrait; }
       }
     `
     document.head.appendChild(style)
@@ -78,7 +82,7 @@ export function usePrintDocument(BG, onClose) {
       window.removeEventListener('afterprint', onClose)
       document.getElementById('rankex-print-style')?.remove()
     }
-  }, [onClose, BG])
+  }, [onClose, BG, pageMargin, minHeight])
 }
 
 export function DarkModeWarning() {

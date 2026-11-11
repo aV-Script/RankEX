@@ -9,6 +9,8 @@ import {
 } from './lipedemaReportModel'
 
 const PALETTE_PRINT = { ...PALETTE.bw, CYAN: '#2ecfff', mode: 'bw' }
+// Margine verticale A4: le pagine dopo la prima non partono dal bordo del foglio (BUG-020)
+const PRINT_PAGE_MARGIN = '12mm 0'
 
 /**
  * PDF del paziente del modulo Lipedema (STORY-040), stessa tecnica di
@@ -23,7 +25,7 @@ const PALETTE_PRINT = { ...PALETTE.bw, CYAN: '#2ecfff', mode: 'bw' }
 export function LipedemaReportPrint({ client, assessments, terminology, onClose }) {
   const p = PALETTE_PRINT
   const { BG, SURFACE, RAISED, BORDER, PRI, SEC, TER, GREEN } = p
-  usePrintDocument(BG, onClose)
+  usePrintDocument(BG, onClose, { pageMargin: PRINT_PAGE_MARGIN })
 
   const rows      = buildLipedemaReportRows(assessments)
   const examiners = getReportExaminers(rows)
@@ -59,7 +61,7 @@ export function LipedemaReportPrint({ client, assessments, terminology, onClose 
           </div>
         </div>
 
-        <div style={{ maxWidth: 794, margin: '0 auto', fontFamily: 'Inter, system-ui, sans-serif', background: BG, color: PRI, minHeight: '100vh', padding: '36px 44px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ maxWidth: 794, margin: '0 auto', fontFamily: 'Inter, system-ui, sans-serif', background: BG, color: PRI, minHeight: '100vh', padding: '24px 44px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
           <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderBottom: `2px solid ${GREEN}`, paddingBottom: 12 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -86,14 +88,12 @@ export function LipedemaReportPrint({ client, assessments, terminology, onClose 
                   <Th>Test</Th><Th>Data</Th><Th>Risultato</Th><Th>Delta</Th><Th>Condizioni</Th>
                 </tr>
               </thead>
-              <tbody>
-                {rows.map(row => <ReportRow key={row.testId} row={row} />)}
-              </tbody>
+              {rows.map(row => <ReportRow key={row.testId} row={row} />)}
             </table>
           </section>
 
           {bia && (
-            <section>
+            <section style={{ breakInside: 'avoid' }}>
               <SectionTitle>BIA{bia.date ? ` · ${bia.date}` : ''}</SectionTitle>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
                 <tbody>
@@ -127,8 +127,9 @@ function ReportRow({ row }) {
   const border = `1px solid ${PALETTE_PRINT.BORDER}`
   const cell   = { padding: '6px 8px', borderBottom: border, verticalAlign: 'top' }
   const hasDetails = row.badges.length > 0 || row.notes.length > 0 || row.clinical.length > 0
+  // Un tbody per test: riga e dettagli (note, dati sanitari) restano sulla stessa pagina
   return (
-    <>
+    <tbody style={{ breakInside: 'avoid' }}>
       <tr>
         <td style={{ ...cell, fontWeight: 700, borderBottom: hasDetails ? 'none' : border }}>{row.shortName}<br /><span style={{ fontWeight: 400, color: PALETTE_PRINT.SEC }}>{row.name}</span></td>
         {row.isPerformed ? (
@@ -151,6 +152,6 @@ function ReportRow({ row }) {
           </td>
         </tr>
       )}
-    </>
+    </tbody>
   )
 }
