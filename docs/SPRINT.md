@@ -167,6 +167,106 @@ Proposta, non pianificazione (decide l'utente):
 3. **Stampa da Firefox** e verifica "Professionista/i" nei PDF (richiede browser installato).
 4. **STORY-044** (canvas prima) e **STORY-029** (BLOCKED, utente/legale).
 
+## Retrospettiva
+Dati: 6 commit (`7dfe998`..`4557f6a`: 1 apertura docs, 1 fix plurali, 1 refactor bottoni, 2 fix UI
+(testata calendario, asse X), 1 test di stampa, 1 fix BUG-025 + esiti QA, 1 chiusura docs); 5 voci su 5
+DONE; 1 rework di decisione (D4 rivista 2 volte); bug nuovi BUG-022/024/025 (P3, aperti 022 e 024),
+BUG-021 e BUG-023 chiusi; TD-011/012 chiusi, TD-013 nuovo; `qa:dev` 21/21; unit test 634/634.
+
+**Verifica degli action item del #15**
+1. BUG-021 + TD-012: **fatto**. `06f95cb`: `pluralize`/`countLabel` in 10 componenti, 110 righe di test
+   0/1/2/-1 (`pluralLabels.test.js`). Misura: `grep "=== 1 ?" src` restituisce solo le 2 eccezioni
+   dichiarate (D1) in `utils/lipedema.js`, oltre a due `i === 1` nei test; BUG-021 VERIFIED dal vivo.
+   Il difetto non e' tornato in questo sprint (0 nuovi bug di plurale).
+2. TD-011: **fatto**. `86fa8af`: `#04140a` compare solo in `src/index.css:31` (`--rx-primary-text`),
+   contrasto minimo 5,29:1 invariato. Il "+ AGGIUNGI", gli ANNULLA e il calendario sono su `Button`.
+   Residuo noto e dichiarato: 6 `.rx-btn-primary` (TD-013, esclusi per decisione dell'utente).
+   Fuori elenco: RICARICA di `App.jsx` migrato.
+3. Test di stampa PDF: **fatto**. `fb9e9f8`: `lipedemaPrint.spec.js` + `pdfInspect.js`; fallisce con
+   `QA_PRINT_INJECT_MARGIN_0=1` e con `QA_PRINT_INJECT_BIA_BREAK=1`, passa in `qa:dev` (21/21). La
+   misura richiesta e' piu' che soddisfatta (due prove negative).
+4. Giro QA sui residui: **parziale**. VERIFIED: temi Mint/Carbon/Violet, admin, staff_readonly (che ha
+   trovato BUG-022/024), plurali e bottoni a 1280/360 px. Misura "il Non completato elenca solo la
+   carta": non raggiunta, restano Firefox (non installato), banner RICARICA, "Professionista/i" nei PDF.
+5. Dati e cosmetici: **fatto**. BUG-023 `103ac3b` VERIFIED a 360 e 1280 px; "E2E-PDF Sprint15"
+   cancellato (residui 0, clientCount 4).
+
+**WHAT WENT WELL**
+- 5 voci su 5 chiuse, con "fatto quando" misurabili dal primo giorno. Causa: azioni del #15 scritte con
+  grep o comando di verifica; il #16 le ha riusate come criterio.
+- Il test di stampa e' stato validato con prove negative (iniezione del difetto): prova che il test
+  vede il bug, non solo che passa. Causa: "fallisce rimettendo `@page { margin: 0 }`" come criterio.
+- Il censimento dei bottoni mostrato prima del codice ha portato 1 solo commit per TD-011 e ha isolato
+  TD-013 come decisione esplicita invece di debito silenzioso.
+- La QA dal vivo con 3 ruoli ha trovato 3 bug reali (022, 024, 025) che il codice non mostrava.
+
+**WHAT WENT WRONG / CAUSED BUGS**
+- BUG-022 (calendario) e BUG-024 (gruppi), staff_readonly vede azioni che il server rifiuta. ROOT CAUSE:
+  le pagine trainer non usano `useReadonly`/`ReadonlyGuard`; la protezione e' solo in rules e callable,
+  l'UI non e' mai stata censita per ruolo. IMPACT: 2 bug in una sola QA, dati integri ma UX falsa;
+  non ancora esaustivo (altre pagine non controllate). ACTION: azione 1.
+- BUG-025 (cursore sui `Button` disabilitati): difetto del componente condiviso da STORY-043, emerso
+  solo nella QA dal vivo di TD-011. ROOT CAUSE: il disabilitato e' testato per colore/opacita' ma non
+  per cursore (CSS non coperto da unit test e il caso non era nei casi limite di STORY-043). IMPACT:
+  trovato un sprint dopo l'introduzione. ACTION: azione 3.
+- Un giro `qa:dev` rosso (20/21): deploy dell'hosting durante la suite, chunk lazy sparito. ROOT CAUSE:
+  nessuna regola operativa su deploy e QA in parallelo, stesso account e stesso hosting. IMPACT: un giro
+  da rifare, rischio di diagnosticare una regressione inesistente. ACTION: azione 3 (regola nel runbook).
+- Verifiche non fatte: Firefox (non installato), banner RICARICA, "Professionista/i" nei PDF. ROOT
+  CAUSE: prerequisiti (browser, deploy a pagina aperta) non preparati in apertura, stesso schema del #14
+  e #15. IMPACT: 3 voci nel Non completato. ACTION: azione 4.
+
+**WHAT CAUSED REWORK**
+- D4 (testata calendario su una riga a 360 px) decisa prima di misurare: la review l'ha stimata
+  insufficiente, poi la misura dal vivo ("9 n...") l'ha rivista una seconda volta; 2 revisioni della
+  decisione e il commit `87fa8db` sulla terza versione. ROOT CAUSE: decisione di layout mobile chiesta
+  con una stima a occhio, non con larghezze in px. IMPACT: 2 giri di decisione e codice. ACTION: azione 2.
+- Il test di stampa ha richiesto 2 giri di review per avere l'asserzione BIA sul risultato (pagine su
+  cui compare) e non sul meccanismo (la regola CSS). ROOT CAUSE: si e' partiti dal meccanismo di
+  `break-inside`, non dall'esito osservabile. IMPACT: 1 giro di review. ACTION: azione 2 (criterio
+  "asserzione sull'esito" per i test di layout).
+
+**WHAT WAS SLOW**
+- L'agente QA si e' interrotto a meta' per limite d'uso ed e' stato ripreso. Non ha perso lavoro perche'
+  lo script usava try/finally e il prefisso `E2E-` (stato recuperabile: piano free, dati ripuliti).
+  Da mantenere come pratica; il rischio e' la QA lunga in un solo giro. ACTION: azione 4 (time-box e
+  QA a blocchi).
+- Le 3 verifiche mancanti hanno richiesto un prerequisito non previsto (browser, deploy a pagina aperta).
+
+**WHAT CREATED TECHNICAL DEBT**
+- TD-013: 6 `.rx-btn-primary` non migrati (scelta consapevole, con motivo scritto); la classe resta
+  accanto a `Button`. ROOT CAUSE: perimetro della migrazione deciso per elenco. ACTION: candidato #17,
+  non tra le 5 azioni (basso impatto, nessun bug).
+- Audit readonly assente: BUG-022/024 sono sintomi di un debito non registrato in TECH-DEBT.md (nessuna
+  regola per cui una pagina trainer deve usare `useReadonly`). ACTION: azione 1.
+
+**ACTION ITEM per lo Sprint #17** (max 5)
+1. Audit readonly per ruolo: censire con grep le pagine di `PAGES` (`trainer.config.jsx`) e le viste
+   di `OrgAdminView` che hanno azioni di scrittura ma non importano `useReadonly`/`ReadonlyGuard`;
+   correggere almeno calendario (BUG-022) e gruppi (BUG-024), aggiungere una riga a TECH-DEBT.md per
+   il resto. Fatto quando: BUG-022 e BUG-024 VERIFIED con `staff_readonly` dal vivo a 1280 e 360 px, l'elenco
+   delle pagine censite e dell'esito e' nel commit, e un caso `qa:dev` con `qadev.<modulo>.staff_readonly`
+   verifica 0 bottoni di creazione su calendario e gruppi.
+2. Misurare prima di decidere sul layout mobile: per ogni decisione di layout a 360 px nelle "Decisioni"
+   di apertura, allegare il calcolo in px (larghezza disponibile, larghezza delle etichette misurate con
+   Playwright) prima di chiedere la scelta all'utente; per i test di layout, asserire sull'esito
+   osservabile. Fatto quando: 0 decisioni di layout riviste dopo l'implementazione nel #17 e 0 giri di
+   review per asserzioni sul meccanismo.
+3. Regola operativa e caso limite per i componenti condivisi: aggiungere in `runbook.config.js` (o in
+   un file di processo) "non deployare l'hosting mentre gira `qa:dev`", e per ogni modifica a `Button`/
+   `Input`/`Modal` una verifica dei casi di stato (hover, focus, disabilitato, cursore, caricamento)
+   con un test sulla proprieta' CSS risolta. Fatto quando: la regola e' scritta, esiste un test per il
+   `cursor` del `Button` disabilitato, e `qa:dev` del #17 non ha giri rossi per deploy concorrente.
+4. Preparare i prerequisiti delle verifiche in apertura, non a fine sprint: installare Firefox per
+   Playwright (`npx playwright install firefox`) e aggiungere una spec di stampa su Firefox; verificare
+   dal vivo "Professionista/i" nei PDF gruppo e paziente e il banner RICARICA (deploy a pagina aperta,
+   fuori da `qa:dev`). Fatto quando: ogni voce VERIFIED o con un BUG aperto e il "Non completato" del
+   #17 elenca solo la stampa su carta (se non fatta).
+5. Chiudere TD-013: migrare i 6 `.rx-btn-primary` a `Button` (o rimuovere la classe se vuota),
+   solo se l'utente conferma l'eccezione del #16. Fatto quando: `grep -rn "rx-btn-primary" src` non
+   trova usi fuori dalla definizione CSS (o la classe e' rimossa), contrasto minimo ancora >= 5,29:1
+   verificato dal test, TD-013 RESOLVED.
+
 ---
 
 # SPRINT #15 — EPIC-010 Lipedema Edition, sesta ondata (bottone principale, verifiche rimaste, debito) — aperto il 2026-11-11, chiuso il 2026-11-11 (goal raggiunto, con residui QA elencati)
