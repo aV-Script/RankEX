@@ -62,11 +62,15 @@ legale), plurali fuori dai 5 file, etichetta tagliata dell'asse X del trend (cos
 
 | Task | Status | Note |
 |------|--------|------|
-| Allineamento canvas | IN PROGRESS (utente) | Fuori capacità developer. |
-| Giro QA iniziale | TODO | |
-| Helper di plurale | TODO | |
-| STORY-043 — bottone principale | TODO | |
-| Migrazione date org | TODO | |
+| Allineamento canvas | IN PROGRESS (utente) | Fuori capacità developer. Da riportare: SALTA e "Non salvati in questa visita" sulle tavole `Valutazione*`; trend e PDF sulle tavole `PazienteTrend`/`MobilePazienteTrend`/`ReportLipedema`. |
+| Giro QA iniziale | DONE | 11/11, hosting `50f6779` e poi `2707b21`. VERIFIED: BUG-010 (`qa-lipedema` a free e poi di nuovo pro; "1 presente" in `demo-lipedema`), BUG-017 (super_admin di seed su rankex-admin-dev, prima e dopo la migrazione), BUG-018, TP-077 ("Aggiornamento in corso…" con rete e CPU rallentate: + NUOVA VALUTAZIONE, CORREGGI e ANNULLA disabilitati, schede e grafico attivi; tutto riabilitato a rilettura finita), tastiera sulle schede dei test (frecce, Home/End, giro dall'ultima alla prima). PDF di 2 pagine sul paziente `E2E-PDF Sprint15`: trovato e corretto BUG-020. |
+| Helper di plurale | DONE | Commit `eb15aec`, `utils/plural.js` nei 5 file, test 0/1/2/−1/−2. 0 ternari `=== 1 ?` nei 5 file. Fuori perimetro: BUG-021 e TD-012. |
+| STORY-043 — bottone principale | DONE | Commit `8ee2510` + `2707b21` (disabilitato al 50%, dalla review). Lista dei primari approvata dall'utente; Gruppi: CREA pieno a form aperto; glow di Mint allineato. Test di contrasto: minimo Carbon 5,29:1. QA dal vivo desktop e 360 px (lista pazienti, form di valutazione, chiusura appuntamento). Residuo: TD-011 (calendario senza primario pieno, bottoni scritti a mano). Runbook TP-080. |
+| Migrazione date org | DONE | Commit `de645ee`; `--apply` su rankex-dev: 31 documenti, 15 convertiti, 0 Timestamp rimasti; secondo dry-run 0 da convertire. |
+| BUG-020 — PDF multipagina | FIXED + VERIFIED | Commit `3923844`. A4 di 2 pagine corretto; un report con meno dati resta di 1 pagina. Runbook TP-081. |
+| Review medium | APPROVED | 0 bloccanti; LOW sul `.rx-btn-primary` disabilitato corretto (`2707b21`), gli altri in TD-011. |
+| Deploy rankex-dev | DONE | `npm run deploy:all:dev` dopo `2707b21`; functions non toccate, non ridistribuite. |
+| Regressione `npm run qa:dev` | 19/19 | Dopo il deploy. |
 | STORY-029 — requisiti non-codice | BLOCKED (fuori capacità developer) | Blocca il go-live, non lo sprint. |
 
 ---
