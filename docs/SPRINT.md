@@ -7,8 +7,67 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-Nessuno sprint aperto: il #14 è chiuso (vedi storico). Candidati per il #15 in fondo al #14,
-da confermare con l'utente.
+# SPRINT #15 — EPIC-010 Lipedema Edition, sesta ondata (bottone principale, verifiche rimaste, debito) — aperto il 2026-11-11
+
+**Branch:** `feature/lipedema-module`. Deploy solo su `rankex-dev`, **nessun deploy in prod
+del modulo** (DPA non firmato, STORY-029). Commit solo in locale.
+
+**Goal:** il bottone principale è pieno e unico per schermata in tutta l'app, le verifiche
+rimaste dal #14 passano a VERIFIED e i plurali passano da un helper unico.
+
+**Riferimento UI:** canvas RankEX, tavole `DesignSystem` e `TemiConfronto` (sola lettura).
+
+**Story e task selezionati, nell'ordine:**
+1. **Allineamento canvas** (action item 4): lo fa l'utente in parallelo (decisione 11/11). Il
+   developer non tocca il canvas.
+2. **Giro QA iniziale** (action item 2) sull'hosting dev attuale (`50f6779`): TP-077, tastiera
+   sulle schede dei test, BUG-018, BUG-010, BUG-017, PDF di più pagine.
+3. **Helper di plurale generico** (action item 1): `utils/plural.js`, nei 5 file dell'action item.
+4. **STORY-043** — bottone principale pieno, variante `secondary` tinta, Mint `#6F86FF`.
+5. **Migrazione date org** (action item 5): script idempotente solo rankex-dev + seed corretto.
+
+**Fuori dal #15:** STORY-044 (da ridisegnare sul canvas prima), STORY-029 (BLOCKED, utente/
+legale), plurali fuori dai 5 file, etichetta tagliata dell'asse X del trend (cosmetico).
+
+**Decisioni aperte e casi limite (action item 3) — tutte decise dall'utente l'11/11:**
+
+*STORY-043*
+- Default di `Button`: diventa `secondary` (la tinta attuale, nessun cambio visivo); il pieno si
+  sceglie esplicitamente con `variant="primary"`, uno per schermata. La lista dei primari va
+  mostrata all'utente prima del commit.
+- Dialog e modal contano come schermata a sé: conferma piena, annulla `neutral`; le conferme
+  distruttive restano `danger`/`dangerGhost`.
+- Area super_admin: pieno sull'accent rosso `#f87171`, testo `#04140a` (~6,8:1).
+- Casi limite: primario disabilitato o in caricamento (resta pieno, opacità 50%); wizard con
+  INDIETRO/AVANTI (AVANTI pieno, INDIETRO `neutral`); pagina con dialog aperto (uno per livello);
+  classe CSS `.rx-btn-primary` (6 usi) allineata alla stessa regola; contrasto di `#04140a`
+  sull'accent dei 7 temi ≥ 4,5:1 (minimo Carbon ~5,3:1, calcolato).
+
+*Giro QA*
+- BUG-010: `qa-pt` portata temporaneamente a piano `free` con script Admin SDK solo rankex-dev,
+  poi riportata a `pro`. BUG-017 resta non verificabile senza un super_admin.
+- PDF multipagina: paziente `E2E-PDF Sprint15` in `demo-lipedema` (fuori dalle org `qa-*`, non
+  toccato dal teardown di `qa:dev`), con dati lunghi; resta finché decide l'utente.
+
+*Plurale*
+- Solo i 5 file; `countLabel` resta nel CORE lipedema (il file server non importa nulla), nessuna
+  modifica alle functions. Casi: 0 → plurale, 1 → singolare, 2 → plurale; delta negativi sul
+  valore assoluto.
+
+*Migrazione date*
+- Solo `rankex-dev` (guardia sul projectId); la normalizzazione di lettura (`utils/orgDates.js`)
+  resta, perché in prod potrebbero esserci dati vecchi.
+
+**Status board:**
+
+| Task | Status | Note |
+|------|--------|------|
+| Allineamento canvas | IN PROGRESS (utente) | Fuori capacità developer. |
+| Giro QA iniziale | TODO | |
+| Helper di plurale | TODO | |
+| STORY-043 — bottone principale | TODO | |
+| Migrazione date org | TODO | |
+| STORY-029 — requisiti non-codice | BLOCKED (fuori capacità developer) | Blocca il go-live, non lo sprint. |
 
 ---
 

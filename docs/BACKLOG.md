@@ -1527,7 +1527,7 @@ valutazioni **per** condividerlo con la paziente o con altri curanti.
   - [ ] Modifica già presente, non committata, in `src/config/themes.config.js`: Mint con accent-2
         `#6F86FF` al posto di `#3D5AFE`, per superare 4,5:1. Va inclusa qui
 - **Priority:** P2 (dopo Sprint #13)
-- **Status:** BACKLOG
+- **Status:** IN SPRINT (#15) — decisioni dell'utente dell'11/11 in docs/SPRINT.md
 
 ### STORY-044 — Elenco "Da sistemare" nella panoramica organizzazione
 - **Contesto:** proposta nata sul prototipo: elenco delle cose che richiedono un intervento
