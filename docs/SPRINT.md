@@ -7,7 +7,7 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-# SPRINT #15 — EPIC-010 Lipedema Edition, sesta ondata (bottone principale, verifiche rimaste, debito) — aperto il 2026-11-11
+# SPRINT #15 — EPIC-010 Lipedema Edition, sesta ondata (bottone principale, verifiche rimaste, debito) — aperto il 2026-11-11, chiuso il 2026-11-11 (goal raggiunto, con residui QA elencati)
 
 **Branch:** `feature/lipedema-module`. Deploy solo su `rankex-dev`, **nessun deploy in prod
 del modulo** (DPA non firmato, STORY-029). Commit solo in locale.
@@ -62,7 +62,7 @@ legale), plurali fuori dai 5 file, etichetta tagliata dell'asse X del trend (cos
 
 | Task | Status | Note |
 |------|--------|------|
-| Allineamento canvas | IN PROGRESS (utente) | Fuori capacità developer. Da riportare: SALTA e "Non salvati in questa visita" sulle tavole `Valutazione*`; trend e PDF sulle tavole `PazienteTrend`/`MobilePazienteTrend`/`ReportLipedema`. |
+| Allineamento canvas | DONE (utente, 11/11) | SALTA e "Non salvati in questa visita" sulle tavole `Valutazione*`; trend e PDF su `PazienteTrend`/`MobilePazienteTrend`/`ReportLipedema`. |
 | Giro QA iniziale | DONE | 11/11, hosting `50f6779` e poi `2707b21`. VERIFIED: BUG-010 (`qa-lipedema` a free e poi di nuovo pro; "1 presente" in `demo-lipedema`), BUG-017 (super_admin di seed su rankex-admin-dev, prima e dopo la migrazione), BUG-018, TP-077 ("Aggiornamento in corso…" con rete e CPU rallentate: + NUOVA VALUTAZIONE, CORREGGI e ANNULLA disabilitati, schede e grafico attivi; tutto riabilitato a rilettura finita), tastiera sulle schede dei test (frecce, Home/End, giro dall'ultima alla prima). PDF di 2 pagine sul paziente `E2E-PDF Sprint15`: trovato e corretto BUG-020. |
 | Helper di plurale | DONE | Commit `eb15aec`, `utils/plural.js` nei 5 file, test 0/1/2/−1/−2. 0 ternari `=== 1 ?` nei 5 file. Fuori perimetro: BUG-021 e TD-012. |
 | STORY-043 — bottone principale | DONE | Commit `8ee2510` + `2707b21` (disabilitato al 50%, dalla review). Lista dei primari approvata dall'utente; Gruppi: CREA pieno a form aperto; glow di Mint allineato. Test di contrasto: minimo Carbon 5,29:1. QA dal vivo desktop e 360 px (lista pazienti, form di valutazione, chiusura appuntamento). Residuo: TD-011 (calendario senza primario pieno, bottoni scritti a mano). Runbook TP-080. |
@@ -72,6 +72,58 @@ legale), plurali fuori dai 5 file, etichetta tagliata dell'asse X del trend (cos
 | Deploy rankex-dev | DONE | `npm run deploy:all:dev` dopo `2707b21`; functions non toccate, non ridistribuite. |
 | Regressione `npm run qa:dev` | 19/19 | Dopo il deploy. |
 | STORY-029 — requisiti non-codice | BLOCKED (fuori capacità developer) | Blocca il go-live, non lo sprint. |
+
+## Goal
+Il bottone principale è pieno e unico per schermata in tutta l'app, le verifiche rimaste dal
+#14 passano a VERIFIED e i plurali passano da un helper unico. **Raggiunto** (plurali: solo nei
+5 file decisi; gli altri sono in TD-012).
+
+## Completato
+- **Helper di plurale** `utils/plural.js` nei 5 file (`eb15aec`), test 0/1/2/−1/−2.
+- **Migrazione date org** (`de645ee`): solo rankex-dev, 0 Timestamp rimasti.
+- **BUG-020** — interruzioni di pagina del PDF (`3923844`), VERIFIED. Runbook TP-081.
+- **STORY-043** — bottone principale pieno, `secondary`, Mint `#6F86FF` (`8ee2510` + `2707b21`).
+  Runbook TP-080.
+- **Giro QA** VERIFIED dal vivo l'11/11: BUG-010, BUG-017, BUG-018, BUG-020, TP-077, tastiera
+  sulle schede dei test, STORY-043 a desktop e 360 px (lista pazienti, form valutazione,
+  chiusura appuntamento).
+- **Canvas** allineato dall'utente (SALTA, "Non salvati", trend, PDF).
+- **Docs** (`b7d9791`, `7a0a5a7`). rankex-dev: hosting a `7a0a5a7`, functions non toccate né
+  ridistribuite; `npm run qa:dev` 19/19.
+
+## Non completato (motivo)
+- **Verifiche dal vivo non fatte (residui QA):** stampa su carta; stampa da Firefox; primario sui
+  temi diversi dal predefinito (coperto solo dal test di contrasto); area admin dopo STORY-043;
+  vista staff_readonly dopo STORY-043.
+- **BUG-021, TD-011, TD-012:** passano allo Sprint #16 (decisione utente 11/11), non entrano nel #15.
+- **STORY-044:** resta BACKLOG, da ridisegnare sul canvas.
+- **STORY-029:** BLOCKED (DPA/informativa, a carico utente/legale).
+
+## Blockers
+- Nessuno tecnico. STORY-029 (DPA, testo informativa) blocca il go-live di EPIC-010, non lo sprint.
+- **Dato di test residuo su rankex-dev:** paziente "E2E-PDF Sprint15" in `demo-lipedema`, in
+  attesa di decisione dell'utente (tenerlo o cancellarlo).
+
+## Tech debt emerso
+- **TD-011** — bottoni principali scritti a mano fuori da `Button` (calendario senza primario
+  pieno, ANNULLA di `WorkoutPlanForm`/`RunbookPage`/`GoalsSection`, "+ AGGIUNGI" di `MembersPage`);
+  testo `#04140a` ripetuto in 3 punti, manca un token.
+- **TD-012** — plurali inline in 9 file fuori dai 5 dell'helper.
+- **BUG-021** (P3) — "CREA APPUNTAMENTO (1 pazienti)" in `AddSlotModal`, stessa famiglia di TD-012.
+- Cosmetico non tracciato: etichetta tagliata dell'asse X del trend (dal #14).
+
+## Prossimo sprint (candidati)
+Proposta, non pianificazione (decide l'utente):
+1. **BUG-021 + TD-012** (P3 / debito) — plurali restanti con `utils/plural.js`.
+2. **TD-011** — bottoni fuori da `Button`, primario del calendario, token per il testo del primario.
+3. **Residui QA non verificati dal vivo** — primario sui temi non predefiniti, area admin e
+   staff_readonly dopo STORY-043, stampa su carta e da Firefox.
+4. **Dal backlog EPIC-010:** STORY-044 "Da sistemare" (P3, BACKLOG, prima da ridisegnare sul
+   canvas) e STORY-029 (P0, BLOCKED, utente/legale). Nessun'altra story EPIC-010 è READY o aperta.
+5. **Dato di test** "E2E-PDF Sprint15": decisione dell'utente.
+
+## Retrospettiva
+_(da scrivere dalla Retrospective)_
 
 ---
 
