@@ -84,6 +84,28 @@ service cloud.firestore {
         resource.data.get('clientCount', -1) == 0;
     }
 
+    // Moduli con gamification e senza informativa obbligatoria: PT (anche legacy,
+    // senza moduleType) e soccer. Ogni altro modulo (lipedema, o uno futuro non
+    // ancora censito qui) è trattato in modo restrittivo, come getModule (ADR-007).
+    // Speculare a hasGamification in config/modules.config.js e
+    // functions/src/shared/modules.js (test in firestore.rules.test.js, ADR-020).
+    function isGamifiedModule(moduleType) {
+      return moduleType == null || moduleType in ['personal_training', 'soccer_academy'];
+    }
+
+    // ADR-020 (BUG-003, TD-005, TD-006): chiamata SOLO quando l'update tocca misure
+    // o trofei, così il wearable non paga la lettura dell'org. Fail-closed se l'org
+    // non esiste. Nei moduli restrittivi: trofei mai; misure solo con l'informativa
+    // registrata (privacyNotice lo scrivono solo le callable, non è nella whitelist).
+    function moduleAllowsClientWrite(orgId) {
+      let org = get(/databases/$(database)/documents/organizations/$(orgId));
+      return org != null && (
+        isGamifiedModule(org.data.get('moduleType', null)) ||
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['badges', 'badgeShowcase']) &&
+         resource.data.get('privacyNotice', null) != null)
+      );
+    }
+
     function isOwnClient(orgId, clientId) {
       return isAuth() &&
         userProfile().orgId == orgId &&
@@ -155,13 +177,19 @@ service cloud.firestore {
         // poteva modificarli direttamente dalla console del browser.
         //   trainer/org_admin: misure (useMisure), trofei (useBadges), wearable (useWearable)
         //   cliente: vetrina trofei, wearable, avatar — solo se sbloccato
+        // ADR-020: misure e trofei del trainer passano da moduleAllowsClientWrite (get()
+        // dell'org solo se li tocca): in lipedema trofei mai, misure solo con informativa.
         allow update: if isSuperAdmin() ||
           (canWrite(orgId) &&
            request.resource.data.diff(resource.data).affectedKeys().hasOnly([
              'peso', 'altezza', 'misureHistory',
              'badges', 'badgeShowcase',
              'wearableEnabled', 'wearable',
-           ])) ||
+           ]) &&
+           (!request.resource.data.diff(resource.data).affectedKeys().hasAny([
+              'peso', 'altezza', 'misureHistory', 'badges', 'badgeShowcase',
+            ]) ||
+            moduleAllowsClientWrite(orgId))) ||
           (isOwnClient(orgId, clientId) &&
            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wearable', 'avatarId', 'badgeShowcase']) &&
            (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['avatarId']) ||

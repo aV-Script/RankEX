@@ -18,7 +18,7 @@ export function PrivacyNoticeBanner({ readonly, terminology, onRegister }) {
         <Button size="sm" variant="ghost" accentColor="var(--rx-warning)" onClick={onRegister}>REGISTRA INFORMATIVA</Button>
       )}
     >
-      Informativa non registrata: le valutazioni e la BIA non si possono salvare finché non è registrata.
+      Informativa non registrata: le valutazioni, la BIA e le misure non si possono salvare finché non è registrata.
       {readonly && <> Deve registrarla un {terminology.trainer}.</>}
     </WarningNote>
   )

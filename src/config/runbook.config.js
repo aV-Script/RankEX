@@ -1268,6 +1268,19 @@ export const RUNBOOK_SUITES = [
         ],
         expected: ['Un solo primario pieno per schermata; i disabilitati sono al 50%; ANNULLA sempre neutro; testata calendario a 360 px su due righe ordinate (titolo intero, poi controlli)'],
       },
+      {
+        id: 'TP-084', usId: 'BUG-003/TD-006', severity: 'important', title: 'Misure solo con informativa e nessun trofeo su un paziente Lipedema',
+        preconditions: 'Org Lipedema su rankex-dev (rules deployate): un paziente senza informativa e uno con; account trainer e staff_readonly. Un\'org PT e una Soccer con un cliente ciascuna.',
+        steps: [
+          'Paziente senza informativa → tab Misure: banner ambra, input peso/altezza e AGGIORNA disabilitati, grafici visibili',
+          'Console del browser: updateClient con { peso: 70 } sul paziente senza informativa → permission-denied',
+          'REGISTRA INFORMATIVA dal banner: il banner sparisce, AGGIORNA peso salva e il grafico si aggiorna',
+          'Console sul paziente con informativa: awardBadge(orgId, patientId, \'champion\', \'qa\', \'QA\') e updateBadgeShowcase → permission-denied (riproduzione di BUG-003)',
+          'Accedere come staff_readonly: il banner dice "Deve registrarla un Professionista", nessun input',
+          'Org PT e org Soccer: AGGIORNA misure e assegnazione trofeo funzionano come prima',
+        ],
+        expected: ['Misure sanitarie salvabili solo con informativa registrata, nessun trofeo su un paziente, PT e Soccer invariati'],
+      },
     ],
   },
 ]

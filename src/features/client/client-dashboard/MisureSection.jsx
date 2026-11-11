@@ -3,6 +3,7 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid,
 } from 'recharts'
+import { PrivacyNoticeBanner, PRIVACY_BANNER_ID } from '../../assessments/PrivacyNotice'
 
 function MisureLineChart({ data = [], dataKey, label, unit, color }) {
   const sorted = [...data]
@@ -79,7 +80,7 @@ function MisureLineChart({ data = [], dataKey, label, unit, color }) {
   )
 }
 
-export function MisureSection({ client, color, readonly, onUpdate }) {
+export function MisureSection({ client, color, readonly, onUpdate, needsPrivacyNotice = false, terminology, onRequestPrivacyNotice }) {
   const [peso,   setPeso]   = useState(client.peso    ?? '')
   const [altezza, setAltezza] = useState(client.altezza ?? '')
   const [saving, setSaving] = useState(false)
@@ -102,8 +103,15 @@ export function MisureSection({ client, color, readonly, onUpdate }) {
     }
   }
 
+  const describedBy = needsPrivacyNotice ? PRIVACY_BANNER_ID : undefined
+
   return (
     <section className="px-4 pt-6">
+      {needsPrivacyNotice && (
+        <div className="mb-4">
+          <PrivacyNoticeBanner readonly={readonly} terminology={terminology} onRegister={onRequestPrivacyNotice} />
+        </div>
+      )}
       <div className="rounded-[4px] p-5 rx-card">
         <div className="font-display text-[10px] tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-accent)' }}>
           ◈ Misure
@@ -139,6 +147,8 @@ export function MisureSection({ client, color, readonly, onUpdate }) {
                 className="input-base w-24"
                 step="0.1"
                 min="0"
+                disabled={needsPrivacyNotice}
+                aria-describedby={describedBy}
               />
             </div>
             <div className="flex flex-col gap-1">
@@ -150,11 +160,14 @@ export function MisureSection({ client, color, readonly, onUpdate }) {
                 className="input-base w-24"
                 step="0.5"
                 min="0"
+                disabled={needsPrivacyNotice}
+                aria-describedby={describedBy}
               />
             </div>
             <button
               onClick={handleSave}
-              disabled={saving}
+              disabled={saving || needsPrivacyNotice}
+              aria-describedby={describedBy}
               className="rx-btn-primary font-display text-[10px] tracking-[1.5px] px-4 py-2 rounded-[3px] cursor-pointer disabled:opacity-50"
             >
               {saving ? '…' : 'AGGIORNA'}

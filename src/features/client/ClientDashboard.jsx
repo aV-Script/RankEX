@@ -493,7 +493,10 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
           )}
 
           {tab === 'misure' && (
-            <MisureSection client={client} color={brandGreen} readonly={readonly} onUpdate={handleUpdateMisure} />
+            <MisureSection
+              client={client} color={brandGreen} readonly={readonly} onUpdate={handleUpdateMisure}
+              needsPrivacyNotice={needsPrivacyNotice} terminology={terminology} onRequestPrivacyNotice={handleOpenPrivacyModal}
+            />
           )}
 
           {tab === 'wearable' && capabilities.hasWearable && (

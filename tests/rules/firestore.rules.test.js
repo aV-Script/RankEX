@@ -13,8 +13,9 @@ import {
   initializeTestEnvironment, assertSucceeds, assertFails,
 } from '@firebase/rules-unit-testing'
 import {
-  doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, collection, addDoc, query, where,
+  doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, collection, addDoc, query, where, arrayUnion,
 } from 'firebase/firestore'
+import { MODULE_CAPABILITIES } from '../../functions/src/shared/modules.js'
 
 const PROJECT_ID = 'demo-rankex-rules-test'
 
@@ -526,6 +527,107 @@ describe('Trainer — update diretto del cliente', () => {
 
   it('il trainer NON può cancellare un cliente direttamente (solo via eliminaCliente)', async () => {
     await assertFails(deleteDoc(doc(trainerDb(), CLIENT)))
+  })
+})
+
+// ── Update cliente consapevole del modulo (ADR-020) ──────────────────────────
+describe('Update cliente consapevole del modulo (ADR-020)', () => {
+  const NOTICE = { informativaVersion: 'v1', deliveredAt: '2026-10-01', recordedBy: 'trainerLip' }
+  const BADGE  = { 'badges.champion': { awardedAt: 1, awardedBy: 'trainerLip' } }
+  const MISURE = [
+    ['peso',                 { peso: 70 }],
+    ['altezza',              { altezza: 165 }],
+    ['peso + misureHistory', { peso: 70, misureHistory: arrayUnion({ date: '2026-11-01', peso: 70 }) }],
+  ]
+  const dbOf = (uid) => ctxFor(uid).firestore()
+
+  async function seedOrg(db, orgId, moduleType, trainerUid) {
+    await setDoc(doc(db, `organizations/${orgId}`), moduleType === undefined ? { name: orgId } : { name: orgId, moduleType })
+    await setDoc(doc(db, `organizations/${orgId}/members/${trainerUid}`), { role: 'trainer', name: trainerUid })
+    await setDoc(doc(db, `users/${trainerUid}`), { role: 'trainer', orgId })
+  }
+
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore()
+      await seedOrg(db, 'orgLip', 'lipedema', 'trainerLip')
+      await setDoc(doc(db, 'organizations/orgLip/members/staffLip'), { role: 'staff_readonly', name: 'Staff Lip' })
+      await setDoc(doc(db, 'users/staffLip'), { role: 'staff_readonly', orgId: 'orgLip' })
+      await setDoc(doc(db, 'organizations/orgLip/clients/patNoNotice'), { name: 'Senza informativa' })
+      await setDoc(doc(db, 'organizations/orgLip/clients/patNotice'), { name: 'Con informativa', privacyNotice: NOTICE })
+
+      await seedOrg(db, 'orgSoc', 'soccer_academy', 'trainerSoc')
+      await setDoc(doc(db, 'organizations/orgSoc/clients/c1'), { name: 'Allievo' })
+      await seedOrg(db, 'orgPt', 'personal_training', 'trainerPt')
+      await setDoc(doc(db, 'organizations/orgPt/clients/c1'), { name: 'Cliente' })
+
+      // Nessun documento org: solo la subcollection (prova cortocircuito e fail-closed)
+      await setDoc(doc(db, 'organizations/orgGhost/members/trainerGhost'), { role: 'trainer', name: 'Ghost' })
+      await setDoc(doc(db, 'users/trainerGhost'), { role: 'trainer', orgId: 'orgGhost' })
+      await setDoc(doc(db, 'organizations/orgGhost/clients/c1'), { name: 'Cliente' })
+    })
+  })
+
+  describe('lipedema', () => {
+    it.each(MISURE)('senza informativa: %s rifiutato', async (_label, data) => {
+      await assertFails(updateDoc(doc(dbOf('trainerLip'), 'organizations/orgLip/clients/patNoNotice'), data))
+    })
+
+    it.each(MISURE)('con informativa: %s accettato', async (_label, data) => {
+      await assertSucceeds(updateDoc(doc(dbOf('trainerLip'), 'organizations/orgLip/clients/patNotice'), data))
+    })
+
+    it.each(['patNotice', 'patNoNotice'])('trofei rifiutati su %s', async (patient) => {
+      const ref = doc(dbOf('trainerLip'), `organizations/orgLip/clients/${patient}`)
+      await assertFails(updateDoc(ref, BADGE))
+      await assertFails(updateDoc(ref, { badgeShowcase: ['champion'] }))
+    })
+
+    it('misure valide non fanno passare i trofei nello stesso update', async () => {
+      await assertFails(updateDoc(doc(dbOf('trainerLip'), 'organizations/orgLip/clients/patNotice'), { peso: 70, ...BADGE }))
+    })
+
+    it('wearable accettato anche senza informativa', async () => {
+      await assertSucceeds(updateDoc(doc(dbOf('trainerLip'), 'organizations/orgLip/clients/patNoNotice'), { wearableEnabled: false }))
+    })
+
+    it('staff_readonly rifiutato anche con informativa', async () => {
+      await assertFails(updateDoc(doc(dbOf('staffLip'), 'organizations/orgLip/clients/patNotice'), { peso: 70 }))
+    })
+  })
+
+  describe.each([
+    ['PT esplicito', 'orgPt',  'trainerPt',  'c1'],
+    ['Soccer',       'orgSoc', 'trainerSoc', 'c1'],
+    ['PT legacy',    'org1',   'trainer1',   'client1'],
+  ])('%s', (_label, orgId, uid, clientId) => {
+    it.each([...MISURE, ['trofeo', BADGE], ['vetrina', { badgeShowcase: ['champion'] }]])('%s accettato', async (_l, data) => {
+      await assertSucceeds(updateDoc(doc(dbOf(uid), `organizations/${orgId}/clients/${clientId}`), data))
+    })
+  })
+
+  describe('org senza documento (fail-closed e cortocircuito wearable)', () => {
+    it('wearable accettato senza leggere l\'org', async () => {
+      await assertSucceeds(updateDoc(doc(dbOf('trainerGhost'), 'organizations/orgGhost/clients/c1'), { wearableEnabled: false }))
+    })
+
+    it('misure rifiutate', async () => {
+      await assertFails(updateDoc(doc(dbOf('trainerGhost'), 'organizations/orgGhost/clients/c1'), { peso: 70 }))
+    })
+  })
+
+  describe('allow-list speculare a hasGamification (functions/src/shared/modules.js)', () => {
+    const modules = [...Object.entries(MODULE_CAPABILITIES).map(([key, caps]) => [key, caps.hasGamification]), ['futuro', false]]
+
+    it.each(modules)('modulo %s: badgeShowcase ammesso solo se hasGamification (%s)', async (moduleType, hasGamification) => {
+      await testEnv.withSecurityRulesDisabled(async (ctx) => {
+        const db = ctx.firestore()
+        await seedOrg(db, 'orgMod', moduleType, 'trainerMod')
+        await setDoc(doc(db, 'organizations/orgMod/clients/c1'), { name: 'Cliente', privacyNotice: NOTICE })
+      })
+      const request = updateDoc(doc(dbOf('trainerMod'), 'organizations/orgMod/clients/c1'), { badgeShowcase: [] })
+      await (hasGamification ? assertSucceeds(request) : assertFails(request))
+    })
   })
 })
 
