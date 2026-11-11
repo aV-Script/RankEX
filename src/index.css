@@ -273,6 +273,10 @@ select.input-base option {
   letter-spacing: 0.1em;
   transition:     opacity 200ms, box-shadow 200ms;
 }
+.rx-btn-primary:disabled {
+  opacity: 0.5;
+  cursor:  not-allowed;
+}
 .rx-btn-primary:hover:not(:disabled) {
   opacity:    0.85;
   box-shadow: 0 0 12px var(--rx-accent-glow);
