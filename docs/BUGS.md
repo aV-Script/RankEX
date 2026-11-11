@@ -52,7 +52,7 @@ Formato:
 ## [BUG-003] Lipedema: un trainer può assegnare badge al paziente con scrittura Firestore diretta
 **Severity:** P3
 **Modulo/Ruolo:** lipedema — trainer / org_admin
-**Status:** OPEN
+**Status:** VERIFIED (Sprint #17, `04a676c`, ADR-020; rules su rankex-dev 11/11/2026, prod al #18). Verifica dal vivo con scrittura diretta dal client SDK (stesse rules della console) come `qadev.<modulo>.trainer`: lipedema `badges.*` e `badgeShowcase` → permission-denied, `peso` con informativa accettato, `peso` senza informativa → permission-denied; PT e Soccer `badges.*`, `badgeShowcase`, `peso` accettati. Dati ripristinati con Admin SDK. Test rules: describe "Update cliente consapevole del modulo (ADR-020)", 9 test falliscono con le rules precedenti.
 **Reproduction steps:**
 1. Login trainer di un'org `lipedema`, console del browser sulla dashboard.
 2. `(await import('/src/firebase/services/badges.js')).awardBadge(orgId, patientId, 'champion', 'qa', 'QA')`

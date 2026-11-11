@@ -123,7 +123,7 @@ fidato della stessa org.
 **Rischio se non risolto:** basso. Un dato spurio invisibile, nessun confine di
 sicurezza attraversato. Diventa medio solo se un giorno il login paziente arriva in
 lipedema e i badge vengono mostrati.
-**Status:** OPEN
+**Status:** RESOLVED (Sprint #17, `04a676c`, ADR-020: la rule di update cliente legge il modulo dell'org solo per misure/trofei; in lipedema trofei rifiutati e misure solo con `privacyNotice`. Verificato dal vivo su rankex-dev, vedi BUG-003)
 
 ---
 
@@ -142,7 +142,7 @@ norma si consegna l'informativa. Stessa causa di TD-005.
 l'attestazione è un aiuto tecnico, non la base del trattamento (art. 9(2)(h)).
 Diventa medio se un'org lavora sistematicamente senza registrare l'informativa
 (verificabile con una query sui pazienti senza `privacyNotice`).
-**Status:** OPEN
+**Status:** RESOLVED (Sprint #17, `04a676c`, ADR-020: la rule di update cliente legge il modulo dell'org solo per misure/trofei; in lipedema trofei rifiutati e misure solo con `privacyNotice`. Verificato dal vivo su rankex-dev, vedi BUG-003)
 
 
 ---
