@@ -1213,6 +1213,31 @@ export const RUNBOOK_SUITES = [
         ],
         expected: ['L\'ora compare nelle date brevi solo dove serve a distinguere due valutazioni dello stesso giorno; le date complete (con ora) restano invariate'],
       },
+      {
+        id: 'TP-080', usId: 'STORY-043', severity: 'important', title: 'Un solo bottone principale pieno per schermata e per dialog',
+        preconditions: 'Account trainer e super_admin. Il tema predefinito e almeno uno tra Mint e Carbon (Profilo → tema).',
+        steps: [
+          'Pazienti/Clienti (desktop e 360 px): "+ NUOVO" pieno con testo scuro, uno solo visibile',
+          'Nuova valutazione in una visita: "SALVA E PASSA A…" pieno; INDIETRO neutro; SALTA e SALVA E CHIUDI tinti. Ultimo test: "SALVA E CHIUDI LA VISITA" pieno',
+          'Dialog di conferma e chiusura appuntamento: conferma piena, ANNULLA neutro; le conferme distruttive restano rosse',
+          'Gruppi: a form chiuso "+ NUOVO" pieno; aprendo il form "+ NUOVO" diventa tinto e CREA è l\'unico pieno',
+          'Bottone principale disabilitato (es. Misure senza modifiche): pieno ma al 50%, cursore non consentito',
+          'rankex-admin-dev: crea organizzazione e Runbook con il primario rosso pieno e testo scuro',
+          'Cambiare tema (Mint, Carbon): il testo del primario resta leggibile (contrasto ≥ 4,5:1, coperto anche da themes.contrast.test.js)',
+        ],
+        expected: ['Mai due bottoni pieni visibili insieme nella stessa schermata o nello stesso dialog'],
+      },
+      {
+        id: 'TP-081', usId: 'STORY-040', severity: 'important', title: 'PDF paziente Lipedema di più pagine (BUG-020)',
+        preconditions: 'Paziente Lipedema con i 5 test, note lunghe (circa 800 caratteri) su ognuno e una BIA. Un secondo paziente con pochi dati.',
+        steps: [
+          'Azioni → Esporta PDF → stampa A4 (anteprima di stampa del browser o "Salva come PDF")',
+          'Seconda pagina: margine in alto come la prima, intestazione della tabella dei test ripetuta',
+          'Nessun test spezzato tra due pagine (riga e note insieme); sezione BIA intera su una pagina',
+          'Paziente con pochi dati: il PDF resta di una pagina, senza pagina bianca finale',
+        ],
+        expected: ['Report leggibile su più pagine, nessun blocco tagliato, nessuna pagina vuota'],
+      },
     ],
   },
 ]

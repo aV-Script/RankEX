@@ -124,7 +124,7 @@ Formato:
 ## [BUG-010] Lipedema: plurale con quantità 1 nei limiti piano ("massimo 1 professionisti")
 **Severity:** P3
 **Modulo/Ruolo:** lipedema — org_admin (introdotto da b119bfb); simile, preesistente, in tutti i moduli: "1 presenti" nel modal di chiusura
-**Status:** FIXED (09/11/2026, da verificare in QA)
+**Status:** VERIFIED (11/11/2026, rankex-app-dev, commit `2707b21` con l'helper `utils/plural.js` di `eb15aec`): org_admin di `qa-lipedema` portata a piano free per la prova (poi riportata a pro) → Team "massimo 1 professionista", IMPOSTAZIONI "Max 1 professionista · Max 10 pazienti"; calendario `demo-lipedema` → chiusura con un presente "1 presente". Stesso esito anche sull'hosting `50f6779`.
 **Reproduction steps:** org lipedema su piano free con ≥1 membro → org_admin → Team (banner limite) → IMPOSTAZIONI; calendario → chiudi un appuntamento con 1 presente.
 **Expected:** "massimo 1 professionista", "Max 1 professionista", "1 presente".
 **Actual:** `MembersPage` "Il piano FREE consente massimo 1 professionisti."; `OrgSettingsPage` "Max 1 professionisti · Max 10 pazienti"; `CloseSessionModal` "1 presenti". PT/soccer non visibili ("trainer"/"coach" invariabili).
@@ -195,7 +195,7 @@ Formato:
 ## [BUG-017] Super admin: "Creato il: Invalid Date" nel dettaglio di Demo Lipedema
 **Severity:** P3
 **Modulo/Ruolo:** super_admin, `OrgDetailView`. Trovato di passaggio nella QA Sprint #13, fuori dal perimetro della QA
-**Status:** FIXED (09/11/2026, da verificare in QA)
+**Status:** VERIFIED (11/11/2026, rankex-admin-dev, super_admin di seed): "Creato il 31 ott 2026" nel dettaglio di Demo Lipedema, nessun "Invalid Date" in lista; verificato prima della migrazione (createdAt ancora Timestamp) e dopo (`scripts/migrate-org-dates-dev.mjs --apply`, 15 date convertite, 0 Timestamp rimasti).
 **Reproduction steps:** rankex-admin-dev → Organizzazioni → Demo Lipedema.
 **Expected:** la data di creazione dell'org.
 **Actual:** "Invalid Date". L'org è creata da `scripts/seed-demo-lipedema.mjs` con `createdAt` come timestamp Firestore; causa da confermare (formato atteso dalla vista).
@@ -205,7 +205,7 @@ Formato:
 ## [BUG-018] Errore sui decimali dei test bilaterali: "al massimo 1 decimali"
 **Severity:** P3
 **Modulo/Ruolo:** lipedema — Handgrip, HHD, OLS (`utils/lipedema.js`, messaggio con `spec.inputDecimals`). Trovato nella QA del 09/11/2026 (TP-067)
-**Status:** FIXED (09/11/2026) — `maxDecimalsMessage` nel blocco CORE di `utils/lipedema.js` e `shared/lipedema.js` ("un decimale" / "n decimali" / "valore intero"), test in `lipedema.test.js`, parità verde, functions su rankex-dev. Hosting dev deployato il 09/11 con lo Sprint #14 (non riverificato dal vivo: la QA dello sprint copre solo il nuovo)
+**Status:** VERIFIED (11/11/2026, rankex-app-dev, OLS con prova 1 a 30,25 → "Inserisci il valore con al massimo un decimale", salvataggio bloccato). Fix del 09/11/2026 — `maxDecimalsMessage` nel blocco CORE di `utils/lipedema.js` e `shared/lipedema.js` ("un decimale" / "n decimali" / "valore intero"), test in `lipedema.test.js`, parità verde, functions su rankex-dev. Hosting dev deployato il 09/11 con lo Sprint #14 (non riverificato dal vivo: la QA dello sprint copre solo il nuovo)
 **Reproduction steps:** OLS, prova 1 a 30,25 → SALVA.
 **Expected:** "Inserisci il valore con al massimo un decimale", come negli altri campi del modulo.
 **Actual:** "Inserisci il valore con al massimo 1 decimali". Il blocco funziona: l'errore compare e il salvataggio non parte.
@@ -219,3 +219,22 @@ Formato:
 **Expected:** "+1 ripetizione rispetto al gg/mm" (e "0 ripetizioni", "+2 ripetizioni").
 **Actual:** "+1 ripetizioni rispetto al gg/mm".
 **Fix:** `formatMonoDelta` accetta un'unità numerabile `{ singular, plural }`; il registro del 30s-STS la usa. Test in `lipedema.test.js`. Stessa famiglia di BUG-010 (che resta aperto, decide l'utente).
+
+## [BUG-020] PDF paziente Lipedema: pagine successive alla prima senza margine e BIA spezzata
+**Severity:** P3
+**Modulo/Ruolo:** lipedema — export PDF (STORY-040), tutti i ruoli. Trovato nella QA dal vivo dello Sprint #15 (report di 2 pagine)
+**Status:** FIXED + VERIFIED (11/11/2026, commit `3923844`, rankex-app-dev): A4 di 2 pagine con margine verticale su entrambe, intestazione della tabella ripetuta, test e sezione BIA non spezzati; il report di un paziente con meno dati resta di 1 pagina. Motore di stampa di Chromium (`page.pdf`), non su stampante fisica
+**Reproduction steps:** paziente con note lunghe su più test e una BIA → Azioni → Esporta PDF → stampa A4.
+**Expected:** margini su ogni pagina, ogni test e la BIA interi su una pagina.
+**Actual:** la seconda pagina partiva dal bordo del foglio (`@page { margin: 0 }`), la BIA lasciava titolo e prima riga in fondo alla prima pagina.
+**Fix:** `usePrintDocument` accetta `pageMargin` (default `0`, invariato per i report cliente e gruppo); il report lipedema usa `12mm 0`, un `tbody` per test e `break-inside: avoid` sulla BIA.
+
+## [BUG-021] Nuovo appuntamento: "CREA APPUNTAMENTO (1 pazienti)"
+**Severity:** P3
+**Modulo/Ruolo:** tutti i moduli — trainer/org_admin, `AddSlotModal.jsx:173`. Trovato nella QA dal vivo dello Sprint #15
+**Status:** OPEN — fuori dal perimetro dell'helper di plurale del #15 (5 file decisi dall'utente)
+**Reproduction steps:** Calendario → + Appuntamento → selezionare un solo paziente.
+**Expected:** "CREA APPUNTAMENTO (1 paziente)".
+**Actual:** "CREA APPUNTAMENTO (1 pazienti)" (in PT "1 clienti").
+**Suggested fix:** `pluralize(selectedClients.length, terminology.client, terminology.clients)` da `utils/plural.js`, insieme agli altri ternari fuori dai 5 file (TD-012).
+

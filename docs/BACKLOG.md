@@ -1527,7 +1527,7 @@ valutazioni **per** condividerlo con la paziente o con altri curanti.
   - [ ] Modifica già presente, non committata, in `src/config/themes.config.js`: Mint con accent-2
         `#6F86FF` al posto di `#3D5AFE`, per superare 4,5:1. Va inclusa qui
 - **Priority:** P2 (dopo Sprint #13)
-- **Status:** IN SPRINT (#15) — decisioni dell'utente dell'11/11 in docs/SPRINT.md
+- **Status:** DONE (Sprint #15, commit `8ee2510` + `2707b21`; lista dei primari approvata dall'utente l'11/11, QA dal vivo desktop e 360 px su rankex-dev). Residui: TD-011
 
 ### STORY-044 — Elenco "Da sistemare" nella panoramica organizzazione
 - **Contesto:** proposta nata sul prototipo: elenco delle cose che richiedono un intervento

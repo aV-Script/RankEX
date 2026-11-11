@@ -217,3 +217,15 @@ l'anteprima rank in `StepAccount` ha ancora senso senza test inseriti nel wizard
 **Rischio se non risolto:** basso. Calcoli inutili a ogni render e un'anteprima
 fuorviante ("Rank F · Media 0").
 **Status:** OPEN
+
+## [TD-011] Bottoni principali scritti a mano fuori dalla regola di STORY-043
+**Emerso:** Sprint #15 (QA dal vivo e review di STORY-043, 11/11/2026)
+**Dove:** `<button>` con stile inline o classi locali invece di `Button`/`.rx-btn-primary`: calendario ("+ APPUNTAMENTO" in testata e "CREA APPUNTAMENTO" in `AddSlotModal`, entrambi tinti: il calendario non ha un primario pieno), ANNULLA di `WorkoutPlanForm`/`RunbookPage`/`GoalsSection`, "+ AGGIUNGI" di `MembersPage` (pieno, ma con i colori ricopiati inline).
+**Rischio:** schermate senza bottone pieno o con colori del primario che divergono da `Button`; il testo `#04140a` è ripetuto in 3 punti (`index.css`, `PRIMARY_TEXT_COLOR` in `components/ui/index.jsx`, `MembersPage`).
+**Proposta:** passare questi bottoni a `Button` con la variante giusta e un unico token (variabile CSS) per il testo del primario.
+
+## [TD-012] Plurali inline fuori dai 5 file di `utils/plural.js`
+**Emerso:** Sprint #15 (action item 1 della retrospettiva #14, limitato a 5 file per decisione dell'utente)
+**Dove:** `NotificationsPanel`, `NotesSection`, `GroupCard`, `GroupReportPrint`, `PlanProgress`, `AddSlotModal` (BUG-021), `MonthView`, `AssessmentFormFields`, `SitToStandForm`.
+**Proposta:** stessa sostituzione con `pluralize`/`countLabel` di `utils/plural.js`, un test 0/1/2 per ogni testo.
+
