@@ -238,3 +238,12 @@ Formato:
 **Actual:** "CREA APPUNTAMENTO (1 pazienti)" (in PT "1 clienti").
 **Suggested fix:** `pluralize(selectedClients.length, terminology.client, terminology.clients)` da `utils/plural.js`, insieme agli altri ternari fuori dai 5 file (TD-012).
 
+
+## [BUG-022] staff_readonly vede i bottoni "+" del calendario
+**Severity:** P3
+**Modulo/Ruolo:** tutti i moduli — staff_readonly, `TrainerCalendar.jsx:116-117` (`onAddSession`/`onAddRecurrence` passati sempre a `CalendarHeader`), anche i "+" dei giorni. Trovato nella QA dal vivo dello Sprint #16 (11/11, qadev.lipedema.staff); preesistente (già così a 7a0a5a7), non introdotto da TD-011
+**Status:** OPEN — candidato #17 (non deciso)
+**Reproduction steps:** login staff_readonly → Calendario, a desktop o 360 px.
+**Expected:** nessun bottone di creazione (ReadonlyGuard / `useReadonly`), come nelle altre pagine.
+**Actual:** "+ APPUNTAMENTO" e "+ RICORRENZA" visibili e cliccabili; il salvataggio dovrebbe essere rifiutato da rules/callable (da verificare).
+**Suggested fix:** in `TrainerCalendar` passare `onAddSession`/`onAddRecurrence` solo se non readonly (stesso per i "+" dei giorni e il click sugli slot vuoti).

@@ -28,9 +28,14 @@ export function CalendarHeader({ currentDate, view, onNavigate, onToday, onViewC
     : d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })
 
   return (
-    <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-white/[.05] gap-x-2 sm:gap-x-3 shrink-0">
+    <div className="flex flex-col gap-2 px-4 sm:px-6 py-3 border-b border-white/[.05] shrink-0">
 
-      {/* Sinistra — navigazione + titolo (a 360 px il titolo si accorcia con "…", D4) */}
+      {/* Sotto sm il titolo ha una riga sua, i controlli quella sotto (D4 rivista, Sprint #16) */}
+      <h2 className="sm:hidden font-display font-black text-[16px] text-white m-0">{title}</h2>
+
+      <div className="flex items-center justify-between gap-x-2 sm:gap-x-3">
+
+      {/* Sinistra — navigazione + titolo (da sm) */}
       <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
         <button
           onClick={() => onNavigate(-1)}
@@ -53,7 +58,7 @@ export function CalendarHeader({ currentDate, view, onNavigate, onToday, onViewC
         >
           ›
         </button>
-        <h2 className="font-display font-black text-[14px] sm:text-[18px] text-white ml-1 min-w-0 truncate" title={title}>{title}</h2>
+        <h2 className="hidden sm:block font-display font-black text-[18px] text-white ml-1 min-w-0 truncate" title={title}>{title}</h2>
       </div>
 
       {/* Destra — switcher vista + azioni */}
@@ -107,6 +112,8 @@ export function CalendarHeader({ currentDate, view, onNavigate, onToday, onViewC
             +<span className="hidden sm:inline"> Ricorrenza</span>
           </Button>
         )}
+
+      </div>
 
       </div>
 
