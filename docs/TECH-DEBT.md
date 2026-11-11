@@ -223,13 +223,13 @@ fuorviante ("Rank F · Media 0").
 **Dove:** `<button>` con stile inline o classi locali invece di `Button`/`.rx-btn-primary`: calendario ("+ APPUNTAMENTO" in testata e "CREA APPUNTAMENTO" in `AddSlotModal`, entrambi tinti: il calendario non ha un primario pieno), ANNULLA di `WorkoutPlanForm`/`RunbookPage`/`GoalsSection`, "+ AGGIUNGI" di `MembersPage` (pieno, ma con i colori ricopiati inline).
 **Rischio:** schermate senza bottone pieno o con colori del primario che divergono da `Button`; il testo `#04140a` è ripetuto in 3 punti (`index.css`, `PRIMARY_TEXT_COLOR` in `components/ui/index.jsx`, `MembersPage`).
 **Proposta:** passare questi bottoni a `Button` con la variante giusta e un unico token (variabile CSS) per il testo del primario.
-**Status:** IN SPRINT #16 (decisione utente 11/11)
+**Status:** RESOLVED (Sprint #16, `86fa8af` + `87fa8db`; residuo in TD-013)
 
 ## [TD-012] Plurali inline fuori dai 5 file di `utils/plural.js`
 **Emerso:** Sprint #15 (action item 1 della retrospettiva #14, limitato a 5 file per decisione dell'utente)
 **Dove:** `NotificationsPanel`, `NotesSection`, `GroupCard`, `GroupReportPrint`, `PlanProgress`, `AddSlotModal` (BUG-021), `MonthView`, `AssessmentFormFields`, `SitToStandForm`.
 **Proposta:** stessa sostituzione con `pluralize`/`countLabel` di `utils/plural.js`, un test 0/1/2 per ogni testo.
-**Status:** IN SPRINT #16 (decisione utente 11/11)
+**Status:** RESOLVED (Sprint #16, `06f95cb`; eccezione voluta: `countLabel` nel CORE di `utils/lipedema.js`, che tratta -1 come plurale, D1)
 
 ## [TD-013] Bottoni `rx-btn-primary` scritti a mano non migrati a `Button`
 **Emerso:** Sprint #16 (censimento di TD-011; esclusi per decisione dell'utente)

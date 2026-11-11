@@ -7,7 +7,13 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-# SPRINT #16 — EPIC-010 Lipedema Edition, settima ondata (debito UI del #15, stampa PDF automatica, QA residui) — aperto il 2026-11-11
+Nessuno sprint attivo: il #16 è chiuso (storico sotto). Il #17 va aperto dall'utente.
+
+---
+
+## Sprint chiuso (storico)
+
+# SPRINT #16 — EPIC-010 Lipedema Edition, settima ondata (debito UI del #15, stampa PDF automatica, QA residui) — aperto il 2026-11-11, chiuso il 2026-11-11 (goal raggiunto, con 3 verifiche dal vivo non fatte elencate)
 
 **Branch:** `feature/lipedema-module`. Deploy solo su `rankex-dev`, **nessun deploy in prod
 (fitquest-60a09)** (DPA non firmato, STORY-029). Commit solo in locale; `lipidemia/` e `mobile-app/`
@@ -76,16 +82,16 @@ runbook (`config/runbook.config.js`); se si tocca il CORE lipedema, test di pari
 
 | Task | Status | Note |
 |------|--------|------|
-| 1. BUG-021 + TD-012 — plurali | READY | Test 0/1/2 per ogni testo; grep `=== 1 ?` come criterio di fatto; BUG-021 VERIFIED dal vivo. |
-| 2a. TD-011 — censimento `<button>` (grep) | READY | Da mostrare all'utente PRIMA del codice. |
-| 2b. TD-011 — migrazione a `Button` + variabile CSS `#04140a` | TODO | Dopo l'approvazione del censimento (2a). |
-| 3. Test Playwright di stampa PDF paziente | TODO | `qa:dev`; paziente `E2E-...` proprio, teardown; deve fallire con `@page { margin: 0 }`. |
-| 4. Giro QA residui | TODO | Dopo 1, 2, 5 (deploy su rankex-dev); max mezza giornata. |
-| 5a. Voce BUG asse X del trend in BUGS.md | READY | Prima della correzione. |
-| 5b. Correzione etichetta asse X + VERIFIED 360 px/desktop | TODO | |
-| 5c. Cancellazione "E2E-PDF Sprint15" (rankex-dev) | TODO | A fine sprint, Admin SDK, guardia sul projectId. |
-| Review medium | TODO | Dopo 1-2 e 5b. |
-| Deploy rankex-dev + `npm run qa:dev` | TODO | Hosting solo; functions non toccate. |
+| 1. BUG-021 + TD-012 — plurali | DONE | Test 0/1/2 per ogni testo; grep `=== 1 ?` come criterio di fatto; BUG-021 VERIFIED dal vivo. |
+| 2a. TD-011 — censimento `<button>` (grep) | DONE | Da mostrare all'utente PRIMA del codice. |
+| 2b. TD-011 — migrazione a `Button` + variabile CSS `#04140a` | DONE | Dopo l'approvazione del censimento (2a). |
+| 3. Test Playwright di stampa PDF paziente | DONE | `qa:dev`; paziente `E2E-...` proprio, teardown; deve fallire con `@page { margin: 0 }`. |
+| 4. Giro QA residui | DONE (parziale) | Dopo 1, 2, 5 (deploy su rankex-dev); max mezza giornata. |
+| 5a. Voce BUG asse X del trend in BUGS.md | DONE | Prima della correzione. |
+| 5b. Correzione etichetta asse X + VERIFIED 360 px/desktop | DONE | |
+| 5c. Cancellazione "E2E-PDF Sprint15" (rankex-dev) | DONE | A fine sprint, Admin SDK, guardia sul projectId. |
+| Review medium | APPROVED | Dopo 1-2 e 5b. |
+| Deploy rankex-dev + `npm run qa:dev` | DONE | Hosting solo; functions non toccate. |
 | STORY-029 | BLOCKED (fuori sprint) | Utente/legale. |
 | STORY-044 | BACKLOG (fuori sprint) | Prima il canvas. |
 
@@ -109,7 +115,59 @@ lavoro emerso fuori da questo elenco va in `docs/BACKLOG.md` per il #17, non nel
 
 ---
 
-## Sprint chiuso (storico)
+## Goal
+EPIC-010 Lipedema: saldare il debito UI del #15 (plurali, bottoni) e chiudere le verifiche rimaste
+(stampa PDF automatica, QA residui). **Raggiunto**; restano 3 verifiche dal vivo non fatte (sotto).
+
+## Completato
+- **Plurali** (`06f95cb`): `utils/pluralLabels.js`, `pluralize`/`countLabel` in 10 componenti, test
+  0/1/2/-1 per modulo, runbook TP-082; review medium APPROVED. BUG-021 e TD-012 chiusi (VERIFIED dal vivo).
+- **Bottoni** (`86fa8af`): `Button` per calendario, CREA, "+ AGGIUNGI" e gli ANNULLA; `--rx-primary-text`
+  unico punto di `#04140a`, contrasto minimo 5,29:1 invariato; RICARICA di `App.jsx` migrato (decisione
+  utente); runbook TP-083. TD-011 chiuso. Testata calendario a 360 px (`87fa8db`, D4 rivista due volte).
+- **Test di stampa del PDF paziente** (`fb9e9f8`): `lipedemaPrint.spec.js` + `pdfInspect.js` in `qa:dev`,
+  2 pagine A4, margine `@page` misurato sul clip, BIA su una sola pagina. Prove negative:
+  `QA_PRINT_INJECT_MARGIN_0=1` fallisce ("pagina 1: margine alto, received 0"),
+  `QA_PRINT_INJECT_BIA_BREAK=1` fallisce (BIA su pagine [1,2]). `npm run qa:dev` finale 21/21.
+- **BUG-023** (`103ac3b`): `X_AXIS_PADDING` 28 px, VERIFIED a 360 e 1280 px (2MWT e Handgrip).
+  Paziente "E2E-PDF Sprint15" cancellato da `demo-lipedema` (rankex-dev, Admin SDK, residui 0, clientCount 4).
+- **BUG-025** (`670313c`): cursore not-allowed sui `Button` disabilitati, VERIFIED. Esiti QA registrati.
+- **Giro QA dal vivo** (desktop 1280 e 360 px, PT/Soccer/Lipedema), VERIFIED: plurali, bottoni, primario
+  su Mint/Carbon/Violet (testo `rgb(4,20,10)`), admin `rankex-admin-dev` senza errori console/CSP,
+  `staff_readonly` sulla scheda paziente.
+- **Decisioni dell'utente (11/11) durante lo sprint:** censimento bottoni approvato; i 6 `.rx-btn-primary`
+  restano (TD-013); RICARICA a `Button` primary; D4 rivista: la testata su una riga con titolo troncato
+  dava "9 n..." (misurato dal vivo), sotto `sm` titolo su riga sua e controlli sulla riga sotto. Review
+  voce 2: font dei "+" a 10 px da `sm`.
+- **Deploy:** solo rankex-dev (hosting), functions non toccate, niente prod. Unit test 634/634, lint e
+  build verdi.
+
+## Non completato (motivo)
+- **Stampa da Firefox:** Playwright firefox non installato sulla macchina.
+- **Banner RICARICA:** per vederlo serve un deploy a pagina aperta, non eseguito.
+- **Etichetta "Professionista/Professionisti" nei PDF gruppo e paziente:** non verificata dal vivo.
+- **Stampa su carta:** resta all'utente (fuori perimetro).
+- **STORY-044** (BACKLOG, prima il canvas) e **STORY-029** (BLOCKED, DPA/informativa): fuori sprint.
+
+## Blockers
+- Nessuno tecnico. STORY-029 blocca il go-live di EPIC-010, non lo sprint.
+- Un giro `qa:dev` rosso transitorio (20/21) causato da un deploy dell'hosting durante l'esecuzione
+  (chunk lazy sparito): non regressione. Lezione: non deployare mentre gira `qa:dev`.
+
+## Tech debt emerso
+- **TD-013** — 6 `.rx-btn-primary` non migrati a `Button` (esclusi per decisione utente).
+- **BUG-022** (P3, OPEN) — staff_readonly vede i "+" del calendario (preesistente).
+- **BUG-024** (P3, OPEN) — staff_readonly crea gruppi dall'UI (il server rifiuta). Stessa causa di
+  BUG-022: pagine trainer senza `useReadonly`; valutare un audit readonly.
+
+## Prossimo sprint (candidati)
+Proposta, non pianificazione (decide l'utente):
+1. **Audit readonly** — BUG-022 + BUG-024 (pagine trainer senza `useReadonly`/`ReadonlyGuard`).
+2. **TD-013** — migrazione dei 6 `.rx-btn-primary` a `Button`, poi valutare la classe.
+3. **Stampa da Firefox** e verifica "Professionista/i" nei PDF (richiede browser installato).
+4. **STORY-044** (canvas prima) e **STORY-029** (BLOCKED, utente/legale).
+
+---
 
 # SPRINT #15 — EPIC-010 Lipedema Edition, sesta ondata (bottone principale, verifiche rimaste, debito) — aperto il 2026-11-11, chiuso il 2026-11-11 (goal raggiunto, con residui QA elencati)
 
