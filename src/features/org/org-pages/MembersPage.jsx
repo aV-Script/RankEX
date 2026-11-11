@@ -7,6 +7,7 @@ import { CreateMemberForm }                 from './CreateMemberForm'
 import { getPlanLimits }                    from '../../../config/plans.config'
 import { EmptyState, PageTitle }            from '../../../components/ui'
 import { auditLog, AUDIT_ACTIONS }          from '../../../utils/auditLog'
+import { pluralize }                       from '../../../utils/plural'
 import { useToast }                         from '../../../hooks/useToast'
 import { useTrainerState }                  from '../../../context/TrainerContext'
 import { getMemberRoleOptions }             from '../../../config/modules.config'
@@ -24,7 +25,7 @@ export function MembersPage({ orgId, org, onNavigate }) {
   const [removing,          setRemoving]          = useState(false)
 
   const planLimits    = getPlanLimits(org?.plan)
-  const limitTrainersLabel = planLimits.trainers === 1 ? terminology.trainer.toLowerCase() : trainersLabel
+  const limitTrainersLabel = pluralize(planLimits.trainers, terminology.trainer, terminology.trainers).toLowerCase()
   const atTrainerLimit = members.length >= planLimits.trainers
 
   const fetchMembers = useCallback(() => {

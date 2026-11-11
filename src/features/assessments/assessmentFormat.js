@@ -1,6 +1,7 @@
 // Formattazione a schermo delle valutazioni (it-IT). Solo presentazione: i
 // valori salvati e i delta li decidono utils/lipedema.js e il server.
 import { COMPARISON, isValidAssessment } from '../../utils/lipedema'
+import { pluralize } from '../../utils/plural'
 import { SIDE_LABELS, COMPARABILITY_REASON_LABELS } from '../../config/lipedemaTests.config'
 
 // Esiti senza delta (buildTestHistory → deltaUnavailable), come li si legge
@@ -96,7 +97,7 @@ export function formatMonoDelta(entry, unitLabel, decimals = 0, sameDayDates = N
     return `— ${since}: ${which}`
   }
   // Unità numerabile ({ singular, plural }): "+1 ripetizione", "+2 ripetizioni"
-  const unit = typeof unitLabel === 'string' ? unitLabel : (Math.abs(delta) === 1 ? unitLabel.singular : unitLabel.plural)
+  const unit = typeof unitLabel === 'string' ? unitLabel : pluralize(delta, unitLabel.singular, unitLabel.plural)
   return `${formatSignedNumber(delta, decimals)} ${unit} ${since}`
 }
 

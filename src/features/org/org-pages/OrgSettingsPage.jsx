@@ -5,6 +5,7 @@ import { useTrainerState }       from '../../../context/TrainerContext'
 import { Button, PageTitle }     from '../../../components/ui'
 import { getPlanLimits }         from '../../../config/plans.config'
 import { getModuleLabel }        from '../../../config/modules.config'
+import { pluralize }             from '../../../utils/plural'
 
 export function OrgSettingsPage({ org, orgId }) {
   const [name,   setName]   = useState(org?.name ?? '')
@@ -66,7 +67,7 @@ export function OrgSettingsPage({ org, orgId }) {
           <div className="font-body text-[11px] text-white/60 mt-1.5">
             {limits.trainers === Infinity
               ? `${terminology.trainers} e ${terminology.clients.toLowerCase()} illimitati`
-              : `Max ${limits.trainers} ${(limits.trainers === 1 ? terminology.trainer : terminology.trainers).toLowerCase()} · Max ${limits.clients} ${(limits.clients === 1 ? terminology.client : terminology.clients).toLowerCase()}`
+              : `Max ${limits.trainers} ${pluralize(limits.trainers, terminology.trainer, terminology.trainers).toLowerCase()} · Max ${limits.clients} ${pluralize(limits.clients, terminology.client, terminology.clients).toLowerCase()}`
             }
             {' — '}solo il super admin può cambiare il piano.
           </div>

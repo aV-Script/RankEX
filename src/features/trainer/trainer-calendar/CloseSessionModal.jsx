@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { calcSessionXP, calcStreakPreview } from '../../../utils/gamification'
+import { countLabel } from '../../../utils/plural'
 import { useFocusTrap } from '../../../hooks/useFocusTrap'
 import { Button } from '../../../components/ui'
 import { useEscapeKey } from '../../../hooks/useEscapeKey'
@@ -137,13 +138,13 @@ export function CloseSessionModal({ slot, clients, hasGamification, terminology,
         >
           <div className="flex items-center gap-3">
             <span className="font-display text-[12px] text-emerald-400">
-              {presentCount} {presentCount === 1 ? 'presente' : 'presenti'}
+              {countLabel(presentCount, 'presente', 'presenti')}
             </span>
             {absentCount > 0 && (
               <>
                 <span className="text-white/20">·</span>
                 <span className="font-display text-[12px] text-red-400">
-                  {absentCount} {absentCount === 1 ? 'assente' : 'assenti'}
+                  {countLabel(absentCount, 'assente', 'assenti')}
                 </span>
               </>
             )}

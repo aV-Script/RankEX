@@ -3,6 +3,7 @@ import { useGroups }              from '../../hooks/useGroups'
 import { useTrainerState }        from '../../context/TrainerContext'
 import { getModule }              from '../../config/modules.config'
 import { getPlanLimits }          from '../../config/plans.config'
+import { pluralize }             from '../../utils/plural'
 import { ConfirmDialog }          from '../../components/common/ConfirmDialog'
 import { IconChevronLeft }        from '../../components/ui/icons'
 import { useWizard }              from '../../components/modals/new-client-wizard/useWizard'
@@ -120,8 +121,8 @@ function PlanLimitScreen({ current, limit, plan, onNavigate, terminology }) {
       <h2 className="font-display font-black text-[18px] text-white">Limite piano raggiunto</h2>
       <p className="font-body text-[14px] text-white/40 leading-relaxed">
         Il piano <span className="text-white/70 font-bold">{plan?.toUpperCase() ?? 'FREE'}</span> consente
-        un massimo di <span className="text-white/70 font-bold">{limit} {(limit === 1 ? terminology.client : terminology.clients).toLowerCase()}</span>.
-        Hai già {current} {current === 1 ? terminology.client.toLowerCase() : terminology.clients.toLowerCase()}.
+        un massimo di <span className="text-white/70 font-bold">{limit} {pluralize(limit, terminology.client, terminology.clients).toLowerCase()}</span>.
+        Hai già {current} {pluralize(current, terminology.client, terminology.clients).toLowerCase()}.
       </p>
       {onNavigate ? (
         <button
