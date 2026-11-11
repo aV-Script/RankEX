@@ -232,7 +232,7 @@ Formato:
 ## [BUG-021] Nuovo appuntamento: "CREA APPUNTAMENTO (1 pazienti)"
 **Severity:** P3
 **Modulo/Ruolo:** tutti i moduli — trainer/org_admin, `AddSlotModal.jsx:173`. Trovato nella QA dal vivo dello Sprint #15
-**Status:** IN SPRINT #16 (decisione utente 11/11; fuori dal perimetro dei 5 file del #15)
+**Status:** VERIFIED (Sprint #16, 11/11, rankex-app-dev, trainer PT/Soccer/Lipedema a 1280 e 360 px): "CREA SESSIONE (1 cliente)" / "(2 clienti)", "CREA ALLENAMENTO (1 allievo)" / "(2 allievi)", "CREA APPUNTAMENTO (1 paziente)" / "(2 pazienti)"; massimale "1 paziente ha raggiunto…" / "2 pazienti hanno raggiunto…" (e cliente/allievo); MonthView 1 nome, 2 "2 pazienti/clienti/allievi", 0 nessuna etichetta; GroupCard "1 paziente/2 pazienti" (e cliente, allievo); NotesSection "1 commento"/"2 commenti"; PlanProgress "1 sessione svolta"/"2 sessioni svolte" (PT) e "1 allenamento svolto"/"2 allenamenti svolti" (Soccer); NotificationsPanel (client PT a 360 px) "1 non letta"/"2 non lette"; 30s-STS "1 ripetizione / 30 s", "2 ripetizioni / 30 s"; parametri clinici "1 compilato"/"2 compilati". Non verificato: PDF gruppo e PDF paziente "Professionista/Professionisti"
 **Reproduction steps:** Calendario → + Appuntamento → selezionare un solo paziente.
 **Expected:** "CREA APPUNTAMENTO (1 paziente)".
 **Actual:** "CREA APPUNTAMENTO (1 pazienti)" (in PT "1 clienti").
@@ -256,3 +256,21 @@ Formato:
 **Expected:** tutte le etichette dell'asse X (data breve, con ora se due valutazioni nello stesso giorno) leggibili per intero.
 **Actual:** l'ultima etichetta, centrata sull'ultimo punto, esce dal bordo destro (`CHART_MARGIN.right` 8 px) e viene tagliata; a 360 px anche etichette vicine si sovrappongono.
 **Suggested fix:** `padding` orizzontale sull'`XAxis` (i punti estremi si staccano dai bordi) e/o margine destro maggiore; verificare con l'etichetta più lunga (data + ora).
+
+## [BUG-024] staff_readonly: nella pagina Gruppi restano i controlli di modifica
+**Severity:** P3 (UI; il server rifiuta la scrittura)
+**Modulo/Ruolo:** tutti i moduli — staff_readonly, `GroupsPage.jsx` (bottone "+ NUOVO/NUOVA") e dettaglio gruppo (`RIMUOVI`, `AGGIUNGI`, "Azioni gruppo"). Trovato nella QA dal vivo dello Sprint #16 (11/11, qadev.pt.staff, qadev.soccer.staff, qadev.lipedema.staff). La pagina non usa `useReadonly`/`ReadonlyGuard`; già così prima di STORY-043
+**Status:** OPEN — candidato #17 (non deciso)
+**Reproduction steps:** login staff_readonly → Gruppi → "+ NUOVO" → nome → Invio; oppure apri un gruppo → GESTIONE.
+**Expected:** nessun controllo di creazione/modifica (come nelle schede paziente, dove staff vede solo "Azioni → ESPORTA PDF").
+**Actual:** il form di creazione si apre e accetta il nome; nel dettaglio compaiono RIMUOVI/AGGIUNGI. Il documento NON viene scritto su Firestore (rules `canWrite` o callable lo rifiutano: gruppi di qa-pt invariati), quindi è solo UI/UX. Anche il calendario ha lo stesso problema (BUG-022). Schede paziente, tab VALUTAZIONI/ALLENAMENTO/OBIETTIVI/NOTE/MISURE/BIA/TROFEI: nessun bottone di modifica (OK).
+**Suggested fix:** `useReadonly()` in `GroupsPage` e nel dettaglio gruppo per nascondere "+ NUOVO", RIMUOVI, AGGIUNGI, rinomina/elimina.
+
+## [BUG-025] Button disabilitato: il cursore resta "pointer" invece di "not-allowed"
+**Severity:** P4 (cosmetico)
+**Modulo/Ruolo:** tutti — `components/ui/index.jsx` `Button` (classi `cursor-pointer` e `cursor-not-allowed` insieme, vince `cursor-pointer`). Trovato nella QA dal vivo dello Sprint #16 (11/11): AddSlotModal, RecurrenceModal, MembersPage a piano free, tutti `cursor: pointer` computato con `disabled=true` e opacità 0,5
+**Status:** VERIFIED (Sprint #16, 11/11) — `cursor-pointer` solo nel ramo abilitato di `Button`; dal vivo su rankex-app-dev: CREA APPUNTAMENTO disabilitato `cursor: not-allowed`, opacità 0,5; bottoni abilitati `pointer`
+**Reproduction steps:** Calendario → + Appuntamento senza clienti; oppure Team a piano free; ispezionare il bottone disabilitato.
+**Expected:** `cursor: not-allowed` (TP-083 passo 3: "cursore non consentito").
+**Actual:** `cursor: pointer`; il click però non fa nulla (disabled) e l'opacità è 0,5.
+**Suggested fix:** nel `Button` usare `${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}` invece di entrambe le classi.

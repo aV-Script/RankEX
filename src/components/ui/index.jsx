@@ -255,8 +255,8 @@ export function Button({ variant = 'secondary', size = 'md', padding: customPadd
       disabled={loading || disabled}
       className={`
         px-4 font-display text-[13px] font-bold tracking-wider
-        cursor-pointer transition-all duration-200
-        ${loading || disabled ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-85'}
+        transition-all duration-200
+        ${loading || disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:opacity-85'}
         ${className}
       `}
       style={{
