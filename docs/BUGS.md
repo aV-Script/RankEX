@@ -247,3 +247,12 @@ Formato:
 **Expected:** nessun bottone di creazione (ReadonlyGuard / `useReadonly`), come nelle altre pagine.
 **Actual:** "+ APPUNTAMENTO" e "+ RICORRENZA" visibili e cliccabili; il salvataggio dovrebbe essere rifiutato da rules/callable (da verificare).
 **Suggested fix:** in `TrainerCalendar` passare `onAddSession`/`onAddRecurrence` solo se non readonly (stesso per i "+" dei giorni e il click sugli slot vuoti).
+
+## [BUG-023] Trend valutazioni: ultima etichetta dell'asse X tagliata
+**Severity:** P4 (cosmetico)
+**Modulo/Ruolo:** lipedema — trainer/org_admin/staff_readonly, `AssessmentTrendChart.jsx:12,56-59`. Segnalato come cosmetico non tracciato dal #14 (retro #14 e #15), tracciato nello Sprint #16
+**Status:** VERIFIED (Sprint #16, 11/11) — `X_AXIS_PADDING` 28 px su `XAxis`; dal vivo su rankex-app-dev, 2MWT e Handgrip con 3 punti, a 360 px e 1280 px: nessuna etichetta oltre i bordi (ultima a 26 px dal bordo, prima 0)
+**Reproduction steps:** paziente con almeno 2 valutazioni confrontabili dello stesso test → scheda → storico del test → grafico, a 360 px e a desktop.
+**Expected:** tutte le etichette dell'asse X (data breve, con ora se due valutazioni nello stesso giorno) leggibili per intero.
+**Actual:** l'ultima etichetta, centrata sull'ultimo punto, esce dal bordo destro (`CHART_MARGIN.right` 8 px) e viene tagliata; a 360 px anche etichette vicine si sovrappongono.
+**Suggested fix:** `padding` orizzontale sull'`XAxis` (i punti estremi si staccano dai bordi) e/o margine destro maggiore; verificare con l'etichetta più lunga (data + ora).

@@ -10,6 +10,8 @@ const CHART_HEIGHT_PX  = 180
 const MARKER_RADIUS    = 3.5
 const LINE_WIDTH       = 2
 const CHART_MARGIN     = { top: 8, right: 8, bottom: 0, left: -20 }
+// Stacca primo e ultimo punto dai bordi: l'etichetta centrata (anche "gg/mm hh:mm") resta intera (BUG-023)
+const X_AXIS_PADDING   = { left: 28, right: 28 }
 const APART_COLOR      = 'var(--rx-warning)'
 const MIN_POINTS       = 2
 
@@ -54,7 +56,7 @@ export function AssessmentTrendChart({ series, test, describedById }) {
           <ComposedChart data={rows} margin={CHART_MARGIN}>
             <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_STROKE} />
             <XAxis
-              dataKey="x" tick={CHART_TICK_STYLE} axisLine={false} tickLine={false}
+              dataKey="x" tick={CHART_TICK_STYLE} axisLine={false} tickLine={false} padding={X_AXIS_PADDING}
               interval="preserveStartEnd" tickFormatter={x => rows[x]?.label ?? ''}
             />
             <YAxis tick={CHART_TICK_STYLE} axisLine={false} tickLine={false} domain={['auto', 'auto']} />
