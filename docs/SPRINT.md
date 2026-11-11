@@ -7,6 +7,110 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
+# SPRINT #16 — EPIC-010 Lipedema Edition, settima ondata (debito UI del #15, stampa PDF automatica, QA residui) — aperto il 2026-11-11
+
+**Branch:** `feature/lipedema-module`. Deploy solo su `rankex-dev`, **nessun deploy in prod
+(fitquest-60a09)** (DPA non firmato, STORY-029). Commit solo in locale; `lipidemia/` e `mobile-app/`
+non si committano. Functions: solo se toccate (previsto: nessun deploy).
+
+**Goal:** EPIC-010 Lipedema — saldare il debito UI del #15 (plurali, bottoni) e chiudere le verifiche
+rimaste (stampa PDF automatica, QA residui).
+
+**Riferimento UI:** canvas RankEX (sola lettura, non si tocca).
+
+**Story/voci selezionate, nell'ordine:**
+1. **BUG-021 + TD-012 — plurali.** `pluralize`/`countLabel` di `utils/plural.js` in `NotificationsPanel`,
+   `NotesSection`, `GroupCard`, `GroupReportPrint`, `PlanProgress`, `AddSlotModal` (bottone CREA e
+   testo "ha/hanno raggiunto il massimale"), `MonthView`, `AssessmentFormFields`, `SitToStandForm`,
+   `LipedemaReportPrint` ("Professionista/i"). Test 0/1/2 per ogni testo.
+   *Fatto quando:* `grep "=== 1 ?"` su `src/` non trova plurali inline, tranne `countLabel` e
+   `maxDecimalsMessage` nel CORE di `utils/lipedema.js` (restano); BUG-021 VERIFIED dal vivo.
+2. **TD-011 — bottoni a `Button`.** Calendario "+ APPUNTAMENTO" → primary, "+ RICORRENZA" → neutral;
+   CREA APPUNTAMENTO (`AddSlotModal`) e CREA RICORRENZA (`RecurrenceModal`) → primary; "+ AGGIUNGI" di
+   `MembersPage` → primary; ANNULLA di `WorkoutPlanForm`, `ProfilePage` x2, `DeleteDialog`,
+   `recurrenceDetailShared`, `AdminDashboard`, `AdminProfilePage`, `RunbookPage` (ANNULLA/ANNULLA GIRO),
+   `GoalsSection` → neutral. `#04140a` in una sola variabile CSS (es. `--rx-primary-text`) usata da
+   `index.css`, `Button` e `themes.contrast.test.js`.
+   **Prima del codice:** censimento con grep di tutti i `<button>` che imitano un primario o un ANNULLA,
+   **mostrato all'utente**.
+   *Fatto quando:* `#04140a` in un solo punto, un primario pieno per schermata del calendario, contrasto
+   minimo ancora >= 5,29:1.
+3. **Test Playwright di stampa del PDF paziente** in `qa:dev` (`emulateMedia` print, `page.pdf`): 2 pagine,
+   margine sulla seconda, BIA non spezzata. Crea il proprio paziente `E2E-...` e lo pulisce nel teardown.
+   *Fatto quando:* fallisce rimettendo `@page { margin: 0 }` e passa su rankex-dev.
+4. **Giro QA sui residui** (time-box mezza giornata): primario su almeno 2 temi non predefiniti; area admin
+   (`rankex-admin-dev`) e `staff_readonly` dopo STORY-043; stampa da Firefox; punti 1 e 2 a desktop e 360 px.
+   *Fatto quando:* ogni voce VERIFIED o con un BUG aperto.
+5. **Etichetta tagliata dell'asse X del trend.** Prima la voce in `docs/BUGS.md`, poi la correzione;
+   VERIFIED a 360 px e desktop. Poi cancellazione del paziente "E2E-PDF Sprint15" (`demo-lipedema`, solo
+   rankex-dev, Admin SDK).
+
+**Fuori dal #16:** STORY-044 (BACKLOG, da ridisegnare prima sul canvas), STORY-029 (BLOCKED, DPA/
+informativa, utente/legale), stampa su carta, deploy in prod, canvas.
+
+**Decisioni dell'utente (11/11/2026):**
+- **D1:** `countLabel` nel CORE di `utils/lipedema.js` (tratta -1 come plurale, diverso da
+  `utils/plural.js`) resta com'e: nel CORE i conteggi non sono negativi; nessun deploy functions, nessuna
+  modifica al CORE (quindi nessun test di parita nuovo). Differenza da annotare come nota, eventualmente in
+  TECH-DEBT se non c'e gia (nota di sprint: da fare nel commit dei plurali).
+- **D2:** concordanza verbo/aggettivo con `pluralize` separato ("1 paziente ha / 2 pazienti hanno",
+  "1 non letta / 2 non lette"); nessuna regola nuova in `utils/plural.js`.
+- **D3:** ANNULLA senza bordo (`RunbookPage`, `GoalsSection`) → `Button` neutral (compare il bordo);
+  nessuna variante "text".
+- **D4:** calendario a 360 px: "+ APPUNTAMENTO" mostra solo "+" sotto il breakpoint `sm` (l'aria-label
+  resta col testo completo); la testata non va a capo.
+- **D5:** `MonthView` con 0 clienti: nessuna etichetta.
+- **D6:** disabilitato di CREA APPUNTAMENTO/RICORRENZA da opacita 0,4 a 0,5 come gli altri `Button`
+  (STORY-043).
+- **D7:** paziente "E2E-PDF Sprint15" da cancellare a fine sprint (solo rankex-dev, Admin SDK); il test
+  di stampa non ci si appoggia.
+
+**Casi limite per le story UI (da coprire in sviluppo e QA):** conteggio 0/1/2 e negativo dove possibile;
+terminologia PT/GYM/Soccer/Lipedema (cliente/membro/allievo/paziente); temi non predefiniti; `staff_readonly`
+(bottoni nascosti da `ReadonlyGuard`); stato disabilitato e in caricamento; 360 px.
+
+**Vincoli:** mai deploy su fitquest-60a09; ogni nuovo comportamento UI non coperto da unit test va nel
+runbook (`config/runbook.config.js`); se si tocca il CORE lipedema, test di parita (previsto: non si tocca).
+
+**Status board:**
+
+| Task | Status | Note |
+|------|--------|------|
+| 1. BUG-021 + TD-012 — plurali | READY | Test 0/1/2 per ogni testo; grep `=== 1 ?` come criterio di fatto; BUG-021 VERIFIED dal vivo. |
+| 2a. TD-011 — censimento `<button>` (grep) | READY | Da mostrare all'utente PRIMA del codice. |
+| 2b. TD-011 — migrazione a `Button` + variabile CSS `#04140a` | TODO | Dopo l'approvazione del censimento (2a). |
+| 3. Test Playwright di stampa PDF paziente | TODO | `qa:dev`; paziente `E2E-...` proprio, teardown; deve fallire con `@page { margin: 0 }`. |
+| 4. Giro QA residui | TODO | Dopo 1, 2, 5 (deploy su rankex-dev); max mezza giornata. |
+| 5a. Voce BUG asse X del trend in BUGS.md | READY | Prima della correzione. |
+| 5b. Correzione etichetta asse X + VERIFIED 360 px/desktop | TODO | |
+| 5c. Cancellazione "E2E-PDF Sprint15" (rankex-dev) | TODO | A fine sprint, Admin SDK, guardia sul projectId. |
+| Review medium | TODO | Dopo 1-2 e 5b. |
+| Deploy rankex-dev + `npm run qa:dev` | TODO | Hosting solo; functions non toccate. |
+| STORY-029 | BLOCKED (fuori sprint) | Utente/legale. |
+| STORY-044 | BACKLOG (fuori sprint) | Prima il canvas. |
+
+**Action item della retrospettiva #15 — da verificare a fine #16:**
+1. BUG-021 + TD-012: `pluralize`/`countLabel` negli altri 9 file e in `AddSlotModal`. Fatto quando:
+   `grep -rn "=== 1 ?" src` senza plurali inline (eccezioni elencate nel commit), test 0/1/2 per ogni
+   testo, BUG-021 VERIFIED dal vivo.
+2. TD-011: calendario, ANNULLA di `WorkoutPlanForm`/`RunbookPage`/`GoalsSection`, "+ AGGIUNGI" di
+   `MembersPage` a `Button`, variabile CSS unica per `#04140a`. Fatto quando: `#04140a` in 1 solo punto, un
+   primario pieno per schermata del calendario, contrasto minimo 5,29:1.
+3. Test del layout di stampa del PDF paziente (Playwright). Fatto quando: fallisce con `@page { margin: 0 }`
+   e passa in `qa:dev`.
+4. Giro QA sui residui (temi non predefiniti, admin, staff_readonly, Firefox). Fatto quando: ogni voce
+   VERIFIED o con BUG aperto, e il "Non completato" elenca solo la stampa su carta.
+5. Dati e cosmetici pendenti: "E2E-PDF Sprint15" cancellato (Admin SDK, solo rankex-dev) e asse X del trend
+   con voce in BUGS.md, VERIFIED a 360 px e desktop.
+
+**Rischi/dipendenze segnalate:** la voce 2b non parte senza l'approvazione del censimento; la 4 dipende dal
+deploy su rankex-dev di 1, 2 e 5b; la 3 richiede il service account di `qa:dev` (`.env.test`). Qualsiasi
+lavoro emerso fuori da questo elenco va in `docs/BACKLOG.md` per il #17, non nel #16.
+
+---
+
+## Sprint chiuso (storico)
+
 # SPRINT #15 — EPIC-010 Lipedema Edition, sesta ondata (bottone principale, verifiche rimaste, debito) — aperto il 2026-11-11, chiuso il 2026-11-11 (goal raggiunto, con residui QA elencati)
 
 **Branch:** `feature/lipedema-module`. Deploy solo su `rankex-dev`, **nessun deploy in prod

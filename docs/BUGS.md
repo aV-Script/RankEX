@@ -232,7 +232,7 @@ Formato:
 ## [BUG-021] Nuovo appuntamento: "CREA APPUNTAMENTO (1 pazienti)"
 **Severity:** P3
 **Modulo/Ruolo:** tutti i moduli — trainer/org_admin, `AddSlotModal.jsx:173`. Trovato nella QA dal vivo dello Sprint #15
-**Status:** OPEN — fuori dal perimetro dell'helper di plurale del #15 (5 file decisi dall'utente); candidato Sprint #16 (decisione utente 11/11)
+**Status:** IN SPRINT #16 (decisione utente 11/11; fuori dal perimetro dei 5 file del #15)
 **Reproduction steps:** Calendario → + Appuntamento → selezionare un solo paziente.
 **Expected:** "CREA APPUNTAMENTO (1 paziente)".
 **Actual:** "CREA APPUNTAMENTO (1 pazienti)" (in PT "1 clienti").
