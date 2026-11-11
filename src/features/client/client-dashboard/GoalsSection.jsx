@@ -140,6 +140,7 @@ export function GoalsSection({ client, orgId, color, readonly = false }) {
                 ANNULLA
               </button>
               <Button
+                variant="primary"
                 onClick={handleSubmit}
                 loading={submitting}
                 disabled={!testKey || !deadline}

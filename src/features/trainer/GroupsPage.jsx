@@ -96,7 +96,7 @@ export function GroupsPage({ orgId, clients = [] }) {
           />
           <button
             onClick={() => setShowNew(true)}
-            className="rx-btn-primary font-display text-[10px] tracking-[1.5px] py-1.5 px-3 rounded-[3px] cursor-pointer shrink-0"
+            className={`${showNew ? 'rx-btn-secondary' : 'rx-btn-primary'} font-display text-[10px] tracking-[1.5px] py-1.5 px-3 rounded-[3px] cursor-pointer shrink-0`}
           >
             + {byGroupGender(terminology, 'NUOVO', 'NUOVA')}
           </button>
@@ -120,7 +120,7 @@ export function GroupsPage({ orgId, clients = [] }) {
             placeholder={`Nome ${terminology.group.toLowerCase()}...`}
             className="input-base flex-1"
           />
-          <Button onClick={handleCreate} loading={creating}>
+          <Button variant="primary" onClick={handleCreate} loading={creating}>
             CREA
           </Button>
           <Button variant="neutral" onClick={() => { setShowNew(false); setNewGroupName('') }} disabled={creating}>

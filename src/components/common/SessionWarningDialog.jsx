@@ -32,7 +32,7 @@ export function SessionWarningDialog({ onExtend }) {
             Verrai disconnesso a breve per inattività.
           </p>
         </div>
-        <Button onClick={onExtend} size="sm" className="shrink-0 tracking-wider">
+        <Button variant="primary" onClick={onExtend} size="sm" className="shrink-0 tracking-wider">
           RESTA CONNESSO
         </Button>
       </div>

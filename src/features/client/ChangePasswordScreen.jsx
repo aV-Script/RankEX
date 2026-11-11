@@ -104,7 +104,7 @@ export default function ChangePasswordScreen({ userId, onDone }) {
               ))}
             </ul>
 
-            <Button onClick={handleSubmit} disabled={loading} className="w-full mt-2">
+            <Button variant="primary" onClick={handleSubmit} disabled={loading} className="w-full mt-2">
               {loading ? 'SALVATAGGIO...' : 'ENTRA IN RANK EX →'}
             </Button>
           </div>

@@ -65,7 +65,7 @@ export function RunbookPage() {
           </p>
         </div>
         {mode === 'idle' && (
-          <Button accentColor={ADMIN_COLOR} onClick={() => setMode('picking')}>+ NUOVO GIRO</Button>
+          <Button variant="primary" accentColor={ADMIN_COLOR} onClick={() => setMode('picking')}>+ NUOVO GIRO</Button>
         )}
       </div>
 
@@ -87,7 +87,7 @@ export function RunbookPage() {
             >
               ANNULLA
             </button>
-            <Button accentColor={ADMIN_COLOR} disabled={selectedSuites.size === 0} onClick={startRun}>
+            <Button variant="primary" accentColor={ADMIN_COLOR} disabled={selectedSuites.size === 0} onClick={startRun}>
               INIZIA CHECKLIST ({casesInRun.length} casi)
             </Button>
           </div>
@@ -105,7 +105,7 @@ export function RunbookPage() {
               >
                 ANNULLA GIRO
               </button>
-              <Button accentColor={ADMIN_COLOR} loading={saving} onClick={handleSave}>SALVA GIRO</Button>
+              <Button variant="primary" accentColor={ADMIN_COLOR} loading={saving} onClick={handleSave}>SALVA GIRO</Button>
             </div>
           </div>
 

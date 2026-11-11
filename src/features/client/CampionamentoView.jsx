@@ -64,8 +64,8 @@ export function CampionamentoView({ client, _color, onSave, onBack, onDirtyChang
               />
             ))}
             <div className="lg:hidden mt-2 grid grid-cols-2 gap-2">
-              <Button size="sm" variant="ghost" onClick={onBack}>INDIETRO</Button>
-              <Button size="sm" onClick={handleRequestSave} disabled={loading}>SALVA</Button>
+              <Button size="sm" variant="neutral" onClick={onBack}>INDIETRO</Button>
+              <Button size="sm" variant="primary" onClick={handleRequestSave} disabled={loading}>SALVA</Button>
             </div>
           </div>
 
@@ -81,8 +81,8 @@ export function CampionamentoView({ client, _color, onSave, onBack, onDirtyChang
               filledCount={filledCount}
             />
             <div className="grid grid-cols-2 gap-2">
-              <Button size="sm" variant="ghost" onClick={onBack}>INDIETRO</Button>
-              <Button size="sm" onClick={handleRequestSave} disabled={loading}>SALVA</Button>
+              <Button size="sm" variant="neutral" onClick={onBack}>INDIETRO</Button>
+              <Button size="sm" variant="primary" onClick={handleRequestSave} disabled={loading}>SALVA</Button>
             </div>
           </div>
 

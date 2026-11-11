@@ -79,8 +79,8 @@ export function AssessmentFormShell({ test, client, supersedes, formState, summa
               ? <VisitActions visit={visit} isSaving={isSaving} onBack={handleBack} onRequestSave={handleRequestSave} />
               : (
                 <div className="flex gap-2">
-                  <Button size="sm" variant="ghost" onClick={handleBack} className="flex-1" disabled={isSaving}>INDIETRO</Button>
-                  <Button size="sm" onClick={() => handleRequestSave()} className="flex-1" loading={isSaving}>SALVA VALUTAZIONE</Button>
+                  <Button size="sm" variant="neutral" onClick={handleBack} className="flex-1" disabled={isSaving}>INDIETRO</Button>
+                  <Button size="sm" variant="primary" onClick={() => handleRequestSave()} className="flex-1" loading={isSaving}>SALVA VALUTAZIONE</Button>
                 </div>
               )}
           </div>
@@ -189,18 +189,18 @@ function VisitActions({ visit, isSaving, onBack, onRequestSave }) {
   if (!nextLabel) {
     return (
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" variant="ghost" onClick={onBack} className="flex-auto whitespace-nowrap" disabled={isSaving}>INDIETRO</Button>
-        <Button size="sm" onClick={() => onRequestSave()} className="flex-auto whitespace-nowrap" loading={isSaving}>SALVA E CHIUDI LA VISITA</Button>
+        <Button size="sm" variant="neutral" onClick={onBack} className="flex-auto whitespace-nowrap" disabled={isSaving}>INDIETRO</Button>
+        <Button size="sm" variant="primary" onClick={() => onRequestSave()} className="flex-auto whitespace-nowrap" loading={isSaving}>SALVA E CHIUDI LA VISITA</Button>
       </div>
     )
   }
   return (
     <div className="flex flex-col gap-2">
-      <Button size="sm" onClick={() => onRequestSave({ goNext: true })} className="w-full" loading={isSaving}>
+      <Button size="sm" variant="primary" onClick={() => onRequestSave({ goNext: true })} className="w-full" loading={isSaving}>
         SALVA E PASSA A {nextLabel}
       </Button>
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" variant="ghost" onClick={onBack} padding={VISIT_SECONDARY_PADDING} className="flex-auto whitespace-nowrap" disabled={isSaving}>INDIETRO</Button>
+        <Button size="sm" variant="neutral" onClick={onBack} padding={VISIT_SECONDARY_PADDING} className="flex-auto whitespace-nowrap" disabled={isSaving}>INDIETRO</Button>
         <Button size="sm" variant="ghost" onClick={onSkip} padding={VISIT_SECONDARY_PADDING} className="flex-auto whitespace-nowrap" disabled={isSaving}>SALTA</Button>
         <Button size="sm" variant="ghost" onClick={() => onRequestSave()} padding={VISIT_SECONDARY_PADDING} className="flex-auto whitespace-nowrap" disabled={isSaving}>SALVA E CHIUDI</Button>
       </div>

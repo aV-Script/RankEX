@@ -109,7 +109,7 @@ export function GroupNotes({ orgId, groupId, terminology }) {
           style={{ lineHeight: 1.6 }}
         />
         <div className="flex justify-end mt-2">
-          <Button onClick={handleSubmit} disabled={!text.trim() || submitting}>
+          <Button variant="primary" onClick={handleSubmit} disabled={!text.trim() || submitting}>
             {submitting ? '…' : 'PUBBLICA'}
           </Button>
         </div>

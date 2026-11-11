@@ -89,6 +89,7 @@ export function AssessmentsSection({
           {!readonly && (
             <Button
               size="sm"
+              variant="primary"
               onClick={handleRequestNew}
               // Senza storico il form non saprebbe cosa precompilare né cosa confrontare
               disabled={needsPrivacyNotice || isLoading || Boolean(loadError)}

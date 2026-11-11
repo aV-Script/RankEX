@@ -11,7 +11,7 @@ export function ChartErrorFallback({ onReset }) {
       <span className="font-body text-[13px] text-white/60">
         Impossibile visualizzare questo grafico.
       </span>
-      <Button variant="primary" size="sm" onClick={onReset}>RIPROVA</Button>
+      <Button variant="secondary" size="sm" onClick={onReset}>RIPROVA</Button>
     </div>
   )
 }

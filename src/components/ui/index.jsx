@@ -200,9 +200,20 @@ export function Textarea({ className = '', ...props }) {
 }
 
 // ─── Button ───────────────────────────────────────────────────────────────────
+const PRIMARY_TEXT_COLOR = '#04140a'
+
 function variantStyles(variant, accentColor) {
   return {
+    // Azione principale: una sola per schermata/dialog. Testo scuro fisso
+    // (contrasto >= 4.5:1 su tutti gli accent dei temi, vedi themes.config.test).
     primary: {
+      background: accentColor,
+      border:     `1px solid ${accentColor}`,
+      color:      PRIMARY_TEXT_COLOR,
+      fontWeight: 700,
+    },
+    // Azione secondaria: tinta al 7%, bordo al 35%.
+    secondary: {
       background: `color-mix(in srgb, ${accentColor} 7%, transparent)`,
       border:     `1px solid color-mix(in srgb, ${accentColor} 35%, transparent)`,
       color:      accentColor,
@@ -237,7 +248,7 @@ function variantStyles(variant, accentColor) {
   }[variant]
 }
 
-export function Button({ variant = 'primary', size = 'md', padding: customPadding, loading, disabled, accentColor = 'var(--rx-accent)', className = '', children, ...props }) {
+export function Button({ variant = 'secondary', size = 'md', padding: customPadding, loading, disabled, accentColor = 'var(--rx-accent)', className = '', children, ...props }) {
   const padding = customPadding ?? (size === 'sm' ? '8px 14px' : '12px 16px')
   return (
     <button

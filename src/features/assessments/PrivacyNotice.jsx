@@ -102,7 +102,7 @@ export function PrivacyNoticeModal({ client, examinerName, onSubmit, onClose }) 
         )}
         <div className="flex gap-3">
           <Button type="button" variant="neutral" size="sm" className="flex-1" onClick={onClose} disabled={isSaving}>INDIETRO</Button>
-          <Button type="submit" size="sm" className="flex-1" loading={isSaving}>REGISTRA</Button>
+          <Button type="submit" variant="primary" size="sm" className="flex-1" loading={isSaving}>REGISTRA</Button>
         </div>
       </form>
     </Modal>

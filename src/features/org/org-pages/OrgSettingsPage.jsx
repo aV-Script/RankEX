@@ -73,7 +73,7 @@ export function OrgSettingsPage({ org, orgId }) {
           </div>
         </div>
 
-        <Button onClick={handleSave} disabled={saving} className="mt-2">
+        <Button variant="primary" onClick={handleSave} disabled={saving} className="mt-2">
           {saving ? 'SALVATAGGIO...' : 'SALVA IMPOSTAZIONI'}
         </Button>
       </div>

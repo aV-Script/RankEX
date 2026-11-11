@@ -217,8 +217,8 @@ export function BiaView({ client, color, onSave, onBack, onDirtyChange }) {
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              <Button size="sm" variant="ghost" onClick={handleBack}>INDIETRO</Button>
-              <Button size="sm" onClick={handleRequestSave}>SALVA BIA</Button>
+              <Button size="sm" variant="neutral" onClick={handleBack}>INDIETRO</Button>
+              <Button size="sm" variant="primary" onClick={handleRequestSave}>SALVA BIA</Button>
             </div>
           </div>
         </div>
@@ -234,8 +234,8 @@ export function BiaView({ client, color, onSave, onBack, onDirtyChange }) {
           paddingBottom:  'calc(12px + env(safe-area-inset-bottom))',
         }}
       >
-        <Button size="sm" variant="ghost" onClick={handleBack} className="flex-1">INDIETRO</Button>
-        <Button size="sm" onClick={handleRequestSave} className="flex-1">SALVA BIA</Button>
+        <Button size="sm" variant="neutral" onClick={handleBack} className="flex-1">INDIETRO</Button>
+        <Button size="sm" variant="primary" onClick={handleRequestSave} className="flex-1">SALVA BIA</Button>
       </div>
 
       {showConfirm && (

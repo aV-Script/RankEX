@@ -262,8 +262,24 @@ select.input-base option {
                 0 0 20px var(--rx-accent-glow);
 }
 
-/* ── Bottone primario ──────────────────────────────────────── */
+/* ── Bottone primario (pieno, uno per schermata) ───────────── */
 .rx-btn-primary {
+  background:     var(--rx-accent);
+  border:         1px solid var(--rx-accent);
+  border-radius:  3px;
+  color:          #04140a;
+  font-family:    'Montserrat', sans-serif;
+  font-weight:    700;
+  letter-spacing: 0.1em;
+  transition:     opacity 200ms, box-shadow 200ms;
+}
+.rx-btn-primary:hover:not(:disabled) {
+  opacity:    0.85;
+  box-shadow: 0 0 12px var(--rx-accent-glow);
+}
+
+/* ── Bottone secondario (tinta) ─────────────────────────────── */
+.rx-btn-secondary {
   background:     color-mix(in srgb, var(--rx-accent) 7%, transparent);
   border:         1px solid color-mix(in srgb, var(--rx-accent) 35%, transparent);
   border-radius:  3px;
@@ -273,7 +289,7 @@ select.input-base option {
   letter-spacing: 0.1em;
   transition:     background 200ms, border-color 200ms, box-shadow 200ms;
 }
-.rx-btn-primary:hover {
+.rx-btn-secondary:hover {
   background:   color-mix(in srgb, var(--rx-accent) 13%, transparent);
   border-color: color-mix(in srgb, var(--rx-accent) 55%, transparent);
   box-shadow:   0 0 12px var(--rx-accent-glow);
