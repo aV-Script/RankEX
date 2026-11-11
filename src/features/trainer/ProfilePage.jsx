@@ -3,7 +3,7 @@ import { useAuth }                                       from '../auth/useAuth'
 import { useTrainerState }                               from '../../context/TrainerContext'
 import { logout, changeTrainerPassword, changeUserEmail } from '../../firebase/services/auth'
 import { getMember }                                     from '../../firebase/services/org'
-import { Field }                                         from '../../components/ui'
+import { Field, Button }                                 from '../../components/ui'
 import { IconChevronDown }                               from '../../components/ui/icons'
 import { ThemePicker }                                   from '../../components/ui/ThemePicker'
 import { getFirebaseErrorMessage }                       from '../../utils/firebaseErrors'
@@ -186,13 +186,9 @@ export function ProfilePage() {
                 Riceverai un link di verifica alla nuova email prima che la modifica diventi effettiva.
               </p>
               <div className="flex gap-2 mt-1">
-                <button
-                  onClick={() => { setOpenEmail(false); setEmailErrors({}) }}
-                  className="flex-1 py-2.5 font-display text-[12px] cursor-pointer bg-transparent text-white/40 hover:text-white/60 transition-colors border-none"
-                  style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: '3px' }}
-                >
+                <Button variant="neutral" className="flex-1" onClick={() => { setOpenEmail(false); setEmailErrors({}) }}>
                   ANNULLA
-                </button>
+                </Button>
                 <button
                   onClick={handleEmailSubmit}
                   disabled={emailLoading}
@@ -300,13 +296,9 @@ export function ProfilePage() {
               </div>
 
               <div className="flex gap-2 mt-1">
-                <button
-                  onClick={() => { setOpen(false); setErrors({}) }}
-                  className="flex-1 py-2.5 font-display text-[12px] cursor-pointer bg-transparent text-white/40 hover:text-white/60 transition-colors border-none"
-                  style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: '3px' }}
-                >
+                <Button variant="neutral" className="flex-1" onClick={() => { setOpen(false); setErrors({}) }}>
                   ANNULLA
-                </button>
+                </Button>
                 <button
                   onClick={handleSubmit}
                   disabled={loading}

@@ -200,7 +200,7 @@ export function Textarea({ className = '', ...props }) {
 }
 
 // ─── Button ───────────────────────────────────────────────────────────────────
-const PRIMARY_TEXT_COLOR = '#04140a'
+const PRIMARY_TEXT_COLOR = 'var(--rx-primary-text)'
 
 function variantStyles(variant, accentColor) {
   return {

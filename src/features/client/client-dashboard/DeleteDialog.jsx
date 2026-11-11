@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { useFocusTrap } from '../../../hooks/useFocusTrap'
 import { useEscapeKey } from '../../../hooks/useEscapeKey'
+import { Button } from '../../../components/ui'
 
 /**
  * Dialog di conferma eliminazione cliente.
@@ -35,13 +36,9 @@ export function DeleteDialog({ clientName, clientLabel = 'Cliente', onConfirm, o
           Questa azione è irreversibile.
         </p>
         <div className="flex gap-3">
-          <button
-            onClick={onCancel}
-            className="flex-1 py-2.5 font-display text-[12px] cursor-pointer bg-transparent text-white/40 hover:text-white/70 transition-all"
-            style={{ borderRadius: '3px', border: '1px solid rgba(255,255,255,0.1)' }}
-          >
+          <Button variant="neutral" className="flex-1" onClick={onCancel}>
             ANNULLA
-          </button>
+          </Button>
           <button
             onClick={onConfirm}
             className="flex-1 py-2.5 font-display text-[12px] cursor-pointer border-0 transition-opacity hover:opacity-85"

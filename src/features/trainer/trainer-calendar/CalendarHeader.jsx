@@ -1,3 +1,6 @@
+import { Button } from '../../../components/ui'
+
+const ACTION_PADDING = '6px 12px'
 
 const MONTH_NAMES = [
   'Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
@@ -25,10 +28,10 @@ export function CalendarHeader({ currentDate, view, onNavigate, onToday, onViewC
     : d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })
 
   return (
-    <div className="flex flex-wrap items-center justify-between px-4 sm:px-6 py-3 border-b border-white/[.05] gap-y-2 gap-x-3 shrink-0">
+    <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-white/[.05] gap-x-2 sm:gap-x-3 shrink-0">
 
-      {/* Sinistra — navigazione + titolo */}
-      <div className="flex items-center gap-1.5 sm:gap-2">
+      {/* Sinistra — navigazione + titolo (a 360 px il titolo si accorcia con "…", D4) */}
+      <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
         <button
           onClick={() => onNavigate(-1)}
           aria-label="Periodo precedente"
@@ -50,11 +53,11 @@ export function CalendarHeader({ currentDate, view, onNavigate, onToday, onViewC
         >
           ›
         </button>
-        <h2 className="font-display font-black text-[16px] sm:text-[18px] text-white ml-1">{title}</h2>
+        <h2 className="font-display font-black text-[14px] sm:text-[18px] text-white ml-1 min-w-0 truncate" title={title}>{title}</h2>
       </div>
 
       {/* Destra — switcher vista + azioni */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 shrink-0">
 
         {/* Switcher Mese / Settimana / Giorno */}
         {onViewChange && (
@@ -79,29 +82,30 @@ export function CalendarHeader({ currentDate, view, onNavigate, onToday, onViewC
 
         {/* + Sessione */}
         {onAddSession && (
-          <button
+          <Button
+            variant="primary"
+            size="sm"
+            padding={ACTION_PADDING}
             onClick={onAddSession}
             aria-label={`Aggiungi ${terminology.session.toLowerCase()}`}
-            className="px-3 py-1.5 rounded-[3px] font-display text-[10px] tracking-[1.5px] uppercase cursor-pointer transition-all border"
-            style={{
-              background:   'color-mix(in srgb, var(--rx-accent) 12%, transparent)',
-              borderColor:  'color-mix(in srgb, var(--rx-accent) 30%, transparent)',
-              color:        'var(--rx-accent)',
-            }}
+            className="uppercase shrink-0 sm:!text-[10px]"
           >
-            + {terminology.session}
-          </button>
+            +<span className="hidden sm:inline"> {terminology.session}</span>
+          </Button>
         )}
 
         {/* + Ricorrenza */}
         {onAddRecurrence && (
-          <button
+          <Button
+            variant="neutral"
+            size="sm"
+            padding={ACTION_PADDING}
             onClick={onAddRecurrence}
             aria-label="Aggiungi ricorrenza"
-            className="px-3 py-1.5 rounded-[3px] font-display text-[10px] tracking-[1.5px] uppercase cursor-pointer transition-all border border-white/[.08] bg-transparent text-white/40 hover:text-white/60 hover:border-white/20"
+            className="uppercase shrink-0 sm:!text-[10px]"
           >
-            + Ricorrenza
-          </button>
+            +<span className="hidden sm:inline"> Ricorrenza</span>
+          </Button>
         )}
 
       </div>

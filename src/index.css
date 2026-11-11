@@ -27,6 +27,9 @@
 
 /* ── CSS Variables ─────────────────────────────────────────────── */
 :root {
+  /* Testo del bottone primario pieno: unica fonte (Button, .rx-btn-primary, test di contrasto) */
+  --rx-primary-text: #04140a;
+
   /* Sfondi */
   --rx-bg:          #07090e;
   --rx-surface:     #0d1520;
@@ -267,7 +270,7 @@ select.input-base option {
   background:     var(--rx-accent);
   border:         1px solid var(--rx-accent);
   border-radius:  3px;
-  color:          #04140a;
+  color:          var(--rx-primary-text);
   font-family:    'Montserrat', sans-serif;
   font-weight:    700;
   letter-spacing: 0.1em;

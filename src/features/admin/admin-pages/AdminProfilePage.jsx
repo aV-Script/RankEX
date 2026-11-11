@@ -1,6 +1,6 @@
 import { useState, useCallback }                        from 'react'
 import { logout, changeTrainerPassword, changeUserEmail } from '../../../firebase/services/auth'
-import { Field }                                         from '../../../components/ui'
+import { Field, Button }                                 from '../../../components/ui'
 import { IconChevronDown }                               from '../../../components/ui/icons'
 import { ThemePicker }                                   from '../../../components/ui/ThemePicker'
 import { getFirebaseErrorMessage }                       from '../../../utils/firebaseErrors'
@@ -161,11 +161,9 @@ export function AdminProfilePage({ user }) {
                 Riceverai un link di verifica alla nuova email prima che la modifica diventi effettiva.
               </p>
               <div className="flex gap-2 mt-1">
-                <button onClick={() => { setOpenEmail(false); setEmailErrors({}) }}
-                  className="flex-1 py-2.5 font-display text-[12px] cursor-pointer bg-transparent text-white/40 rounded-[3px]"
-                  style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+                <Button variant="neutral" className="flex-1" onClick={() => { setOpenEmail(false); setEmailErrors({}) }}>
                   ANNULLA
-                </button>
+                </Button>
                 <button onClick={handleEmailSubmit} disabled={emailLoading}
                   className="flex-1 py-2.5 font-display text-[12px] font-bold cursor-pointer rounded-[3px] border-0 disabled:opacity-50 transition-opacity hover:opacity-85"
                   style={{ background: 'linear-gradient(135deg, #f87171, #ef4444)', color: '#fff' }}>
@@ -242,11 +240,9 @@ export function AdminProfilePage({ user }) {
                 ))}
               </div>
               <div className="flex gap-2 mt-1">
-                <button onClick={() => { setOpenPw(false); setPwErrors({}) }}
-                  className="flex-1 py-2.5 font-display text-[12px] cursor-pointer bg-transparent text-white/40 rounded-[3px]"
-                  style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+                <Button variant="neutral" className="flex-1" onClick={() => { setOpenPw(false); setPwErrors({}) }}>
                   ANNULLA
-                </button>
+                </Button>
                 <button onClick={handlePwSubmit} disabled={pwLoading}
                   className="flex-1 py-2.5 font-display text-[12px] font-bold cursor-pointer rounded-[3px] border-0 disabled:opacity-50 transition-opacity hover:opacity-85"
                   style={{ background: 'linear-gradient(135deg, #f87171, #ef4444)', color: '#fff' }}>

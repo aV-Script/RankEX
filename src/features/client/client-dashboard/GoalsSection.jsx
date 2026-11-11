@@ -133,12 +133,9 @@ export function GoalsSection({ client, orgId, color, readonly = false }) {
               />
             </Field>
             <div className="flex justify-end gap-2 mt-1">
-              <button
-                onClick={() => { setFormOpen(false); resetForm() }}
-                className="font-display text-[11px] px-3 py-1.5 rounded-[3px] cursor-pointer border-none bg-transparent text-white/40 hover:text-white/70 transition-colors"
-              >
+              <Button variant="neutral" size="sm" onClick={() => { setFormOpen(false); resetForm() }}>
                 ANNULLA
-              </button>
+              </Button>
               <Button
                 variant="primary"
                 onClick={handleSubmit}

@@ -2,6 +2,7 @@ import { useState, useMemo, useRef } from 'react'
 import { generateRecurrenceDates, toLocalDateStr, MAX_RECURRENCE_SLOTS } from '../../../utils/calendarUtils'
 import { useFocusTrap } from '../../../hooks/useFocusTrap'
 import { IconClose }    from '../../../components/ui/icons'
+import { Button }       from '../../../components/ui'
 import { useEscapeKey } from '../../../hooks/useEscapeKey'
 import { bySessionGender } from '../../../config/modules.config'
 
@@ -208,14 +209,14 @@ export function RecurrenceModal({ clients, groups, terminology, onClose, onSave 
           </div>
         </div>
 
-        <button
+        <Button
+          variant="primary"
           onClick={handleSave}
           disabled={!canSave}
-          className="w-full py-3 font-display text-[12px] tracking-widest border-0 transition-opacity"
-          style={{ background: 'color-mix(in srgb, var(--rx-accent) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-accent) 35%, transparent)', borderRadius: '3px', color: 'var(--rx-accent)', fontWeight: 700, opacity: canSave ? 1 : 0.4, cursor: canSave ? 'pointer' : 'not-allowed' }}
+          className="w-full"
         >
           {saving ? 'ATTENDERE...' : 'CREA RICORRENZA'}
-        </button>
+        </Button>
       </div>
     </div>
   )

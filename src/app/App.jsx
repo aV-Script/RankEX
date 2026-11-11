@@ -9,6 +9,7 @@ import { useVersionCheck }       from '../hooks/useVersionCheck'
 import { DomainGuard }           from '../components/common/DomainGuard'
 import { ThemeProvider }         from '../context/ThemeContext'
 import { ThemeDevPanel }         from '../components/dev/ThemeDevPanel'
+import { Button }                from '../components/ui'
 
 const LOADING_TIMEOUT_MS = 10_000
 
@@ -59,13 +60,9 @@ export default function App() {
           }}
         >
           <span className="text-sm font-display text-white/80">Nuova versione disponibile</span>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-3 py-1 rounded-[3px] text-xs font-display font-bold tracking-wider transition-opacity hover:opacity-80"
-            style={{ background: 'var(--rx-accent)', color: '#000' }}
-          >
+          <Button variant="primary" size="sm" onClick={() => window.location.reload()}>
             RICARICA
-          </button>
+          </Button>
         </div>
       )}
     </ThemeProvider>

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Modal }        from '../../../components/ui'
+import { Modal, Button } from '../../../components/ui'
 import { toLocalDateStr } from '../../../utils/calendarUtils'
 import { byClientGender, bySessionGender } from '../../../config/modules.config'
 import { clientCountLabel, monthlyLimitMessage } from '../../../utils/pluralLabels'
@@ -161,16 +161,16 @@ export function AddSlotModal({ date, clients, groups, slots, terminology, onClos
           </p>
         )}
 
-        <button
+        <Button
+          variant="primary"
           onClick={() => canSave && onSave({ date: selectedDate, startTime, endTime, clientIds: selectedClients, groupIds: selectedGroups })}
           disabled={!canSave}
-          className="w-full py-3 font-display text-[12px] tracking-widest border-0 transition-opacity"
-          style={{ background: 'color-mix(in srgb, var(--rx-accent) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-accent) 35%, transparent)', borderRadius: '3px', color: 'var(--rx-accent)', fontWeight: 700, opacity: canSave ? 1 : 0.4, cursor: canSave ? 'pointer' : 'not-allowed' }}
+          className="w-full"
         >
           {selectedClients.length === 0
             ? `SELEZIONA ALMENO ${byClientGender(terminology, 'UN', 'UNA')} ${terminology.client.toUpperCase()}`
             : `CREA ${terminology.session.toUpperCase()} (${clientCountLabel(terminology, selectedClients.length)})`}
-        </button>
+        </Button>
     </Modal>
   )
 }

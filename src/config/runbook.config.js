@@ -1253,6 +1253,21 @@ export const RUNBOOK_SUITES = [
         ],
         expected: ['Singolare solo per la quantità 1, plurale altrimenti; i nomi seguono la terminologia del modulo'],
       },
+      {
+        id: 'TP-083', usId: 'TD-011', severity: 'important', title: 'Bottoni passati a Button: calendario, CREA, ANNULLA',
+        preconditions: 'Account trainer, org_admin e super_admin; tema predefinito e almeno due temi non predefiniti (es. Mint, Carbon); org con una sessione e una ricorrenza.',
+        steps: [
+          'Calendario a 360 px: i bottoni "+" (appuntamento, pieno) e "+" (ricorrenza, neutro) mostrano solo "+" e restano accanto allo switcher M/S/G senza andare a capo; da 640 px compare il testo completo; lo screen reader legge "Aggiungi …" / "Aggiungi ricorrenza"',
+          'Calendario (tutte e 3 le viste): un solo bottone pieno visibile, "+ APPUNTAMENTO"; "+ RICORRENZA" neutro con bordo',
+          'Nuovo appuntamento senza clienti selezionati: il bottone in fondo è pieno al 50%, cursore non consentito, il click non fa nulla; con un cliente si attiva a piena opacità. Stesso comportamento in Nuova ricorrenza (CREA RICORRENZA)',
+          'Team (org_admin): "+ AGGIUNGI" pieno; al limite piano è al 50% e non apre il form',
+          'ANNULLA neutro (trasparente, bordo chiaro) in: scheda allenamento, Profilo trainer (email e password), Profilo admin (email e password), Dashboard admin (anteprima ricalcolo), Runbook (ANNULLA e ANNULLA GIRO), obiettivi cliente, dialog elimina cliente, azioni ricorrenza; ognuno annulla senza effetti',
+          'Banner "Nuova versione disponibile" (dopo un deploy con la pagina aperta): RICARICA pieno e leggibile',
+          'Ripetere calendario e Team con i temi Mint e Carbon: testo scuro leggibile sul primario',
+          'staff_readonly: nel calendario i bottoni di creazione restano nascosti come prima',
+        ],
+        expected: ['Un solo primario pieno per schermata; i disabilitati sono al 50%; ANNULLA sempre neutro; testata calendario su una riga a 360 px'],
+      },
     ],
   },
 ]

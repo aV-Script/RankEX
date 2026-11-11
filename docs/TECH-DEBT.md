@@ -231,3 +231,10 @@ fuorviante ("Rank F · Media 0").
 **Proposta:** stessa sostituzione con `pluralize`/`countLabel` di `utils/plural.js`, un test 0/1/2 per ogni testo.
 **Status:** IN SPRINT #16 (decisione utente 11/11)
 
+## [TD-013] Bottoni `rx-btn-primary` scritti a mano non migrati a `Button`
+**Emerso:** Sprint #16 (censimento di TD-011; esclusi per decisione dell'utente)
+**Dove:** `<button className="rx-btn-primary">` in `ClientsPage` (righe ~76 e ~159), `GroupsPage` (~99, alterna `rx-btn-secondary`/`rx-btn-primary`), `WorkoutPlanForm` (CREA SCHEDA, ~317), `AvatarPicker` (~134), `MisureSection` (~158).
+**Rischio:** basso. Usano la classe globale (colore e testo coerenti), ma disabilitato, padding e dimensioni sono ricopiati a mano e possono divergere da `Button` (es. `disabled:opacity-40` invece di 0,5).
+**Proposta:** passarli a `Button variant="primary"` (e `secondary` per `GroupsPage` a form aperto), poi valutare se `.rx-btn-primary` serve ancora.
+**Status:** OPEN (candidato Sprint #17)
+

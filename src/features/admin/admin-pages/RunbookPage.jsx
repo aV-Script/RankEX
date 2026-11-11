@@ -81,12 +81,9 @@ export function RunbookPage() {
             ))}
           </div>
           <div className="flex justify-end gap-2">
-            <button
-              onClick={() => { setMode('idle'); setSelectedSuites(new Set()) }}
-              className="font-display text-[11px] px-3 py-1.5 rounded-[3px] cursor-pointer border-none bg-transparent text-white/40 hover:text-white/70 transition-colors"
-            >
+            <Button variant="neutral" size="sm" onClick={() => { setMode('idle'); setSelectedSuites(new Set()) }}>
               ANNULLA
-            </button>
+            </Button>
             <Button variant="primary" accentColor={ADMIN_COLOR} disabled={selectedSuites.size === 0} onClick={startRun}>
               INIZIA CHECKLIST ({casesInRun.length} casi)
             </Button>
@@ -99,12 +96,9 @@ export function RunbookPage() {
           <div className="rounded-[4px] p-4 rx-card flex items-center justify-between sticky top-0 z-10">
             <span className="font-display text-[11px] text-white/50">{doneCount} / {casesInRun.length} casi valutati</span>
             <div className="flex gap-2">
-              <button
-                onClick={() => { setMode('idle'); setSelectedSuites(new Set()); setResults({}) }}
-                className="font-display text-[11px] px-3 py-1.5 rounded-[3px] cursor-pointer border-none bg-transparent text-white/40 hover:text-white/70 transition-colors"
-              >
+              <Button variant="neutral" size="sm" onClick={() => { setMode('idle'); setSelectedSuites(new Set()); setResults({}) }}>
                 ANNULLA GIRO
-              </button>
+              </Button>
               <Button variant="primary" accentColor={ADMIN_COLOR} loading={saving} onClick={handleSave}>SALVA GIRO</Button>
             </div>
           </div>

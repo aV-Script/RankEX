@@ -5,7 +5,7 @@ import { updateMemberRoleUseCase }          from '../../../usecases/updateMember
 import { ConfirmDialog }                    from '../../../components/common/ConfirmDialog'
 import { CreateMemberForm }                 from './CreateMemberForm'
 import { getPlanLimits }                    from '../../../config/plans.config'
-import { EmptyState, PageTitle }            from '../../../components/ui'
+import { Button, EmptyState, PageTitle }           from '../../../components/ui'
 import { auditLog, AUDIT_ACTIONS }          from '../../../utils/auditLog'
 import { pluralize }                       from '../../../utils/plural'
 import { useToast }                         from '../../../hooks/useToast'
@@ -81,14 +81,14 @@ export function MembersPage({ orgId, org, onNavigate }) {
     <div className="px-6 py-8 text-white">
       <div className="flex items-center justify-between mb-4">
         <PageTitle>Team</PageTitle>
-        <button
+        <Button
+          variant="primary"
+          size="sm"
           onClick={() => !atTrainerLimit && setShowCreate(true)}
           disabled={atTrainerLimit}
-          className="font-display text-[11px] px-4 py-2 rounded-[3px] border-0 transition-opacity hover:opacity-85 disabled:opacity-40 disabled:cursor-not-allowed"
-          style={{ background: 'var(--rx-accent)', border: '1px solid var(--rx-accent)', color: '#04140a', fontWeight: 700, cursor: atTrainerLimit ? 'not-allowed' : 'pointer' }}
         >
           + AGGIUNGI
-        </button>
+        </Button>
       </div>
 
       {/* Banner limite piano */}

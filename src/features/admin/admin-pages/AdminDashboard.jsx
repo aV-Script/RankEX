@@ -3,7 +3,7 @@ import { httpsCallable }                from 'firebase/functions'
 import { getOrganizations }             from '../../../firebase/services/org'
 import { functions }                    from '../../../firebase/config'
 import { ADMIN_COLOR }                  from '../../../config/app.config'
-import { StatCard }                     from '../../../components/ui'
+import { StatCard, Button }               from '../../../components/ui'
 import { MODULES, MODULE_OPTIONS, getModuleLabel } from '../../../config/modules.config'
 
 const _recalcola = httpsCallable(functions, 'recalcolaCampionamenti')
@@ -208,13 +208,9 @@ export function AdminDashboard({ onSelectOrg }) {
                 Ricalcolo sospeso: corromperebbe i percentili di esplosività dei clienti Health e Athlete. È disponibile solo l'anteprima.
               </div>
               <div className="flex gap-3">
-                <button
-                  onClick={() => { setRecalcState('idle'); setRecalcResult(null) }}
-                  className="font-display text-[10px] tracking-[1.5px] px-4 py-2 rounded-[3px] border transition-all text-white/40"
-                  style={{ borderColor: 'rgba(255,255,255,0.1)', background: 'transparent' }}
-                >
+                <Button variant="neutral" size="sm" onClick={() => { setRecalcState('idle'); setRecalcResult(null) }}>
                   ANNULLA
-                </button>
+                </Button>
               </div>
             </div>
           )}

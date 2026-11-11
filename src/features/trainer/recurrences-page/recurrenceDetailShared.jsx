@@ -1,3 +1,5 @@
+import { Button } from '../../../components/ui'
+
 export const WEEK_DAYS = [
   { value: 1, label: 'Lun' }, { value: 2, label: 'Mar' },
   { value: 3, label: 'Mer' }, { value: 4, label: 'Gio' },
@@ -64,13 +66,9 @@ export function WarningNote({ text }) {
 export function ActionRow({ onCancel, onSave, saving, saveLabel = 'SALVA', saveDisabled = false }) {
   return (
     <div className="flex gap-2">
-      <button
-        onClick={onCancel}
-        className="flex-1 py-2 font-display text-[11px] cursor-pointer bg-transparent text-white/40"
-        style={{ borderRadius: '3px', border: '1px solid rgba(255,255,255,0.1)' }}
-      >
+      <Button variant="neutral" size="sm" className="flex-1" onClick={onCancel}>
         ANNULLA
-      </button>
+      </Button>
       <button
         onClick={onSave}
         disabled={saving || saveDisabled}
