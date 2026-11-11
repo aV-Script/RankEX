@@ -19,7 +19,7 @@ import { readFileSync, writeFileSync, existsSync } from 'fs'
 import { randomBytes }                            from 'crypto'
 import { initializeApp as initAdmin, cert }       from 'firebase-admin/app'
 import { getAuth as getAdminAuth }                from 'firebase-admin/auth'
-import { getFirestore, FieldValue }               from 'firebase-admin/firestore'
+import { getFirestore }                           from 'firebase-admin/firestore'
 import { initializeApp, deleteApp }               from 'firebase/app'
 import { getAuth, signInWithEmailAndPassword }    from 'firebase/auth'
 import { getFunctions, httpsCallable }            from 'firebase/functions'
@@ -91,7 +91,7 @@ async function ensureOrgAndStaff(moduleKey, org) {
       moduleType: org.moduleType, terminologyVariant: org.terminologyVariant, mustChangePassword: false,
     })
     batch.set(db.doc(`organizations/${org.orgId}/members/${uid}`), {
-      role: user.role, name: user.name, email: user.email, joinedAt: FieldValue.serverTimestamp(),
+      role: user.role, name: user.name, email: user.email, joinedAt: new Date().toISOString(),
     }, { merge: true })
     await batch.commit()
   }
