@@ -123,7 +123,78 @@ Proposta, non pianificazione (decide l'utente):
 5. **Dato di test** "E2E-PDF Sprint15": decisione dell'utente.
 
 ## Retrospettiva
-_(da scrivere dalla Retrospective)_
+Dati: 7 commit di lavoro (`7723cb0`…`a777c62`: 1 refactor, 1 chore, 2 feature/fix UI di STORY-043,
+1 fix BUG-020, 3 docs/QA), STORY-043 DONE, 0 rework di story (1 fix di review, `2707b21`); bug nuovi
+BUG-020 (FIXED + VERIFIED) e BUG-021 (OPEN, P3); debito nuovo TD-011, TD-012; BUG-010/017/018 VERIFIED;
+`qa:dev` 19/19.
+
+**Verifica degli action item del #14**
+1. Helper di plurale generico: **parziale**. Fatto in `eb15aec` (`utils/plural.js`, test 0/1/2/−1/−2,
+   0 ternari `=== 1 ?` nei 5 file), ma solo nei 5 file per scelta dell'utente: altri 9 file sono in
+   TD-012 e BUG-021 è emerso proprio da lì. Misura "0 nuovi bug di plurale": non raggiunta.
+2. Giro QA iniziale: **fatto, misura parziale**. BUG-010/017/018, TP-077, tastiera e PDF multipagina
+   verificati dal vivo l'11/11 (riga "Giro QA" del board). Ma la misura "0 voci non verificato nel
+   Non completato" non regge: restano 5 residui (stampa su carta, Firefox, temi non predefiniti, admin
+   e staff_readonly dopo STORY-043).
+3. Decisioni e casi limite in apertura: **fatto**. Sezione scritta in `7723cb0` prima del codice,
+   decisioni dell'utente tutte dell'11/11; 0 decisioni poste a fine sprint. Nessun commit di feature
+   dopo la QA di STORY-043 (solo `2707b21` da review e `3923844` per un bug). Il caso limite
+   "calendario con bottoni scritti a mano" però non era previsto (TD-011).
+4. Canvas come primo task: **fatto** dall'utente l'11/11 (SALTA, "Non salvati", trend, PDF); 0 tavole
+   in ritardo.
+5. Script date org: **fatto** (`de645ee`): 31 documenti, 15 convertiti, 0 Timestamp rimasti, secondo
+   dry-run 0. Normalizzazione di lettura mantenuta di proposito (prod può avere dati vecchi).
+
+**WHAT WENT WELL**
+- Decisioni e casi limite scritti prima del codice: STORY-043 in 2 commit, 1 solo fix da review.
+  Causa: azione 3 del #14 applicata.
+- Il giro QA ha chiuso 3 bug aperti da due sprint e provato dal vivo TP-077. Causa: account di test
+  e dati dedicati preparati in apertura (qa-lipedema a free, super_admin di seed).
+- La QA dal vivo di STORY-043 a desktop e 360 px e `qa:dev` 19/19 dopo il deploy.
+
+**WHAT WENT WRONG / CAUSED BUGS**
+- BUG-020 (PDF multipagina senza margine) trovato solo dalla QA dal vivo. ROOT CAUSE: `@page { margin: 0 }`
+  e salti di pagina mai esercitati: i test coprono il modello del report, non il layout di stampa, e
+  il PDF di 2 pagine non esisteva come caso. IMPACT: STORY-040 DONE da due sprint con un difetto di
+  layout. ACTION: azione 3.
+- BUG-021 trovato in QA ma non corretto. ROOT CAUSE: perimetro dei plurali fissato a 5 file per elenco
+  e non per grep sull'intero `src/`; il difetto è identico a BUG-010/018/019 (quarta volta). IMPACT:
+  bug noto lasciato aperto, 9 file con lo stesso pattern. ACTION: azione 1.
+
+**WHAT CAUSED REWORK**
+- `2707b21` (primario disabilitato al 50%) dalla review di `8ee2510`: il caso "primario disabilitato"
+  era nei casi limite ma l'implementazione della classe CSS non lo copriva. Rework minimo (1 commit).
+
+**WHAT WAS SLOW**
+- Nessun blocco. Cinque verifiche dal vivo restano indietro perché richiedono account, browser o
+  hardware non preparati (Firefox, stampante, temi, staff_readonly): stesso schema del #14.
+
+**WHAT CREATED TECHNICAL DEBT**
+- TD-011: `Button`/`.rx-btn-primary` introdotti senza censire i `<button>` scritti a mano; il
+  calendario resta senza primario pieno e `#04140a` è ripetuto in 3 punti. ROOT CAUSE: lista dei
+  primari fatta per schermata, non per grep dei bottoni. ACTION: azione 2.
+- TD-012: il limite dei 5 file ha spostato il debito, non lo ha eliminato. ACTION: azione 1.
+- Cosmetico non tracciato: etichetta tagliata dell'asse X del trend (aperto dal #14, ora 2 sprint).
+
+**ACTION ITEM per lo Sprint #16** (max 5)
+1. Chiudere BUG-021 + TD-012: `pluralize`/`countLabel` negli altri 9 file e in `AddSlotModal`.
+   Fatto quando: `grep -rn "=== 1 ?" src` non restituisce plurali inline (le eccezioni restano
+   elencate nel commit), c'è un test 0/1/2 per ogni testo nuovo, BUG-021 VERIFIED dal vivo.
+2. Chiudere TD-011: passare a `Button` il calendario ("+ APPUNTAMENTO", "CREA APPUNTAMENTO"), gli
+   ANNULLA di `WorkoutPlanForm`/`RunbookPage`/`GoalsSection` e "+ AGGIUNGI" di `MembersPage`, con
+   una variabile CSS unica per `#04140a`. Fatto quando: `#04140a` compare in 1 solo punto, il
+   calendario ha un solo primario pieno per schermata, test di contrasto invariato (minimo 5,29:1).
+3. Test del layout di stampa del PDF paziente: caso Playwright (`qa:dev` o suite locale) che genera
+   il PDF di un paziente con dati lunghi e verifica 2 pagine, margine sulla seconda e BIA non
+   spezzata. Fatto quando: il test fallisce rimettendo `@page { margin: 0 }` e passa in `qa:dev`.
+4. Giro QA sui residui dal vivo, time-box mezza giornata: primario su almeno 2 temi non predefiniti,
+   area admin e staff_readonly dopo STORY-043, stampa PDF da Firefox. La stampa su carta se serve
+   resta all'utente. Fatto quando: ogni voce ha esito VERIFIED o un BUG aperto, e il "Non completato"
+   del #16 elenca solo la stampa su carta (se non fatta).
+5. Chiudere i dati e i cosmetici pendenti: decisione dell'utente sul paziente "E2E-PDF Sprint15" e
+   correzione dell'etichetta tagliata dell'asse X del trend (con voce in BUGS.md). Fatto quando: il
+   paziente è tenuto con motivo scritto o cancellato (Admin SDK, solo rankex-dev) e il bug è VERIFIED
+   a 360 px e desktop.
 
 ---
 
