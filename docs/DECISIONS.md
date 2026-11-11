@@ -1844,3 +1844,227 @@ comparabilità) lo chiude STORY-039. Approccio sintetico:
   nessuna migrazione.
 - `countLabel` nel server senza consumer finché l'utente non decide BUG-010/015.
 
+---
+
+## [ADR-020] Rules del documento cliente consapevoli del modulo: trofei e misure nelle org lipedema (BUG-003, TD-005, TD-006)
+**Data:** 2026-11-11
+**Contesto:** la rule `update` di `organizations/{orgId}/clients/{clientId}` (`firestore.rules`)
+ammette per trainer/org_admin una whitelist di campi (`peso`, `altezza`, `misureHistory`,
+`badges`, `badgeShowcase`, `wearableEnabled`, `wearable`) senza sapere a quale modulo appartiene
+l'org. Ne derivano tre problemi aperti con la stessa causa:
+- **BUG-003 (P3):** un trainer di un'org lipedema assegna un badge al paziente con un `updateDoc`
+  diretto (`awardBadge` da console): scrittura accettata. ADR-008 garantisce la gamification OFF
+  solo nelle callable; `badges`/`badgeShowcase` sono gli unici campi di gamification ancora nella
+  whitelist diretta.
+- **TD-005:** stesso problema, rimandato il 24/10 per non pagare un `get()` dell'org su ogni
+  update cliente di tutti i moduli.
+- **TD-006 / ADR-015 §1:** l'attestazione dell'informativa blocca solo `aggiungiValutazione` e
+  `salvaBia`; le misure (peso/altezza, `useMisure` → `updateClient`) restano salvabili su un
+  paziente senza `privacyNotice`. ADR-015 §1 le aveva lasciate fuori proprio perché le rules non
+  conoscono il modulo.
+
+L'utente ha scelto l'opzione (a) della stima del Tech Lead (11/11/2026).
+
+**Opzioni valutate:**
+
+| | Opzione | Costo | Rischio |
+|---|---|---|---|
+| **a** | Nella rule, `get()` dell'org **solo** se l'update tocca misure o trofei; in lipedema trofei rifiutati e misure ammesse solo con `resource.data.privacyNotice` | Solo `firestore.rules` + test + piccola UI. +1 lettura per scrittura misure/trofei (rara, manuale); wearable invariato | Basso. Una copia in più dell'elenco dei moduli con gamification (§3) |
+| b | Denormalizzare `moduleType` sul documento cliente (scritto da `creaCliente`) e leggerlo da `resource.data` | `creaCliente` + script di backfill + deploy functions su entrambi i progetti; 0 letture | Medio: un documento senza il campo (pre-backfill, o scritto da un percorso dimenticato) passerebbe come PT, cioè fail-open sul caso che si vuole bloccare |
+| b' | Come b, ma con `get()` dell'org come ripiego quando il campo manca | Come b, più la complessità di due percorsi nella stessa rule | Basso sul dato, alto sulla manutenzione: due fonti di verità per il modulo del cliente, da tenere allineate per sempre |
+| c | Togliere misure e trofei dalla whitelist e passarli da callable (`salvaMisure`, `assegnaBadge`) con `getOrgCapabilities` | 2 callable + 2 usecases + rules + deploy functions su entrambi i progetti; latenza e cold start su operazioni oggi istantanee | Basso sul dato, ma riscrive codice funzionante di PT/Soccer (ottimistic update di `useMisure`/`useBadges`) per un problema che esiste solo nel modulo lipedema |
+| d | Lasciare com'è (TD-005/006 aperti) | Nessuno | Dato spurio invisibile (BUG-003) e misure sanitarie salvabili senza informativa; il rischio sale con il login paziente (v2) e con le org che lavorano senza registrare l'informativa |
+
+**Decisione:** opzione **a**.
+
+1. **Due funzioni nuove in `firestore.rules`**, nella sezione Helpers, subito dopo
+   `isAllowedModuleChange()`:
+   ```
+   // Moduli con gamification e senza informativa obbligatoria: PT (anche legacy,
+   // senza moduleType) e soccer. Ogni altro modulo (lipedema, o uno futuro non
+   // ancora censito qui) è trattato in modo restrittivo, come getModule (ADR-007).
+   // Speculare a hasGamification in config/modules.config.js e
+   // functions/src/shared/modules.js (test in firestore.rules.test.js, ADR-020).
+   function isGamifiedModule(moduleType) {
+     return moduleType == null || moduleType in ['personal_training', 'soccer_academy'];
+   }
+
+   // ADR-020 (BUG-003, TD-005, TD-006): chiamata SOLO quando l'update tocca misure
+   // o trofei, così il wearable non paga la lettura dell'org. Fail-closed se l'org
+   // non esiste. Nei moduli restrittivi: trofei mai; misure solo con l'informativa
+   // registrata (privacyNotice lo scrivono solo le callable, non è nella whitelist).
+   function moduleAllowsClientWrite(orgId) {
+     let org = get(/databases/$(database)/documents/organizations/$(orgId));
+     return org != null && (
+       isGamifiedModule(org.data.get('moduleType', null)) ||
+       (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['badges', 'badgeShowcase']) &&
+        resource.data.get('privacyNotice', null) != null)
+     );
+   }
+   ```
+2. **`allow update` del cliente** — cambia solo il ramo trainer/org_admin, con un terzo termine in
+   `&&`; ramo super_admin e ramo `isOwnClient` invariati:
+   ```
+   allow update: if isSuperAdmin() ||
+     (canWrite(orgId) &&
+      request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'peso', 'altezza', 'misureHistory',
+        'badges', 'badgeShowcase',
+        'wearableEnabled', 'wearable',
+      ]) &&
+      (!request.resource.data.diff(resource.data).affectedKeys().hasAny([
+         'peso', 'altezza', 'misureHistory', 'badges', 'badgeShowcase',
+       ]) ||
+       moduleAllowsClientWrite(orgId))) ||
+     (isOwnClient(orgId, clientId) &&
+      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wearable', 'avatarId', 'badgeShowcase']) &&
+      (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['avatarId']) ||
+       avatarUnlocked(request.resource.data.avatarId, resource.data)));
+   ```
+   Solo espressioni booleane, nessun `if/return`. **Ordine voluto, sfrutta il cortocircuito di
+   `&&`/`||`:**
+   - `canWrite` per primo: `staff_readonly`, membri di altre org e non autenticati sono rifiutati
+     senza leggere l'org.
+   - `hasOnly` per secondo: xp, rank, stats, privacyNotice ecc. sono rifiutati senza leggere l'org.
+   - `!hasAny([misure, trofei])` prima di `moduleAllowsClientWrite`: un update di soli
+     `wearable`/`wearableEnabled` rende vero il primo termine dell'`||` e la funzione con il `get()`
+     non viene mai valutata. Il `get()` sta dentro la funzione e non in un `let` del chiamante,
+     proprio per non dipendere da come vengono valutati i `let`.
+   - Update misti (es. `wearable` + `peso`) toccano le misure: pagano la lettura, è corretto.
+3. **Moduli: elenco consentito, non `!= 'lipedema'`.** `isGamifiedModule` ammette `null`
+   (legacy = PT, come in `TrainerView`/`OrgAdminView`), `personal_training` e `soccer_academy`;
+   tutto il resto è restrittivo. Per i moduli di oggi è identico a "in lipedema rifiuta", ma un
+   modulo nuovo nasce chiuso (come `getModule`, ADR-007) invece che aperto. Conseguenza: è una
+   **terza copia** di `hasGamification` (dopo `config/modules.config.js` e
+   `functions/src/shared/modules.js`), come `avatarUnlocked` lo è delle soglie avatar. Un modulo
+   nuovo con gamification va aggiunto qui; il test data-driven del §5 fallisce se lo si dimentica.
+4. **Perimetro.**
+   - `privacyNotice` letto da `resource.data` (stato attuale): non è nella whitelist, quindi
+     `request.resource.data` non può introdurlo nello stesso update (test esistente in
+     `describe('client.privacyNotice')`).
+   - super_admin resta senza vincoli, come in tutte le altre rules (customer service).
+   - Ramo `isOwnClient` (`badgeShowcase` dal cliente): non toccato. I pazienti lipedema non hanno
+     account (ADR-010), quindi il ramo è irraggiungibile. Se arriva il login paziente (v2), va
+     esteso con lo stesso `moduleAllowsClientWrite` (vedi Conseguenze).
+   - Scritture Admin SDK (`creaCliente` con peso/altezza dal wizard, badge automatici delle
+     callable) non passano dalle rules: invariate. ADR-008 resta il presidio server-side.
+   - Note, scheda, appuntamenti: restano non bloccati senza informativa (ADR-015 §1 invariato su
+     questo punto); qui si chiudono solo le misure, che erano l'unica scrittura clinica diretta.
+   - Nessuna callable, nessun usecase, nessun indice, nessuna costante client/server toccata.
+     Piani SaaS: nessun impatto (non si creano trainer né pazienti). `orgId`: nessun consumer
+     nuovo (`MisureSection` riceve solo props da `ClientDashboard`).
+
+5. **Test in `tests/rules/firestore.rules.test.js`** — nuovo `describe('Update cliente
+   consapevole del modulo (ADR-020)')` con fixture proprie nel `beforeEach` del blocco:
+   - `orgLip` (`moduleType: 'lipedema'`) con `members/trainerLip` (`trainer`), `members/staffLip`
+     (`staff_readonly`) e i rispettivi `users/{uid}`; pazienti `patNoNotice` (senza
+     `privacyNotice`) e `patNotice` (con `privacyNotice: { informativaVersion: 'v1', deliveredAt:
+     '2026-10-01', recordedBy: 'trainerLip' }`).
+   - `orgSoc` (`moduleType: 'soccer_academy'`) e `orgPt` (`moduleType: 'personal_training'`), con
+     un trainer e un cliente ciascuna. `org1` (legacy, senza `moduleType`) è già nel `beforeEach`
+     globale.
+   - `orgGhost`: **nessun documento org**, solo `members/trainerGhost` + `users/trainerGhost` +
+     `clients/c1` (Firestore permette subcollection sotto un documento assente).
+
+   Casi (★ = fallisce con la rule di oggi, prova che il cambio serve):
+   - ★ lipedema, `patNoNotice`: `{ peso: 70 }`, `{ altezza: 165 }` e `{ peso, misureHistory:
+     arrayUnion(...) }` (la forma esatta di `useMisure`) → `assertFails`.
+   - lipedema, `patNotice`: gli stessi tre → `assertSucceeds`.
+   - ★ lipedema, `patNotice` (con informativa): `{ 'badges.champion': {...} }` (la riproduzione di
+     BUG-003) e `{ badgeShowcase: ['champion'] }` → `assertFails`; anche su `patNoNotice`.
+   - ★ lipedema: `{ peso: 70, badges: {...} }` su `patNotice` → `assertFails` (le misure valide non
+     fanno passare i trofei).
+   - lipedema: `{ wearableEnabled: false }` su `patNoNotice` → `assertSucceeds` (invariato).
+   - PT esplicito (`orgPt`), PT legacy (`org1`) e Soccer (`orgSoc`): misure, `badges.x` e
+     `badgeShowcase` → `assertSucceeds`. Su `org1` lo coprono già i test esistenti di `describe('Trainer
+     — update diretto del cliente')`, che devono restare verdi senza modifiche.
+   - Wearable senza lettura dell'org: su `orgGhost`, `{ wearableEnabled: false }` → `assertSucceeds`
+     e ★ `{ peso: 70 }` → `assertFails`. È la prova del cortocircuito (se il `get()` venisse valutato
+     anche per il wearable, l'org assente lo rifiuterebbe) e del fail-closed.
+   - `staff_readonly` (`staffLip`): misure su `patNotice` → `assertFails`. `staff1` su `org1` già
+     coperto da `describe('staff_readonly')`.
+   - Data-driven contro la divergenza (§3): per ogni chiave di `MODULE_CAPABILITIES` importato da
+     `functions/src/shared/modules.js` (ESM puro, nessuna dipendenza browser) più un modulo
+     inventato (`'futuro'`), creare un'org con quel `moduleType` e verificare che `{ badgeShowcase:
+     [] }` riesca **se e solo se** `hasGamification` è `true` (il modulo inventato: rifiutato).
+   - Invariati e da non toccare: `describe('client.privacyNotice')` (`{ peso, privacyNotice }`
+     rifiutato), `Client self-update`, `Avatar — sblocco`.
+
+6. **UI — misure disabilitate in lipedema senza informativa.**
+   - `src/features/client/ClientDashboard.jsx`: conosce già lo stato (`needsPrivacyNotice =
+     requiresPrivacyNotice(capabilities) && !client.privacyNotice`, riga ~103, e `client` arriva
+     come prop aggiornata da `usePrivacyNotice` → `onClientUpdated`). Passare a `MisureSection`
+     `needsPrivacyNotice={needsPrivacyNotice}`, `terminology={terminology}` e
+     `onRequestPrivacyNotice={handleOpenPrivacyModal}`, come fa già con `AssessmentsSection` e la
+     tab BIA.
+   - `src/features/client/client-dashboard/MisureSection.jsx`: con `needsPrivacyNotice` mostra
+     `PrivacyNoticeBanner` (da `features/assessments/PrivacyNotice`) in cima alla card, e input
+     peso/altezza e AGGIORNA `disabled` con `aria-describedby={PRIVACY_BANNER_ID}`. Valori correnti e
+     grafici restano visibili. Prop con default `false`: `ClientDashboardPage.jsx` (area cliente,
+     `readonly`) resta invariato.
+   - `src/features/assessments/PrivacyNotice.jsx`: il testo del banner oggi dice "le valutazioni e
+     la BIA non si possono salvare"; diventa "le valutazioni, la BIA e le misure non si possono
+     salvare finché non è registrata." (resta l'azione REGISTRA INFORMATIVA e, in readonly, "Deve
+     registrarla un {terminology.trainer}."). Verificato l'11/11: nessun test né spec e2e
+     asserisce il testo vecchio (unica occorrenza nel componente).
+   - `src/features/client/useMisure.js`: **nessuna modifica.** Il blocco lo dà la UI, il rifiuto
+     reale le rules; nel caso residuo (informativa rimossa altrove mentre la scheda è aperta) il
+     rollback e il toast "Impossibile aggiornare le misure" di oggi bastano. Il `permission-denied`
+     delle rules non distingue la causa, quindi un messaggio specifico lì sarebbe una supposizione.
+   - Trofei: nessuna UI da cambiare (`TrophiesSection` non è montata senza `hasGamification`;
+     `useBadges` scrive solo su azione dell'utente, nessun effetto al montaggio).
+
+7. **Runbook:** `TP-084` in `src/config/runbook.config.js`, suite `lipedema`, `usId:
+   'BUG-003/TD-006'`, severità `important`. Precondizioni: org lipedema su rankex-dev (hosting
+   `rankex-app-dev.web.app`, rules deployate), un paziente senza informativa e uno con, account
+   trainer e staff_readonly. Passi: (1) paziente senza informativa → tab Misure: banner ambra,
+   input e AGGIORNA disabilitati, grafici visibili; (2) console: `updateClient` con `{ peso: 70 }`
+   → `permission-denied`; (3) REGISTRA INFORMATIVA dal banner → banner sparisce, AGGIORNA peso
+   salva e il grafico si aggiorna; (4) console sul paziente con informativa: `awardBadge(orgId,
+   patientId, 'champion', 'qa', 'QA')` e `updateBadgeShowcase` → `permission-denied` (riproduzione
+   di BUG-003); (5) staff_readonly: banner con "Deve registrarla un Professionista", nessun input;
+   (6) org PT e org Soccer: AGGIORNA misure e assegnazione trofeo funzionano come prima. Atteso:
+   misure sanitarie salvabili solo con informativa, nessun trofeo su un paziente, PT/Soccer
+   invariati.
+
+8. **Deploy:** solo rules su rankex-dev (`npm run deploy:rules:dev`), più l'hosting dev per la UI;
+   **prod allo Sprint #18**, insieme al resto del modulo. Nessun deploy di functions.
+   **Attenzione:** `deploy.yml` deploya `firestore:rules` in automatico su `rankex-dev` al push su
+   `dev` e su `fitquest-60a09` al merge in `main`. "Prod al #18" vale quindi solo se nessun merge
+   `dev → main` porta questa rule prima del #18; se succede, il comportamento in prod per PT/Soccer
+   è identico (stesse scritture ammesse, +1 lettura su misure/trofei), quindi un rilascio anticipato
+   non rompe niente, ma va scritto nel CHANGELOG.
+
+**File che il developer tocca (e solo questi):**
+- `firestore.rules` — `isGamifiedModule`, `moduleAllowsClientWrite`, ramo trainer di `allow update`
+  del cliente; aggiornare il commento sopra la rule (cita ADR-020)
+- `tests/rules/firestore.rules.test.js` — nuovo `describe` del §5
+- `src/features/client/ClientDashboard.jsx` — tre props a `MisureSection`
+- `src/features/client/client-dashboard/MisureSection.jsx` — banner + controlli disabilitati
+- `src/features/assessments/PrivacyNotice.jsx` — testo del banner
+- `src/config/runbook.config.js` — TP-084
+- A fix verificato (review + QA): `docs/BUGS.md` BUG-003 → FIXED, `docs/TECH-DEBT.md` TD-005 e
+  TD-006 → RESOLVED con rimando a questo ADR
+
+**Alternative scartate:** b, b', c, d della tabella. In sintesi: b e b' introducono una seconda
+fonte di verità del modulo sul documento cliente, con migrazione e fail-open sui documenti senza
+il campo; c riscrive due flussi funzionanti di PT/Soccer e aggiunge due callable per un problema
+del solo modulo lipedema; d lascia aperte misure sanitarie senza informativa. Scartato anche il
+`get()` dell'org **incondizionato** in ogni update cliente (la forma rimandata in TD-005): farebbe
+pagare la lettura anche al wearable e a ogni altro update, senza beneficio.
+
+**Conseguenze:**
+- +1 lettura documento per ogni scrittura diretta di misure o trofei, in tutti i moduli; nessuna
+  per il wearable. Scritture manuali e rare: impatto sui costi trascurabile (obiettivo 0 €). Il
+  limite di 10 `get()`/`exists()` per richiesta non è a rischio (oggi: `users` + `members` × 2, più
+  l'org).
+- Terza copia di `hasGamification` nelle rules (§3), coperta dal test data-driven: un modulo
+  nuovo con gamification richiede di aggiornare `isGamifiedModule`.
+- ADR-015 §1, punto "Non bloccati": le misure escono dall'elenco; note, scheda e appuntamenti
+  restano non bloccati.
+- Login paziente (v2, ADR-010): il ramo `isOwnClient` ammette `badgeShowcase`; prima di dare un
+  account ai pazienti va aggiunto `moduleAllowsClientWrite` anche lì (da ricordare nella story v2).
+- Org già attive in lipedema su rankex-dev con pazienti senza informativa: da questo deploy non
+  possono più aggiornare le misure finché non la registrano. È il comportamento voluto, coerente
+  con BIA e valutazioni.
+
