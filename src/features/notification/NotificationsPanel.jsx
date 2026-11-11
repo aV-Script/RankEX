@@ -1,6 +1,7 @@
 // NotificationsPanel — drawer laterale notifiche cliente
 import { IconClose }  from '../../components/ui/icons'
 import { EmptyState } from '../../components/ui'
+import { unreadLabel } from '../../utils/pluralLabels'
 
 // ── Icone per tipo ────────────────────────────────────────────────────────────
 
@@ -101,7 +102,7 @@ export function NotificationsPanel({ notifications, color, onClose, onDelete }) 
             <div className="font-display text-[9px] tracking-[3px] uppercase"
               style={{ color: color + '65' }}>
               {unreadCount > 0
-                ? `${unreadCount} non ${unreadCount === 1 ? 'letta' : 'lette'}`
+                ? unreadLabel(unreadCount)
                 : 'Tutte lette'}
             </div>
             <div className="font-display font-black uppercase text-white"

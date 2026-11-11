@@ -3,6 +3,7 @@ import { ALL_TESTS, getRankFromMedia }          from '../../../constants/index'
 import { Pentagon }                            from '../../../components/ui/Pentagon'
 import { useTrainerState }                     from '../../../context/TrainerContext'
 import { getModule }                           from '../../../config/modules.config'
+import { clientCountLabel }                    from '../../../utils/pluralLabels'
 import {
   PALETTE, usePrintTheme, PrintThemeProvider, usePrintDocument,
   DarkModeWarning, DeltaBadge, SectionTitle, Th, CircularGauge,
@@ -120,7 +121,7 @@ export function GroupReportPrint({ group, clients, mode = 'dark', onClose }) {
                   {group.name}
                 </div>
                 <div style={{ fontSize: 11, color: SEC }}>
-                  {clients.length} {clients.length === 1 ? terminology.client.toLowerCase() : terminology.clients.toLowerCase()}
+                  {clientCountLabel(terminology, clients.length)}
                   {noData.length > 0 && ` · ${noData.length} senza campionamento`}
                 </div>
               </div>

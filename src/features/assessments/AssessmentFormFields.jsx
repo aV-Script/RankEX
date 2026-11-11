@@ -1,5 +1,6 @@
 import { Button, Field, Input, Textarea, SectionLabel, SegmentedToggle, WarningNote } from '../../components/ui'
 import { TEXT_LIMITS } from '../../utils/lipedema'
+import { filledCountLabel } from '../../utils/pluralLabels'
 import { fieldId } from './formModelUtils'
 
 const STEPPER_MIN_HEIGHT = 44   // area di tocco minima
@@ -151,7 +152,7 @@ export function ClinicalSection({ rows, form, errors, isOpen, onToggle, filledCo
           ◈ Parametri clinici (facoltativi)
         </span>
         <span className="font-body text-[12px]" style={{ color: 'var(--rx-text-muted)' }}>
-          {filledCount > 0 ? `${filledCount} compilat${filledCount === 1 ? 'o' : 'i'}` : 'Nessuno'} · {isOpen ? 'chiudi' : 'apri'}
+          {filledCount > 0 ? filledCountLabel(filledCount) : 'Nessuno'} · {isOpen ? 'chiudi' : 'apri'}
         </span>
       </button>
 

@@ -5,6 +5,7 @@ import {
   buildSitToStandInput, countSitToStandClinicalFilled, getSitToStandFieldOrder, isStandardChairHeight, isDeviationRequired,
   isSameChairHeight,
 } from './sitToStandFormModel'
+import { repetitionsLabel } from '../../utils/pluralLabels'
 import { fieldId } from './formModelUtils'
 import { useAssessmentForm }   from './useAssessmentForm'
 import { AssessmentFormShell } from './AssessmentFormShell'
@@ -106,7 +107,7 @@ export function SitToStandForm({ client, examinerName, initialForm, supersedes, 
       confirmSummary={(
         <>
           <span className="font-display font-black text-[20px] text-white">
-            {preview ? `${formatNumber(preview.repetitions)} ripetizioni` : '—'}
+            {preview ? repetitionsLabel(preview.repetitions, formatNumber(preview.repetitions)) : '—'}
           </span>
           <span>
             {describeOutcome(input)}
@@ -333,7 +334,7 @@ function ResultSummary({ preview, input }) {
 // ── Funzioni helper pure ──────────────────────────────────────────────────────
 
 function formatRepetitions(preview) {
-  const label = `${formatNumber(preview.repetitions)} ripetizion${preview.repetitions === 1 ? 'e' : 'i'}`
+  const label = repetitionsLabel(preview.repetitions, formatNumber(preview.repetitions))
   return preview.durationS === null ? label : `${label} / ${preview.durationS} s`
 }
 

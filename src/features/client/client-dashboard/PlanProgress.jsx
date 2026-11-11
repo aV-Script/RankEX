@@ -1,6 +1,7 @@
 import { getPlanProgress, normalizePlanDays } from '../../../utils/workoutPlans'
 import { PLAN_COMPLETION_XP }                  from '../../../constants'
-import { bySessionGender, DEFAULT_TERMINOLOGY } from '../../../config/modules.config'
+import { DEFAULT_TERMINOLOGY }                 from '../../../config/modules.config'
+import { plannedDoneLabel }                    from '../../../utils/pluralLabels'
 
 /**
  * Avanzamento della scheda: sessioni svolte (dal calendario, a ogni presenza
@@ -11,9 +12,6 @@ import { bySessionGender, DEFAULT_TERMINOLOGY } from '../../../config/modules.co
  */
 export function PlanProgress({ plan, color, showXP = true, terminology = DEFAULT_TERMINOLOGY }) {
   const { done, target, pct, completed, nextDayIndex } = getPlanProgress(plan)
-  const sessionLabel  = terminology.session.toLowerCase()
-  const sessionsLabel = terminology.sessions.toLowerCase()
-  const doneLabel     = bySessionGender(terminology, done === 1 ? 'svolto' : 'svolti', done === 1 ? 'svolta' : 'svolte')
   const days    = normalizePlanDays(plan)
   const nextDay = days[nextDayIndex]?.label ?? `Giorno ${nextDayIndex + 1}`
 
@@ -26,7 +24,7 @@ export function PlanProgress({ plan, color, showXP = true, terminology = DEFAULT
         <span className="font-display text-[11px] font-bold text-white/75">
           {target
             ? `${terminology.session} ${Math.min(done, target)} di ${target}`
-            : `${done} ${done === 1 ? sessionLabel : sessionsLabel} ${doneLabel}`}
+            : plannedDoneLabel(terminology, done)}
           {target && done > target && <span className="text-white/40 font-normal"> · {done - target} in più</span>}
         </span>
         <span className="font-display text-[10px] tracking-[1px] uppercase" style={{ color }}>

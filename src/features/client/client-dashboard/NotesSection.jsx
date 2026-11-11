@@ -5,6 +5,7 @@ import { ConfirmDialog }             from '../../../components/common/ConfirmDia
 import { IconDocument }              from '../../../components/ui/icons'
 import { useNotes }                  from '../../../hooks/useNotes'
 import { DEFAULT_TERMINOLOGY, getNoteRoleLabels } from '../../../config/modules.config'
+import { commentCountLabel }           from '../../../utils/pluralLabels'
 
 /**
  * Sezione Note e Commenti nel profilo cliente.
@@ -196,7 +197,7 @@ function ThreadCard({
         style={{ color: expanded ? color : 'rgba(255,255,255,0.3)', background: 'transparent', border: 'none', padding: 0 }}
       >
         <span>{expanded ? '▾' : '▸'}</span>
-        <span>{commentCount > 0 ? `${commentCount} ${commentCount === 1 ? 'commento' : 'commenti'}` : 'Rispondi'}</span>
+        <span>{commentCount > 0 ? commentCountLabel(commentCount) : 'Rispondi'}</span>
       </button>
 
       {/* Commenti inline */}

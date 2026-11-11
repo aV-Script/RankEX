@@ -1,5 +1,6 @@
 import { useMemo, memo } from 'react'
 import { SLOT_STATUS, SLOT_STATUS_COLORS as STATUS_COLOR } from '../../../constants/slotStatus'
+import { slotClientsLabel } from '../../../utils/pluralLabels'
 
 const DAY_NAMES = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
 
@@ -39,7 +40,7 @@ const MonthCell = memo(function MonthCell({ cell, clients, today, terminology, o
           const clientNames = slot.clientIds
             .map(id => clients.find(c => c.id === id)?.name)
             .filter(Boolean)
-          const label = clientNames.length === 1 ? clientNames[0] : `${clientNames.length} ${terminology.clients.toLowerCase()}`
+          const label = slotClientsLabel(terminology, clientNames)
           return (
             <button
               key={slot.id}

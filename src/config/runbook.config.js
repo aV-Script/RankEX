@@ -1238,6 +1238,21 @@ export const RUNBOOK_SUITES = [
         ],
         expected: ['Report leggibile su più pagine, nessun blocco tagliato, nessuna pagina vuota'],
       },
+      {
+        id: 'TP-082', usId: 'BUG-021', severity: 'nice', title: 'Plurali concordati con il numero e la terminologia del modulo',
+        preconditions: 'Org Lipedema (e una PT) con 1 e 2 elementi per ogni voce sotto; un cliente al massimale mensile; un paziente con 1 sola ripetizione nel 30s Sit-to-Stand.',
+        steps: [
+          'Calendario → nuovo appuntamento, selezionare 1 paziente: il bottone dice "CREA APPUNTAMENTO (1 paziente)"; con 2 "(2 pazienti)"',
+          'Con 1 paziente al massimale: "1 paziente ha raggiunto il massimale mensile."; con 2 "2 pazienti hanno raggiunto…"',
+          'Vista mese: slot con 1 paziente mostra il nome, con 2 "2 pazienti"; slot senza pazienti (nomi non trovati) non mostra alcuna etichetta oltre all\'orario',
+          'Gruppi: scheda con 1 e con 2 membri ("1 paziente" / "2 pazienti"), anche nel PDF del gruppo',
+          'Notifiche: "1 non letta" / "2 non lette"; note: "1 commento" / "2 commenti"',
+          'Scheda allenamento (PT): "1 sessione svolta" / "2 sessioni svolte"',
+          'Valutazione 30s Sit-to-Stand con 1 ripetizione: "1 ripetizione"; Parametri clinici con 1 e 2 campi compilati: "1 compilato" / "2 compilati"',
+          'PDF paziente con un solo e con più professionisti: etichetta "Professionista" / "Professionisti"',
+        ],
+        expected: ['Singolare solo per la quantità 1, plurale altrimenti; i nomi seguono la terminologia del modulo'],
+      },
     ],
   },
 ]

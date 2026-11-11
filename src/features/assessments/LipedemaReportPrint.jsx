@@ -3,6 +3,7 @@ import { calcAge } from '../../utils/validation'
 import {
   PALETTE, PrintThemeProvider, usePrintDocument, SectionTitle, Th,
 } from '../../components/common/reportPrintKit'
+import { examinersLabel } from '../../utils/pluralLabels'
 import { formatDate } from './assessmentFormat'
 import {
   buildLipedemaReportRows, buildReportBia, getReportExaminers, NOT_PERFORMED_TEXT, REPORT_DISCLAIMER,
@@ -76,7 +77,7 @@ export function LipedemaReportPrint({ client, assessments, terminology, onClose 
             <Info label="Sesso" value={sexLabel} />
             <Info label="Peso" value={client.peso ? `${client.peso} kg` : null} />
             <Info label="Altezza" value={client.altezza ? `${client.altezza} cm` : null} />
-            <Info label={examiners.length > 1 ? 'Professionisti' : 'Professionista'} value={examiners.join(', ') || null} />
+            <Info label={examinersLabel(terminology, examiners.length)} value={examiners.join(', ') || null} />
             <Info label="Informativa" value={notice ? `${notice.informativaVersion} · ${formatDate(notice.deliveredAt)}` : null} />
           </div>
 

@@ -2,14 +2,13 @@ import { useState, useMemo } from 'react'
 import { Modal }        from '../../../components/ui'
 import { toLocalDateStr } from '../../../utils/calendarUtils'
 import { byClientGender, bySessionGender } from '../../../config/modules.config'
+import { clientCountLabel, monthlyLimitMessage } from '../../../utils/pluralLabels'
 
 /**
  * Modal per la creazione di una nuova sessione (slot di calendario).
  */
 export function AddSlotModal({ date, clients, groups, slots, terminology, onClose, onSave }) {
   const today = toLocalDateStr()
-  const clientLabel  = terminology.client.toLowerCase()
-  const clientsLabel = terminology.clients.toLowerCase()
 
   const [selectedDate,    setSelectedDate]    = useState(date)
   const [startTime,       setStartTime]       = useState('09:00')
@@ -158,7 +157,7 @@ export function AddSlotModal({ date, clients, groups, slots, terminology, onClos
 
         {overLimitClients.length > 0 && (
           <p role="alert" className="font-body text-[12px] text-red-400/80 mb-4 m-0">
-            {overLimitClients.length === 1 ? `1 ${clientLabel} ha` : `${overLimitClients.length} ${clientsLabel} hanno`} raggiunto il massimale mensile.
+            {monthlyLimitMessage(terminology, overLimitClients.length)}
           </p>
         )}
 
@@ -170,7 +169,7 @@ export function AddSlotModal({ date, clients, groups, slots, terminology, onClos
         >
           {selectedClients.length === 0
             ? `SELEZIONA ALMENO ${byClientGender(terminology, 'UN', 'UNA')} ${terminology.client.toUpperCase()}`
-            : `CREA ${terminology.session.toUpperCase()} (${selectedClients.length} ${clientsLabel})`}
+            : `CREA ${terminology.session.toUpperCase()} (${clientCountLabel(terminology, selectedClients.length)})`}
         </button>
     </Modal>
   )
