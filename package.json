@@ -9,6 +9,7 @@
     "build:analyze": "ANALYZE=true vite build",
     "preview": "vite preview",
     "lint": "eslint src",
+    "check:deny": "node scripts/check-deny.mjs",
     "lint:fix": "eslint src --fix",
     "test": "vitest",
     "test:run": "vitest run --passWithNoTests",

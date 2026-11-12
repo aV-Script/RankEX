@@ -903,7 +903,9 @@ cintura, non una garanzia: non coperti `git checkout <file>` (sintassi uguale al
 `git -c k=v …`, `--git-dir`, `git.exe` con percorso, script che lanciano git, `checkout-index -f`, `apply -R`,
 `rm -f`, `merge`/`rebase --abort`, `reset --merge`/`--keep`. La regola vale comunque.
 `.claude/settings.json` **non è tracciato** (`.claude/*` in `.gitignore`): il blocco vale solo su questa
-macchina. Se serve davvero uno di quei comandi lo lancia l'utente a mano.
+macchina. La copia tracciata dei pattern è `docs/git-deny.json`; `npm run check:deny` verifica che ognuno sia
+ancora nei settings (su una macchina nuova: copiare i pattern nei settings, poi `check:deny`).
+Se serve davvero uno di quei comandi lo lancia l'utente a mano.
 
 ---
 

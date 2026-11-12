@@ -243,6 +243,7 @@ fuorviante ("Rank F · Media 0").
 ## [TD-014] Deny git distruttivi solo in `.claude/settings.json`, non tracciato e con buchi noti
 **Data:** 2026-11-12 (Sprint #19, voce 2b)
 **Cosa si è scelto di rimandare:** la difesa contro `git checkout -- .`/`restore`/`reset --hard` sul working tree sono 72 pattern in `.claude/settings.json`, ignorato da git (`.claude/*`): vale solo su questa macchina, non c'è una copia tracciata né un controllo che le regole ci siano ancora. I pattern sono per costruzione incompleti (la review ha trovato `git -C` e le varianti di `switch -f`; l'elenco dei non coperti è in CLAUDE.md → "Controprove e working tree").
+**Aggiornamento 2026-11-13 (Sprint #20 voce 2):** chiuso il "non tracciato" (copia `docs/git-deny.json` + `npm run check:deny`); restano i buchi noti dei pattern (elenco in CLAUDE.md).
 **Perché:** i permessi non sono tracciabili col repo; la regola in CLAUDE.md è la difesa primaria, il deny è una cintura.
 **Rischio se non risolto:** su una macchina nuova o dopo una modifica di `settings.json` il deny sparisce senza che nessuno se ne accorga; ricomparirebbe l'incidente del #18 (controprova con `git checkout -- .` su modifiche non committate).
 **Status:** OPEN
