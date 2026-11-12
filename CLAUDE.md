@@ -1119,6 +1119,105 @@ npm run deploy:rules:dev   # → dev  (rankex-dev)
 
 ---
 
+## Rilascio in produzione
+
+Processo stabile e generico. Lo stato di **ogni** rilascio (commit, esiti, rollback con commit reali)
+sta in `docs/CHANGELOG.md`, in una voce "non rilasciata / in rilascio" in cima, non qui. Ogni deploy su
+`fitquest-60a09` richiede il via libera esplicito dell'utente, uno per passo.
+
+**Ordine: functions prima, poi merge `dev → main`.** Il merge fa partire `deploy.yml` (CI + hosting + rules
+prod); le functions no, sono a mano. Callable nuove/cambiate devono restare compatibili con client e rules
+vecchi (nella finestra tra i due passi c'è ancora la build vecchia); il contrario lascia client nuovi che
+chiamano callable inesistenti, o azioni senza audit. Regola generale: si rilascia prima il layer che resta
+compatibile col vecchio. Se un rilascio richiede l'ordine opposto, va motivato nella voce di CHANGELOG. Il
+merge segue **subito** il deploy functions (finestra corta). Per `qa:dev` vale la regola già scritta in
+"QA automatica" (mai deploy hosting in parallelo).
+
+Comandi: da Git Bash, `NODE_OPTIONS=--dns-result-order=ipv4first <cmd>`; da PowerShell
+`$env:NODE_OPTIONS='--dns-result-order=ipv4first'; <cmd>`. `firebase` = CLI globale in PATH (non è
+devDependency del repo; `npx firebase` non funziona, `npx firebase-tools` sì).
+
+### Pre-flight (tutto verde, su HEAD di `dev`)
+```
+npm run build · npm run lint · npm run test:run
+npm run test:rules                  # emulatore Firestore (serve Java), come in ci.yml
+cd functions && npm test
+```
+- `qa:dev` verde sull'**ultimo** hosting dev (stesso commit che va in prod); `docs/BUGS.md` senza P0/P1 aperti.
+- Env: `.env.production` con `VITE_ENV=production` e `VITE_FIREBASE_PROJECT_ID=fitquest-60a09` (controllare
+  solo queste due righe, mai stampare il file); stessa cosa per `.env.development` (`rankex-dev`). La build di
+  `deploy.yml` usa i secrets GitHub `VITE_FIREBASE_*` (prod) e `FIREBASE_TOKEN`: non dipende dai `.env` locali.
+- Diff verso la produzione: `git fetch && git diff origin/main -- firestore.rules firestore.index.json` e
+  `git diff --stat origin/main -- functions/src`; callable nuove: `git diff --name-status origin/main --
+  functions/src/callable | grep ^A`. Per il confronto con la produzione usare gli **export** di
+  `functions/src/index.js` (non i file in `callable/`) contro `firebase functions:list --project
+  fitquest-60a09` (sola lettura): nuove = negli export e non in prod; attese dopo il deploy = prod + nuove.
+- Cambio runtime Node (`functions/package.json` → `engines`, es. 20 → 22) = cambio di runtime di **tutte** le
+  functions al deploy: è un rischio a sé (dipendenze, cold start). Dichiararlo nel CHANGELOG; il pre-flight
+  `cd functions && npm test` gira già sul Node locale, controllare che sia quello nuovo (`node -v`).
+- Costanti speculari client/server (vedi "Copie speculari") allineate; indici e rules compatibili col vecchio client.
+- Dati prod da verificare **prima** (a cura dell'utente in Console) se il rilascio introduce nuovi valori/capability
+  (es. `moduleType` sconosciuto nelle org: le callable lo bloccano).
+
+### Da annotare in CHANGELOG prima di ogni deploy prod
+- Commit in prod: hosting + rules = `git rev-parse origin/main`; functions = commit dell'ultimo deploy functions
+  prod (ultima voce CHANGELOG che lo registra; in mancanza `git log -1 origin/main -- functions/` come stima, da
+  dichiarare "da confermare"). Se ignoto, scriverlo: il rollback functions non è garantito.
+- Rollback per layer, con i commit reali (`<prev>` = commit annotato sopra):
+  - **rules**: Console → Firestore → Rules → cronologia, ripubblica la versione precedente. Da CLI (non usa il
+    working tree): cartella temporanea con `git show <prev>:firestore.rules > firestore.rules` e un
+    `firebase.json` con `{"firestore":{"rules":"firestore.rules"}}`, poi lì (con `NODE_OPTIONS` ipv4first)
+    `firebase deploy --only firestore:rules --project fitquest-60a09`. Non tocca gli indici. `npm run
+    deploy:rules` pubblica il file del working tree: va bene solo se è già lo stato precedente. Un push
+    successivo su `main` ripubblica le rules di `main`: dopo un rollback manuale, o si ripristina anche `main`
+    o non si pusha.
+  - **functions**: `git worktree add <cartella-esterna-al-repo> <prev>` (cartella separata, **niente junction**
+    per `node_modules`), poi nella cartella del worktree, con `NODE_OPTIONS` ipv4first (comandi per Git Bash o
+    PowerShell come sopra): `cd functions && npm ci`, quindi
+    `npx firebase-tools deploy --only functions --project fitquest-60a09` (o `firebase` globale). Non usare
+    `npm run deploy` del commit vecchio: chiama `firebase` senza `cross-env` né devDependency. Torna anche il
+    runtime Node del commit vecchio. Finito, `git worktree remove` **solo dopo** aver verificato che
+    `functions/node_modules` sia una cartella reale e non una junction (su Windows `worktree remove` seguirebbe
+    la junction e cancellerebbe il `node_modules` reale).
+    **Callable nuove al rollback:** la CLI le trova in prod ma non nel codice vecchio e propone di cancellarle.
+    In modo interattivo rispondere **No** (restano, innocue); `--force` le cancella; in modo non interattivo
+    senza `--force` il deploy **fallisce**. Per cancellarle volutamente:
+    `firebase functions:delete <a> <b> <c> --region europe-west1 --project fitquest-60a09`.
+  - **hosting**: Console → Hosting → Release history → Rollback, **per entrambi** i siti `rankex-app` e
+    `rankex-admin`. Un push successivo su `main` lo sovrascrive (deploy hosting a ogni merge): dopo il rollback
+    non pushare su `main` finché non è corretto. Alternativa CLI `firebase hosting:clone`: verificare la
+    sintassi con `--help` prima.
+
+### Deploy
+1. `cd functions && npm run deploy` (via libera). Annotare ora ed esito in CHANGELOG. Subito dopo
+   `firebase functions:list --project fitquest-60a09`: callable attese = prod + nuove (conteggio) e runtime
+   atteso per tutte (es. `nodejs22`); una sola con runtime diverso = deploy parziale, fermarsi.
+2. Subito dopo, merge `dev → main` e push (via libera separato): `deploy.yml` → CI, hosting, rules. Annotare il run id.
+3. Controllare i run subito dopo il push: `gh run list --branch main --limit 5`, poi `gh run watch <id>` sul
+   run "CI" e, a CI verde, su "Deploy to Firebase" (job `deploy-prod`). **Stop** se CI è rosso, se `deploy.yml`
+   non parte entro qualche minuto dalla fine della CI, o se `deploy-prod` fallisce (limite indicativo: ~15
+   minuti dal push; oltre, trattarlo come fallito).
+   **Se CI di main fallisce o `deploy.yml` non parte:** hosting e rules prod restano alla versione vecchia
+   (stato sicuro: le callable nuove sono compatibili con client e rules vecchi), ma la finestra A si
+   prolunga (doppia voce audit su `client.deleted`). Prima scelta: **fix forward** su `dev` → nuovo merge su
+   `main` (ripetere pre-flight sul fix). Il rollback delle functions **non** è richiesto. Dichiarare l'evento
+   e la durata della finestra nel CHANGELOG; se `deploy-prod` fallisce a metà (hosting sì, rules no o
+   viceversa) annotare quale layer è passato e rilanciare il run fallito (`gh run rerun <id>`) dopo il fix.
+
+### Verifica post-deploy
+- Console → Functions: callable attese presenti, nessun errore nei log (`cd functions && npm run logs`);
+  `firebase functions:list` per conteggio e runtime (vedi Deploy 1).
+- `audit_logs`: Console Firebase → Firestore (progetto `fitquest-60a09`) → collezione `audit_logs`, ordinata per
+  `timestamp` decrescente: cercare voci con `env: functions` successive al deploy (creazione/eliminazione
+  cliente, login fallito). Solo super_admin legge: non da client.
+- Smoke test **in sola lettura** col super_admin su `rankex-admin`: login, lista org, dettaglio di una org PT e di
+  una Soccer; mai salvare. Verificare le differenze di ambiente note (es. in prod la select modulo non offre
+  Lipedema in "NUOVA" né nel dettaglio org).
+- Client con build vecchia aperta: deve comparire il banner RICARICA.
+- Costi Firebase in Console dopo 24 ore (vedi sotto).
+
+---
+
 ## Monitoraggio costi Firebase
 
 Piano Blaze, obiettivo 0 € (fascia gratuita). `rankex-dev` ha un budget con limite rigido a 1 € su Cloud Run

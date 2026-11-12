@@ -15,6 +15,85 @@ Formato:
 
 ---
 
+## [EPIC-010] — NON RILASCIATA / IN RILASCIO (preparata 2026-11-12, HEAD `31f5727` su `feature/lipedema-module`)
+
+Processo: `CLAUDE.md` → "Rilascio in produzione". Ordine A: functions prod a mano, poi **subito** merge
+`dev → main`. Sprint #18. Voce da completare durante il rilascio (campi `__` vuoti).
+
+### Features
+- EPIC-010 Lipedema Edition, **solo codice**: terzo `moduleType` senza rank/gamification, 5 test, valutazioni
+  immutabili, informativa paziente. Il modulo **non è attivabile in prod** (1d: `CreateOrgForm` e `OrgDetailView`
+  non offrono Lipedema con `isProduction`; solo UI, le rules non lo impediscono a un super_admin: rischio
+  accettato, si sblocca con STORY-029 chiusa).
+- Callable nuove (3): `aggiungiValutazione`, `annullaValutazione`, `registraInformativaPaziente`. Cambiate le
+  esistenti toccate da capability/audit (`functions/src`: 21 file, +2044/-49 vs `origin/main`).
+- Audit nelle callable (TD-009, `hasClientNameInAudit`): `CLIENT_CREATED`/`CLIENT_DELETED` scritti server-side;
+  nome cliente nei `details` solo per PT e soccer.
+- 1b: audit e side effect attesi prima del `return` + test di scansione dei sorgenti delle callable. TD-013.
+- 1a: script `functions/` con `cross-env` + ipv4first. 1c: `qa:dev` con slot e gruppo `E2E-`. Runbook TP-087.
+
+### Bug Fixes
+- Fix `firestore.rules` (ADR-020): +58/-3 righe vs `origin/main`, `isAllowedModuleChange` (cambio
+  moduleType da/verso lipedema solo con org senza clienti), `moduleAllowsClientWrite` (misure/trofei del trainer:
+  un `get()` dell'org in più, solo su quegli update; PT/Soccer/legacy null ammessi come prima), subcollection
+  `assessments` (lettura membri, scrittura negata). Nessuna modifica a `firestore.index.json` né `firebase.json`.
+
+### Known Issues
+- Modulo lipedema non attivabile in prod (vedi sopra); STORY-029 (b)/(c) DPA e testo informativa aperte.
+- Runtime functions: prod oggi `nodejs20` (tutte le 37 callable); `functions/package.json` di HEAD ha
+  `engines.node: 22` -> il deploy cambia il runtime di **tutte** le callable da Node 20 a 22 (rischio a sé:
+  dipendenze, cold start). Dopo il deploy: `firebase functions:list --project fitquest-60a09` deve mostrare
+  **40 callable** (37 + 3 nuove), tutte `nodejs22`; altrimenti deploy parziale, fermarsi. Rollback: redeploy del
+  commit precedente (runtime torna a 20).
+- GYM senza org QA: non verificato.
+- Finestra tra deploy functions e merge: doppia voce audit sull'eliminazione cliente (`client.deleted` client +
+  `CLIENT_DELETED` functions, action diversi); la creazione è già doppia oggi.
+
+### Breaking Changes
+- Nessuno per client/rules vecchi (callable compatibili). Un'org con `moduleType` non nullo ma sconosciuto
+  verrebbe bloccata dalle callable (tutte le capability `false`): `moduleType` null = PT, nessun backfill.
+
+### Pre-flight su HEAD `31f5727` (2026-11-12)
+build OK · lint OK · unit 641/641 · rules 129/129 · functions 231/231 · `qa:dev` 36/36 su hosting dev a `31f5727`
+· `docs/BUGS.md`: nessun P0/P1 aperto · `.env.production` = production / fitquest-60a09 (solo le due righe).
+
+### Stato attuale della produzione (annotato prima dei deploy)
+- Hosting + rules prod: `origin/main` = **`4f5d08e`** (verificato con `git fetch`, 2026-11-12).
+- Functions prod: **da confermare con l'utente.** `firebase functions:list` mostra 37 callable `nodejs20`,
+  tra cui `registraLoginFallito` e `acquistaAvatar`; l'ultimo commit su `origin/main` che tocca `functions/` è
+  `744f6f9` (2026-10-24), stima del commit deployato. Il CHANGELOG non registra deploy functions dopo il 2026-09-14.
+
+### Da compilare durante il rilascio
+- [ ] Merge `feature/lipedema-module -> dev`, verifica rankex-dev + `qa:dev`: __
+- [ ] Query prod `moduleType` (utente, Console): esito __ (nessun valore sconosciuto; null ammesso)
+- [ ] Commit functions prod confermato: __
+- [ ] Deploy functions prod (`cd functions && npm run deploy`): ora __, esito __; `functions:list`: __ callable (attese 40), runtime __ (atteso nodejs22)
+- [ ] Merge `dev -> main`, run CI (id __) e `deploy.yml` (id __): CI __, hosting __, rules __
+- [ ] Smoke test sola lettura (super_admin utente): __; log functions / `audit_logs`: __
+- [ ] Costi Firebase dopo 24 h: __
+
+### Rollback plan
+Prev: hosting+rules `4f5d08e`; functions `744f6f9` (se confermato). Dettagli e motivazioni in `CLAUDE.md`.
+Comandi da Git Bash; in PowerShell `$env:NODE_OPTIONS='--dns-result-order=ipv4first'; <cmd>`.
+- Rules: Console -> Firestore -> Rules -> cronologia, oppure cartella temporanea con
+  `git show 4f5d08e:firestore.rules > firestore.rules` + `firebase.json` minimo, poi (con NODE_OPTIONS ipv4first)
+  `firebase deploy --only firestore:rules --project fitquest-60a09`. Non tocca gli indici. Un push successivo su
+  `main` ripubblica le rules di `main`.
+- Functions: `git worktree add ../rankex-fn-rollback 744f6f9`; poi, con NODE_OPTIONS ipv4first,
+  `cd ../rankex-fn-rollback/functions && npm ci && npx firebase-tools deploy --only functions --project fitquest-60a09`
+  (a 744f6f9 `npm run deploy` chiama `firebase` senza `cross-env`: non usarlo). Runtime torna a Node 20. Le 3
+  callable nuove non sono nel codice vecchio: la CLI propone di cancellarle, rispondere **No** (restano,
+  innocue); `--force` le cancella, in non interattivo senza `--force` il deploy fallisce. Cancellazione voluta:
+  `firebase functions:delete aggiungiValutazione annullaValutazione registraInformativaPaziente --region europe-west1 --project fitquest-60a09`.
+  `git worktree remove` solo dopo aver verificato che `functions/node_modules` sia una cartella reale, non una junction.
+- Hosting: Console -> Hosting -> Release history -> Rollback, per **entrambi** `rankex-app` e `rankex-admin`; un
+  push successivo su `main` li sovrascrive.
+- Se CI di `main` fallisce o `deploy.yml` non parte: stato sicuro (callable compatibili col client vecchio,
+  finestra A prolungata con doppia voce `client.deleted`), fix forward su `dev` -> `main`; rollback functions
+  non richiesto. Controllo run: `gh run list --branch main`, `gh run watch`; limite indicativo ~15 min dal push.
+
+---
+
 ## [Backend] — 2026-09-14
 
 ### Features
