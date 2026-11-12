@@ -112,6 +112,16 @@ export const RUNBOOK_SUITES = [
           'Throttle per email applicato silenziosamente, nessun errore visibile all\'utente',
         ],
       },
+      {
+        id: 'TP-091', usId: 'STORY-046', severity: 'important', title: 'Invio nel cambio password e autocompletamento credenziali al login',
+        preconditions: 'Cliente con mustChangePassword attivo (password temporanea); browser con password manager.',
+        steps: [
+          'Cambio password: compilare i tre campi e premere Invio in ciascuno: parte la stessa validazione del bottone ENTRA IN RANK EX',
+          'Con dati validi premere Invio due volte di seguito: un solo salvataggio, il bottone mostra SALVATAGGIO...',
+          'Login: dopo un accesso con salvataggio credenziali, il browser propone username e password salvati sui campi email e password',
+        ],
+        expected: ['Invio = click sul bottone', 'Nessun doppio invio durante il salvataggio', 'Credenziali proponibili dal browser'],
+      },
     ],
   },
   {
@@ -517,6 +527,18 @@ export const RUNBOOK_SUITES = [
           'Verificare read: true in Firestore',
         ],
         expected: ['Notifica automatica all\'assente', 'Badge contatore corretto', '"Segna tutte lette" con optimistic update'],
+      },
+      {
+        id: 'TP-090', usId: 'STORY-046', severity: 'important', title: 'Pannello notifiche cliente: tastiera, lettura esplicita, 360 px',
+        preconditions: 'Cliente PT o Soccer con almeno 2 notifiche non lette.',
+        steps: [
+          'Aprire il pannello dalla campana: il contatore e i pallini "non letta" restano invariati (aprire non segna nulla)',
+          'Il focus è sul primo elemento interattivo; Tab e Shift+Tab ciclano dentro il pannello senza uscire',
+          'Esc chiude il pannello e il focus torna sulla campana (barra desktop e, a 360 px, campana mobile)',
+          'Riaprire: "Segna tutte come lette" compare nell\'header solo se ci sono non lette; click: contatore a 0, pallini spenti, header "Tutte lette", bottone sparito; un doppio click lancia una sola chiamata',
+          'A 360x640: il pannello è largo min(360px, 92vw), titolo, bottone e chiudi sono tutti raggiungibili, nessuno scroll orizzontale',
+        ],
+        expected: ['Il pannello è un dialog modale accessibile da tastiera', 'Le notifiche si segnano lette solo con azione esplicita', 'Header intero a 360 px'],
       },
     ],
   },

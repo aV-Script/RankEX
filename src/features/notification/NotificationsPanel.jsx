@@ -1,7 +1,12 @@
 // NotificationsPanel — drawer laterale notifiche cliente
+import { useEffect, useRef, useState } from 'react'
+import { useFocusTrap }   from '../../hooks/useFocusTrap'
+import { useEscapeKey }   from '../../hooks/useEscapeKey'
 import { IconClose }  from '../../components/ui/icons'
 import { EmptyState } from '../../components/ui'
 import { unreadLabel } from '../../utils/pluralLabels'
+
+const TITLE_ID = 'notifications-panel-title'
 
 // ── Icone per tipo ────────────────────────────────────────────────────────────
 
@@ -65,8 +70,29 @@ function formatDate(raw) {
 
 // ── Componente ────────────────────────────────────────────────────────────────
 
-export function NotificationsPanel({ notifications, color, onClose, onDelete }) {
+export function NotificationsPanel({ notifications, color, onClose, onDelete, onMarkAllRead }) {
   const unreadCount = notifications.filter(n => !n.read).length
+  const drawerRef   = useRef(null)
+  const [isMarking, setIsMarking] = useState(false)
+
+  // Alla chiusura il focus torna all'elemento che lo aveva all'apertura (campana mobile o desktop).
+  // Dichiarato prima di useFocusTrap: il trap sposta il focus nel drawer nel suo effect.
+  useEffect(() => {
+    const opener = document.activeElement
+    return () => { if (opener instanceof HTMLElement) opener.focus() }
+  }, [])
+  useFocusTrap(drawerRef, true)
+  useEscapeKey(onClose)
+
+  const handleMarkAllRead = async () => {
+    if (isMarking) return
+    setIsMarking(true)
+    try {
+      await onMarkAllRead()
+    } finally {
+      setIsMarking(false)
+    }
+  }
 
   return (
     <>
@@ -79,6 +105,10 @@ export function NotificationsPanel({ notifications, color, onClose, onDelete }) 
 
       {/* Drawer */}
       <div
+        ref={drawerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={TITLE_ID}
         className="fixed top-0 right-0 bottom-0 z-50 flex flex-col animate-in slide-in-from-right duration-300"
         style={{
           width:               'min(360px, 92vw)',
@@ -92,7 +122,7 @@ export function NotificationsPanel({ notifications, color, onClose, onDelete }) 
       >
 
         {/* Header */}
-        <div className="flex items-center gap-3 px-5 py-4 shrink-0"
+        <div className="flex items-center flex-wrap gap-x-3 gap-y-1 px-5 py-4 shrink-0"
           style={{ borderBottom: '1px solid var(--rx-border)' }}>
           <div className="flex items-center justify-center rounded-[6px] shrink-0"
             style={{ width: 34, height: 34, background: color + '15', border: `1px solid ${color}30`, color }}>
@@ -105,11 +135,22 @@ export function NotificationsPanel({ notifications, color, onClose, onDelete }) 
                 ? unreadLabel(unreadCount)
                 : 'Tutte lette'}
             </div>
-            <div className="font-display font-black uppercase text-white"
+            <div id={TITLE_ID} className="font-display font-black uppercase text-white"
               style={{ fontSize: 12, letterSpacing: '1.5px' }}>
               Notifiche
             </div>
           </div>
+          {unreadCount > 0 && (
+            <button
+              type="button"
+              onClick={handleMarkAllRead}
+              disabled={isMarking}
+              className="font-display uppercase cursor-pointer shrink-0"
+              style={{ minHeight: 44, padding: '0 6px', fontSize: 12, letterSpacing: '0.5px', background: 'transparent', border: 'none', color: 'var(--rx-accent)', opacity: isMarking ? 0.5 : 1 }}
+            >
+              Segna tutte come lette
+            </button>
+          )}
           <button
             onClick={onClose}
             aria-label="Chiudi notifiche"

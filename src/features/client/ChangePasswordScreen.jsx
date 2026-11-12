@@ -25,6 +25,7 @@ export default function ChangePasswordScreen({ userId, onDone }) {
   }
 
   const handleSubmit = async () => {
+    if (loading) return
     if (!validate()) return
     setLoading(true)
     try {
@@ -61,7 +62,7 @@ export default function ChangePasswordScreen({ userId, onDone }) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4">
+          <form onSubmit={e => { e.preventDefault(); handleSubmit() }} noValidate className="flex flex-col gap-4">
             <Field label="Password temporanea" error={errors.current} htmlFor="cp-current">
               <input id="cp-current" type="password" placeholder="Quella ricevuta dal trainer"
                 value={form.current}
@@ -104,10 +105,10 @@ export default function ChangePasswordScreen({ userId, onDone }) {
               ))}
             </ul>
 
-            <Button variant="primary" onClick={handleSubmit} disabled={loading} className="w-full mt-2">
+            <Button variant="primary" type="submit" disabled={loading} className="w-full mt-2">
               {loading ? 'SALVATAGGIO...' : 'ENTRA IN RANK EX →'}
             </Button>
-          </div>
+          </form>
         </div>
       </div>
     </div>

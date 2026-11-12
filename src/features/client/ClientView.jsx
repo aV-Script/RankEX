@@ -28,10 +28,7 @@ export default function ClientView({ clientId, orgId }) {
 
   const [showNotifs, setShowNotifs] = useState(false)
 
-  const handleOpenNotifs = useCallback(async () => {
-    setShowNotifs(true)
-    await markAllRead()
-  }, [markAllRead])
+  const handleOpenNotifs = useCallback(() => setShowNotifs(true), [])
 
   if (loading) return (
     <div className="min-h-screen p-6 flex flex-col gap-4 max-w-md mx-auto pt-12">
@@ -61,6 +58,7 @@ export default function ClientView({ clientId, orgId }) {
           color={color}
           onClose={() => setShowNotifs(false)}
           onDelete={remove}
+          onMarkAllRead={markAllRead}
         />
       )}
     </ClientShell>

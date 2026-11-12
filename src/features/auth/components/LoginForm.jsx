@@ -32,6 +32,8 @@ export function LoginForm({ form }) {
         <Field label="Email" htmlFor="login-email">
           <input
             id="login-email"
+            name="email"
+            autoComplete="username"
             type="email"
             className="input-base w-full"
             placeholder="trainer@email.com"
@@ -45,6 +47,8 @@ export function LoginForm({ form }) {
           <div style={{ position: 'relative' }}>
             <input
               id="login-password"
+              name="password"
+              autoComplete="current-password"
               type={showPassword ? 'text' : 'password'}
               className="input-base w-full"
               placeholder="••••••••"
