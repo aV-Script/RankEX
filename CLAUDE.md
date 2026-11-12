@@ -731,9 +731,6 @@ npm run qa:dev        → playwright.qa-dev.config.js, spec in e2e/qa-dev/tests/
 - **Non deployare l'hosting mentre gira `npm run qa:dev`**: la suite gira contro l'hosting
   deployato, un deploy a metà mischia due build (e fa comparire il banner RICARICA). Prima il
   deploy, poi `qa:dev`, mai in parallelo.
-- `cd functions && npm run deploy:dev` su questa macchina va lanciato con
-  `NODE_OPTIONS=--dns-result-order=ipv4first` (gli script di `functions/` non usano `cross-env`
-  come quelli della root): senza, fallisce con "Failed to list functions" / "Failed to make request".
 
 ## Calendario
 
@@ -1086,12 +1083,15 @@ Tutti usano `cross-env NODE_OPTIONS=--dns-result-order=ipv4first`
 **Cloud Functions — script separati, dentro `functions/` (non nella root):**
 ```
 cd functions
-npm run deploy:dev   → firebase deploy --only functions --project rankex-dev
-npm run deploy       → firebase deploy --only functions --project fitquest-60a09
+npm run deploy:dev   → cross-env ... firebase deploy --only functions --project rankex-dev
+npm run deploy       → cross-env ... firebase deploy --only functions --project fitquest-60a09
 ```
 Non ci sono script per singola funzione — `deploy`/`deploy:dev` ridistribuiscono sempre
 tutte le callable in `functions/src/callable/`. Non fanno parte di `deploy.yml` (CI/CD):
 vanno lanciati manualmente, sempre prima su `rankex-dev` per verifica.
+Anche gli script di `functions/` (`serve`, `deploy`, `deploy:dev`, `logs`) usano `cross-env
+NODE_OPTIONS=--dns-result-order=ipv4first` (`cross-env` è devDependency di `functions/`): senza, su questa
+macchina falliscono con "Failed to list functions" / "Failed to make request".
 
 ---
 
