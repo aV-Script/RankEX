@@ -98,6 +98,7 @@ Formato:
 **Reproduction steps:** login staff_readonly → Calendario.
 **Expected:** nessuna azione di creazione/modifica in readonly.
 **Actual:** sono visibili e cliccabili "+ Sessione" / "+ Ricorrenza" in `CalendarHeader`, il "+" delle celle (`WeekView`/`DayView`/`MonthView`, anche il click sull'area vuota) e le azioni di `SlotPopup` (Chiudi sessione, Segna come saltata, Elimina). Il server rifiuta (le callable controllano il ruolo), nessun dato toccato, ma l'utente vede un errore.
+**Note (da BUG-022, QA dal vivo Sprint #16, 11/11, qadev.lipedema.staff):** "+ APPUNTAMENTO" e "+ RICORRENZA" visibili e cliccabili a desktop e 360 px; preesistente (già così a 7a0a5a7). Perimetro #17 (censimento approvato 12/11): calendario, gruppi (BUG-024) e pagina Ricorrenze; click su slot esistente in readonly = dettaglio in sola lettura.
 **Suggested fix:** in `TrainerCalendar.jsx` leggere `useReadonly()` e, se readonly, non passare `onAddSession`/`onAddRecurrence` a `CalendarHeader` (già condizionali), non rendere il "+" delle celle né agganciare `onEmptyClick`, e in `SlotPopup` nascondere le azioni lasciando solo i dettagli e "Gestisci" ricorrenza; aggiungere un caso al runbook.
 
 ## [BUG-008] Area cliente (atleta) con terminologia PT fissa
@@ -242,7 +243,7 @@ Formato:
 ## [BUG-022] staff_readonly vede i bottoni "+" del calendario
 **Severity:** P3
 **Modulo/Ruolo:** tutti i moduli — staff_readonly, `TrainerCalendar.jsx:116-117` (`onAddSession`/`onAddRecurrence` passati sempre a `CalendarHeader`), anche i "+" dei giorni. Trovato nella QA dal vivo dello Sprint #16 (11/11, qadev.lipedema.staff); preesistente (già così a 7a0a5a7), non introdotto da TD-011
-**Status:** OPEN — candidato #17 (non deciso)
+**Status:** DUPLICATE di BUG-007 (Sprint #17, 12/11): stesso difetto (azioni di scrittura del calendario visibili a staff_readonly). Passi e osservazioni di questa voce sono confluiti in BUG-007
 **Reproduction steps:** login staff_readonly → Calendario, a desktop o 360 px.
 **Expected:** nessun bottone di creazione (ReadonlyGuard / `useReadonly`), come nelle altre pagine.
 **Actual:** "+ APPUNTAMENTO" e "+ RICORRENZA" visibili e cliccabili; il salvataggio dovrebbe essere rifiutato da rules/callable (da verificare).
