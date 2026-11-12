@@ -7,7 +7,153 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-Nessuno sprint attivo: il #18 e' chiuso (2026-11-12, vedi storico). Il #19 si apre dai candidati del #18.
+# SPRINT #19 — EPIC-010 Lipedema Edition, chiusura dei "non verificato" del rilascio e action item del #18 — aperto il 2026-11-12
+
+**Branch:** `feature/lipedema-module` (HEAD `f91bcb6`, 8 commit locali `fd28852..f91bcb6` non pushati: 7 docs +
+`3f7d5f3` fix `e2e/tests/real-flows.spec.js` "email già usata"). `lipidemia/` e `mobile-app/` non si committano.
+Nessun deploy su `fitquest-60a09` in questo sprint. I deploy su rankex-dev sono ammessi, mai hosting durante
+`qa:dev`.
+
+**Goal:** chiudere con esito VERIFIED o BUG i "non verificato" del rilascio EPIC-010 e i 4 action item del #18, senza
+deploy in produzione.
+
+**Situazione iniziale (verificata il 2026-11-12 con `git fetch`):**
+- `origin/dev` = `origin/main` = `f086405`. Prod `fitquest-60a09`: functions, hosting, rules a `f086405`, 40 callable
+  nodejs22; lipedema non selezionabile fuori da dev (`IS_LIPEDEMA_SELECTABLE = isDev`).
+- rankex-dev: hosting e rules a `f086405`, functions a `d2682a8` (codice identico a `f086405`).
+- Test: `qa:dev` 36/36, unit 641/641, functions 231/231, rules 129/129.
+- `docs/BUGS.md`: nessun P0/P1 aperto (BUG-009 P0 e' FIXED in prod dal 26/10; gli OPEN rimasti sono BUG-005 e BUG-008, entrambi P3).
+  `docs/TECH-DEBT.md`: nessun debito nuovo dal #18.
+
+**Decisioni prese (2026-11-12, utente):**
+
+| # | Decisione |
+|---|-----------|
+| 1 | Push degli 8 commit locali SOLO su `dev`; `main` resta a `f086405` fino al prossimo rilascio |
+| 2 | "Chiusura sessione con doppio click" flaky: se resta tale, analisi causa + voce in BUGS.md + FIX nel #19; niente retry a oltranza |
+| 3 | Guard sul deploy functions usato sia da `deploy` (prod) sia da `deploy:dev`; sha solo stampato e copiato a mano nel CHANGELOG, nessun file generato |
+| 4 | Controprove solo su copia: regola in CLAUDE.md + DENY (non ask) in `.claude/settings.json` per `git checkout -- .`, `git restore .`, `git reset --hard` |
+| 5 | Caso del lunedi' per lo slot E2E: TEST UNITARIO Vitest della funzione pura che sceglie la data (estratta dal global setup), nessuna modifica al run di `qa:dev` |
+| 6 | Login trainer/cliente in prod: RESTA NON VERIFICATO fino al primo utente reale (nessun dato creato in prod) |
+| 7 | Rinomina voce CHANGELOG con schema "data + etichetta": `[2026.11.12] — EPIC-010 Lipedema (modulo non attivo)`; template `[vX.Y] — <data>` aggiornato; push docs solo su dev, merge su main rinviato al prossimo rilascio |
+| 8 | Prova rollback functions/hosting/rules solo su rankex-dev, seguendo alla lettera la checklist di CLAUDE.md |
+| 9 | Lipedema in UAT resta NASCOSTO come in prod (`IS_LIPEDEMA_SELECTABLE = isDev` invariato) |
+
+**Voci, nell'ordine:**
+0. **Apertura sprint** (questo commit di docs). DONE.
+1. **Push su dev e CI/E2E.** Push dei commit locali SOLO su `dev`; verifica CI + E2E verdi con `3f7d5f3`.
+   *Fatto quando:* CI e E2E del push su dev verdi. Se "chiusura sessione con doppio click" e' ancora flaky: analisi
+   causa, BUG in `docs/BUGS.md`, fix nel #19. **Review medium** se c'e' fix.
+2. **Action item del #18 (processo)**
+   - **2a. Guard deploy functions.** Script Node cross-platform (niente sintassi solo bash) usato da `deploy` e
+     `deploy:dev` in `functions/package.json`: stampa `git rev-parse HEAD`, rifiuta working tree sporco in
+     `functions/`. Riga obbligatoria "functions prod a `<sha>`" nella checklist di CLAUDE.md → Rilascio.
+     *Fatto quando:* `deploy:dev` con un file di `functions/` modificato e non committato rifiuta e non parte; da
+     pulito stampa lo sha e parte. **Review HIGH** (processo di deploy).
+   - **2b. Controprove su copia.** Regola in CLAUDE.md + DENY in `.claude/settings.json`. Sintassi verificata con lo
+     skill `update-config`. *Fatto quando:* i tre comandi sono bloccati davvero (prova che il blocco scatta, su
+     repo di prova, non sul working tree). **Review medium.**
+   - **2c. Tabella per ambiente/modulo.** Ogni voce con comportamento per ambiente o modulo apre con tabella
+     dev/UAT/prod (e PT/GYM/Soccer/Lipedema dove serve) con file:riga confermati. Regola in `CLAUDE.md`
+     ("Processo di sviluppo"), `.claude/agents/developer.md`, `.claude/agents/scrum-master.md`. *Fatto quando:*
+     regola presente nei 3 file e applicata alle voci 3b/3c/3e. **Review medium.**
+3. **Verifiche rimaste del #18**
+   - **3a. Costi Firebase post-rilascio** (dal 2026-11-13): li legge l'utente in Console, annotati nel CHANGELOG.
+   - **3b. Rollback functions su rankex-dev.** Checklist di CLAUDE.md alla lettera: a un commit precedente e
+     ritorno a HEAD, tempi annotati, checklist corretta se serve. SOLO rankex-dev. Dopo 2a (usa lo stesso guard).
+   - **3c. Rollback hosting e rules su rankex-dev**, poi ritorno a HEAD. Mai durante `qa:dev`.
+   - **3d. Caso del lunedi' (slot E2E).** Estrarre dal global setup la funzione pura che sceglie la data dello
+     slot; test unitario Vitest su lunedi', domenica, cambio mese. Nessuna modifica al run di `qa:dev`.
+     **Review medium.**
+   - **3e. Banner RICARICA su rankex-dev:** deploy hosting con una scheda aperta (mai durante `qa:dev`); visto
+     anche a 360 px.
+   - **3f. Login trainer/cliente in prod:** NON VERIFICATO fino al primo utente reale (decisione 6).
+4. **Rinomina voce CHANGELOG EPIC-010** a `[2026.11.12] — EPIC-010 Lipedema (modulo non attivo)`; template del file
+   aggiornato di conseguenza. Push docs solo su dev. *Fatto quando:* titolo e template coerenti.
+
+**Fuori dal #19:** STORY-044 (canvas, non si tocca), stampa su carta, mobile-app, STORY-029 (b)/(c) DPA e
+informativa (requisito non di codice, bloccante per attivare lipedema in prod), STORY-026 retention (decisione
+utente), login reali in prod (3f), qualsiasi deploy su `fitquest-60a09`, merge su `main`. Lavoro emerso fuori elenco
+-> `docs/BACKLOG.md` per il #20.
+
+**Verifica prevista dei 4 action item del #18 (a fine #19):**
+1. Guard commit functions in CHANGELOG — **voce 2a.** `npm run deploy:dev` da tree sporco in `functions/` rifiuta e
+   stampa il motivo; da pulito stampa lo sha e parte; la riga "functions prod a `<sha>`" e' nella checklist di
+   CLAUDE.md. Lo sha stampato dal deploy dev usato nelle prove 3b e annotato nel CHANGELOG.
+2. Controprove su copia — **voce 2b.** Regola presente in CLAUDE.md; `git checkout -- .`, `git restore .` e
+   `git reset --hard` rifiutati dal permesso DENY, provato in un repo di prova (non il working tree); funziona
+   anche con il tool PowerShell e con Bash.
+3. Tabella ambiente/modulo — **voce 2c.** Regola presente nei 3 file (CLAUDE.md, `developer.md`,
+   `scrum-master.md`) e applicata alle voci 3b/3c/3e del #19 (tabella con file:riga in ognuna, prima del codice o
+   dell'esecuzione). 0 scelte di ambiente senza riga corrispondente.
+4. "Non verificato" chiuso — **voci 1, 3a-3f, 4.** Ogni voce dell'elenco "Non verificato" del #18 ha esito
+   VERIFIED, un BUG aperto, oppure motivazione esplicita: costi (3a), caso lunedi' (3d, test), rollback (3b/3c),
+   banner RICARICA (3e), esito E2E su main/dev (1), GYM senza org QA (resta noto), login prod (3f, motivato).
+
+**Tabella ambiente/modulo (apertura, da completare con file:riga dal developer prima di ogni voce 3b/3c/3e):**
+
+| Voce | dev (rankex-dev) | UAT | prod (fitquest-60a09) |
+|------|------------------|-----|-----------------------|
+| 1 | push `dev` -> CI + `deploy-dev` | n/a | non toccata (main fermo a `f086405`) |
+| 2a | guard attivo su `deploy:dev` | n/a | guard attivo su `deploy`, non eseguito in questo sprint | 
+| 3b/3c/3e | solo qui | n/a | vietato |
+| 3d | test unitario locale | n/a | n/a |
+| IS_LIPEDEMA_SELECTABLE | selezionabile | nascosto (invariato) | nascosto |
+
+Nessuna voce tocca codice di modulo (PT/GYM/Soccer/Lipedema, org legacy `moduleType` null): file toccati =
+`functions/package.json` + script di guard, `CLAUDE.md`, `.claude/settings.json`, `.claude/agents/*.md`, un
+helper di `e2e/qa-dev/` con il suo test, `docs/*`. I file:riga si annotano nella voce prima di iniziare (2c).
+
+**Casi limite da tracciare per ogni voce:**
+- **Moduli (PT/GYM/Soccer/Lipedema) e org legacy `moduleType` null:** nessuna voce tocca codice di modulo.
+  Dichiarato. GYM senza org QA: resta noto, non verificato.
+- **Windows PowerShell vs Git Bash (2a, 2b):** lo script 2a e' Node puro (niente `$(...)`, `&&`, `test -z`);
+  provato da entrambe le shell. I pattern di permesso 2b sono provati sia sul tool PowerShell sia su Bash,
+  con path assoluto e relativo e con varianti (`git checkout -- .`, `git checkout .`, `git restore .`,
+  `git restore --staged .`, `git reset --hard`).
+- **Rollback lasciato a meta' su rankex-dev (3b/3c):** si torna a HEAD con `cd functions && npm run deploy:dev`
+  da HEAD pulito (functions); `npm run deploy:rules:dev` (rules); `npm run deploy:all:dev` (hosting). Prima di
+  chiudere: `firebase functions:list --project rankex-dev` e rules/hosting a HEAD. Voce BLOCKED finche' non e'
+  tornato a HEAD; il rollback delle functions non usa il working tree (worktree esterno, niente junction
+  `node_modules`, vedi CLAUDE.md).
+- **Ruoli (`staff_readonly`, `trainer`, `org_admin`):** non toccati; `qa:dev` resta invariato (decisione 5).
+- **360 px:** nessuna UI nuova; il banner RICARICA (3e) va osservato anche a 360 px.
+- **Flaky (1):** "chiusura sessione con doppio click": una sola riesecuzione per distinguere flaky da rosso reale;
+  se passa solo al retry e' flaky -> BUG + fix, non retry a oltranza.
+- **Lunedi'/domenica/cambio mese (3d):** casi del test unitario (ora locale e UTC, mese a cavallo, 31 -> 1).
+- **Deploy parziale:** un deploy dev interrotto lascia hosting/functions/rules su commit diversi: ripetere da HEAD.
+- **Hosting dev e `qa:dev`:** mai in parallelo (3c, 3e).
+
+**Dipendenze bloccanti segnalate:**
+- Voce 1: push su `dev` = via libera dell'utente (azione sul remoto). Voce 3b dopo 2a.
+- 3a: azione dell'utente, non prima del 2026-11-13. 3b/3c/3e: deploy su rankex-dev (functions, rules, hosting a
+  mano); nessuna nuova Cloud Function ne' modifica a `firestore.rules`.
+- 2a/2b toccano il processo di deploy e i permessi: nessuna modifica a prod. 2c solo documentazione.
+
+**Status board:**
+
+| Task | Status | Note |
+|------|--------|------|
+| 0. Apertura sprint (docs) | DONE | questo commit |
+| 1. Push su dev + CI/E2E verdi con `3f7d5f3` | READY | via libera push; flaky doppio click da analizzare se resta |
+| 2a. Guard deploy functions (script Node + riga checklist) | READY | review HIGH |
+| 2b. Controprove su copia (regola + DENY settings.json) | READY | skill `update-config`; review medium |
+| 2c. Regola tabella ambiente/modulo (3 file) | READY | review medium |
+| 3a. Costi Firebase | BLOCKED (tempo) | dal 2026-11-13, lettura utente in Console |
+| 3b. Rollback functions rankex-dev | BACKLOG | dopo 2a |
+| 3c. Rollback hosting + rules rankex-dev | BACKLOG | mai durante `qa:dev` |
+| 3d. Test unitario caso del lunedi' (slot E2E) | READY | review medium |
+| 3e. Banner RICARICA rankex-dev (+360 px) | BACKLOG | dopo 3c o in coda; mai durante `qa:dev` |
+| 3f. Login trainer/cliente prod | fuori sprint | NON VERIFICATO fino al primo utente reale |
+| 4. Rinomina voce CHANGELOG + template | READY | push docs solo su dev |
+
+**Rischi:** (1) Il guard 2a e' codice di deploy: un errore blocca i deploy futuri (provare su `deploy:dev` prima).
+(2) I DENY di 2b possono bloccare anche usi legittimi: fare prova di blocco e verificare che i comandi con
+pathspec esplicito non vengano bloccati. (3) Le prove di rollback 3b/3c lasciano rankex-dev su un commit
+vecchio se interrotte: ritorno a HEAD e' parte della voce. (4) 3a dipende dalla data. Principio: finire > iniziare;
+ordine consigliato 1, 2a, 2b, 2c, 3d, 3b, 3c, 3e, 4, poi 3a quando disponibile.
+
+**Retrospettiva:** non scritta (fuori dal ruolo dello Scrum Master; a fine sprint).
 
 ---
 
