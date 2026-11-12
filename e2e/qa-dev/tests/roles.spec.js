@@ -5,6 +5,7 @@
  */
 import { test, expect } from '../fixtures.js'
 import { QA_ORGS, E2E_FIXTURES_MODULE, qaUsers, readE2EFixtures } from '../qaDev.config.js'
+import { isSlotInPreviousAppWeek, romeDateStr } from '../slotFixtureDate.js'
 
 for (const [moduleKey, org] of Object.entries(QA_ORGS)) {
   test.describe(`${org.name}: ruoli`, () => {
@@ -57,8 +58,6 @@ for (const [moduleKey, org] of Object.entries(QA_ORGS)) {
 const FIXTURE_ORG       = QA_ORGS[E2E_FIXTURES_MODULE]
 const WRITE_USER_KEY    = `${E2E_FIXTURES_MODULE}-trainer`
 const READONLY_USER_KEY = `${E2E_FIXTURES_MODULE}-staff`
-// Attesa dello slot nella settimana corrente prima di provare quella precedente (lunedì: ieri è lì)
-const CURRENT_WEEK_WAIT_MS = 10_000
 // Assenza attesa ma contraddetta (prova negativa): niente attesa piena dell'expect
 const NEGATIVE_TIMEOUT_MS  = 3_000
 
@@ -68,10 +67,13 @@ async function openSlotPopup(page) {
   await page.getByRole('button', { name: 'Calendario', exact: true }).first().click()
   await expect(page.getByRole('button', { name: 'Vai a oggi' })).toBeVisible()
 
-  // La settimana dell'app parte da lunedì: di lunedì "ieri" è nella settimana precedente
+  // La settimana dell'app parte da lunedì: di lunedì "ieri" è nella settimana precedente. Si decide
+  // dalle date (fuso di Roma, lo stesso del browser: timezoneId in playwright.qa-dev.config.js)
+  const isInPreviousWeek = isSlotInPreviousAppWeek(fixtures.slotDate, romeDateStr(new Date()))
+  if (isInPreviousWeek) await page.getByRole('button', { name: 'Periodo precedente' }).click()
+
   const slotButton = page.getByRole('button', { name: new RegExp(`${fixtures.slotStart}.*${escapeRegExp(fixtures.clientName)}`) }).first()
-  const isInCurrentWeek = await slotButton.waitFor({ timeout: CURRENT_WEEK_WAIT_MS }).then(() => true, () => false)
-  if (!isInCurrentWeek) await page.getByRole('button', { name: 'Periodo precedente' }).click()
+  await slotButton.waitFor()
   await slotButton.click()
 
   const popup = page.getByRole('dialog', { name: /^Dettaglio / })

@@ -6,6 +6,7 @@
  */
 import { FieldValue } from 'firebase-admin/firestore'
 import { E2E_PREFIX, QA_ORGS, E2E_FIXTURES_MODULE, assertDevFirestore } from './qaDev.config.js'
+import { e2eSlotDate } from './slotFixtureDate.js'
 
 // '\uf8ff' (ultimo code point BMP d'uso comune): name >= 'E2E-' && name < 'E2E-\uf8ff'
 // equivale a "inizia con E2E-". Scritto come escape: il carattere è invisibile
@@ -58,11 +59,8 @@ export async function createE2EFixtures(db, runId) {
   const clientId = baseClients.docs[0].id
 
   // Ieri (data di Roma): è passato, quindi al trainer compare anche SEGNA COME SALTATA. Di lunedì
-  // cade nella settimana precedente (l'app parte da lunedì): lo spec la cerca in entrambe
-  const today     = romeDateStr(new Date())
-  const yesterday = new Date(`${today}T12:00:00Z`)
-  yesterday.setUTCDate(yesterday.getUTCDate() - 1)
-  const date = yesterday.toISOString().slice(0, 10)
+  // cade nella settimana precedente (l'app parte da lunedì): lo spec lo sa con isSlotInPreviousAppWeek
+  const date = e2eSlotDate(new Date())
 
   const groupName = `${E2E_PREFIX}gruppo-${runId}`
   const groupRef  = await orgRef.collection('groups').add({ name: groupName, clientIds: [clientId] })
@@ -100,11 +98,6 @@ export async function cleanupE2EFixtures(db) {
     deleted += toDelete.length
   }
   return deleted
-}
-
-
-function romeDateStr(date) {
-  return date.toLocaleDateString('sv-SE', { timeZone: 'Europe/Rome' })
 }
 
 async function deleteClientTraces(db, adminAuth, orgRef, clientDoc) {
