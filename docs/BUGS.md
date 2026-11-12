@@ -94,7 +94,7 @@ Formato:
 ## [BUG-007] Calendario in readonly espone le azioni di scrittura
 **Severity:** P3
 **Modulo/Ruolo:** tutti i moduli — staff_readonly (preesistente, trovato in code review di BUG-002/004)
-**Status:** OPEN
+**Status:** VERIFIED (Sprint #17, `1ad3f02`, hosting rankex-app-dev 12/11). QA dal vivo con slot, gruppo e ricorrenza E2E- (Admin SDK, poi cancellati) in qa-pt/qa-soccer/qa-lipedema, staff_readonly e trainer a 1280 e 360 px: staff → calendario 0 azioni di scrittura (niente "Aggiungi …" in testata e celle), popup slot solo dettaglio + X di chiusura, Ricorrenze lista e dettaglio 0 azioni; trainer → 3 azioni in calendario, CHIUDI/ELIMINA nel popup, 4 nel dettaglio ricorrenza (controllo positivo). Nessuno scroll orizzontale a 360 px. qa:dev 30/30 con il nuovo caso `roles.spec.js` (staff 0 / trainer e org_admin > 0); prova negativa: con la sessione trainer il caso staff fallisce (atteso 0, trovati 9). Popup e dettagli restano al runbook TP-085
 **Reproduction steps:** login staff_readonly → Calendario.
 **Expected:** nessuna azione di creazione/modifica in readonly.
 **Actual:** sono visibili e cliccabili "+ Sessione" / "+ Ricorrenza" in `CalendarHeader`, il "+" delle celle (`WeekView`/`DayView`/`MonthView`, anche il click sull'area vuota) e le azioni di `SlotPopup` (Chiudi sessione, Segna come saltata, Elimina). Il server rifiuta (le callable controllano il ruolo), nessun dato toccato, ma l'utente vede un errore.
@@ -261,7 +261,7 @@ Formato:
 ## [BUG-024] staff_readonly: nella pagina Gruppi restano i controlli di modifica
 **Severity:** P3 (UI; il server rifiuta la scrittura)
 **Modulo/Ruolo:** tutti i moduli — staff_readonly, `GroupsPage.jsx` (bottone "+ NUOVO/NUOVA") e dettaglio gruppo (`RIMUOVI`, `AGGIUNGI`, "Azioni gruppo"). Trovato nella QA dal vivo dello Sprint #16 (11/11, qadev.pt.staff, qadev.soccer.staff, qadev.lipedema.staff). La pagina non usa `useReadonly`/`ReadonlyGuard`; già così prima di STORY-043
-**Status:** OPEN — candidato #17 (non deciso)
+**Status:** VERIFIED (Sprint #17, `1ad3f02`, hosting rankex-app-dev 12/11). QA dal vivo con gruppo E2E- in qa-pt/qa-soccer/qa-lipedema, staff_readonly a 1280 e 360 px: lista senza "+ NUOVO/A", dettaglio senza RIMUOVI/AGGIUNGI, menu azioni senza RINOMINA/ELIMINA (resta ESPORTA PDF dove presente), tab NOTE e GESTIONE senza azioni; trainer: + NUOVO, RIMUOVI, RINOMINA, ELIMINA presenti. qa:dev `roles.spec.js` copre la lista gruppi
 **Reproduction steps:** login staff_readonly → Gruppi → "+ NUOVO" → nome → Invio; oppure apri un gruppo → GESTIONE.
 **Expected:** nessun controllo di creazione/modifica (come nelle schede paziente, dove staff vede solo "Azioni → ESPORTA PDF").
 **Actual:** il form di creazione si apre e accetta il nome; nel dettaglio compaiono RIMUOVI/AGGIUNGI. Il documento NON viene scritto su Firestore (rules `canWrite` o callable lo rifiutano: gruppi di qa-pt invariati), quindi è solo UI/UX. Anche il calendario ha lo stesso problema (BUG-022). Schede paziente, tab VALUTAZIONI/ALLENAMENTO/OBIETTIVI/NOTE/MISURE/BIA/TROFEI: nessun bottone di modifica (OK).
