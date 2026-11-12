@@ -96,6 +96,9 @@ test.describe('Flussi reali (scrivono su rankex-dev)', () => {
 
   test('nuovo cliente con email già usata: errore sul campo email', async ({ trainerPage: page }) => {
     await goto(page, '/clients')
+    // count() non aspetta il caricamento: senza waitFor leggeva 0 prima che la lista arrivasse
+    // (fallito in CI il 2026-10-31 e il 2026-11-12). L'account di seed ha sempre almeno un cliente.
+    await page.locator('button[class*="rx-card"]').first().waitFor()
     const countBefore = await page.locator('button[class*="rx-card"]').count()
 
     await page.getByText('+ NUOVO').first().click()
