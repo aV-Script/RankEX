@@ -200,7 +200,7 @@ client-side di `CLIENT_CREATED`/`CLIENT_DELETED` e aggiornare la tabella "Audit 
 CLAUDE.md.
 **Rischio se non risolto:** medio. Cancellazioni non tracciate se la callable è chiamata
 fuori dalla UI; criterio "senza nome" legato al dato e non al modulo.
-**Status:** OPEN
+**Status:** RESOLVED (Sprint #17, `224d1bb`: audit solo da `creaCliente`/`eliminaCliente`, capability `hasClientNameInAudit`, audit atteso prima della risposta). Verificato dal vivo su rankex-dev 12/11 con le callable reali e Admin SDK su `audit_logs`: paziente qa-lipedema → 1 `CLIENT_CREATED` + 1 `CLIENT_DELETED`, env `functions`, details `{clientId, orgId}`; cliente qa-pt → 1 + 1, env `functions`, con `clientName`. La rimozione delle scritture lato app arriva su rankex-dev con il deploy hosting del #17
 
 ---
 
