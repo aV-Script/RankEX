@@ -257,7 +257,7 @@ success, `deploy-prod` skipped).
 | 3e banner RICARICA | osservato a 1366 px e 360 px; BUG-026 | non toccato | comportamento in prod non provato |
 | 3f login trainer/cliente | n/a | non verificato (decisione 6) | fino al primo utente reale |
 | 4 CHANGELOG | titolo e template coerenti | n/a | - |
-| GYM | n/a | n/a | nessuna org QA: non verificato (noto dal #18) |
+| GYM | n/a | n/a | org QA GYM: rinviata alla prima org GYM reale (decisione utente 12/11/2026; nessuna org QA, noto dal #18) |
 
 ### Verifica dei 4 action item del #18
 1. **Guard commit functions in CHANGELOG: raggiunto.** `4223cf4`: `deploy:dev` da tree sporco rifiuta (exit 1,
@@ -279,9 +279,11 @@ Codice:
 - **BUG-026** (P3): banner RICARICA sul login a 360 px (fix suggerito in BUGS.md).
 - Push dei commit docs locali su `dev` (`0c0d84e`, via libera utente); `main` solo al prossimo rilascio.
 Requisiti non di codice / decisioni utente:
-- **STORY-029 (b)/(c)** DPA e testo informativa, poi togliere `IS_LIPEDEMA_SELECTABLE`.
+- **STORY-029 (b)/(c)** DPA e testo informativa, poi togliere `IS_LIPEDEMA_SELECTABLE`: **rinviato al contratto con la
+  prima org Lipedema** (decisione utente 12/11/2026).
 - **STORY-026** retention (decisione utente).
-- **3f** login prod al primo utente reale; GYM: org QA.
+- **3f** login trainer/cliente in prod: **rinviato al primo onboarding reale in prod** (decisione utente 12/11/2026).
+- Org QA GYM: **rinviata alla prima org GYM reale** (decisione utente 12/11/2026; resta in backlog, nessuno sprint).
 - STORY-044 (canvas, non si tocca), stampa su carta, mobile-app (parcheggiata).
 
 ## Retrospettiva

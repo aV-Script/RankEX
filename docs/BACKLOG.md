@@ -1039,7 +1039,7 @@ trattare dati sanitari su pazienti reali in modo lecito.
   solo UI darebbe una falsa sicurezza (stesso errore di RX-63, STORY-002)
 - **Status:** parte tecnica (a) DONE (Sprint #11, `cc42e34`) — verificata dal vivo su
   rankex-app-dev 31/10, non in prod. I requisiti non-codice (b), (c) e il privacy draft
-  restano BLOCKED fuori capacità developer (proprietario utente/legale): bloccano il go-live
+  restano BLOCKED fuori capacità developer (proprietario utente/legale): bloccano il go-live **(b)/(c): rinviato al contratto con la prima org Lipedema** (decisione utente 12/11/2026).
 
 ### [STORY-030] Nuovo modulo a livello organizzazione + capability + terminologia
 **Come** super_admin **voglio** creare un'organizzazione con il modulo Lipedema e
@@ -1535,3 +1535,171 @@ valutazioni **per** condividerlo con la paziente o con altri curanti.
   del piano" del super_admin è stata invece scartata e non ha story.
 - **Priority:** P3
 - **Status:** BACKLOG — da ridisegnare sul canvas prima di svilupparla
+
+## [EPIC-011] Area cliente allineata al canvas
+
+Il censimento dell'area cliente (ruolo `client`, moduli con `hasClientLogin`: personal_training PT/GYM e
+soccer_academy) contro le tavole `Cliente*.dc.html` / `MobileCliente*.dc.html` del canvas ha trovato 5
+difetti senza backend, BUG-027…031 (`docs/BUGS.md`). Tutte le story sono solo frontend: nessuna nuova Cloud
+Function, nessuna modifica a `firestore.rules` (eccezioni: STORY-050 e STORY-051, senza sprint). Nessun effetto
+sul modulo lipedema, che non ha area cliente (vedi CLAUDE.md → "Capability per modulo"). Ogni AC va verificato
+a 1366 px e a 360×640 px.
+
+### STORY-045 — Negozio avatar sicuro: conferma con saldo prima/dopo e Monete nella barra
+- **Contesto:** assorbe BUG-027. `src/features/client/client-view/avatar/AvatarPicker.jsx:117` ha
+  `onClick={() => handlePurchase(a)}` diretto: un tap su ACQUISTA scala le Monete senza conferma. La callable
+  `acquistaAvatar` (`functions/src/callable/acquistaAvatar.js`, transazionale, restituisce `{ ok, coins }`)
+  resta INVARIATA. Il dialog riusabile esiste: `src/components/common/ConfirmDialog.jsx` (role="dialog",
+  `useFocusTrap`, `useEscapeKey`, prop `children`, `loading`, `confirmLabel`). Il saldo oggi è solo in
+  `AvatarPicker.jsx:77-79`. Barra desktop dell'area cliente: `ClientBottomNav.jsx:136-229` (solo fuori
+  dall'hub, `!isHome` riga 135), campana+logout a `:193-228`; bottom nav mobile `:77-132`, 5 slot, nessun
+  header mobile. `client.coins` arriva via `onSnapshot` (`src/features/client/useClient.js`): dopo l'acquisto
+  il saldo si aggiorna da solo.
+- **Riferimento UI:** canvas `ClienteAcquistaAvatar` (dialog "ACQUISTARE <NOME>?", righe Prezzo / Le tue Monete
+  / Dopo l'acquisto, ANNULLA secondario + ACQUISTA primario), `MobileClienteAcquista` (bottom sheet, ACQUISTA
+  sopra ANNULLA, min-height 44 px); badge "140 MONETE" (giallo `#facc15`, bordo) accanto alla campana in
+  `ClienteHub`, `ClienteCalendario`, `ClienteNotifiche`.
+- **Modulo:** personal_training | soccer_academy (area cliente)
+- **Assunzione:** su mobile non esiste un header; il badge Monete nell'header mobile delle tavole
+  `MobileCliente*` è di STORY-048 (#21). Qui il saldo mobile resta nella pagina Avatar e nel dialog.
+- **Acceptance Criteria:**
+  - [ ] Tap/click su ACQUISTA apre il ConfirmDialog con nome avatar, prezzo, saldo attuale e saldo dopo
+        l'acquisto; nessuna chiamata alla callable prima della conferma
+  - [ ] ANNULLA, Esc e click fuori chiudono senza acquistare e il saldo non cambia
+  - [ ] CONFERMA chiama `purchaseAvatarUseCase` una sola volta (doppio click/tap non raddoppia: bottone in
+        `loading`), poi toast di successo e il saldo nella UI scende del prezzo
+  - [ ] Errore "Monete insufficienti" o di rete: toast di errore, dialog chiuso, saldo invariato
+  - [ ] Saldo visibile nella barra superiore desktop accanto alla campana (formato "N MONETE") in tutte le
+        sezioni fuori dall'hub
+  - [ ] A 360×640 il dialog sta nello schermo (nessuno scroll orizzontale, bottoni di altezza ≥ 44 px) e il
+        saldo resta visibile nella pagina Avatar
+  - [ ] Caso runbook `TP-` aggiunto in `src/config/runbook.config.js` (suite `client-selfservice`)
+- **Dependencies:** nessuna. Nessun backend toccato.
+- **Priority:** P2 (Sprint #20, taglia S)
+- **Status:** BACKLOG
+
+### STORY-046 — Accessibilità e navigazione dell'area cliente: pannello notifiche, Invio, autocomplete
+- **Contesto:** assorbe BUG-030 e i punti (1) e (4) di BUG-031. `src/features/notification/NotificationsPanel.jsx`
+  (drawer, righe 81-92) non ha `role="dialog"`, né `useFocusTrap` (`src/hooks/useFocusTrap.js`), né
+  `useEscapeKey` (`src/hooks/useEscapeKey.js`). `src/features/client/ClientView.jsx:31-34` `handleOpenNotifs`
+  chiama `markAllRead()` all'apertura: il pannello segna tutto letto senza azione esplicita.
+  `src/features/client/ChangePasswordScreen.jsx` non ha `<form>`/`onSubmit`: bottone a riga 107 con
+  `onClick={handleSubmit}` (gli input hanno già `autoComplete`, righe 70/79/88).
+  `src/features/auth/components/LoginForm.jsx` non ha `autoComplete`.
+- **Riferimento UI:** `ClienteNotifiche` (`<section role="dialog" aria-labelledby>` in alto a destra, header
+  "NOTIFICHE" + "Segna tutte come lette" min-height 44 px, pallino "non letta" per voce),
+  `MobileClienteNotifiche` (pagina intera, "← Torna alla home"), `Login` / `MobileLogin`, `CambioPassword` /
+  `MobileCambioPassword`.
+- **Modulo:** personal_training | soccer_academy (area cliente); login: tutti
+- **Acceptance Criteria:**
+  - [ ] Pannello con `role="dialog"`, `aria-modal="true"`, `aria-labelledby` sul titolo "Notifiche"
+  - [ ] All'apertura il focus va sul primo elemento interattivo del pannello; Tab/Shift+Tab non escono; Esc
+        chiude; alla chiusura il focus torna sulla campana
+  - [ ] Aprire il pannello NON segna nulla come letto: contatore e pallini invariati
+  - [ ] Bottone "Segna tutte come lette" nell'header, visibile solo se ci sono non lette; al click contatore a 0,
+        pallini spenti, header "Tutte lette"
+  - [ ] In `ChangePasswordScreen` i tre campi stanno in un `<form onSubmit>`: Invio in qualsiasi campo lancia la
+        stessa validazione del bottone; un doppio Invio durante il salvataggio non lo lancia due volte
+  - [ ] `LoginForm`: `autoComplete="username"` (o `"email"`) sull'email e `autoComplete="current-password"` sulla
+        password, `name` coerenti; il browser propone le credenziali salvate
+  - [ ] A 360×640 il pannello occupa min(360px, 92vw) come oggi e "Segna tutte come lette" è raggiungibile
+        senza scroll orizzontale
+  - [ ] Casi runbook `TP-` aggiunti (suite `notifications` e `auth`)
+- **Dependencies:** nessuna.
+- **Risks:** `useEscapeKey` ha una pila globale (un Esc chiude solo l'ultimo livello): il pannello va
+  registrato come livello.
+- **Priority:** P2 (Sprint #20, taglia S/M)
+- **Status:** BACKLOG
+
+### STORY-047 — Calendario cliente corretto: assente e saltata distinte, prossime sessioni, riepilogo mese
+- **Contesto:** assorbe BUG-028. `src/features/client/ClientCalendar.jsx:98-99`: `isCompleted = hasSlots &&
+  cell.slots.every(s => s.attendees?.includes(clientId))`, `isPlanned = hasSlots && !isCompleted`: una sessione
+  passata chiusa con il cliente ASSENTE (`absentees`, `status: 'completed'`) o SALTATA (`status: 'skipped'`)
+  resta "Pianificata" e a riga 102 mostra ancora la stima "+N XP" (`dayXP`). La barra COMPLETAMENTO MESE
+  (righe 69-84) usa `calcMonthlyCompletion` (`src/utils/calendarUtils.js:67-72`): conta tutti gli slot del mese,
+  anche futuri e saltati. Modello slot: CLAUDE.md → "Slot". Lettura via `getClientSlots(orgId, clientId, from,
+  to)` (`src/firebase/services/calendar.js:22-32`, solo il mese mostrato). Il componente è montato in area
+  cliente da `src/features/client/client-view/ClientDashboardPage.jsx:308` (senza `terminology`: usa il
+  default) e in vista trainer da `src/features/client/ClientDashboard.jsx:477` (con `terminology`): le due
+  viste devono restare coerenti.
+- **Riferimento UI:** `ClienteCalendario` (PROSSIME SESSIONI "MER 4 NOV · 18:30 – 19:30", colonna "QUESTO
+  MESE" con "PRESENZE 7 / 8 · 88 %" e "STRISCIA 4 · XP ×1,4"), `MobileClienteCalendario` (PROSSIME, due card
+  PRESENZE e STRISCIA).
+- **Modulo:** personal_training | soccer_academy (area cliente e vista trainer)
+- **Scope (decisione utente):** stati distinti + prossime sessioni + riepilogo mese. La lista "STORICO" delle
+  tavole NON è in questa story. Deviazione dal canvas: il nome del trainer ("con Marco Esempio") non esiste sul
+  documento slot e non si mostra.
+- **Acceptance Criteria:**
+  - [ ] Funzione pura (es. `getClientSlotState(slot, clientId, today)` in `src/utils/calendarUtils.js`) che
+        restituisce `completed | absent | skipped | planned`, con test Vitest in `src/__tests__/utils/`
+        (presente; chiuso e assente; `skipped`; `planned` futuro; `planned` nel passato non chiuso; slot senza
+        `attendees`/`absentees`)
+  - [ ] Nella griglia i 4 stati hanno colore/pallino e legenda distinti (Completata verde, Assente rosso,
+        Saltata grigio, Pianificata blu), terminologia via `bySessionGender(terminology, …)` come oggi
+  - [ ] La stima "+N XP" compare SOLO per le sessioni pianificate con data ≥ oggi
+  - [ ] "Prossime sessioni": le prossime 3 sessioni pianificate da oggi in poi (data "MER 4 NOV", orario
+        `startTime – endTime`); empty state "Nessuna sessione in programma"
+  - [ ] "Riepilogo mese": PRESENZE = presenti / (presenti + assenti) del mese mostrato, saltate e pianificate
+        escluse dal denominatore, percentuale arrotondata; STRISCIA da `calcStreakPreview(client)`
+        (`src/utils/gamification.js`) con moltiplicatore "XP ×1,4" calcolato come in `calcSessionXP`; senza
+        sessioni chiuse nel mese il riepilogo mostra "0 / 0" (scelta dichiarata: non si nasconde, così il
+        layout non salta)
+  - [ ] La vista trainer (`ClientDashboard.jsx:477`) mostra gli stessi stati
+  - [ ] A 360×640 la griglia a 7 colonne non esce dallo schermo e le due card del riepilogo stanno su una riga
+        (grid a 2 colonne)
+  - [ ] Caso runbook `TP-` aggiunto (suite `client-selfservice` o `calendar`)
+- **Dependencies:** nessuna (solo lettura di slot già caricati). `getClientSlots` carica solo il mese
+  corrente: le "prossime sessioni" oltre il mese richiedono una seconda query da oggi a +N giorni; scelta al
+  tech-lead/developer. Terminologia del modulo in area cliente (`ClientDashboardPage.jsx:308` senza
+  `terminology`): fuori scope, è BUG-008 (P3, OPEN).
+- **Risks:** nessun backend.
+- **Priority:** P2 (Sprint #20, taglia M)
+- **Status:** BACKLOG
+
+### STORY-048 — Home cliente: striscia, prossima sessione, ultime notifiche
+- **Contesto:** canvas `ClienteHub` / `MobileClienteHub`: saluto "CIAO <NOME>", badge rank, "Categoria <cat> ·
+  trainer <nome>", barra "LIVELLO 12 · 3.420 / 4.810 XP" con `role="progressbar"`, card "STRISCIA" e
+  "PROSSIMA", sezione "ULTIME NOTIFICHE" (2 righe), pentagono con 5 nodi (etichetta + sottotitolo). Decisione
+  utente: il centro del pentagono RESTA l'avatar (`src/features/client/client-view/ClientHub.jsx`); rank e media
+  al centro si decidono qui nel #21. Header mobile con "N MONETE" + campana (vedi STORY-045).
+- **Modulo:** personal_training | soccer_academy (area cliente)
+- **Acceptance Criteria:** in bozza, con "fatto quando" a 1366 px e a 360×640, da scrivere a inizio Sprint #21.
+- **Dependencies:** STORY-047 (stato sessioni per "PROSSIMA"), STORY-045 (badge Monete).
+- **Priority:** P2 (Sprint #21)
+- **Status:** BACKLOG
+
+### STORY-049 — Test a righe per i test con valore grezzo e fix a 360 px
+- **Contesto:** canvas `ClienteTest` / `MobileClienteTest`, `ClienteTrofei` / `MobileClienteTrofei`. Difetti a
+  360 px calcolati dal codice, da osservare a schermo nella QA del #20 prima di confermarli:
+  `src/features/client/client-dashboard/TrophiesSection.jsx:165` vetrina `flex items-center gap-4` con 5
+  `BadgeMedal size={68}` = 5×68 + 4×16 = 404 px su ~328 disponibili; `src/components/ui/index.jsx:430`
+  `StatsSection` con `gridTemplateColumns: '3fr 2fr'` → a 360 px le barre si riducono a ~0 px;
+  `src/features/client/client-view/ClientHub.jsx:281` `sec.label.slice(0, 3)` su mobile → etichette
+  "Tes/Tro/Cal/Sch/Pro".
+- **Modulo:** personal_training | soccer_academy (area cliente)
+- **Acceptance Criteria:** in bozza, da scrivere a inizio Sprint #21 dopo la conferma a schermo dei difetti.
+- **Priority:** P2 (Sprint #21)
+- **Status:** BACKLOG
+
+### STORY-050 — Peso inserito dal cliente
+- **Contesto:** oggi `peso`/`altezza` li scrive solo il trainer (`MisureSection.jsx` montata `readonly` per il
+  cliente in `ClientDashboardPage.jsx:353`; rules: update diretto solo trainer/org_admin, vedi CLAUDE.md →
+  "Rules sul documento cliente"). Serve una nuova callable (o estensione rules per `peso`/`misureHistory` da
+  parte del cliente, con validazione server), test in `tests/rules/firestore.rules.test.js`, deploy rules +
+  functions su rankex-dev e prod.
+- **Modulo:** personal_training | soccer_academy
+- **Dependencies:** nuova callable e/o modifica `firestore.rules` (deploy separato su entrambi i progetti).
+- **Risks:** permessi sul documento cliente: review HIGH obbligatoria.
+- **Priority:** P3 (taglia L)
+- **Status:** BACKLOG — nessuno sprint (decisione utente 12/11/2026)
+
+### STORY-051 — Sblocco avatar per rank
+- **Contesto:** oggi `unlockType` è `level` o `purchase`. Aggiungere `unlockType: 'rank'` richiede le 3 copie
+  delle soglie, da tenere allineate (CLAUDE.md → "Rules sul documento cliente" e "Copie speculari"):
+  `src/config/avatars.config.js`, `functions/src/shared/avatarUnlocks.js`, funzione `avatarUnlocked` in
+  `firestore.rules`; deploy functions e rules.
+- **Modulo:** personal_training | soccer_academy
+- **Dependencies:** deploy functions + rules su rankex-dev e prod.
+- **Risks:** divergenza silenziosa tra le tre copie; review HIGH (rules).
+- **Priority:** P3 (taglia L)
+- **Status:** BACKLOG — nessuno sprint (decisione utente 12/11/2026)

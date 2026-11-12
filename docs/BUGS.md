@@ -285,3 +285,51 @@ Formato:
 **Actual:** il banner copre il link "Password dimenticata?" finché non si ricarica. A 1366 px non copre nulla.
 **Workaround:** premere RICARICA.
 **Suggested fix:** sul login spostare il banner in alto o dare al contenuto un padding-bottom pari all'altezza del banner quando è visibile.
+
+## [BUG-027] Acquisto avatar senza conferma: un tap scala le Monete
+**Severity:** P2
+**Modulo/Ruolo:** area cliente (PT/GYM e soccer; lipedema non ha area cliente), ruolo client — `src/features/client/client-view/avatar/AvatarPicker.jsx:117` (`onClick={() => handlePurchase(a)}`). Trovato nel censimento ux-ui-designer del 12/11/2026 su `ab65b45`. Assorbito da STORY-045.
+**Status:** OPEN
+**Reproduction steps:** login client con Monete sufficienti → Avatar → tap su ACQUISTA di un avatar acquistabile.
+**Expected:** una conferma con prezzo, saldo attuale e saldo dopo l'acquisto (canvas `ClienteAcquistaAvatar`, `MobileClienteAcquista`).
+**Actual:** la callable `acquistaAvatar` parte subito e le Monete scendono senza possibilità di annullare.
+**Suggested fix:** `ConfirmDialog` (`src/components/common/ConfirmDialog.jsx`) con prezzo/saldo prima/dopo; callable invariata.
+
+## [BUG-028] Calendario cliente: sessione passata con cliente assente o saltata resta "Pianificata"
+**Severity:** P2
+**Modulo/Ruolo:** area cliente (PT/GYM e soccer; lipedema non ha area cliente), ruolo client e vista trainer del cliente — `src/features/client/ClientCalendar.jsx:98-99` (`isCompleted`, `isPlanned = hasSlots && !isCompleted`) e `:102` (`dayXP`); `calcMonthlyCompletion` in `src/utils/calendarUtils.js:67-72`. Trovato nel censimento del 12/11/2026 su `ab65b45`. Assorbito da STORY-047.
+**Status:** OPEN
+**Reproduction steps:** il trainer chiude una sessione passata con il cliente assente, oppure la salta (`status: 'skipped'`); aprire il calendario del cliente nel mese.
+**Expected:** stati distinti completata / assente / saltata / pianificata e stima XP solo per le sessioni future; "completamento mese" non conta saltate e future.
+**Actual:** il giorno resta "Pianificata" (pallino blu) con stima "+N XP"; la barra COMPLETAMENTO MESE conta tutti gli slot del mese, anche futuri e saltati.
+**Suggested fix:** funzione pura di stato slot (completed/absent/skipped/planned) con test Vitest, più legenda a 4 voci.
+
+## [BUG-029] ClientHub: variabili CSS inesistenti nel pentagono
+**Severity:** P3
+**Modulo/Ruolo:** area cliente (PT/GYM e soccer; lipedema non ha area cliente), ruolo client — `src/features/client/client-view/ClientHub.jsx:199` (`var(--bg-base)`) e `:277` (`var(--text-primary)` / `var(--text-secondary)`). Trovato nel censimento del 12/11/2026 su `ab65b45`. Fuori voce di sprint (pipeline saltata: fix di una riga).
+**Status:** OPEN
+**Reproduction steps:** login client → hub pentagono; ispezionare il cerchio sotto i badge e le etichette dei vertici.
+**Expected:** colori dal tema (`--rx-*`).
+**Actual:** le variabili non esistono in `src/index.css` (0 occorrenze, vedi CLAUDE.md → Design system): il cerchio-maschera è trasparente e le etichette prendono il colore ereditato.
+**Suggested fix:** sostituire con `--rx-bg`, `--rx-text`, `--rx-text-muted`. Residuo non-bug: `src/features/admin/AdminShell.jsx:64` usa `var(--bg-base, #07090e)` con fallback.
+
+## [BUG-030] Pannello notifiche non accessibile e lettura implicita
+**Severity:** P2
+**Modulo/Ruolo:** area cliente (PT/GYM e soccer; lipedema non ha area cliente), ruolo client — `src/features/notification/NotificationsPanel.jsx` (nessun `role="dialog"`, `useFocusTrap`, `useEscapeKey`) e `src/features/client/ClientView.jsx:31-34` (`handleOpenNotifs` chiama `markAllRead()`). Trovato nel censimento del 12/11/2026 su `ab65b45`. Assorbito da STORY-046.
+**Status:** OPEN
+**Reproduction steps:** login client con notifiche non lette → apri la campana → premi Esc / Tab.
+**Expected:** dialog con focus trap, Esc chiude, focus alla campana alla chiusura; le notifiche si segnano lette solo con azione esplicita.
+**Actual:** nessun ruolo dialog, Esc non chiude, il focus esce dal pannello; aprire il pannello segna tutto come letto.
+**Suggested fix:** `role="dialog"` + `useFocusTrap` + `useEscapeKey`; bottone "Segna tutte come lette"; togliere `markAllRead()` da `handleOpenNotifs`.
+
+## [BUG-031] Quattro difetti minori dell'area cliente e del login
+**Severity:** P3
+**Modulo/Ruolo:** area cliente e login (PT/GYM e soccer; lipedema non ha area cliente), ruolo client. Trovato nel censimento del 12/11/2026 su `ab65b45`.
+**Status:** OPEN
+**Reproduction steps / Actual:**
+1. `src/features/client/ChangePasswordScreen.jsx`: nessun `<form>`/`onSubmit`, Invio non invia (bottone con `onClick={handleSubmit}` a riga 107) → STORY-046.
+2. `src/features/client/client-dashboard/NotesSection.jsx:90`: l'empty state "Aggiungi la prima nota per tenere traccia…" compare anche al cliente `readonly` (montata `readonly` in `ClientDashboardPage.jsx:337`), che non può scrivere note. Fix diretto fuori voce.
+3. `src/features/client/client-dashboard/GoalsSection.jsx:161`: "Quando il tuo coach fissa un obiettivo…" con "coach" fisso, anche in PT/GYM. Fix diretto fuori voce.
+4. `src/features/auth/components/LoginForm.jsx`: 0 `autoComplete` su email e password → STORY-046.
+**Expected:** (1) Invio invia; (2) in readonly testo tipo "Il tuo <trainer> non ha ancora scritto note" con terminologia del modulo; (3) termine da `getTerminology` (PT trainer, GYM personal trainer, Soccer coach); (4) `autoComplete="username"` / `"current-password"`.
+**Suggested fix:** come indicato per ciascun punto; (1) e (4) in STORY-046, (2) e (3) fix di una riga fuori sprint.
