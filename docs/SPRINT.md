@@ -7,10 +7,16 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-# SPRINT #19 — EPIC-010 Lipedema Edition, chiusura dei "non verificato" del rilascio e action item del #18 — aperto il 2026-11-12
+Nessuno sprint aperto. Ultimo chiuso: #19 (primo sotto "Sprint chiuso (storico)").
 
-**Branch:** `feature/lipedema-module` (HEAD `f91bcb6`, 8 commit locali `fd28852..f91bcb6` non pushati: 7 docs +
-`3f7d5f3` fix `e2e/tests/real-flows.spec.js` "email già usata"). `lipidemia/` e `mobile-app/` non si committano.
+---
+
+## Sprint chiuso (storico)
+
+# SPRINT #19 — EPIC-010 Lipedema Edition, chiusura dei "non verificato" del rilascio e action item del #18 — aperto il 2026-11-12, chiuso il 2026-11-12 (goal raggiunto, 3f non verificato per decisione dell'utente)
+
+**Branch:** `feature/lipedema-module` (all'apertura HEAD `f91bcb6`, 8 commit locali `fd28852..f91bcb6` non pushati: 7 docs +
+`3f7d5f3` fix `e2e/tests/real-flows.spec.js` "email già usata"; stato a fine sprint in "Chiusura sprint"). `lipidemia/` e `mobile-app/` non si committano.
 Nessun deploy su `fitquest-60a09` in questo sprint. I deploy su rankex-dev sono ammessi, mai hosting durante
 `qa:dev`.
 
@@ -175,17 +181,17 @@ helper di `e2e/qa-dev/` con il suo test, `docs/*`. I file:riga si annotano nella
 | Task | Status | Note |
 |------|--------|------|
 | 0. Apertura sprint (docs) | DONE | questo commit |
-| 1. Push su dev + CI/E2E verdi con `3f7d5f3` | READY | via libera push; flaky doppio click da analizzare se resta |
-| 2a. Guard deploy functions (script Node + riga checklist) | READY | review HIGH |
-| 2b. Controprove su copia (regola + DENY settings.json) | READY | skill `update-config`; review medium |
-| 2c. Regola tabella ambiente/modulo (3 file) | READY | review medium |
-| 3a. Costi Firebase | DONE | letti il 2026-11-12 (vedi esiti) |
-| 3b. Rollback functions rankex-dev | BACKLOG | dopo 2a |
-| 3c. Rollback hosting + rules rankex-dev | BACKLOG | mai durante `qa:dev` |
-| 3d. Test unitario caso del lunedi' (slot E2E) | READY | review medium |
-| 3e. Banner RICARICA rankex-dev (+360 px) | BACKLOG | dopo 3c o in coda; mai durante `qa:dev` |
-| 3f. Login trainer/cliente prod | fuori sprint | NON VERIFICATO fino al primo utente reale |
-| 4. Rinomina voce CHANGELOG + template | READY | push docs solo su dev |
+| 1. Push su dev + CI/E2E verdi con `3f7d5f3` | DONE | `ab315f3`; CI/E2E verdi, doppio click passato al primo tentativo |
+| 2a. Guard deploy functions (script Node + riga checklist) | DONE | `4223cf4`; review HIGH approvata |
+| 2b. Controprove su copia (regola + DENY settings.json) | DONE | `af44491`; review medium |
+| 2c. Regola tabella ambiente/modulo (3 file) | DONE | `5090d9a`; review medium |
+| 3a. Costi Firebase | DONE | letti il 2026-11-12 (vedi esiti); uso per servizio non letto |
+| 3b. Rollback functions rankex-dev | DONE | a `224d1bb` e ritorno a `5090d9a`; prod: solo fix forward (decisione 10) |
+| 3c. Rollback hosting + rules rankex-dev | DONE | provato e ritorno a HEAD |
+| 3d. Test unitario caso del lunedi' (slot E2E) | DONE | `d42d23b` + `555f925`; review medium |
+| 3e. Banner RICARICA rankex-dev (+360 px) | DONE | osservato; BUG-026 (P3, OPEN) |
+| 3f. Login trainer/cliente prod | NON VERIFICATO | per decisione dell'utente fino al primo utente reale |
+| 4. Rinomina voce CHANGELOG + template | DONE | titolo e template coerenti |
 
 **Rischi:** (1) Il guard 2a e' codice di deploy: un errore blocca i deploy futuri (provare su `deploy:dev` prima).
 (2) I DENY di 2b possono bloccare anche usi legittimi: fare prova di blocco e verificare che i comandi con
@@ -193,11 +199,93 @@ pathspec esplicito non vengano bloccati. (3) Le prove di rollback 3b/3c lasciano
 vecchio se interrotte: ritorno a HEAD e' parte della voce. (4) 3a dipende dalla data. Principio: finire > iniziare;
 ordine consigliato 1, 2a, 2b, 2c, 3d, 3b, 3c, 3e, 4, poi 3a quando disponibile.
 
+## Goal
+Chiudere con esito VERIFIED o BUG i "non verificato" del rilascio EPIC-010 e i 4 action item del #18, senza
+deploy in produzione. **Raggiunto, con 3f non verificato per decisione dell'utente (decisione 6).** Prod
+`fitquest-60a09` invariata a `f086405` (functions, hosting, rules; 40 callable nodejs22). rankex-dev: functions,
+hosting e rules a `5090d9a` (dopo, solo commit docs).
+
+## Chiusura sprint
+
+**Stato del repo a fine sprint (verificato il 2026-11-12):** `origin/dev` = `5ba0ecf`; HEAD locale = `0c0d84e`
+(commit voce 3a, non pushato); `origin/main` = `f086405`, resta li' fino al prossimo rilascio (deciso). Push di
+`5ba0ecf`: CI 43270526890 success, E2E 43270526570 success, Deploy to Firebase 43270774631 (`deploy-dev`
+success, `deploy-prod` skipped).
+
+### Completato
+- **0, 1** apertura e push su dev (`ab315f3`), CI/E2E verdi, nessun BUG dal flaky "doppio click".
+- **2a** (`4223cf4`, review HIGH): guard del deploy functions, provato reale con tree sporco (rifiuto, exit 1) e pulito.
+- **2b** (`af44491`, review medium): regola in CLAUDE.md + 72 deny in `.claude/settings.json` (non tracciato), provati
+  in repo usa e getta; chiuso il buco `git -C`.
+- **2c** (`5090d9a`, review medium): regola tabella ambiente/modulo nei 3 file.
+- **3a**: costi di novembre fino al 12/11 letti dall'utente e annotati nel CHANGELOG (commit `0c0d84e`).
+- **3b**: rollback functions su rankex-dev a `224d1bb` e ritorno a `5090d9a`; checklist di CLAUDE.md corretta.
+- **3c**: rollback e ritorno a HEAD di hosting (`hosting:clone`) e rules su rankex-dev.
+- **3d** (`d42d23b`, `555f925`, review medium): test unitario del caso del lunedi'; `qa:dev` 36/36.
+- **3e**: banner RICARICA osservato su rankex-app-dev (desktop e 360 px); trovato BUG-026.
+- **4**: voce CHANGELOG `[2026.11.12] — EPIC-010 Lipedema (modulo non attivo)`, template aggiornato.
+
+### Non completato (motivo)
+- **3f** login trainer/cliente in prod: NON VERIFICATO per decisione dell'utente (nessun dato creato in prod, si
+  verifica al primo utente reale).
+- **Rollback functions prod:** non eseguibile come rollback (il commit precedente `744f6f9` e' Node 20, runtime
+  dismesso); decisione 10: solo fix forward, `<prev>` futuro = `f086405`.
+
+### Blockers
+- **STORY-029 (b)/(c)** DPA e informativa (requisito non di codice, utente/legale): bloccante per attivare
+  lipedema in prod; a chiusura va tolto `IS_LIPEDEMA_SELECTABLE`.
+- Nessun blocco sul codice per il #20.
+
+### Tech debt emerso
+- Nessun debito nuovo tracciato in TECH-DEBT.md dal #19.
+- **BUG-026** (P3, OPEN, BUGS.md): banner RICARICA copre "Password dimenticata?" a 360 px (`src/app/App.jsx:54-67`).
+- Rischio accettato (decisione 10): rollback functions prod solo con fix forward.
+
+### Verificato / non verificato
+
+| Voce | In dev (rankex-dev) | In prod (fitquest-60a09) | Non verificato |
+|------|---------------------|--------------------------|----------------|
+| 1 CI/E2E verdi, flaky doppio click | verificato (`ab315f3`; poi `5ba0ecf`: CI, E2E, `deploy-dev` success) | non toccata (`deploy-prod` skipped, main a `f086405`) | - |
+| 2a guard deploy functions | verificato (rifiuto con tree sporco, stampa sha da pulito) | guard attivo su `deploy`, non eseguito | - |
+| 2b deny git distruttivi | verificato in repo usa e getta (locale, non tracciato) | n/a | - |
+| 2c tabella ambiente/modulo | regola presente nei 3 file, applicata a 3b/3c/3e | n/a | UAT: nessun progetto/hosting UAT nel repo (`.firebaserc:5-18`) |
+| 3a costi Firebase | spesa dev CRF ~0,07 €/1 € letta dall'utente | spesa prod CRF ~0,01 €/5 € letta dall'utente | uso per servizio non letto (decisione utente) |
+| 3b rollback functions | provato a `224d1bb` e ritorno, 40 callable nodejs22 | non eseguibile: solo fix forward (decisione 10) | ramo "callable nuove al rollback" non provato (tutti i commit Node 22 hanno le stesse 40 callable) |
+| 3c rollback hosting + rules | provato e ritorno a HEAD (rules verificate via Rules API) | non toccato | - |
+| 3d caso del lunedi' | test unitario + `qa:dev` 36/36 | non verificato (nessun effetto atteso) | - |
+| 3e banner RICARICA | osservato a 1366 px e 360 px; BUG-026 | non toccato | comportamento in prod non provato |
+| 3f login trainer/cliente | n/a | non verificato (decisione 6) | fino al primo utente reale |
+| 4 CHANGELOG | titolo e template coerenti | n/a | - |
+| GYM | n/a | n/a | nessuna org QA: non verificato (noto dal #18) |
+
+### Verifica dei 4 action item del #18
+1. **Guard commit functions in CHANGELOG: raggiunto.** `4223cf4`: `deploy:dev` da tree sporco rifiuta (exit 1,
+   firebase non lanciato), da pulito stampa `functions deploy da 5090d9ab…` e parte; riga "functions prod a
+   `<sha>`" nella checklist e nella voce `[2026.11.12]` (`f086405`). Limite dichiarato: il rollback via
+   worktree non passa dal guard (sha annotato a mano).
+2. **Controprove su copia: raggiunto.** `af44491`: regola in CLAUDE.md; `git checkout -- .`, `git restore .` e
+   `git reset --hard` negati, provati in repo usa e getta (PowerShell e Bash). Limite noto: la cintura non
+   copre tutte le varianti (elenco in CLAUDE.md) e `.claude/settings.json` non e' tracciato.
+3. **Tabella ambiente/modulo: raggiunto.** `5090d9a`: regola in CLAUDE.md, `developer.md`, `scrum-master.md`;
+   tabelle con file:riga nelle voci 3b/3c/3e. UAT resta "non verificato" (nessun deploy UAT).
+4. **"Non verificato" chiuso: parziale.** Chiusi: esito E2E su dev (1), costi (3a, uso per servizio non letto),
+   lunedi' (3d, `d42d23b` + `555f925`), rollback functions/hosting/rules su dev (3b/3c), banner RICARICA su dev
+   (3e, BUG-026). Con motivazione esplicita: login prod (3f, decisione 6), GYM senza org QA. Residui: rollback
+   functions prod non eseguibile, ramo "callable nuove" non provato, banner in prod non osservato.
+
+### Passa al #20
+Codice:
+- **BUG-026** (P3): banner RICARICA sul login a 360 px (fix suggerito in BUGS.md).
+- Push dei commit docs locali su `dev` (`0c0d84e`, via libera utente); `main` solo al prossimo rilascio.
+Requisiti non di codice / decisioni utente:
+- **STORY-029 (b)/(c)** DPA e testo informativa, poi togliere `IS_LIPEDEMA_SELECTABLE`.
+- **STORY-026** retention (decisione utente).
+- **3f** login prod al primo utente reale; GYM: org QA.
+- STORY-044 (canvas, non si tocca), stampa su carta, mobile-app (parcheggiata).
+
 **Retrospettiva:** non scritta (fuori dal ruolo dello Scrum Master; a fine sprint).
 
 ---
-
-## Sprint chiuso (storico)
 
 # SPRINT #18 — EPIC-010 Lipedema Edition, rilascio in produzione (codice, modulo non attivato) — aperto il 2026-11-12, chiuso il 2026-11-12 (goal raggiunto, voci 1a-1d, 2 e 3 DONE; voce 4 fuori sprint)
 
