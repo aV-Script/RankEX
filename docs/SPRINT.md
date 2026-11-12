@@ -237,7 +237,8 @@ success, `deploy-prod` skipped).
 - Nessun blocco sul codice per il #20.
 
 ### Tech debt emerso
-- Nessun debito nuovo tracciato in TECH-DEBT.md dal #19.
+- TD-014 (deny git solo in `.claude/settings.json` non tracciato) e TD-015 (rollback functions prod non
+  eseguibile, ramo "callable nuove" mai provato): aggiunti in TECH-DEBT.md dalla retrospettiva.
 - **BUG-026** (P3, OPEN, BUGS.md): banner RICARICA copre "Password dimenticata?" a 360 px (`src/app/App.jsx:54-67`).
 - Rischio accettato (decisione 10): rollback functions prod solo con fix forward.
 
@@ -283,7 +284,109 @@ Requisiti non di codice / decisioni utente:
 - **3f** login prod al primo utente reale; GYM: org QA.
 - STORY-044 (canvas, non si tocca), stampa su carta, mobile-app (parcheggiata).
 
-**Retrospettiva:** non scritta (fuori dal ruolo dello Scrum Master; a fine sprint).
+## Retrospettiva
+Dati: 10 commit (`ab315f3`..`eb9c924`: 1 feat functions (2a), 2 test e2e (3d + correzione `555f925`), 7 docs/processo
+tra apertura, 2b, 2c, esiti, decisione 10, 3a, chiusura); voci 0-4 DONE, 3f non verificato per decisione;
+1 bug nuovo (BUG-026, P3), 2 debiti nuovi (TD-014, TD-015, tracciati in questa retrospettiva: la chiusura diceva
+"nessun debito nuovo"); 0 deploy in prod. Rework: 4 (2a CHANGES REQUESTED -> APPROVED in review HIGH; buco `git -C`
+trovato dalle review di 2b; `555f925` sull'attesa dello slot dopo `d42d23b`; checklist di rollback di CLAUDE.md
+corretta dopo 3b, piano `744f6f9` annullato dopo 3b con `5ba0ecf`). Non verificato: il dettaglio dei punti della
+review 2a (nei docs c'e' solo l'esito).
+
+**Verifica dei 4 action item del #18** (coerente con "Verifica dei 4 action item del #18" sopra)
+1. Guard deploy functions: **raggiunto, efficacia provata solo in prova.** `4223cf4`: rifiuto con tree sporco e
+   stampa dello sha da pulito, provati davvero (PowerShell) e usati nel ritorno a HEAD della 3b. Non ha bloccato
+   nessun deploy reale e non ha mai girato su prod (`deploy` non eseguito); il rollback via worktree lo aggira per
+   costruzione (sha annotato a mano). Il debito che il #18 voleva chiudere (sha stimato, non registrato) e'
+   chiuso solo al prossimo deploy prod.
+2. Controprove su copia / deny: **raggiunto, fragile.** `af44491`: regola in CLAUDE.md + 72 deny, provati in repo
+   usa e getta. Nessuna controprova sul working tree nel #19 (la regola non e' stata messa alla prova), quindi
+   non si sa se la regola da sola regge. Il deny e' locale e non tracciato, e la review ha trovato un buco reale
+   (`git -C`): TD-014.
+3. Tabella dev/UAT/prod: **raggiunto, efficacia non dimostrabile.** `5090d9a`: regola nei 3 file, tabelle con
+   file:riga in 3b/3c/3e. Le voci del #19 toccavano solo rankex-dev: nessuna scelta d'ambiente in bivio, quindi
+   "0 scelte senza riga" e' vero ma non distingue la tabella dall'assenza di rischio. UAT resta "non verificato"
+   (nessun deploy UAT).4. "Non verificato" chiuso: **parziale.** Chiusi con esito: E2E su dev (1), costi (3a, senza uso per servizio), lunedi'
+   (3d), rollback dev (3b/3c), banner RICARICA su dev (3e, BUG-026). Motivati: 3f, GYM. Residui: rollback
+   functions prod non eseguibile, ramo callable nuove, banner e login in prod, GYM senza org QA (terza retro
+   consecutiva che lo cita).
+
+**WHAT WENT WELL**
+- Sprint di processo chiuso in un giorno, senza deploy in prod e con 0 incidenti. Causa: scope limitato a dev e
+  voci con "fatto quando" eseguibile (rifiuto del guard, 40 callable nodejs22 prima/durante/dopo con
+  `functions:list`, Rules API per le rules).
+- La prova ha trovato cio' che la lettura non aveva trovato: la checklist di rollback aveva superato 3 HIGH di
+  review nel #18 e conteneva comunque errori emersi solo eseguendola (3b). Causa: azione 4 del #18 con "eseguire,
+  non rileggere".
+- Tempi del rollback misurati e scritti in CLAUDE.md (worktree + `npm ci` 14 s, rollback functions 1:37, ritorno
+  1:45, `hosting:clone` 7 s, rules 7-8 s): oggi il rollback ha un costo noto.
+- Le review hanno trovato difetti reali in processo e script (2a CHANGES REQUESTED, `git -C` in 2b).
+
+**WHAT WENT WRONG / CAUSED BUGS**
+- Il piano di rollback functions prod era inattuabile e nessuno se n'e' accorto per un'intera sprint e un rilascio.
+  ROOT CAUSE verificata nei docs: i dati per accorgersene c'erano gia' ma non sono stati incrociati. La voce
+  CHANGELOG del rilascio annotava 37 callable `nodejs20` in prod e scriveva "Runtime torna a Node 20" nel piano;
+  il #16 aveva scritto che Node 20 e' dismesso dal 30/10 e che il prossimo deploy prod deve usare Node 22;
+  `744f6f9` e' del 24/10, prima di `13052d6` (31/10). Il commit `744f6f9` e' stato annotato "confermato dall'utente"
+  senza controllare `engines.node` in quel commit. Lo spunto "l'utente aveva scritto 744f6f9 Node 22": NON
+  verificato nei docs (non c'e' nessuna riga che attribuisca Node 22 a `744f6f9`; se detto a voce, non e' scritto).
+  Il difetto vero e' piu' generale: un dato copiato (sha, runtime) e' stato trattato come verificato perche'
+  confermato da una persona, non da un comando. IMPACT: nessun danno (scoperto in dev, prima di un bisogno
+  reale); il rollback prod e' di fatto "solo fix forward" (rischio accettato, TD-015). ACTION: azione 1.
+- La checklist di rollback non era mai stata eseguita prima del #19 (#18, azione 4: "i rollback non sono mai
+  stati eseguiti") e conteneva 3 errori/lacune (`<prev>` deve essere Node 22, `worktree remove --force` per i file
+  non tracciati, ramo callable nuove non provato). ROOT CAUSE: una procedura scritta e rivista a tavolino senza
+  esecuzione; le review HIGH controllano la coerenza, non l'ambiente. IMPACT: costo di 3b e decisione 10 a meta'
+  sprint. ACTION: gia' fatta (3b/3c eseguite e checklist corretta); copertura residua in azione 1.
+- I deny git sono fragili per costruzione (verificato): a 72 regole la review di 2b ha comunque trovato `git -C`,
+  e CLAUDE.md elenca esplicitamente cio' che non copre (`git checkout <file>`, alias, `git -c`, `--git-dir`, script
+  che lanciano git...). ROOT CAUSE: un permesso per prefisso testuale non puo' enumerare tutte le forme di un comando
+  git; il file e' fuori da git. IMPACT: protezione parziale e non replicabile. ACTION: azione 3.
+- BUG-026 (P3): banner RICARICA copre "Password dimenticata?" a 360 px (`App.jsx:54-67`). ROOT CAUSE: banner
+  `fixed bottom-5` senza spazio riservato; il banner esiste dal rilascio ma non era mai stato guardato a 360 px
+  (3e era la prima volta). IMPACT: basso (RICARICA lo toglie). ACTION: azione 2.
+- La chiusura sprint dichiarava "nessun debito nuovo" mentre il deny non tracciato e il rollback prod non
+  eseguibile sono debiti dichiarati altrove. ROOT CAUSE: rischi accettati scritti in decisioni/CLAUDE.md ma non in
+  TECH-DEBT.md (stesso schema del #18). ACTION: fatta ora (TD-014, TD-015).
+
+**WHAT WAS SLOW**
+- Quasi niente: sprint chiuso lo stesso giorno. Le attese erano 5 min di poll per il banner (2 volte) e la data
+  di 3a. Non verificato: tempo dell'attesa totale, non registrato.
+
+**WHAT CAUSED REWORK**
+- `555f925` dopo `d42d23b` (attesa dello slot con timeout di 120 s del test invece di `expect.toBeVisible`
+  15 s) e checklist di rollback riscritta dopo l'esecuzione. Causa comune: assunzioni su ambiente/tempi non
+  provate prima (come nel #18).
+
+**WHAT CREATED TECHNICAL DEBT**
+- TD-014 (deny locale e non tracciato) e TD-015 (rollback prod solo fix forward, ramo callable nuove non provato).
+  ROOT CAUSE: decisioni 4 e 10, rischi accettati consapevolmente ma non tracciati nel file dei debiti.
+
+**ACTION ITEM per lo Sprint #20** (max 5; vincoli: nessun deploy in prod, `main` resta a `f086405` fino al
+prossimo rilascio, STORY-044, stampa su carta e mobile-app fuori)
+1. **Verificare i dati copiati prima di scriverli (agente, ~1 h).** Script `functions/scripts/checkPrev.mjs <sha>`
+   (Node puro) che stampa `engines.node` di `<sha>` e di HEAD e fallisce se il runtime di `<sha>` e' dismesso o
+   diverso da quello atteso; chiamato dalla riga "Prev functions" della checklist in CLAUDE.md e dalla regola in
+   `developer.md`/`scrum-master.md` ("sha, runtime, versione = output di un comando, non conferma verbale").
+   *Fatto quando:* `node functions/scripts/checkPrev.mjs 744f6f9` esce 1 con motivo, `... f086405` esce 0, e la
+   checklist lo cita.
+2. **Correggere BUG-026 (agente, ~1-2 h).** Banner RICARICA che non copre i controlli del login a 360 px (fix in
+   BUGS.md), con un caso di runbook per il banner a 360 px. *Fatto quando:* a 360x640 "Password dimenticata?" e'
+   cliccabile col banner visibile (osservato su rankex-dev), BUG-026 FIXED, caso `TP-` aggiunto a
+   `config/runbook.config.js`. Review medium.
+3. **Tracciare e controllare i deny (decisione utente, poi agente ~1 h).** Decisione utente: ok a tenere in
+   `docs/` una copia tracciata dell'elenco dei deny di `.claude/settings.json` (il file resta locale). Se si:
+   script `npm run check:deny` che esce 1 se una regola dell'elenco manca da `settings.json`. *Fatto quando:*
+   lo script esce 0 oggi e 1 dopo aver tolto una regola dal file di prova; TD-014 aggiornato. Se no: TD-014
+   resta OPEN con motivazione.
+4. **Org QA per GYM (agente, ~2-3 h).** Estendere `scripts/seed-qa-orgs.mjs` con `qa-gym` (stesse 3 utenze
+   `qadev.gym.*`, solo rankex-dev) e un caso `qa:dev` che controlla la terminologia GYM (Membro/Classe/Allenamento).
+   *Fatto quando:* `npm run qa:dev:seed` e' idempotente con la nuova org e `qa:dev` verde con il nuovo caso; la riga
+   "GYM senza org QA" esce dall'elenco "Non verificato" (citata nei #17, #18, #19). Review medium.
+5. **Decisione utente su STORY-029 (b)/(c) e 3f (utente, ~0 di sviluppo).** Dare una data o un rinvio esplicito per
+   DPA e testo informativa (bloccanti per attivare lipedema in prod) e per il login trainer/cliente al primo utente
+   reale. *Fatto quando:* le due righe in "Passa al #20" hanno una data o la dicitura "rinviato a <evento>"
+   decisa dall'utente. Non approvata: e' una richiesta di decisione.
 
 ---
 

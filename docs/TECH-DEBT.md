@@ -238,3 +238,18 @@ fuorviante ("Rank F · Media 0").
 **Proposta:** passarli a `Button variant="primary"` (e `secondary` per `GroupsPage` a form aperto), poi valutare se `.rx-btn-primary` serve ancora.
 **Status:** RESOLVED (Sprint #17: 6 bottoni migrati a `Button`, `.rx-btn-primary` resta in `index.css` per decisione dell'utente; test cursore in `Button.test.js`; verifica dal vivo al deploy)
 
+
+
+## [TD-014] Deny git distruttivi solo in `.claude/settings.json`, non tracciato e con buchi noti
+**Data:** 2026-11-12 (Sprint #19, voce 2b)
+**Cosa si è scelto di rimandare:** la difesa contro `git checkout -- .`/`restore`/`reset --hard` sul working tree sono 72 pattern in `.claude/settings.json`, ignorato da git (`.claude/*`): vale solo su questa macchina, non c'è una copia tracciata né un controllo che le regole ci siano ancora. I pattern sono per costruzione incompleti (la review ha trovato `git -C` e le varianti di `switch -f`; l'elenco dei non coperti è in CLAUDE.md → "Controprove e working tree").
+**Perché:** i permessi non sono tracciabili col repo; la regola in CLAUDE.md è la difesa primaria, il deny è una cintura.
+**Rischio se non risolto:** su una macchina nuova o dopo una modifica di `settings.json` il deny sparisce senza che nessuno se ne accorga; ricomparirebbe l'incidente del #18 (controprova con `git checkout -- .` su modifiche non committate).
+**Status:** OPEN
+
+## [TD-015] Rollback functions in prod non eseguibile; ramo "callable nuove" mai provato
+**Data:** 2026-11-12 (Sprint #19, voci 3b/3c, decisione 10)
+**Cosa si è scelto di rimandare:** il rollback delle functions prod a `744f6f9` (Node 20, runtime dismesso) non è deployabile; si fa solo fix forward. Dal prossimo rilascio `<prev>` = `f086405` (Node 22). Il comportamento della CLI con callable presenti in prod ma assenti nel commit di rollback non è provato: tutti i commit Node 22 hanno le stesse 40 callable.
+**Perché:** decisione dell'utente (rischio accettato); provarlo richiede un commit con meno callable.
+**Rischio se non risolto:** un rilascio che aggiunge callable e poi va in rollback si ferma o cancella callable senza che il passo sia mai stato eseguito. Si riduce da solo al prossimo rilascio, quando esisterà un `<prev>` Node 22 con meno callable.
+**Status:** OPEN
