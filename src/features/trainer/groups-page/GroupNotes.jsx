@@ -14,7 +14,7 @@ const ICON_NOTES = <IconDocument size={20} />
 
 const NOTES_PAGE_SIZE = 8
 
-export function GroupNotes({ orgId, groupId, terminology }) {
+export function GroupNotes({ orgId, groupId, terminology, isReadonly = false }) {
   const { userRole } = useTrainerState()
   const roleLabels  = getNoteRoleLabels(terminology)
   const toast = useToast()
@@ -97,7 +97,8 @@ export function GroupNotes({ orgId, groupId, terminology }) {
     <div className="rounded-[4px] p-5 rx-card">
       <SectionLabel className="mb-5">◈ Note di {terminology.group.toLowerCase()}</SectionLabel>
 
-      {/* Composer */}
+      {/* Composer — assente in sola lettura */}
+      {!isReadonly && (
       <div className="mb-5">
         <textarea
           value={text}
@@ -114,6 +115,7 @@ export function GroupNotes({ orgId, groupId, terminology }) {
           </Button>
         </div>
       </div>
+      )}
 
       {/* Lista note */}
       {loading ? (
@@ -124,7 +126,7 @@ export function GroupNotes({ orgId, groupId, terminology }) {
         <EmptyState
           icon={ICON_NOTES}
           title="Nessuna nota"
-          description={`Pubblica la prima nota o annuncio per ${terminology.thisGroup}.`}
+          description={isReadonly ? undefined : `Pubblica la prima nota o annuncio per ${terminology.thisGroup}.`}
         />
       ) : (
         <>
@@ -135,6 +137,7 @@ export function GroupNotes({ orgId, groupId, terminology }) {
                 note={note}
                 currentUserId={currentUserId}
                 userRole={userRole}
+                isReadonly={isReadonly}
                 roleLabel={roleLabels[note.authorRole] ?? note.authorRole}
                 deleting={deletingId === note.id}
                 onDelete={() => setConfirmDelete(note)}
@@ -160,8 +163,8 @@ export function GroupNotes({ orgId, groupId, terminology }) {
   )
 }
 
-function NoteCard({ note, currentUserId, userRole, roleLabel, deleting, onDelete }) {
-  const canDelete = currentUserId === note.authorId || userRole === 'org_admin'
+function NoteCard({ note, currentUserId, userRole, isReadonly, roleLabel, deleting, onDelete }) {
+  const canDelete = !isReadonly && (currentUserId === note.authorId || userRole === 'org_admin')
   const dateLabel = note.createdAt
     ? new Date(note.createdAt).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     : ''

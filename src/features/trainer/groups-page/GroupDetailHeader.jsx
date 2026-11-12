@@ -23,12 +23,15 @@ export function GroupDetailHeader({
   onBack, terminology, subView, onSelectTab, hasGroupRanking, canExportPdf,
   isEditing, editingName, onEditingNameChange, onSaveRename, onCancelRename,
   showActions, onToggleActions, onOpenRename, onExportPdf, onRequestDelete,
+  isReadonly = false,
 }) {
   // Chiusura da tastiera per il menu overflow — l'unico modo per chiuderlo
   // era prima un click esterno su un div non focusabile.
   useEscapeKey(onToggleActions, showActions)
 
   const visibleTabs = SUB_TABS.filter(tab => !tab.isRanking || hasGroupRanking)
+  // In sola lettura il menu esiste solo se contiene ESPORTA PDF (niente rinomina/elimina)
+  const hasActionsMenu = !isReadonly || canExportPdf
 
   return (
     <header
@@ -99,6 +102,8 @@ export function GroupDetailHeader({
         )}
       </div>
 
+      {hasActionsMenu && (
+      <>
       {/* Divisore */}
       <div className="w-px self-stretch my-2" style={{ background: 'rgba(255,255,255,0.06)' }} />
 
@@ -120,26 +125,34 @@ export function GroupDetailHeader({
               className="absolute right-0 top-full mt-1 z-50 min-w-[152px] py-1 rounded-[4px]"
               style={{ background: 'rgba(13,20,30,0.98)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}
             >
-              <button onClick={onOpenRename}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-white/60 hover:text-white hover:bg-white/[.04] transition-colors cursor-pointer bg-transparent border-none text-left font-display text-[10px] tracking-[1.5px] uppercase">
-                {ICON_RENAME} Rinomina
-              </button>
+              {!isReadonly && (
+                <button onClick={onOpenRename}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-white/60 hover:text-white hover:bg-white/[.04] transition-colors cursor-pointer bg-transparent border-none text-left font-display text-[10px] tracking-[1.5px] uppercase">
+                  {ICON_RENAME} Rinomina
+                </button>
+              )}
               {canExportPdf && (
                 <button onClick={onExportPdf}
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-white/60 hover:text-white hover:bg-white/[.04] transition-colors cursor-pointer bg-transparent border-none text-left font-display text-[10px] tracking-[1.5px] uppercase">
                   {ICON_PDF} Esporta PDF
                 </button>
               )}
-              <div className="h-px my-1" style={{ background: 'rgba(255,255,255,0.06)' }} />
-              <button onClick={onRequestDelete}
-                className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-red-900/20 transition-colors cursor-pointer bg-transparent border-none text-left font-display text-[10px] tracking-[1.5px] uppercase"
-                style={{ color: '#f87171' }}>
-                {ICON_DELETE} Elimina
-              </button>
+              {!isReadonly && (
+                <>
+                  <div className="h-px my-1" style={{ background: 'rgba(255,255,255,0.06)' }} />
+                  <button onClick={onRequestDelete}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-red-900/20 transition-colors cursor-pointer bg-transparent border-none text-left font-display text-[10px] tracking-[1.5px] uppercase"
+                    style={{ color: '#f87171' }}>
+                    {ICON_DELETE} Elimina
+                  </button>
+                </>
+              )}
             </div>
           </>
         )}
       </div>
+      </>
+      )}
     </header>
   )
 }

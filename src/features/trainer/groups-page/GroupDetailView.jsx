@@ -25,6 +25,7 @@ import { IconLeaderboard, IconAnalysis, IconCompare } from './groupDetailIcons'
 import { ErrorBoundary } from '../../../components/common/ErrorBoundary'
 import { ChartErrorFallback } from '../../../components/common/ChartErrorFallback'
 import { useToast }           from '../../../hooks/useToast'
+import { useReadonly }        from '../../../context/ReadonlyContext'
 import { PrintPickerModal }   from '../../../components/common/PrintPickerModal'
 import { toLocalDateStr } from '../../../utils/calendarUtils'
 
@@ -35,6 +36,7 @@ const SOCCER_CATS = ['soccer_youth', 'soccer_junior', 'soccer']
 
 export function GroupDetailView({ group, clients, orgId, onToggleClient, onRename, onDelete, onBack, terminology, hasGroupRanking, hasRank }) {
   const { error: toastError } = useToast()
+  const isReadonly = useReadonly()
   const [subView,      setSubView]      = useState('manage')
   const [clientSearch, setClientSearch] = useState('')
   const [isEditing,    setIsEditing]    = useState(false)
@@ -166,6 +168,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
         onOpenRename={handleOpenRename}
         onExportPdf={handleExportPdf}
         onRequestDelete={handleRequestDelete}
+        isReadonly={isReadonly}
       />
 
       {/* ── Body ── */}
@@ -246,6 +249,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
             hasGroupRanking={hasGroupRanking}
             hasRank={hasRank}
             terminology={terminology}
+            isReadonly={isReadonly}
           />
         )}
 
@@ -257,7 +261,7 @@ export function GroupDetailView({ group, clients, orgId, onToggleClient, onRenam
 
         {subView === 'notes' && (
           <div className="px-4 sm:px-6 pt-4 pb-12">
-            <GroupNotes orgId={orgId} groupId={group.id} terminology={terminology} />
+            <GroupNotes orgId={orgId} groupId={group.id} terminology={terminology} isReadonly={isReadonly} />
           </div>
         )}
 

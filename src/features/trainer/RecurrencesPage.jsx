@@ -7,6 +7,7 @@ import { Pagination }                    from '../../components/common/Paginatio
 import { EmptyState, PageTitle }         from '../../components/ui'
 import { IconChevronDown }               from '../../components/ui/icons'
 import { useTrainerState }               from '../../context/TrainerContext'
+import { useReadonly }                   from '../../context/ReadonlyContext'
 
 export function RecurrencesPage({ orgId, clients = [], initialRecurrenceId, onNavigate }) {
   const {
@@ -15,6 +16,7 @@ export function RecurrencesPage({ orgId, clients = [], initialRecurrenceId, onNa
     handleAddClient, handleRemoveClient, handleCancel,
   } = useRecurrences(orgId)
   const { terminology } = useTrainerState()
+  const isReadonly = useReadonly()
 
   const [showArchive, setShowArchive] = useState(false)
   const [selectedId,  setSelectedId]  = useState(initialRecurrenceId ?? null)
@@ -89,7 +91,7 @@ export function RecurrencesPage({ orgId, clients = [], initialRecurrenceId, onNa
           <EmptyState
             icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/><line x1="16" y1="1" x2="16" y2="5"/><line x1="8" y1="1" x2="8" y2="5"/><line x1="3" y1="10" x2="21" y2="10"/></svg>}
             title="Nessuna ricorrenza attiva"
-            description='Creane una dal Calendario con il pulsante "NUOVA RICORRENZA".'
+            description={isReadonly ? undefined : 'Creane una dal Calendario con il pulsante "NUOVA RICORRENZA".'}
             action={onNavigate ? { label: 'Vai al Calendario', onClick: () => onNavigate('calendar') } : undefined}
           />
         ) : (

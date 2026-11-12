@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { ConfirmDialog }                  from '../../../components/common/ConfirmDialog'
 import { useToast }                       from '../../../hooks/useToast'
+import { useReadonly }                    from '../../../context/ReadonlyContext'
 import { RecurrenceDetailHeader }         from './RecurrenceDetailHeader'
 import { RecurrenceSummaryBar }           from './RecurrenceSummaryBar'
 import { RecurrenceScheduleSection }      from './RecurrenceScheduleSection'
@@ -14,6 +15,7 @@ export function RecurrenceDetailView({
   onExtendPeriod, onAddClient, onRemoveClient, onCancel,
 }) {
   const toast = useToast()
+  const isReadonly = useReadonly()
   const [editingTime, setEditingTime] = useState(false)
   const [editingDays, setEditingDays] = useState(false)
   const [editingEnd,  setEditingEnd]  = useState(false)
@@ -42,6 +44,8 @@ export function RecurrenceDetailView({
   }, [candidateClients, clientSearch])
 
   const isActive = recurrence.status === 'active'
+  // In sola lettura nessuna modifica: le sezioni ricevono il flag già combinato
+  const canEdit  = isActive && !isReadonly
   const statusInfo = STATUS_INFO[recurrence.status ?? 'active']
   const weeks = weeksBetween(recurrence.startDate, recurrence.endDate)
 
@@ -83,7 +87,7 @@ export function RecurrenceDetailView({
       <RecurrenceDetailHeader
         recurrence={recurrence}
         onBack={onBack}
-        isActive={isActive}
+        isActive={canEdit}
         onRequestCancel={() => setShowCancel(true)}
       />
 
@@ -99,7 +103,7 @@ export function RecurrenceDetailView({
 
         <RecurrenceScheduleSection
           recurrence={recurrence}
-          isActive={isActive}
+          isActive={canEdit}
           saving={saving}
           editingTime={editingTime}
           onStartEditTime={() => setEditingTime(true)}
@@ -119,7 +123,7 @@ export function RecurrenceDetailView({
 
         <RecurrencePeriodSection
           recurrence={recurrence}
-          isActive={isActive}
+          isActive={canEdit}
           weeks={weeks}
           saving={saving}
           editingEnd={editingEnd}
@@ -132,7 +136,7 @@ export function RecurrenceDetailView({
 
         <RecurrenceClientsSection
           recurrenceId={recurrence.id}
-          isActive={isActive}
+          isActive={canEdit}
           recurrenceClients={recurrenceClients}
           hasCandidates={candidateClients.length > 0}
           availableClients={availableClients}

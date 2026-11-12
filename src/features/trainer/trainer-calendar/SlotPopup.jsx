@@ -10,7 +10,7 @@ import { bySessionGender } from '../../../config/modules.config'
  * Popup dettaglio slot — appare al click su un evento.
  * Mostra info slot e azioni rapide.
  */
-export function SlotPopup({ slot, clients, position, hasGamification, terminology, onClose, onDelete, onSkip, onCloseSession, onViewRecurrence }) {
+export function SlotPopup({ slot, clients, position, hasGamification, terminology, isReadonly = false, onClose, onDelete, onSkip, onCloseSession, onViewRecurrence }) {
   const ref = useRef(null)
   useFocusTrap(ref, true)
 
@@ -88,7 +88,7 @@ export function SlotPopup({ slot, clients, position, hasGamification, terminolog
       </div>
 
       {/* Clienti */}
-      <div className="flex flex-col gap-1.5 mb-4">
+      <div className={`flex flex-col gap-1.5 ${isReadonly && !slot.recurrenceId ? '' : 'mb-4'}`}>
         {slotClients.map(client => {
           const isPresent = slot.attendees?.includes(client.id)
           const isAbsent  = slot.absentees?.includes(client.id)
@@ -124,7 +124,7 @@ export function SlotPopup({ slot, clients, position, hasGamification, terminolog
       {slot.recurrenceId && (
         <button
           onClick={() => onViewRecurrence?.(slot.recurrenceId)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] mb-4 w-full text-left cursor-pointer border transition-all hover:border-purple-400/30"
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] ${isReadonly ? '' : 'mb-4'} w-full text-left cursor-pointer border transition-all hover:border-purple-400/30`}
           style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.15)' }}
         >
           <span className="font-display text-[10px] text-purple-400 flex-1">
@@ -136,7 +136,8 @@ export function SlotPopup({ slot, clients, position, hasGamification, terminolog
         </button>
       )}
 
-      {/* Azioni */}
+      {/* Azioni — assenti in sola lettura: restano i soli dettagli */}
+      {!isReadonly && (
       <div className="flex flex-col gap-2">
         {!isCompleted && !isSkipped && (
           <button
@@ -166,6 +167,7 @@ export function SlotPopup({ slot, clients, position, hasGamification, terminolog
           ELIMINA
         </button>
       </div>
+      )}
     </div>
   )
 }

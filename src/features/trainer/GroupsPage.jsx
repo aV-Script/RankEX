@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react'
 import { useGroups }                      from '../../hooks/useGroups'
 import { usePagination }                  from '../../hooks/usePagination'
 import { useTrainerState }                from '../../context/TrainerContext'
+import { useReadonly }                    from '../../context/ReadonlyContext'
 import { getModule, byGroupGender }       from '../../config/modules.config'
 import { Pagination }                     from '../../components/common/Pagination'
 import { GroupCard }                      from './groups-page/GroupCard'
@@ -25,6 +26,7 @@ export function GroupsPage({ orgId, clients = [] }) {
   const { groups, isLoading, handleAddGroup, handleRenameGroup, handleToggleClient, handleDeleteGroup } = useGroups(orgId)
   const { terminology, moduleType } = useTrainerState()
   const { hasGroupRanking, hasRank } = getModule(moduleType)
+  const isReadonly = useReadonly()
 
   const [view,          setView]          = useState('list')
   const [selectedGroup, setSelectedGroup] = useState(null)
@@ -94,17 +96,19 @@ export function GroupsPage({ orgId, clients = [] }) {
             placeholder={`Cerca ${terminology.group.toLowerCase()}...`}
             className="input-base input-compact flex-1"
           />
-          <button
-            onClick={() => setShowNew(true)}
-            className={`${showNew ? 'rx-btn-secondary' : 'rx-btn-primary'} font-display text-[10px] tracking-[1.5px] py-1.5 px-3 rounded-[3px] cursor-pointer shrink-0`}
-          >
-            + {byGroupGender(terminology, 'NUOVO', 'NUOVA')}
-          </button>
+          {!isReadonly && (
+            <button
+              onClick={() => setShowNew(true)}
+              className={`${showNew ? 'rx-btn-secondary' : 'rx-btn-primary'} font-display text-[10px] tracking-[1.5px] py-1.5 px-3 rounded-[3px] cursor-pointer shrink-0`}
+            >
+              + {byGroupGender(terminology, 'NUOVO', 'NUOVA')}
+            </button>
+          )}
         </div>
       </div>
 
       {/* ── Form nuovo gruppo ─────────────────────────────────────────────────── */}
-      {showNew && (
+      {showNew && !isReadonly && (
         <div
           className="mx-4 sm:mx-6 mb-3 rounded-[4px] p-4 flex gap-3"
           style={{ background: 'color-mix(in srgb, var(--rx-accent) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--rx-accent) 15%, transparent)' }}
@@ -140,10 +144,10 @@ export function GroupsPage({ orgId, clients = [] }) {
             icon={ICON_NEW_GROUP}
             title={groups.length === 0 ? `${byGroupGender(terminology, 'Nessun', 'Nessuna')} ${terminology.group.toLowerCase()}` : 'Nessun risultato'}
             description={groups.length === 0
-              ? `Crea ${byGroupGender(terminology, 'il primo', 'la prima')} ${terminology.group.toLowerCase()} per organizzare ${terminology.theClients}.`
+              ? (isReadonly ? undefined : `Crea ${byGroupGender(terminology, 'il primo', 'la prima')} ${terminology.group.toLowerCase()} per organizzare ${terminology.theClients}.`)
               : 'Prova a cambiare il termine di ricerca.'
             }
-            action={groups.length === 0 ? { label: `Crea ${terminology.group.toLowerCase()}`, onClick: () => setShowNew(true) } : undefined}
+            action={groups.length === 0 && !isReadonly ? { label: `Crea ${terminology.group.toLowerCase()}`, onClick: () => setShowNew(true) } : undefined}
           />
         ) : (
           <div className="rx-animate-in">

@@ -15,12 +15,14 @@ import { toLocalDateStr } from '../../utils/calendarUtils'
 import { useTrainerState }                 from '../../context/TrainerContext'
 import { bySessionGender, getModule, capitalize } from '../../config/modules.config'
 import { useToast }                        from '../../hooks/useToast'
+import { useReadonly }                     from '../../context/ReadonlyContext'
 
 export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavigate }) {
   const { moduleType, terminology } = useTrainerState()
   const sessionLabel = terminology.session.toLowerCase()
   const { hasGamification } = getModule(moduleType)
   const { success: toastSuccess } = useToast()
+  const isReadonly = useReadonly()
   const {
     slots, isLoading,
     currentDate, view,
@@ -100,7 +102,7 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
     clients,
     today,
     onSlotClick:  handleSlotClick,
-    onEmptyClick: handleEmptyClick,
+    onEmptyClick: isReadonly ? undefined : handleEmptyClick,
     terminology,
   }
 
@@ -113,12 +115,13 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
         onNavigate={navigate}
         onToday={goToToday}
         onViewChange={setView}
-        onAddSession={() => setAddModal({ date: today, startTime: '09:00' })}
-        onAddRecurrence={() => setRecurrenceModal(true)}
+        onAddSession={isReadonly ? undefined : () => setAddModal({ date: today, startTime: '09:00' })}
+        onAddRecurrence={isReadonly ? undefined : () => setRecurrenceModal(true)}
         terminology={terminology}
       />
 
-      {pastPlannedCount > 0 && (
+      {/* Invito a chiudere le sessioni: in readonly non è un'azione possibile */}
+      {pastPlannedCount > 0 && !isReadonly && (
         <div
           className="flex items-center gap-2 px-4 py-2 font-body text-[12px] shrink-0"
           style={{ background: 'rgba(251,191,36,0.07)', borderBottom: '1px solid rgba(251,191,36,0.18)', color: 'rgba(251,191,36,0.75)' }}
@@ -153,6 +156,7 @@ export function TrainerCalendar({ orgId, clients = [], onRefreshClients, onNavig
           position={{ x: popup.x, y: popup.y }}
           hasGamification={hasGamification}
           terminology={terminology}
+          isReadonly={isReadonly}
           onClose={() => setPopup(null)}
           onCloseSession={() => handleCloseSession(popup.slot)}
           onSkip={() => handleSkip(popup.slot.id)}

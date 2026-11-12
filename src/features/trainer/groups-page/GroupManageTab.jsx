@@ -15,6 +15,7 @@ export function GroupManageTab({
   clientSearch, onSearchChange,
   inGroupPagination, notInGroupPagination,
   toggling, onRequestToggle, hasGroupRanking, hasRank, terminology,
+  isReadonly = false,
 }) {
   const athleteLabel  = terminology.athlete.toLowerCase()
   const athletesLabel = terminology.athletes.toLowerCase()
@@ -23,7 +24,7 @@ export function GroupManageTab({
     <div className="px-4 sm:px-6 pt-4 pb-12 flex flex-col gap-4">
 
       {/* Tre colonne */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+      <div className={`grid grid-cols-1 ${isReadonly ? 'lg:grid-cols-2' : 'lg:grid-cols-3'} gap-4 items-start`}>
 
         {/* Col 1: Nel gruppo */}
         <div className="rounded-[4px] p-5 rx-card">
@@ -34,13 +35,13 @@ export function GroupManageTab({
             <EmptyState
               icon={ICON_EMPTY_CLIENTS}
               title={clientSearch ? 'Nessun risultato' : `${byClientGender(terminology, 'Nessun', 'Nessuna')} ${athleteLabel} ${terminology.inTheGroup}`}
-              description={clientSearch ? undefined : `Aggiungi ${athletesLabel} dalla colonna destra.`}
+              description={clientSearch || isReadonly ? undefined : `Aggiungi ${athletesLabel} dalla colonna destra.`}
             />
           ) : (
             <>
               <div className="flex flex-col gap-2">
                 {inGroupPagination.paginatedItems.map(c => (
-                  <ClientRow key={c.id} client={c} inGroup showRank={hasRank} loading={toggling === c.id} onToggle={() => onRequestToggle(c, true)} />
+                  <ClientRow key={c.id} client={c} inGroup showRank={hasRank} loading={toggling === c.id} onToggle={isReadonly ? undefined : () => onRequestToggle(c, true)} />
                 ))}
               </div>
               <Pagination {...inGroupPagination} />
@@ -56,7 +57,7 @@ export function GroupManageTab({
             <ManageStat label="Disponibili"   value={totalClients - clientsInGroup.length}  />
             <ManageStat label={`Totale ${terminology.clients.toLowerCase()}`} value={totalClients} />
           </div>
-          {hasGroupRanking && clientsInGroup.length < 2 && (
+          {hasGroupRanking && !isReadonly && clientsInGroup.length < 2 && (
             <div
               className="px-3 py-3 rounded-[3px] font-body text-[12px] text-white/35 leading-relaxed"
               style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}
@@ -68,7 +69,8 @@ export function GroupManageTab({
           )}
         </div>
 
-        {/* Col 3: Da aggiungere */}
+        {/* Col 3: Da aggiungere — solo chi può modificare */}
+        {!isReadonly && (
         <div className="rounded-[4px] p-5 rx-card">
           <SectionLabel color="rgba(255,255,255,0.3)" className="mb-3">
             ◈ Da aggiungere <span className="text-white/60 ml-1">({clientsNotInGroupCount})</span>
@@ -97,6 +99,7 @@ export function GroupManageTab({
             </>
           )}
         </div>
+        )}
 
       </div>
 
@@ -132,17 +135,19 @@ function ClientRow({ client, inGroup, showRank, loading, onToggle }) {
         </div>
       </div>
 
-      <button
-        onClick={onToggle}
-        disabled={loading}
-        className="font-display text-[10px] px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all disabled:opacity-40"
-        style={inGroup
-          ? { color: '#f87171', borderColor: 'rgba(248,113,113,0.2)', background: 'transparent' }
-          : { color: 'var(--rx-accent)', borderColor: 'color-mix(in srgb, var(--rx-accent) 20%, transparent)',   background: 'color-mix(in srgb, var(--rx-accent) 6%, transparent)' }
-        }
-      >
-        {loading ? '...' : inGroup ? 'RIMUOVI' : 'AGGIUNGI'}
-      </button>
+      {onToggle && (
+        <button
+          onClick={onToggle}
+          disabled={loading}
+          className="font-display text-[10px] px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all disabled:opacity-40"
+          style={inGroup
+            ? { color: '#f87171', borderColor: 'rgba(248,113,113,0.2)', background: 'transparent' }
+            : { color: 'var(--rx-accent)', borderColor: 'color-mix(in srgb, var(--rx-accent) 20%, transparent)',   background: 'color-mix(in srgb, var(--rx-accent) 6%, transparent)' }
+          }
+        >
+          {loading ? '...' : inGroup ? 'RIMUOVI' : 'AGGIUNGI'}
+        </button>
+      )}
     </div>
   )
 }
