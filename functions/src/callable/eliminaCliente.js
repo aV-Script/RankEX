@@ -2,6 +2,8 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { getAuth }          from 'firebase-admin/auth'
 import { requireOrgAccess } from '../shared/auth.js'
+import { getOrgCapabilities } from '../shared/orgModule.js'
+import { writeAudit, buildClientAuditDetails, AUDIT_CLIENT_DELETED } from '../shared/actor.js'
 
 const REGION = 'europe-west1'
 
@@ -27,13 +29,33 @@ export const eliminaCliente = onCall({ region: REGION }, async (request) => {
   // clientCount, users/ o Auth — il batch core è già stato applicato.
   const isRetry = !clientDoc.exists
   if (!isRetry) {
-    await deleteClientCore(db, orgId, clientRef, clientDoc.data().clientAuthUid ?? null)
+    const { clientAuthUid = null, name } = clientDoc.data()
+    // Letto prima della cancellazione: dopo il core il nome non c'è più
+    const capabilities = await readCapabilitiesOrNull(db, orgId)
+    await deleteClientCore(db, orgId, clientRef, clientAuthUid)
+    // Dopo il core: il cliente è davvero cancellato (un errore prima non lascia
+    // traccia di un'eliminazione mai avvenuta). Un retry non la ripete.
+    await writeAudit(db, request, AUDIT_CLIENT_DELETED,
+      buildClientAuditDetails(capabilities, { clientId, orgId, name }))
   }
 
   await cleanupClientData(db, orgId, clientId, clientRef)
 
   return isRetry ? { ok: true, alreadyDeleted: true } : { ok: true }
 })
+
+/**
+ * Capability del modulo per decidere se il nome entra nell'audit. Un modulo
+ * sconosciuto o un errore di lettura non devono bloccare la cancellazione (diritto
+ * all'oblio): si cancella e il nome resta fuori dal log (fail-closed).
+ */
+async function readCapabilitiesOrNull(db, orgId) {
+  try {
+    return await getOrgCapabilities(db, orgId)
+  } catch {
+    return null
+  }
+}
 
 /**
  * Account Auth, poi batch "core": doc cliente, users/{uid} e decremento clientCount.

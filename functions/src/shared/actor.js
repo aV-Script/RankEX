@@ -11,6 +11,8 @@ export { LOCAL_TIME_ZONE }
 
 export const AUDIT_PRIVACY_NOTICE_RECORDED = 'PRIVACY_NOTICE_RECORDED'
 export const AUDIT_ASSESSMENT_VOIDED       = 'ASSESSMENT_VOIDED'
+export const AUDIT_CLIENT_CREATED          = 'CLIENT_CREATED'
+export const AUDIT_CLIENT_DELETED          = 'CLIENT_DELETED'
 
 /**
  * Nome di chi agisce. Stesso criterio di aggiungiNota → authorName: nome del
@@ -46,11 +48,27 @@ export function buildPrivacyNotice(input, birthDate, { profile, request }) {
 }
 
 /**
- * Audit fire-and-forget. `details` solo identificativi (e versione
+ * `details` di CLIENT_CREATED / CLIENT_DELETED (TD-009). Il nome del cliente c'è solo
+ * se il modulo dell'org lo permette (`hasClientNameInAudit`), mai in base al dato:
+ * nei moduli sanitari nome + org = diagnosi in un log letto da super_admin
+ * (ADR-015 §2). `capabilities` assente o modulo sconosciuto = niente nome.
+ * @param {object|null} capabilities — da getOrgCapabilities
+ */
+export function buildClientAuditDetails(capabilities, { clientId, orgId, name }) {
+  return capabilities?.hasClientNameInAudit === true
+    ? { clientId, clientName: name, orgId }
+    : { clientId, orgId }
+}
+
+/**
+ * Audit che non fa mai fallire l'operazione (errori ignorati). Restituisce la
+ * promessa: chi deve garantire la traccia la attende prima di rispondere, perché
+ * dopo il return di una callable l'istanza può essere fermata. `details` solo identificativi (e versione
  * dell'informativa): mai nomi, valori, motivi o note — nome + org = diagnosi.
+ * Unica eccezione: buildClientAuditDetails, che decide per modulo.
  */
 export function writeAudit(db, request, action, details) {
-  db.collection('audit_logs').add({
+  return db.collection('audit_logs').add({
     action,
     uid:       request.auth?.uid ?? null,
     email:     request.auth?.token?.email ?? null,

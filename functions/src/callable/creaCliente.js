@@ -9,7 +9,10 @@ import {
 import { isAtClientLimit }  from '../shared/plans.js'
 import { getOrgCapabilities } from '../shared/orgModule.js'
 import { calcAge }          from '../shared/percentile.js'
-import { buildPrivacyNotice, writeAudit, AUDIT_PRIVACY_NOTICE_RECORDED } from '../shared/actor.js'
+import {
+  buildPrivacyNotice, writeAudit, buildClientAuditDetails,
+  AUDIT_PRIVACY_NOTICE_RECORDED, AUDIT_CLIENT_CREATED,
+} from '../shared/actor.js'
 
 const REGION = 'europe-west1'
 
@@ -150,15 +153,8 @@ export const creaCliente = onCall({ region: REGION }, async (request) => {
     throw new HttpsError('internal', `Errore salvataggio Firestore: ${err.message}`)
   }
 
-  // Audit log — fire and forget
-  db.collection('audit_logs').add({
-    action:    'CLIENT_CREATED',
-    uid:       request.auth?.uid ?? null,
-    email:     request.auth?.token?.email ?? null,
-    timestamp: new Date().toISOString(),
-    details:   { clientId, clientName: data.name, orgId },
-    env:       'functions',
-  }).catch(() => {})
+  await writeAudit(db, request, AUDIT_CLIENT_CREATED,
+    buildClientAuditDetails(capabilities, { clientId, orgId, name: data.name }))
 
   return { id: clientId, ...data, email, clientAuthUid: clientUid }
 })
@@ -204,16 +200,8 @@ async function createClientWithoutLogin(db, request, { orgId, trainerId, formDat
     throw new HttpsError('internal', `Errore salvataggio Firestore: ${err.message}`)
   }
 
-  // Solo identificativi: nome + org = diagnosi in un log letto da super_admin
-  // (ADR-015 §2).
-  db.collection('audit_logs').add({
-    action:    'CLIENT_CREATED',
-    uid:       request.auth?.uid ?? null,
-    email:     request.auth?.token?.email ?? null,
-    timestamp: new Date().toISOString(),
-    details:   { clientId, orgId },
-    env:       'functions',
-  }).catch(() => {})
+  await writeAudit(db, request, AUDIT_CLIENT_CREATED,
+    buildClientAuditDetails(capabilities, { clientId, orgId, name: data.name }))
 
   if (privacyNotice) {
     writeAudit(db, request, AUDIT_PRIVACY_NOTICE_RECORDED, {

@@ -283,12 +283,15 @@ describe('creaCliente — moduli con login (PT, soccer) invariati', () => {
     expect(clientDocs()).toEqual([])
   })
 
-  it('audit CLIENT_CREATED con il nome, come prima', async () => {
-    setOrg('personal_training')
-    await call({ ...ANAGRAFICA, email: 'anna@example.com', password: 'Password1' })
-    await flush()
-    expect(db.audit[0].details).toMatchObject({ clientName: ANAGRAFICA.name, orgId: 'org1' })
-  })
+  it.each([['personal_training'], ['soccer_academy'], [null]])(
+    '%s: esattamente un audit CLIENT_CREATED, env functions, con il nome (TD-009)', async moduleType => {
+      setOrg(moduleType)
+      const res = await call({ ...ANAGRAFICA, email: 'anna@example.com', password: 'Password1' })
+      await flush()
+      expect(db.audit).toHaveLength(1)
+      expect(db.audit[0]).toMatchObject({ action: 'CLIENT_CREATED', env: 'functions', uid: 'trainer1' })
+      expect(db.audit[0].details).toEqual({ clientId: res.id, clientName: ANAGRAFICA.name, orgId: 'org1' })
+    })
 })
 
 describe('creaCliente — modulo non riconosciuto', () => {
@@ -298,5 +301,7 @@ describe('creaCliente — modulo non riconosciuto', () => {
       .rejects.toMatchObject({ code: 'failed-precondition' })
     expect(db.authCreated).toEqual([])
     expect(clientDocs()).toEqual([])
+    await flush()
+    expect(db.audit).toEqual([])
   })
 })

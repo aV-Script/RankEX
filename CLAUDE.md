@@ -1042,6 +1042,10 @@ azzera su mousemove/keypress/touchstart/scroll; chiamato in `App.jsx` con `profi
 `import { auditLog, AUDIT_ACTIONS } from 'utils/auditLog'`. **IMPORTANTE:** `getAuth(app)` in
 `auditLog.js` è chiamato dentro la funzione (lazy), non a livello di modulo: non spostarlo (conflitto con
 `setPersistence` in `auth.js`). Elenco azioni e punti di integrazione: vedi note.
+`CLIENT_CREATED` e `CLIENT_DELETED` non passano dal client: li scrivono solo `creaCliente` ed
+`eliminaCliente` (`writeAudit`, env `functions`, una voce per operazione). Il nome del cliente sta nei
+`details` solo se il modulo ha `hasClientNameInAudit` (PT e soccer sì, lipedema no, modulo sconosciuto no):
+criterio sul modulo (`getOrgCapabilities`), mai sul dato.
 
 ### Branching e CI/CD
 ```

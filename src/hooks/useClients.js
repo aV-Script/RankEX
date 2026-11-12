@@ -8,7 +8,6 @@ import { saveCampionamentoUseCase } from '../usecases/saveCampionamentoUseCase'
 import { saveXPUseCase }            from '../usecases/saveXPUseCase'
 import { useToast }                 from './useToast'
 import { getFirebaseErrorMessage }  from '../utils/firebaseErrors'
-import { auditLog, AUDIT_ACTIONS }  from '../utils/auditLog'
 
 const DEFAULT_CLIENT_LABEL = 'Cliente'
 
@@ -121,11 +120,6 @@ export function useClients(orgId, userId) {
 
     try {
       await deleteClientUseCase(orgId, clientId)
-      // Senza account (es. paziente lipedema) solo identificativi: dopo la
-      // cancellazione nessun dato identificativo resta nei log (ADR-015 §2/§4)
-      auditLog(AUDIT_ACTIONS.CLIENT_DELETED, snapshot?.clientAuthUid
-        ? { clientId, clientName: snapshot.name, orgId }
-        : { clientId, orgId })
       toastSuccess(`${clientLabel} eliminato`)
     } catch (err) {
       if (snapshot) setClients(prev => [...prev, snapshot])

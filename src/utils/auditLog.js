@@ -12,9 +12,7 @@ export const AUDIT_ACTIONS = {
   PASSWORD_CHANGED: 'auth.password_changed',
   EMAIL_CHANGED:    'auth.email_changed',
 
-  // Clienti
-  CLIENT_CREATED:  'client.created',
-  CLIENT_DELETED:  'client.deleted',
+  // Clienti (CLIENT_CREATED / CLIENT_DELETED li scrivono solo creaCliente / eliminaCliente)
   CAMPIONAMENTO:   'client.campionamento',
   BIA_RECORDED:    'client.bia',
 

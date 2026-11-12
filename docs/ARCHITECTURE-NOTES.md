@@ -1012,7 +1012,7 @@ con `aside` sticky, non esiste più `mobileOnly`/`window.innerWidth < 1024`.
 **Auth & Session:**
 - `ChangePasswordScreen` richiede re-auth con password temporanea prima di `updatePassword`
 - Session timeout client: 24 ore (era 7 giorni)
-- Audit log su: login, logout, creazione/eliminazione cliente, cambio password, cambio email, cambio ruolo membro, rimozione membro
+- Audit log su: login, logout, creazione/eliminazione cliente (da `creaCliente`/`eliminaCliente`, env `functions`), cambio password, cambio email, cambio ruolo membro, rimozione membro
 
 **Password policy** (`utils/validation.js`):
 ```
@@ -1100,8 +1100,10 @@ import { auditLog, AUDIT_ACTIONS } from 'utils/auditLog'
 // Azioni già integrate:
 AUDIT_ACTIONS.LOGIN / LOGIN_FAILED  → useLoginForm.js
 AUDIT_ACTIONS.LOGOUT                → firebase/services/auth.js
-AUDIT_ACTIONS.CLIENT_CREATED        → usecases/createClientUseCase.js
-AUDIT_ACTIONS.CLIENT_DELETED        → hooks/useClients.js
+CLIENT_CREATED / CLIENT_DELETED     → NON dal client: scritti solo da creaCliente / eliminaCliente
+                                       (functions/src/callable), env 'functions'; il nome nei details
+                                       solo se il modulo ha hasClientNameInAudit (PT/soccer sì, lipedema
+                                       no, modulo sconosciuto no) — buildClientAuditDetails in shared/actor.js
 AUDIT_ACTIONS.PASSWORD_CHANGED      → firebase/services/auth.js (changeTrainerPassword)
                                        + features/client/ChangePasswordScreen.jsx
 AUDIT_ACTIONS.EMAIL_CHANGED         → firebase/services/auth.js (changeUserEmail)

@@ -152,7 +152,7 @@ export const RUNBOOK_SUITES = [
           'Verificare il cliente nella lista',
           'Accedere col nuovo cliente → mustChangePassword attivo',
         ],
-        expected: ['Cliente creato con categoria/profileType/credenziali', 'clientCount +1', 'Audit log CLIENT_CREATED'],
+        expected: ['Cliente creato con categoria/profileType/credenziali', 'clientCount +1', 'Una sola voce audit CLIENT_CREATED (env "functions") con clientId, orgId e nome'],
       },
       {
         id: 'TP-009', usId: 'US-008', severity: 'blocker', title: 'Wizard nuovo cliente Soccer',
@@ -719,7 +719,7 @@ export const RUNBOOK_SUITES = [
           'Firebase Auth e users/: nessun nuovo account per i pazienti creati',
           'Dashboard paziente → menu "⋮": nessuna voce "Reset password"',
           'clientCount dell\'org +1 per ogni paziente; al limite del piano → schermata di blocco invece del wizard',
-          'audit_logs: CLIENT_CREATED con solo clientId e orgId, senza nome',
+          'audit_logs: una sola voce CLIENT_CREATED per paziente (env "functions") con solo clientId e orgId, senza nome',
         ],
         expected: [
           'Paziente creato senza account Auth né users/{uid}, email facoltativa',
@@ -738,8 +738,8 @@ export const RUNBOOK_SUITES = [
           'Gruppi, slot (clientIds/attendees/absentees) e ricorrenze: clientId assente',
           'workoutPlans e notifications del paziente: cancellati',
           'clientCount dell\'org -1',
-          'audit_logs: CLIENT_DELETED con solo clientId e orgId, senza nome',
-          'Ripetere su un cliente PT con account: cancellati anche users/{uid} e l\'account Auth',
+          'audit_logs: una sola voce CLIENT_DELETED (env "functions") con solo clientId e orgId, senza nome',
+          'Ripetere su un cliente PT con account: cancellati anche users/{uid} e l\'account Auth; audit CLIENT_DELETED con il nome',
           'Retry dopo interruzione: con un secondo paziente, simulare un errore dopo il batch core (emulatore o functions di dev con una eccezione temporanea — DevTools → Offline NON interrompe la Cloud Function, verifica solo il rollback della UI); se il doc paziente risulta già cancellato ma restano note/riferimenti, rilanciare "Elimina" (o chiamare eliminaCliente con lo stesso clientId) → risposta ok con alreadyDeleted, nessun residuo, clientCount decrementato una sola volta',
         ],
         expected: [

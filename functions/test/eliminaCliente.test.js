@@ -15,7 +15,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const db = vi.hoisted(() => ({
   docs: new Map(), authDeleted: [], recursive: [], failNextRecursiveDelete: false, denyAccess: false,
-  authError: null,
+  authError: null, audit: [],
 }))
 
 vi.mock('firebase-functions/v2/https', () => {
@@ -41,7 +41,11 @@ vi.mock('firebase-admin/firestore', () => {
     }
   }
   function collectionRef(path) {
-    return { path, id: path.split('/').pop(), ...query(path) }
+    return {
+      path, id: path.split('/').pop(), ...query(path),
+      doc: id => docRef(`${path}/${id}`),
+      add: async data => { if (path === 'audit_logs') db.audit.push(data) },
+    }
   }
   function docRef(path) {
     return { path, get: async () => docSnap(path), collection: name => collectionRef(`${path}/${name}`) }
@@ -144,6 +148,69 @@ beforeEach(() => {
   db.failNextRecursiveDelete = false
   db.denyAccess              = false
   db.authError               = null
+  db.audit                   = []
+})
+
+const flush = () => new Promise(resolve => setTimeout(resolve, 0))
+
+describe('eliminaCliente — audit CLIENT_DELETED (TD-009)', () => {
+  const deleteWithModule = async (moduleType, clientData) => {
+    seed(clientData)
+    db.docs.set(ORG, { clientCount: 2, ...(moduleType ? { moduleType } : {}) })
+    await call()
+    await flush()
+  }
+
+  it.each([['personal_training'], ['soccer_academy'], [null]])(
+    '%s: una sola voce, env functions, con il nome letto prima della cancellazione', async moduleType => {
+      await deleteWithModule(moduleType, { name: 'Marco', clientAuthUid: 'uidC1' })
+      expect(db.audit).toHaveLength(1)
+      expect(db.audit[0]).toMatchObject({ action: 'CLIENT_DELETED', env: 'functions', uid: 'trainer1' })
+      expect(db.audit[0].details).toEqual({ clientId: 'c1', clientName: 'Marco', orgId: 'org1' })
+    })
+
+  it('lipedema: solo clientId e orgId, nessun nome', async () => {
+    await deleteWithModule('lipedema', { name: 'Anna', clientAuthUid: null })
+    expect(db.audit).toHaveLength(1)
+    expect(db.audit[0].details).toEqual({ clientId: 'c1', orgId: 'org1' })
+    expect(JSON.stringify(db.audit)).not.toContain('Anna')
+  })
+
+  it('lipedema: il criterio è il modulo, non il dato (anche con clientAuthUid valorizzato)', async () => {
+    await deleteWithModule('lipedema', { name: 'Anna', clientAuthUid: 'uidX' })
+    expect(db.audit[0].details).toEqual({ clientId: 'c1', orgId: 'org1' })
+  })
+
+  it('modulo sconosciuto: cancella lo stesso, senza nome nell\'audit', async () => {
+    await deleteWithModule('modulo_inesistente', { name: 'Anna', clientAuthUid: null })
+    expect(db.docs.has(CLIENT)).toBe(false)
+    expect(db.audit).toHaveLength(1)
+    expect(db.audit[0].details).toEqual({ clientId: 'c1', orgId: 'org1' })
+  })
+
+  it('cancellazione fallita (errore Auth): nessun audit', async () => {
+    seed({ name: 'Marco', clientAuthUid: 'uidC1' })
+    db.authError = 'auth/internal-error'
+    await expect(call()).rejects.toMatchObject({ code: 'internal' })
+    await flush()
+    expect(db.audit).toEqual([])
+  })
+
+  it('accesso negato: nessun audit', async () => {
+    seed({ name: 'Marco' })
+    db.denyAccess = true
+    await expect(call()).rejects.toMatchObject({ code: 'permission-denied' })
+    await flush()
+    expect(db.audit).toEqual([])
+  })
+
+  it('retry su doc già cancellato: nessun secondo audit', async () => {
+    seed({ name: 'Marco' })
+    await call()
+    await call()
+    await flush()
+    expect(db.audit).toHaveLength(1)
+  })
 })
 
 describe('eliminaCliente — cancellazione completa', () => {

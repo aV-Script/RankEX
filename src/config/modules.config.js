@@ -58,23 +58,24 @@ export const CAPABILITY_KEYS = [
   'hasGroupRanking',     // Classifica / Campioni / Confronto / Analisi
   'hasWearable',
   'hasClientLogin',      // account Auth del cliente (ADR-010)
+  'hasClientNameInAudit', // nome del cliente nei details di CLIENT_CREATED/DELETED (TD-009)
 ]
 
 export const MODULE_CAPABILITIES = {
   [MODULES.PERSONAL_TRAINING]: {
     hasRank: true,  hasGamification: true,  hasPercentileTests: true,  hasAssessments: false,
     hasCategories: true,  hasPlayerRoles: false, hasProfileTypes: true,  hasBia: true,
-    hasGoals: true,  hasGroupRanking: true,  hasWearable: true,  hasClientLogin: true,
+    hasGoals: true,  hasGroupRanking: true,  hasWearable: true,  hasClientLogin: true,  hasClientNameInAudit: true,
   },
   [MODULES.SOCCER_ACADEMY]: {
     hasRank: true,  hasGamification: true,  hasPercentileTests: true,  hasAssessments: false,
     hasCategories: false, hasPlayerRoles: true,  hasProfileTypes: false, hasBia: false,
-    hasGoals: true,  hasGroupRanking: true,  hasWearable: true,  hasClientLogin: true,
+    hasGoals: true,  hasGroupRanking: true,  hasWearable: true,  hasClientLogin: true,  hasClientNameInAudit: true,
   },
   [MODULES.LIPEDEMA]: {
     hasRank: false, hasGamification: false, hasPercentileTests: false, hasAssessments: true,
     hasCategories: false, hasPlayerRoles: false, hasProfileTypes: false, hasBia: true,
-    hasGoals: false, hasGroupRanking: false, hasWearable: false, hasClientLogin: false,
+    hasGoals: false, hasGroupRanking: false, hasWearable: false, hasClientLogin: false, hasClientNameInAudit: false,
   },
 }
 

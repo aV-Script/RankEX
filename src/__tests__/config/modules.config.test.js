@@ -104,6 +104,7 @@ const EXPECTED_CAPABILITIES = {
   hasGroupRanking:    [true,  true,  false],
   hasWearable:        [true,  true,  false],
   hasClientLogin:     [true,  true,  false],
+  hasClientNameInAudit: [true, true, false],
 }
 const MODULE_ORDER = [MODULES.PERSONAL_TRAINING, MODULES.SOCCER_ACADEMY, MODULES.LIPEDEMA]
 

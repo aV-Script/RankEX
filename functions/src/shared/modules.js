@@ -22,20 +22,21 @@ export const SERVER_CAPABILITY_KEYS = [
   'hasGoals',
   'hasProfileTypes',
   'hasClientLogin',
+  'hasClientNameInAudit',
 ]
 
 export const MODULE_CAPABILITIES = {
   [MODULES.PERSONAL_TRAINING]: {
     hasGamification: true,  hasPercentileTests: true,  hasAssessments: false, hasBia: true,
-    hasGoals: true,  hasProfileTypes: true,  hasClientLogin: true,
+    hasGoals: true,  hasProfileTypes: true,  hasClientLogin: true,  hasClientNameInAudit: true,
   },
   [MODULES.SOCCER_ACADEMY]: {
     hasGamification: true,  hasPercentileTests: true,  hasAssessments: false, hasBia: false,
-    hasGoals: true,  hasProfileTypes: false, hasClientLogin: true,
+    hasGoals: true,  hasProfileTypes: false, hasClientLogin: true,  hasClientNameInAudit: true,
   },
   [MODULES.LIPEDEMA]: {
     hasGamification: false, hasPercentileTests: false, hasAssessments: true,  hasBia: true,
-    hasGoals: false, hasProfileTypes: false, hasClientLogin: false,
+    hasGoals: false, hasProfileTypes: false, hasClientLogin: false, hasClientNameInAudit: false,
   },
 }
 
