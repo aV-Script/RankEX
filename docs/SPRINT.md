@@ -7,7 +7,7 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-# SPRINT #17 — EPIC-010 Lipedema Edition, ottava ondata (dati del modulo, audit, sola lettura, verifiche rimaste) — aperto il 2026-11-11
+# SPRINT #17 — EPIC-010 Lipedema Edition, ottava ondata (dati del modulo, audit, sola lettura, verifiche rimaste) — aperto il 2026-11-11, chiuso il 2026-11-12 (goal raggiunto, 5 voci su 5 DONE)
 
 **Branch:** `feature/lipedema-module`. Commit solo in locale, nessun push, nessun merge;
 `lipidemia/` e `mobile-app/` non si committano. Deploy solo su `rankex-dev`. Il rilascio e' il #18.
@@ -89,22 +89,22 @@ legale), STORY-026 (retention, decisione utente), merge e deploy prod (#18), sta
 
 | Task | Status | Note |
 |------|--------|------|
-| 1a. ADR-020 (tech-lead) | READY | Prima del codice. |
-| 1b. Rules + test rules (falliscono senza modifica) + UI misure disabilitata in lipedema senza informativa | BACKLOG | Dopo 1a. Review high. |
-| 1c. Deploy `rules:dev` + verifica dal vivo BUG-003; TD-005/TD-006 RESOLVED | BACKLOG | Scrittura diretta da console. |
-| 2a. Callable `creaCliente`/`eliminaCliente` scrivono l'audit; tolte le scritture client | BACKLOG | Dopo 1. Review high. |
-| 2b. Unit test functions + `deploy:dev` functions + verifica `audit_logs` (Admin SDK) | BACKLOG | Lipedema senza nome, PT con nome. |
-| 2c. Tabella Audit log in CLAUDE.md e ARCHITECTURE-NOTES.md | BACKLOG | |
-| 3a. Censimento grep `PAGES`/`ORG_PAGES` (readonly) | DONE | Approvato 11/11: entrano calendario (CalendarHeader, Month/Week/DayView, SlotPopup), gruppi (GroupsPage, GroupManageTab, GroupDetailHeader rinomina/elimina, GroupNotes) e ricorrenze (RecurrenceDetailHeader, Period/Schedule/ClientsSection). ProfilePage (email/password propria) resta attiva. ClientsPage e ClientDashboard gia' coperti. |
-| 3b. BUG-022 -> DUPLICATE di BUG-007; fix calendario + gruppi + ricorrenze | BACKLOG | Dopo approvazione 3a. Review medium. |
-| 3c. Caso `qa:dev` in `roles.spec.js` (0 azioni di scrittura) + prova negativa + runbook TP-084 | BACKLOG | |
-| 3d. VERIFIED dal vivo, staff_readonly, desktop e 360 px, PT/Soccer/Lipedema | BACKLOG | |
-| 4a. Playwright firefox + stampa PDF paziente da Firefox | READY | Installazione in apertura. |
-| 4b. "Professionista/i" nei PDF gruppo e paziente (1 e 2 esaminatori) | BACKLOG | |
-| 4c. Banner RICARICA (`deploy:app:dev` a pagina aperta) | BACKLOG | In coda, mai durante `qa:dev`. |
-| 5. TD-013 + test Vitest sul cursore del `Button` disabilitato | BACKLOG | Solo se resta capacita'; altrimenti candidato #18. |
-| Regola "no deploy hosting durante `qa:dev`" in CLAUDE.md | READY | Una riga, sezione QA. |
-| `npm run qa:dev` finale + unit + lint + build | BACKLOG | Dopo tutti i deploy. |
+| 1a. ADR-020 (tech-lead) | DONE | `68e6e33`, opzione (a). |
+| 1b. Rules + test rules + UI misure disabilitata in lipedema senza informativa | DONE | `04a676c`. Test rules 129/129, 9 nuovi falliscono con le rules precedenti. Review high. |
+| 1c. Deploy `rules:dev` + verifica dal vivo BUG-003; TD-005/TD-006 | DONE | Scrittura diretta (client SDK) come `qadev.<modulo>.trainer`; BUG-003 VERIFIED, TD-005/006 RESOLVED. Runbook TP-084. |
+| 2a. Callable `creaCliente`/`eliminaCliente` scrivono l'audit; tolte le scritture client | DONE | Capability `hasClientNameInAudit` nelle due copie + parity. `224d1bb`. |
+| 2b. Unit test functions + `deploy:dev` functions + verifica `audit_logs` | DONE | functions 222/222; lipedema 1+1 senza nome, PT 1+1 con `clientName`. TD-009 RESOLVED. |
+| 2c. Tabella Audit log in CLAUDE.md e ARCHITECTURE-NOTES.md | DONE | Commit docs `c2b08e7`/`c640e76`. |
+| 3a. Censimento grep (readonly) | DONE | Approvato 11/11. |
+| 3b. BUG-022 -> DUPLICATE di BUG-007; fix calendario + gruppi + ricorrenze | DONE | `1ad3f02`. |
+| 3c. Caso `qa:dev` in `roles.spec.js` + prova negativa + runbook TP-085 | DONE | 9 nuovi casi; con sessione trainer il caso staff fallisce (atteso 0, trovati 9). |
+| 3d. VERIFIED dal vivo, staff_readonly, 1280 e 360 px, PT/Soccer/Lipedema | DONE | BUG-007 e BUG-024 VERIFIED (`86d6a37`). |
+| 4a. Firefox + stampa PDF paziente | DONE (parziale) | Layout di stampa VERIFIED; paginazione reale non verificabile con Playwright (`page.pdf` solo Chromium). |
+| 4b. "Professionista/i" nei PDF (1 e 2 esaminatori) | DONE | PDF paziente VERIFIED; PDF gruppo senza etichetta esaminatori: non applicabile. |
+| 4c. Banner RICARICA | DONE | Comparso dopo 295 s sul deploy reale di `1ad3f02`, sparito dopo RICARICA. |
+| 5. TD-013 + test Vitest sul cursore del `Button` disabilitato | DONE | `511bfe0`. TD-013 RESOLVED, unit 637/637. Runbook TP-086. |
+| Regola "no deploy hosting durante `qa:dev`" in CLAUDE.md | DONE | `3f6bebc` (+ nota deploy functions con ipv4first). |
+| `npm run qa:dev` finale + unit + lint + build | DONE | qa:dev 30/30, unit 637/637. |
 | STORY-044 / STORY-029 (b)(c) / STORY-026 | fuori sprint | Canvas / utente-legale / decisione utente. |
 
 **Verifica prevista degli action item della retrospettiva #16 (a fine #17):**
@@ -128,6 +128,63 @@ legale), STORY-026 (retention, decisione utente), merge e deploy prod (#18), sta
 **Rischi:** la voce 3 e' la piu' larga (censimento aperto): il perimetro lo fissa l'utente sul censimento,
 il resto va in TECH-DEBT. Le voci 1 e 2 toccano rules e functions: review high obbligatoria e nessun deploy
 in prod. Principio: finire > iniziare; la voce 5 parte solo con 1-4 chiuse.
+
+
+## Goal
+EPIC-010 Lipedema verso il go-live: chiudere i dati del modulo (badge e misure), la coerenza dell'audit, la
+sola lettura per `staff_readonly` e le verifiche rimaste. **Raggiunto**, 5 voci su 5.
+
+## Completato
+- **Voce 1** (`68e6e33` ADR-020, `04a676c` rules): rules deployate su rankex-dev. Dal vivo come
+  `qadev.<modulo>.trainer`: lipedema `badges.*`/`badgeShowcase` permission-denied, `peso` con informativa
+  accettato e senza permission-denied; PT e Soccer accettati; dati ripristinati. UI: input e AGGIORNA
+  disabilitati con banner REGISTRA INFORMATIVA (1280 e 360; staff vede il banner senza form). BUG-003
+  VERIFIED, TD-005/TD-006 RESOLVED. TP-084.
+- **Voce 2** (`224d1bb`): audit creazione/cancellazione solo dalle callable, `hasClientNameInAudit`
+  (lipedema senza nome); functions 222/222, `deploy:dev` OK; verifica su `audit_logs` rankex-dev. TD-009 RESOLVED.
+- **Voce 3** (`1ad3f02`): calendario, gruppi, ricorrenze in sola lettura (anche banner "sessioni passate non
+  chiuse" nascosto); QA dal vivo a 1280 e 360 px nei 3 moduli: 0 azioni di scrittura. `qa:dev` 30/30 con
+  prova negativa. BUG-007 e BUG-024 VERIFIED, BUG-022 DUPLICATE. TP-085.
+- **Voce 4:** layout di stampa Firefox 157 VERIFIED; etichetta esaminatori VERIFIED nel PDF paziente (1 e 2);
+  banner RICARICA VERIFIED (295 s, polling 5 min).
+- **Voce 5** (`511bfe0`): 6 bottoni migrati a `Button`, test sul cursore; dal vivo su rankex/violet/carbon a
+  1280/360 px. TD-013 RESOLVED. TP-086.
+- **Regola di processo** (`3f6bebc`) in CLAUDE.md.
+- **Deploy:** rankex-dev hosting a `511bfe0`, rules a `04a676c`, functions a `224d1bb`. Mai su
+  fitquest-60a09. Nessun dato manuale residuo in `demo-lipedema` (tutto `E2E-` o ripristinato).
+
+## Verificato dal vivo / non verificato
+- **Verificato dal vivo:** BUG-003, TD-009 (`audit_logs`), BUG-007/024, layout stampa Firefox, etichetta
+  esaminatori, banner RICARICA, TD-013.
+- **Non verificato:** paginazione reale del PDF in Firefox; GYM (nessuna org QA); TP-084/085/086 non eseguiti
+  come runbook formale (coperti dalle verifiche sopra); popup slot e dettaglio gruppo non coperti da `qa:dev`
+  (le org `qa-*` non hanno slot/gruppi).
+
+## Non completato (motivo)
+- **Stampa su carta / paginazione PDF in Firefox:** non automatizzabile (`page.pdf` solo Chromium), resta
+  all'utente.
+- **STORY-044** (canvas prima), **STORY-029 (b)/(c)** (DPA e testo informativa, utente/legale),
+  **STORY-026** (retention, decisione utente): fuori sprint.
+
+## Blockers
+- Nessuno tecnico. Prod (`fitquest-60a09`) resta indietro su rules (ADR-020), functions (TD-009) e hosting
+  fino al rilascio. Attenzione: `deploy.yml` deploya le rules prod a ogni merge su `main`.
+- Il deploy delle functions richiede `NODE_OPTIONS=--dns-result-order=ipv4first` (senza: "Failed to list
+  functions").
+
+## Tech debt emerso
+- Script `deploy`/`deploy:dev` di `functions/` senza `cross-env`/ipv4first.
+- `qa:dev` non copre popup slot e dettaglio gruppo (seed senza slot/gruppi).
+- L'elenco esaminatori del PDF paziente usa l'ultima valutazione per test (coerente con la tabella; nota,
+  non un bug).
+
+## Prossimo sprint (candidati)
+Proposta, non pianificazione (decide l'utente):
+1. **Rilascio:** merge su dev/main, deploy prod di rules + functions + hosting, release-manager, CHANGELOG.
+2. STORY-044 (da ridisegnare sul canvas); requisiti non-codice STORY-029 (b)/(c) e STORY-026 (utente).
+3. Seed `qa:dev` con slot e gruppo per coprire popup e dettaglio in `roles.spec`.
+4. Script functions con `cross-env`/ipv4first.
+5. Stampa su carta (utente).
 
 ---
 
