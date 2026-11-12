@@ -11,7 +11,7 @@ import { ClientCard }                    from './clients-page/ClientCard'
 import { Pagination }                    from '../../components/common/Pagination'
 import { NewClientView }                 from './NewClientView'
 import { Skeleton }                      from '../../components/common/Skeleton'
-import { EmptyState }                    from '../../components/ui'
+import { EmptyState, Button }            from '../../components/ui'
 import { ReadonlyGuard }                 from '../../components/common/ReadonlyGuard'
 import { PAGINATION_PAGE_SIZE }          from '../../config/app.config'
 
@@ -71,12 +71,14 @@ export function ClientsPage({ orgId, clients = [], clientsLoading: loading = fal
       {/* ── Sidebar filtri — solo desktop ────────────────────────────────────── */}
       <aside className="hidden lg:flex flex-col w-64 xl:w-72 shrink-0 border-r border-white/[.05] p-6 gap-5 sticky top-0 h-screen overflow-y-auto">
         <ReadonlyGuard>
-          <button
+          <Button
+            variant="primary"
+            padding="10px 16px"
             onClick={() => setView('new')}
-            className="rx-btn-primary font-display text-[11px] tracking-[1.5px] py-2.5 px-4 rounded-[3px] cursor-pointer"
+            className="text-[11px]! tracking-[1.5px]!"
           >
             + NUOVO {terminology.client.toUpperCase()}
-          </button>
+          </Button>
         </ReadonlyGuard>
 
         <SidebarSection label="Ricerca">
@@ -154,12 +156,14 @@ export function ClientsPage({ orgId, clients = [], clientsLoading: loading = fal
               className="input-base input-compact flex-1"
             />
             <ReadonlyGuard>
-              <button
+              <Button
+                variant="primary"
+                padding="6px 12px"
                 onClick={() => setView('new')}
-                className="rx-btn-primary font-display text-[10px] tracking-[1.5px] py-1.5 px-3 rounded-[3px] cursor-pointer shrink-0"
+                className="text-[10px]! tracking-[1.5px]! shrink-0"
               >
                 + NUOVO
-              </button>
+              </Button>
             </ReadonlyGuard>
           </div>
 

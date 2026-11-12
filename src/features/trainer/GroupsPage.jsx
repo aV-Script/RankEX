@@ -97,12 +97,14 @@ export function GroupsPage({ orgId, clients = [] }) {
             className="input-base input-compact flex-1"
           />
           {!isReadonly && (
-            <button
+            <Button
+              variant={showNew ? 'secondary' : 'primary'}
+              padding="6px 12px"
               onClick={() => setShowNew(true)}
-              className={`${showNew ? 'rx-btn-secondary' : 'rx-btn-primary'} font-display text-[10px] tracking-[1.5px] py-1.5 px-3 rounded-[3px] cursor-pointer shrink-0`}
+              className="text-[10px]! tracking-[1.5px]! shrink-0"
             >
               + {byGroupGender(terminology, 'NUOVO', 'NUOVA')}
-            </button>
+            </Button>
           )}
         </div>
       </div>

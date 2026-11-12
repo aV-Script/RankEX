@@ -4,6 +4,7 @@ import {
   ResponsiveContainer, CartesianGrid,
 } from 'recharts'
 import { PrivacyNoticeBanner, PRIVACY_BANNER_ID } from '../../assessments/PrivacyNotice'
+import { Button } from '../../../components/ui'
 
 function MisureLineChart({ data = [], dataKey, label, unit, color }) {
   const sorted = [...data]
@@ -164,14 +165,16 @@ export function MisureSection({ client, color, readonly, onUpdate, needsPrivacyN
                 aria-describedby={describedBy}
               />
             </div>
-            <button
+            <Button
+              variant="primary"
+              padding="8px 16px"
               onClick={handleSave}
               disabled={saving || needsPrivacyNotice}
               aria-describedby={describedBy}
-              className="rx-btn-primary font-display text-[10px] tracking-[1.5px] px-4 py-2 rounded-[3px] cursor-pointer disabled:opacity-50"
+              className="text-[10px]! tracking-[1.5px]!"
             >
               {saving ? '…' : 'AGGIORNA'}
-            </button>
+            </Button>
           </div>
         )}
 

@@ -7,6 +7,7 @@ import { updateClient } from '../../../../firebase/services/clients'
 import { getAvatarsForOrg, isAvatarUnlocked } from '../../../../config/avatars.config'
 import { purchaseAvatarUseCase } from '../../../../usecases/purchaseAvatarUseCase'
 import { useToast } from '../../../../hooks/useToast'
+import { Button } from '../../../../components/ui'
 import { AvatarDisplay } from './AvatarDisplay'
 
 export function AvatarPicker({ client, clientId, orgId, color }) {
@@ -128,14 +129,15 @@ export function AvatarPicker({ client, clientId, orgId, color }) {
         })}
       </div>
 
-      <button
+      <Button
+        variant="primary"
+        padding="12px 16px"
         onClick={handleSave}
         disabled={saving || !isDirty}
-        className="w-full max-w-md rx-btn-primary font-display tracking-[3px] py-3 rounded-[4px] cursor-pointer disabled:opacity-50"
-        style={{ fontSize: 10 }}
+        className="w-full max-w-md text-[10px]! tracking-[3px]!"
       >
         {saveLabel}
-      </button>
+      </Button>
     </div>
   )
 }

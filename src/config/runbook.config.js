@@ -1296,6 +1296,19 @@ export const RUNBOOK_SUITES = [
         ],
         expected: ['Nessuna azione di scrittura visibile né apribile per staff_readonly su Calendario, Gruppi e Ricorrenze; dettagli, analisi, note e ESPORTA PDF restano consultabili; il trainer è invariato'],
       },
+      {
+        id: 'TP-086', usId: 'TD-013', severity: 'nice', title: 'Sei bottoni primari passati a Button: aspetto su temi e 360 px',
+        preconditions: 'Account trainer e client; tema predefinito e almeno due temi non predefiniti (es. Mint, Carbon); org con clienti, gruppi e una scheda allenamento.',
+        steps: [
+          'Clienti: "+ NUOVO CLIENTE" in sidebar (desktop) e "+ NUOVO" accanto alla ricerca (mobile, 360 px) pieni, stessa dimensione di prima, aprono il wizard',
+          'Gruppi: "+ NUOVO/NUOVA" pieno; con il form di creazione aperto diventa secondario (tinta con bordo)',
+          'Scheda allenamento: CREA SCHEDA al 50% con cursore non consentito mentre salva',
+          'Client → Avatar: SALVA al 50% e cursore non consentito se nulla è cambiato, a piena larghezza (max 448 px)',
+          'Tab Misure: AGGIORNA al 50% senza informativa, con aria-describedby sul banner',
+          'Ripetere con Mint e Carbon: testo scuro leggibile sul colore del tema',
+        ],
+        expected: ['Aspetto e comportamento invariati rispetto a prima della migrazione; disabilitati sempre al 50% con cursore non consentito'],
+      },
     ],
   },
 ]

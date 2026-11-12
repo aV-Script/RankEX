@@ -236,5 +236,5 @@ fuorviante ("Rank F · Media 0").
 **Dove:** `<button className="rx-btn-primary">` in `ClientsPage` (righe ~76 e ~159), `GroupsPage` (~99, alterna `rx-btn-secondary`/`rx-btn-primary`), `WorkoutPlanForm` (CREA SCHEDA, ~317), `AvatarPicker` (~134), `MisureSection` (~158).
 **Rischio:** basso. Usano la classe globale (colore e testo coerenti), ma disabilitato, padding e dimensioni sono ricopiati a mano e possono divergere da `Button` (es. `disabled:opacity-40` invece di 0,5).
 **Proposta:** passarli a `Button variant="primary"` (e `secondary` per `GroupsPage` a form aperto), poi valutare se `.rx-btn-primary` serve ancora.
-**Status:** OPEN (candidato Sprint #17)
+**Status:** RESOLVED (Sprint #17: 6 bottoni migrati a `Button`, `.rx-btn-primary` resta in `index.css` per decisione dell'utente; test cursore in `Button.test.js`; verifica dal vivo al deploy)
 

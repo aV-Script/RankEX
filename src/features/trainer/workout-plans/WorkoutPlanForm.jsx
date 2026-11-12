@@ -311,13 +311,15 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
           <Button variant="neutral" size="sm" onClick={onBack}>
             ANNULLA
           </Button>
-          <button
+          <Button
+            variant="primary"
+            padding="8px 24px"
             onClick={handleSubmit}
             disabled={loading}
-            className="rx-btn-primary font-display text-[11px] tracking-[1.5px] px-6 py-2 rounded-[3px] cursor-pointer disabled:opacity-40"
+            className="text-[11px]! tracking-[1.5px]!"
           >
             {loading ? '…' : initialData ? 'SALVA' : 'CREA SCHEDA'}
-          </button>
+          </Button>
         </div>
       </div>
 
