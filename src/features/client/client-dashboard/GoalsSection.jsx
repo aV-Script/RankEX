@@ -7,6 +7,7 @@ import { getTestsForCategoria }       from '../../../constants'
 import { getGoalDisplayStatus }       from '../../../utils/goals'
 import { ICON_GOALS }                 from './clientDashboardIcons'
 import { toLocalDateStr } from '../../../utils/calendarUtils'
+import { DEFAULT_TERMINOLOGY } from '../../../config/modules.config'
 
 const STATUS_META = {
   active:    { label: 'In corso',   color: 'var(--rx-accent)' },
@@ -26,7 +27,7 @@ const STATUS_META = {
  * @param {string}  color    — colore accent del profilo
  * @param {boolean} readonly — true per staff_readonly
  */
-export function GoalsSection({ client, orgId, color, readonly = false }) {
+export function GoalsSection({ client, orgId, color, readonly = false, isClientView = false, terminology = DEFAULT_TERMINOLOGY }) {
   const { goals, loading, handleAddGoal, handleCancelGoal } = useGoals(orgId, client.id)
   const tests = getTestsForCategoria(client.categoria)
 
@@ -157,9 +158,11 @@ export function GoalsSection({ client, orgId, color, readonly = false }) {
             color={color}
             icon={ICON_GOALS}
             title="Nessun obiettivo"
-            description={readonly
-              ? 'Quando il tuo coach fissa un obiettivo su un test, lo trovi qui.'
-              : 'Fissa un target su un test specifico per motivare il prossimo campionamento.'}
+            description={isClientView
+              ? `Quando il tuo ${terminology.trainer.toLowerCase()} fissa un obiettivo su un test, lo trovi qui.`
+              : readonly
+                ? 'Nessun obiettivo fissato finora.'
+                : 'Fissa un target su un test specifico per motivare il prossimo campionamento.'}
           />
         ) : (
           <div className="flex flex-col gap-2">

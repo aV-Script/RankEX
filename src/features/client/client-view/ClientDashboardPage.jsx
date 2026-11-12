@@ -259,7 +259,7 @@ export function ClientDashboardPage({
 
               {/* Obiettivi — sola lettura, li fissa il trainer */}
               {testTab === 'obiettivi' && profile.hasTests && orgId && (
-                <GoalsSection client={{ ...client, id: clientId }} orgId={orgId} color={displayColor} readonly />
+                <GoalsSection client={{ ...client, id: clientId }} orgId={orgId} color={displayColor} readonly isClientView />
               )}
 
               {/* BIA */}

@@ -467,7 +467,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
           )}
 
           {tab === 'obiettivi' && capabilities.hasGoals && (
-            <GoalsSection client={client} orgId={orgId} color={brandGreen} readonly={readonly} />
+            <GoalsSection client={client} orgId={orgId} color={brandGreen} readonly={readonly} terminology={terminology} />
           )}
 
           {tab === 'calendario' && (

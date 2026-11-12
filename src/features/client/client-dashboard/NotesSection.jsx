@@ -87,7 +87,7 @@ export function NotesSection({ orgId, clientId, color, author, readonly = false,
             color={color}
             icon={<IconDocument size={20} />}
             title="Nessuna nota"
-            description="Aggiungi la prima nota per tenere traccia dei progressi o delle osservazioni."
+            description={getEmptyDescription(author, readonly, terminology)}
           />
         ) : (
           <div className="flex flex-col gap-3">
@@ -263,4 +263,11 @@ function formatDate(iso) {
   if (!iso) return ''
   const d = new Date(iso)
   return d.toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+// Il cliente e staff_readonly non possono scrivere note: niente invito ad aggiungerne (BUG-031)
+function getEmptyDescription(author, readonly, terminology) {
+  if (author?.role === 'client') return `Il tuo ${terminology.trainer.toLowerCase()} non ha ancora scritto note.`
+  if (readonly) return 'Nessuna nota scritta finora.'
+  return 'Aggiungi la prima nota per tenere traccia dei progressi o delle osservazioni.'
 }

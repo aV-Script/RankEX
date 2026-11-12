@@ -325,7 +325,7 @@ Formato:
 ## [BUG-031] Quattro difetti minori dell'area cliente e del login
 **Severity:** P3
 **Modulo/Ruolo:** area cliente e login (PT/GYM e soccer; lipedema non ha area cliente), ruolo client. Trovato nel censimento del 12/11/2026 su `ab65b45`.
-**Status:** OPEN — punti 1 e 4 FIXED nel codice (Sprint #20, STORY-046, TP-091); punti 2 e 3 da fare (fix fuori voce)
+**Status:** FIXED nel codice (Sprint #20): punti 1 e 4 con STORY-046 (TP-091), punti 2 e 3 fuori voce (TP-093); allievo soccer in area cliente vede ancora "trainer": terminologia = BUG-008
 **Reproduction steps / Actual:**
 1. `src/features/client/ChangePasswordScreen.jsx`: nessun `<form>`/`onSubmit`, Invio non invia (bottone con `onClick={handleSubmit}` a riga 107) → STORY-046.
 2. `src/features/client/client-dashboard/NotesSection.jsx:90`: l'empty state "Aggiungi la prima nota per tenere traccia…" compare anche al cliente `readonly` (montata `readonly` in `ClientDashboardPage.jsx:337`), che non può scrivere note. Fix diretto fuori voce.

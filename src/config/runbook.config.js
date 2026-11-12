@@ -554,6 +554,17 @@ export const RUNBOOK_SUITES = [
         ],
         expected: ['Assente e Saltata distinte da Pianificata', 'Stima XP solo per sessioni pianificate da oggi in poi', 'Riepilogo e prossime corretti', 'Nessuna gamification in lipedema'],
       },
+      {
+        id: 'TP-093', usId: 'BUG-031', severity: 'nice', title: 'Note e obiettivi vuoti: nessun invito a scrivere per chi è in sola lettura',
+        preconditions: 'Cliente PT e allievo Soccer senza note né obiettivi; un account staff_readonly della stessa org.',
+        steps: [
+          'Cliente PT → Profilo → Note: "Il tuo trainer non ha ancora scritto note." (nessun "Aggiungi la prima nota")',
+          'Cliente PT → Test → Obiettivi: "Quando il tuo trainer fissa un obiettivo su un test, lo trovi qui."',
+          'staff_readonly → dashboard del cliente → Note e Obiettivi: "Nessuna nota scritta finora." / "Nessun obiettivo fissato finora."',
+          'Trainer → stesse tab: testi invariati che invitano ad aggiungere',
+        ],
+        expected: ['Nessun testo invita ad agire chi non può farlo; nella vista trainer il termine segue il modulo. Allievo Soccer: oggi "trainer" (terminologia area cliente = BUG-008)'],
+      },
     ],
   },
   {
