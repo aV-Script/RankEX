@@ -225,6 +225,103 @@ Proposta, non pianificazione (decide l'utente):
 4. STORY-044 (da ridisegnare sul canvas).
 5. Stampa su carta (utente); mobile-app (parcheggiata).
 
+## Retrospettiva
+Dati: 11 commit (`9024b96`..`629b607`: 2 apertura/chiusura docs, 1 chore (1a), 1 fix (1b), 1 test e2e (1c),
+1 feature (1d), 1 docs/checklist (2), 3 docs di esito del rilascio, 1 docs CLAUDE.md); voci 1a-1d, 2, 3 DONE,
+voce 4 fuori sprint (STORY-029); 0 bug nuovi in BUGS.md, 0 debiti nuovi in TECH-DEBT.md; rilascio prod in ~12
+min senza rollback. Rework: 3 (primo `deploy:dev` fallito per l'import di 1b, `test.fail()` e settimana al
+setup di 1c corretti dalla review, 3 HIGH della review della checklist).
+
+**Verifica degli action item del #17**
+1. Script `deploy` di `functions/` con ipv4first: **fatto**. `0dbd23d`: `deploy`, `deploy:dev`, `serve`, `logs`
+   con `cross-env`; usato davvero nel `deploy:dev` e nel deploy prod senza variabile manuale. Residuo: CLAUDE.md
+   cita ancora `NODE_OPTIONS` per i comandi del rollback con `firebase` globale (previsto, non e' lo script npm).
+2. Audit/side effect attesi prima del return: **fatto, oltre la misura**. `d2682a8`: 4 `writeAudit` attesi, test
+   `sideEffectsAwaited` (copre anche commit, recursiveDelete, createUser, deleteUser/deleteUsers), regola in
+   CLAUDE.md; `grep` su `callable/` senza chiamate non attese. Il test di scansione e' il controllo
+   automatico richiesto.
+3. Seed `qa:dev` con slot e gruppo e casi staff_readonly: **fatto**. `b85a14b`: 6 casi in `roles.spec.js`,
+   prova negativa (trainer: azioni presenti), teardown che cancella slot e gruppo, `qa:dev` 36/36. Limite: il
+   caso del lunedi' per lo slot non e' stato esercitato (in "Non verificato").
+4. Checklist di rilascio: **parziale**. Scritta in CLAUDE.md (`f086405`), seguita nell'ordine A, 3 HIGH di review
+   corretti prima dell'uso. Ma "0 passi fuori elenco" non regge: il commit delle functions in prod non era
+   registrato (CHANGELOG fermo al 14/09), e' stato stimato (`744f6f9`) e confermato dall'utente; i rollback non
+   sono mai stati eseguiti.
+5. Voci di scope confermate sul codice: **parziale, non dimostrabile**. Voce 4 uscita per STORY-029 (esterna),
+   non per scope errato; ma le voci 1a-1d non riportano file e riga di conferma in SPRINT.md. Assenza di danni,
+   non prova.
+
+**WHAT WENT WELL**
+- Rilascio prod senza rollback e senza incidenti, con finestra di ~12 min e smoke test dell'utente ok. Causa:
+  checklist scritta e rivista (review HIGH) prima di eseguirla, query `moduleType` prod prima del deploy,
+  deploy delle functions prima delle rules via `deploy.yml`.
+- Il controllo e' diventato un test, non una regola: `sideEffectsAwaited` e `indexImport` falliscono da soli.
+  Causa: action item del #17 scritti con "fatto quando" automatizzabile.
+- Le review hanno intercettato difetti reali di test (`test.fail()` che passava per qualunque errore, settimana
+  calcolata al setup) e 3 HIGH di procedura. Causa: livello di review per rischio (HIGH su rilascio/audit).
+- La controprova ha smascherato un test inefficace (`indexImport` dentro Vitest non intercettava l'errore).
+
+**WHAT WENT WRONG / CAUSED BUGS**
+- Il primo `deploy:dev` di 1b e' fallito: `import { logger } from 'firebase-functions/logger'` accettato da
+  Vitest (interop CJS permissiva, e il test mockava il modulo) e rifiutato dal loader ESM nativo di Node.
+  ROOT CAUSE: l'ambiente di test non e' quello di esecuzione; il mock nascondeva proprio l'import. IMPACT: 1
+  deploy dev perso, nessun effetto in prod. ACTION: gia' fatta (`import * as logger` + `indexImport.test.js` in
+  processo Node separato, valido per tutto `functions/`); copertura residua: azione 1.
+- Commit delle functions in prod non registrato nel CHANGELOG. ROOT CAUSE: il deploy delle functions e' manuale
+  e fuori da `deploy.yml`, e nessun passo obbliga a scrivere il commit. IMPACT: base del rilascio stimata e
+  confermata a mano (rischio di deployare/diffare dalla base sbagliata). ACTION: azione 2.
+- Comando composito di controprova con `git checkout -- .`, che avrebbe cancellato tutte le modifiche non
+  committate della voce 1b; fermato dal Fact-Forcing Gate. ROOT CAUSE: la controprova (togliere la modifica per
+  vedere il test fallire) e' stata fatta sul working tree reale invece che su una copia. IMPACT: nessuno, ma la
+  difesa era un hook locale, non una procedura. ACTION: azione 3.
+- Micro-decisione presa da un agente: il primo developer di 1d ha scelto `isDev` invece di `!isProduction`
+  (UAT) senza chiedere. ROOT CAUSE: la voce non specificava il comportamento su UAT. IMPACT: accettabile,
+  dichiarato all'utente. ACTION: assorbita da azione 4 (casi limite espliciti per ambiente).
+- Lo scrum-master in chiusura aveva scritto anche la retrospettiva, con action item inventati: rimossa.
+  ROOT CAUSE: ruolo senza confine esplicito. IMPACT: rischio di action item non basati sui dati. Nessuna azione
+  (ambiente/processo gia' corretto).
+
+**WHAT WAS SLOW**
+- Rilascio e verifiche di sprint concentrati in un giorno solo, con 7 verifiche rimaste "non verificato"
+  (costi 24 h, lunedi' per lo slot E2E, rollback, GYM, login trainer/cliente in prod, banner RICARICA, esito E2E
+  su main). ROOT CAUSE: richiedono tempo (24 h), account o scenari non preparati; stesso schema del #14/#16.
+  IMPACT: il rilascio e' chiuso con rischi residui non misurati. ACTION: azione 5.
+
+**WHAT CAUSED REWORK**
+- `deploy:dev` ripetuto per l'import di 1b; `test.fail()` e settimana al setup di 1c (review); 3 HIGH sulla
+  checklist (rollback su PowerShell/`npx firebase-tools`, prompt di cancellazione delle callable nuove, piano se
+  la CI su main fallisce). Causa comune: casi di ambiente reale (Node nativo, Windows, CI) non provati prima
+  della revisione.
+
+**WHAT CREATED TECHNICAL DEBT**
+- Nessun debito nuovo in TECH-DEBT.md. Rischi accettati e non tracciati come debito: il filtro
+  `IS_LIPEDEMA_SELECTABLE` e' solo UI (le rules lasciano a un super_admin la creazione di org lipedema in prod);
+  rollback mai provato; GYM senza org QA. ROOT CAUSE: decisione 7 del rilascio. ACTION: azione 5 (rollback) e
+  rimozione del filtro a chiusura di STORY-029.
+
+**ACTION ITEM per lo Sprint #19** (max 5)
+(Proposto anche "estendere indexImport a tutto `functions/src`": scartato, gia' coperto — `indexImport.test.js` importa
+`src/index.js` col loader nativo e quindi tutti i moduli deployati; un modulo non raggiungibile da `index.js` non
+va in deploy.)
+1. Registrare sempre nel CHANGELOG il commit di ogni deploy functions prod, e farlo controllare: script
+   `npm run deploy` di `functions/` che scrive/stampa `git rev-parse HEAD` e fallisce se il working tree e'
+   sporco, e riga obbligatoria "functions prod a `<sha>`" nella checklist di CLAUDE.md. Fatto quando: il
+   prossimo deploy functions prod produce una voce CHANGELOG con lo sha senza stime, e il comando rifiuta di
+   partire con modifiche non committate.
+2. Controprove sempre su una copia, mai sul working tree: regola in CLAUDE.md (usare `git stash`/copia nello
+   scratchpad o `git worktree`, mai `git checkout -- .`/`git reset --hard` su modifiche non committate) e,
+   se fattibile, un hook/permesso che neghi `git checkout -- .` e `git restore .` senza conferma. Fatto quando:
+   la regola e' in CLAUDE.md e il comando `git checkout -- .` e' bloccato dai permessi di `settings.json`
+   (verificato eseguendolo su un repo di prova).
+3. Ogni voce con comportamento per ambiente scrive in apertura la tabella dev / UAT / prod (e GYM/PT/soccer dove
+   rilevante) con file e riga confermati sul codice. Fatto quando: 0 scelte di ambiente prese da un agente senza
+   riga corrispondente nella voce, e le voci del #19 riportano la conferma sul codice (chiude la parte non
+   dimostrata dell'azione 5 del #17).
+4. Chiudere i "non verificato" del rilascio con una data: costi 24 h (13/11), esito E2E su main, banner
+   RICARICA e login trainer/cliente in prod con org di prova su prod (decisione utente), e un'esecuzione dei
+   comandi di rollback delle functions su rankex-dev (mai in prod). Fatto quando: ogni voce di "Non verificato"
+   del #18 ha esito VERIFIED o un BUG aperto, e il rollback dev e' annotato nel CHANGELOG con sha e durata.
+
 
 
 ---
