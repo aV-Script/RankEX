@@ -410,6 +410,9 @@ l'istanza può essere fermata e la promise troncata (voce di audit persa). `writ
 la callable e logga l'errore (solo `action` e `code`, mai message/details: dati sanitari). Verificato da
 `functions/test/sideEffectsAwaited.test.js` (scansiona `src/callable/*.js`: `writeAudit`,
 `commit`/`recursiveDelete`/`createUser`/`deleteUser(s)`) e `functions/test/writeAudit.test.js`.
+`functions/test/indexImport.test.js` importa `src/index.js` con il loader ESM nativo di Node (come la CLI
+al deploy): Vitest accetta named import inesistenti da moduli CommonJS (`firebase-functions/logger`
+esporta `error`/`warn`..., non `logger`), Node no.
 
 ### Copie speculari — rischio di divergenza
 `shared/gamification.js`, `shared/constants.js`, `shared/plans.js`, `shared/testsMeta.js`
