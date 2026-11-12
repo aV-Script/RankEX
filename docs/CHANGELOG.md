@@ -85,8 +85,9 @@ Comandi da Git Bash; in PowerShell `$env:NODE_OPTIONS='--dns-result-order=ipv4fi
   `main` ripubblica le rules di `main`.
 - **Functions — piano NON eseguibile così (scoperto nel Sprint #19, 2026-11-12):** `744f6f9` ha
   `engines.node: 20`, runtime dismesso da Cloud Functions il 30/10/2026 (`13052d6`): il deploy del codice
-  vecchio non è possibile senza portarlo a Node 22. Finché non si decide, il rollback functions prod è solo fix
-  forward. Piano originale, per riferimento:
+  vecchio non è possibile senza portarlo a Node 22. **Decisione dell'utente (2026-11-12): solo fix forward,
+  rischio accettato;** dal prossimo rilascio il commit functions precedente è `f086405` (Node 22). Piano
+  originale, per riferimento:
 - Functions: `git worktree add ../rankex-fn-rollback 744f6f9`; poi, con NODE_OPTIONS ipv4first,
   `cd ../rankex-fn-rollback/functions && npm ci && npx firebase-tools deploy --only functions --project fitquest-60a09`
   (a 744f6f9 `npm run deploy` chiama `firebase` senza `cross-env`: non usarlo). Runtime torna a Node 20. Le 3

@@ -38,6 +38,7 @@ deploy in produzione.
 | 7 | Rinomina voce CHANGELOG con schema "data + etichetta": `[2026.11.12] — EPIC-010 Lipedema (modulo non attivo)`; template `[vX.Y] — <data>` aggiornato; push docs solo su dev, merge su main rinviato al prossimo rilascio |
 | 8 | Prova rollback functions/hosting/rules solo su rankex-dev, seguendo alla lettera la checklist di CLAUDE.md |
 | 9 | Lipedema in UAT resta NASCOSTO come in prod (`IS_LIPEDEMA_SELECTABLE = isDev` invariato) |
+| 10 | Rollback functions prod: solo fix forward (rischio accettato). Il piano a `744f6f9` non è eseguibile (Node 20 dismesso); dal prossimo rilascio prev functions = `f086405` (Node 22). Deciso a metà sprint dopo la prova 3b |
 
 **Voci, nell'ordine:**
 0. **Apertura sprint** (questo commit di docs). DONE.
