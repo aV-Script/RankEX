@@ -1,9 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import { isGoalMissed, getGoalDisplayStatus } from '../../utils/goals.js'
+import { toLocalDateStr } from '../../utils/calendarUtils.js'
 
-const today     = new Date().toISOString().slice(0, 10)
-const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10)
-const tomorrow  = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10)
+// Date locali come isGoalMissed: con toISOString (UTC) tra mezzanotte e le 01:00/02:00
+// in Italia "oggi" era ancora ieri e il test falliva solo di notte.
+const today     = toLocalDateStr()
+const yesterday = toLocalDateStr(new Date(Date.now() - 86_400_000))
+const tomorrow  = toLocalDateStr(new Date(Date.now() + 86_400_000))
 
 describe('isGoalMissed', () => {
   it('false se status non è active', () => {
