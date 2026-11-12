@@ -196,7 +196,7 @@ export function ClientHub({ client, orgId, color, rankObj, onTabChange }) {
           {/* Mask circles — coprono la linea XP sotto ogni badge */}
           {midDots.map(({ x, y }, i) => showcaseBadges[i] ? (
             <circle key={`mask-${i}`} cx={x} cy={y} r={badgeSize / 2}
-              style={{ fill: 'var(--bg-base)' }} />
+              style={{ fill: 'var(--rx-bg)' }} />
           ) : null)}
         </svg>
 
@@ -274,7 +274,7 @@ export function ClientHub({ client, orgId, color, rankObj, onTabChange }) {
                   whiteSpace: 'nowrap',
                   fontWeight: 700,
                   fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase',
-                  color: isHovered ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  color: isHovered ? 'var(--rx-text)' : 'var(--rx-text-muted)',
                   transition: 'color 200ms ease',
                   pointerEvents: 'none',
                 }}>

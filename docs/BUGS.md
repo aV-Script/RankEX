@@ -307,7 +307,7 @@ Formato:
 ## [BUG-029] ClientHub: variabili CSS inesistenti nel pentagono
 **Severity:** P3
 **Modulo/Ruolo:** area cliente (PT/GYM e soccer; lipedema non ha area cliente), ruolo client — `src/features/client/client-view/ClientHub.jsx:199` (`var(--bg-base)`) e `:277` (`var(--text-primary)` / `var(--text-secondary)`). Trovato nel censimento del 12/11/2026 su `ab65b45`. Fuori voce di sprint (pipeline saltata: fix di una riga).
-**Status:** OPEN
+**Status:** FIXED nel codice (Sprint #20, fuori voce): `--rx-bg`, `--rx-text`, `--rx-text-muted`; da osservare in QA dal vivo sull'hub
 **Reproduction steps:** login client → hub pentagono; ispezionare il cerchio sotto i badge e le etichette dei vertici.
 **Expected:** colori dal tema (`--rx-*`).
 **Actual:** le variabili non esistono in `src/index.css` (0 occorrenze, vedi CLAUDE.md → Design system): il cerchio-maschera è trasparente e le etichette prendono il colore ereditato.
