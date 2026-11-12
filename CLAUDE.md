@@ -1205,6 +1205,9 @@ cd functions && npm test
   prod (riga "functions prod a `<sha>`" dell'ultima voce CHANGELOG che lo registra; in mancanza
   `git log -1 origin/main -- functions/` come stima, da dichiarare "da confermare": vale solo per i deploy
   precedenti al guard). Se ignoto, scriverlo: il rollback functions non è garantito.
+- **Prev functions:** prima di annotare `<prev>` lanciare `node functions/scripts/checkPrev.mjs <prev>` e copiarne
+  l'output (engines.node di `<prev>` e di HEAD); exit 1 = `<prev>` non deployabile (runtime dismesso, sha o
+  `engines` illeggibili): solo fix forward.
 - Rollback per layer, con i commit reali (`<prev>` = commit annotato sopra):
   - **rules**: Console → Firestore → Rules → cronologia, ripubblica la versione precedente. Da CLI (non usa il
     working tree): cartella temporanea con `git show <prev>:firestore.rules > firestore.rules` e un
@@ -1220,7 +1223,7 @@ cd functions && npm test
     `npx firebase-tools deploy --only functions --project fitquest-60a09` (o `firebase` globale). Non usare
     `npm run deploy` del commit vecchio: chiama `firebase` senza `cross-env` né devDependency (e il guard di
     deploy non si applica a questo percorso: il worktree è un checkout di `<prev>`, ma `node_modules` è ignorato da git e non verificato).
-    **`<prev>` deve essere un commit Node 22:** i commit precedenti a `13052d6` (31/10/2026) hanno
+    **`<prev>` deve essere un commit Node 22** (lo verifica `checkPrev.mjs`, vedi sopra): i commit precedenti a `13052d6` (31/10/2026) hanno
     `engines.node: 20`, runtime dismesso da Cloud Functions il 30/10/2026, quindi un rollback a quei commit non è
     deployabile così (functions prod oggi a `f086405`, Node 22; il commit precedente `744f6f9` è Node 20: vedi
     voce `[2026.11.12]` del CHANGELOG). Con lo stesso set di callable, `npx

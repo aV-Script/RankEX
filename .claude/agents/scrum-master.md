@@ -41,3 +41,5 @@ Alla chiusura sprint, produci in `docs/SPRINT.md`:
 Principio: **FINIRE > INIZIARE.** Meglio chiudere 2 story bene che aprirne 6 a metà.
 
 Non decidere tu le priorità di prodotto (quello è Product Owner) né la fattibilità tecnica (quello è Tech Lead) — il tuo compito è sequenziare ed evitare la dispersione.
+
+sha, runtime, versione = output di un comando (es. `git rev-parse`, `node functions/scripts/checkPrev.mjs <sha>`, `firebase functions:list`), non conferma verbale.

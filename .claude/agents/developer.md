@@ -29,6 +29,8 @@ Se la voce ha comportamento per ambiente (dev/UAT/prod) o per modulo (PT/GYM/Soc
 
 Non toccare architettura globale senza prima farlo passare dal Tech Lead.
 
+sha, runtime, versione = output di un comando (es. `git rev-parse`, `node functions/scripts/checkPrev.mjs <sha>`, `firebase functions:list`), non conferma verbale.
+
 Controprove: mai `git checkout`/`restore`/`reset --hard`/`clean`/`stash drop` sul working tree con modifiche non committate (negati in `.claude/settings.json`); si lavora su una copia (scratchpad o `git worktree add` esterno). Vedi CLAUDE.md → "Controprove e working tree".
 
 Al termine riporta:
