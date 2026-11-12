@@ -7,7 +7,13 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-# SPRINT #18 — EPIC-010 Lipedema Edition, rilascio in produzione (codice, modulo non attivato) — aperto il 2026-11-12
+Nessuno sprint attivo: il #18 e' chiuso (2026-11-12, vedi storico). Il #19 si apre dai candidati del #18.
+
+---
+
+## Sprint chiuso (storico)
+
+# SPRINT #18 — EPIC-010 Lipedema Edition, rilascio in produzione (codice, modulo non attivato) — aperto il 2026-11-12, chiuso il 2026-11-12 (goal raggiunto, voci 1a-1d, 2 e 3 DONE; voce 4 fuori sprint)
 
 **Branch:** `feature/lipedema-module` (HEAD `ce43c1b`). Commit in locale fino alla voce 3; `lipidemia/` e
 `mobile-app/` non si committano. Prima del rilascio i deploy restano su `rankex-dev`; i deploy su
@@ -117,18 +123,18 @@ Firefox, mobile-app. Lavoro emerso fuori elenco -> `docs/BACKLOG.md` per il #19.
 
 | Task | Status | Note |
 |------|--------|------|
-| 1a. Script `functions/` ipv4first + nota CLAUDE.md + `deploy:dev` reale | READY | Review medium. |
-| 1b. Censimento audit non attesi + correzione + test Vitest scansione sorgenti + regola CLAUDE.md | READY | Review HIGH; `deploy:dev` functions. |
-| 1c. Slot e gruppo `E2E-` in setup/teardown + casi `roles.spec.js` + prova negativa | READY | Review medium. Dopo 1a/1b. |
-| 1d. Flag `LIPEDEMA_ORG_CREATION_ENABLED` + unit test + TP-087 | READY | Review medium. |
-| 2. Checklist "Rilascio in produzione" (CLAUDE.md) + stato in CHANGELOG | BACKLOG | release-manager; Review HIGH. Dopo 1a. |
-| 3.1 Merge -> dev, verifica rankex-dev, `qa:dev` | BACKLOG | Dopo 1 e 2. |
-| 3.2 Conteggio org prod per `moduleType` (utente, Console) | BACKLOG | Blocca 3.4. |
-| 3.3 Annotare commit in prod + comandi di rollback | BACKLOG | Prima di ogni deploy prod. |
-| 3.4 Deploy functions prod | BACKLOG | Via libera esplicito dell'utente. |
-| 3.5 Merge dev -> main (hosting + rules) | BACKLOG | Via libera esplicito separato, subito dopo 3.4. |
-| 3.6 Smoke test prod sola lettura (super_admin utente) + audit/rules | BACKLOG | |
-| 3.7 Monitoraggio costi Firebase | BACKLOG | |
+| 1a. Script `functions/` ipv4first + nota CLAUDE.md + `deploy:dev` reale | DONE | `0dbd23d`. Verificato con `deploy:dev` reale e col deploy functions prod, senza variabile manuale. |
+| 1b. Censimento audit non attesi + correzione + test Vitest scansione sorgenti + regola CLAUDE.md | DONE | `d2682a8` + `9f24a13`. Review HIGH. 4 `writeAudit` non attesi corretti. |
+| 1c. Slot e gruppo `E2E-` in setup/teardown + casi `roles.spec.js` + prova negativa | DONE | `b85a14b`. 6 casi, `qa:dev` 36/36. |
+| 1d. Flag `IS_LIPEDEMA_SELECTABLE` + unit test + TP-087 | DONE | `31f5727`. Flag = `isDev` (nascosto anche in UAT). |
+| 2. Checklist "Rilascio in produzione" (CLAUDE.md) + stato in CHANGELOG | DONE | `f086405`. Review HIGH, 3 HIGH corretti. |
+| 3.1 Merge -> dev, verifica rankex-dev, `qa:dev` | DONE | ff `4516331..f086405`; CI, E2E, deploy-dev ok; `qa:dev` 36/36 sull'hosting della CI. |
+| 3.2 Conteggio org prod per `moduleType` (utente, Console) | DONE | Solo valori ammessi. |
+| 3.3 Annotare commit in prod + comandi di rollback | DONE | Functions prod confermate a `744f6f9` prima del deploy. |
+| 3.4 Deploy functions prod | DONE | 09:26-09:28 UTC, 40 callable nodejs22, log puliti. |
+| 3.5 Merge dev -> main (hosting + rules) | DONE | ff `4f5d08e..f086405`, push 09:38 UTC; CI 43193182316 ok; deploy.yml 43193385600: hosting 09:39:56, rules 09:40:01. |
+| 3.6 Smoke test prod sola lettura (super_admin utente) + audit/rules | DONE | Verifica HTTP anonima del build + smoke dell'utente ok (nessun Lipedema nella select modulo). |
+| 3.7 Monitoraggio costi Firebase | BLOCKED (tempo) | Da fare il 2026-11-13 (dopo 24 h). Passa al #19. |
 | STORY-029 (b)(c) / STORY-026 / STORY-044 / voce 4 / stampa carta / mobile-app | fuori sprint | Utente-legale / decisione utente / canvas. |
 
 **Verifica prevista degli action item della retrospettiva #17 (a fine #18):**
@@ -154,9 +160,74 @@ parziale e rollback per layer devono essere nella checklist PRIMA della voce 3. 
 dell'utente: se non disponibile, la voce 3 si ferma a 3.1. (4) Un solo deploy hosting dev alla volta, mai
 durante `qa:dev`. Principio: finire > iniziare; la voce 3 parte solo con 1 e 2 chiuse.
 
----
+## Goal
+Rilasciare in produzione (fitquest-60a09) il codice di EPIC-010 Lipedema senza attivare il modulo, e chiudere gli
+action item del #17 che riducono il rischio del rilascio. **Raggiunto.** Stato prod a `f086405`: functions,
+hosting e rules. Modulo lipedema non selezionabile in prod (UI; le rules non lo impediscono a un super_admin,
+rischio accettato, decisione 7).
 
-## Sprint chiuso (storico)
+## Completato
+- **1a** (`0dbd23d`): script `deploy`/`deploy:dev` di `functions/` con `cross-env` + ipv4first; verificato con
+  `deploy:dev` reale e poi col deploy functions prod, senza variabile manuale.
+- **1b** (`d2682a8`, `9f24a13`): 4 `writeAudit` non attesi ora attesi (`aggiungiValutazione` supersedes,
+  `annullaValutazione`, `registraInformativaPaziente`, `creaCliente` senza login); `writeAudit` logga l'errore
+  (solo action/code). Test `sideEffectsAwaited` (writeAudit, commit, recursiveDelete, createUser,
+  deleteUser/deleteUsers), `writeAudit.test`, `indexImport.test` (import di `src/index.js` col loader ESM
+  nativo: il primo `deploy:dev` era fallito per `import { logger } from 'firebase-functions/logger'`, accettato
+  da Vitest, emerso al deploy e non ai test). Review HIGH. Verificato su rankex-dev: `audit_logs` con
+  `CLIENT_CREATED`, `PRIVACY_NOTICE_RECORDED`, `ASSESSMENT_VOIDED` env `functions` dopo `qa:dev`.
+- **1c** (`b85a14b`): slot e gruppo `E2E-` in qa-pt creati/cancellati a ogni run; 6 casi in `roles.spec.js`
+  (staff senza azioni, trainer con azioni, prova negativa con match su `toHaveCount`, senza `test.fail` dopo la
+  review). `qa:dev` 36/36.
+- **1d** (`31f5727`): `IS_LIPEDEMA_SELECTABLE = isDev` (prod e UAT nascosto; `isDev` invece di `!isProduction`
+  per coprire UAT), `getSelectableModuleOptions`; TP-087. QA dal vivo su rankex-admin-dev a desktop e 360 px; in
+  prod verificato dall'utente nello smoke test.
+- **2** (`f086405`): sezione "Rilascio in produzione" in CLAUDE.md + voce CHANGELOG; review HIGH con 3 HIGH
+  corretti (rollback functions su PowerShell/`npx firebase-tools`, prompt di cancellazione callable nuove, piano
+  se la CI su main fallisce).
+- **3 Rilascio, ordine A, tutto il 2026-11-12:** merge feature -> dev ff `4516331..f086405` (CI, E2E, deploy-dev
+  ok; `qa:dev` 36/36 sull'hosting della CI); query `moduleType` prod dell'utente: solo valori ammessi; functions
+  prod confermate a `744f6f9` prima del deploy; deploy functions prod 09:26-09:28 UTC -> 40 callable nodejs22,
+  log puliti; merge dev -> main ff `4f5d08e..f086405` push 09:38 UTC, CI 43193182316 ok, deploy.yml
+  43193385600: hosting rankex-app + rankex-admin 09:39:56, rules 09:40:01; finestra ~12 min; verifica HTTP
+  anonima del nuovo build; smoke test in sola lettura dell'utente ok. E2E su main (43193182295): in corso al
+  momento della chiusura.
+- Nessun dato manuale creato (solo `E2E-` cancellati dal teardown; script temporanei cancellati).
+
+## Non verificato
+- Costi Firebase dopo 24 h (da fare il 2026-11-13).
+- Caso del lunedi' per lo slot E2E in `qa:dev`.
+- Comandi di rollback: scritti e rivisti, mai eseguiti.
+- GYM: nessuna org QA.
+- Nessun login trainer/cliente reale in prod (smoke solo super_admin).
+- Banner RICARICA in prod non osservato esplicitamente.
+- Esito E2E su main (43193182295): in corso alla chiusura.
+
+## Non completato (motivo)
+- **Voce 4** (prima org lipedema in prod): fuori sprint, STORY-029 aperta.
+- **3.7 costi Firebase:** richiede 24 ore dal deploy (2026-11-13).
+
+## Blockers
+- **STORY-029 (b)/(c)** (DPA e testo informativa, utente/legale): bloccante per attivare lipedema in prod; a
+  chiusura va tolto il filtro `IS_LIPEDEMA_SELECTABLE`.
+- **Stato dei commit:** i commit di docs successivi al rilascio (`fd28852`, `f1d59e8`, `f7b54d6`, quello dello
+  smoke test e questa chiusura) sono solo locali, non su dev/main finche' l'utente non autorizza un push.
+
+## Tech debt emerso
+- Nessuno nuovo da codice. Limiti noti: flag UI lipedema non e' un limite di sicurezza (rules aperte a
+  super_admin); rollback non provato; GYM senza org QA.
+
+## Prossimo sprint (candidati)
+Proposta, non pianificazione (decide l'utente):
+1. Monitoraggio costi Firebase del 2026-11-13; esito E2E su main; push dei commit docs locali (via libera utente).
+2. STORY-029 (b)/(c) DPA e testo informativa (utente/legale), poi togliere `IS_LIPEDEMA_SELECTABLE` e voce 4.
+3. STORY-026 retention (decisione utente).
+4. STORY-044 (da ridisegnare sul canvas).
+5. Stampa su carta (utente); mobile-app (parcheggiata).
+
+
+
+---
 
 # SPRINT #17 — EPIC-010 Lipedema Edition, ottava ondata (dati del modulo, audit, sola lettura, verifiche rimaste) — aperto il 2026-11-11, chiuso il 2026-11-12 (goal raggiunto, 5 voci su 5 DONE)
 
