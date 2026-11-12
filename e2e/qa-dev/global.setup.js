@@ -1,18 +1,19 @@
 /**
  * Setup della QA automatica (STORY-041): guardie su progetto e host, pulizia dei
  * residui E2E- di esecuzioni interrotte, poi un login via UI per ogni utente QA
- * (sessioni salvate in e2e/.auth/qa-dev/, riusate dagli spec).
+ * (sessioni salvate in e2e/.auth/qa-dev/, riusate dagli spec). Crea anche un gruppo e uno
+ * slot E2E nell'org qa-pt (id in e2e/.auth/qa-dev/e2e-fixtures.json) per i casi di sola lettura.
  */
-import { mkdirSync }                          from 'fs'
+import { mkdirSync, writeFileSync }           from 'fs'
 import { chromium }                           from '@playwright/test'
 import { initializeApp, cert, getApps }       from 'firebase-admin/app'
 import { getAuth }                            from 'firebase-admin/auth'
 import { getFirestore }                       from 'firebase-admin/firestore'
 import {
-  QA_ORGS, QA_BASE_URL, AUTH_DIR, qaUsers, authStatePath,
+  QA_ORGS, QA_BASE_URL, AUTH_DIR, E2E_FIXTURES_PATH, qaUsers, authStatePath,
   assertQaBaseUrl, loadDevServiceAccount, readEnvTest,
 } from './qaDev.config.js'
-import { cleanupE2EData } from './cleanup.js'
+import { cleanupE2EData, cleanupE2EFixtures, createE2EFixtures } from './cleanup.js'
 
 export default async function globalSetup(config) {
   // Ogni progetto, non solo il primo: un baseURL diverso in un progetto aggiunto passerebbe
@@ -21,10 +22,17 @@ export default async function globalSetup(config) {
   const env = readEnvTest()
   if (!env.QA_DEV_PASSWORD) throw new Error('QA_DEV_PASSWORD mancante in .env.test: lancia prima npm run qa:dev:seed')
 
-  const removed = await cleanupE2EData(...adminServices(env))
+  const [db, adminAuth] = adminServices(env)
+  const removed = await cleanupE2EData(db, adminAuth)
   if (removed) console.log(`pulizia iniziale: ${removed} clienti E2E- rimasti`)
+  const removedFixtures = await cleanupE2EFixtures(db)
+  if (removedFixtures) console.log(`pulizia iniziale: ${removedFixtures} gruppi/slot E2E- rimasti`)
 
+  // Gruppo + slot per i casi di sola lettura di roles.spec.js; gli id arrivano agli spec dal file
   mkdirSync(AUTH_DIR, { recursive: true })
+  const fixtures = await createE2EFixtures(db, Date.now().toString(36))
+  writeFileSync(E2E_FIXTURES_PATH, JSON.stringify(fixtures, null, 2))
+
   const browser = await chromium.launch()
   try {
     for (const moduleKey of Object.keys(QA_ORGS)) {

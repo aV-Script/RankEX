@@ -734,6 +734,9 @@ npm run qa:dev        → playwright.qa-dev.config.js, spec in e2e/qa-dev/tests/
 - `.env.test` (gitignored): `QA_DEV_SERVICE_ACCOUNT` (path) e `QA_DEV_PASSWORD`, scritti dal seed.
 - Gli spec creano solo clienti `E2E-…`; setup e teardown li cancellano con slot, ricorrenze,
   notifiche, valutazioni e account (Admin SDK, `e2e/qa-dev/cleanup.js`).
+- Il setup crea in `qa-pt` un gruppo `E2E-gruppo-<runId>` e uno slot di ieri (`e2eMarker: 'E2E-slot-<runId>'`)
+  per i casi di `roles.spec.js` su popup slot e dettaglio gruppo; id in `e2e/.auth/qa-dev/e2e-fixtures.json`.
+  Setup e teardown li cancellano (anche i residui di run interrotti).
 - Il seed non tocca mai un account esistente di un'altra org (prefisso `qadev.`: `qa.*` è della
   QA manuale).
 - **Non deployare l'hosting mentre gira `npm run qa:dev`**: la suite gira contro l'hosting

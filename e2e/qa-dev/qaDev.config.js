@@ -20,6 +20,19 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 export const ENV_TEST_PATH = join(ROOT, '.env.test')
 export const AUTH_DIR      = join(ROOT, 'e2e', '.auth', 'qa-dev')
 
+/**
+ * Fixture condivisa con gli spec (gruppo e slot E2E creati dal setup): ids, nome, data.
+ * Nessun dato sensibile; sta in e2e/.auth/ (gitignored) accanto alle sessioni
+ */
+export const E2E_FIXTURES_PATH = join(AUTH_DIR, 'e2e-fixtures.json')
+/** Modulo (chiave di QA_ORGS) in cui il setup crea gruppo e slot: l'org di roles.spec.js con trainer e staff */
+export const E2E_FIXTURES_MODULE = 'pt'
+
+export function readE2EFixtures() {
+  if (!existsSync(E2E_FIXTURES_PATH)) throw new Error(`Fixture E2E mancante (${E2E_FIXTURES_PATH}): le crea il global setup`)
+  return JSON.parse(readFileSync(E2E_FIXTURES_PATH, 'utf8'))
+}
+
 const ROLE_SLUG = { org_admin: 'admin', trainer: 'trainer', staff_readonly: 'staff' }
 
 /** Prefisso email riservato alla suite: il seed non tocca account fuori da qui */
