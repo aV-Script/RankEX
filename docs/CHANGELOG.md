@@ -69,7 +69,7 @@ build OK · lint OK · unit 641/641 · rules 129/129 · functions 231/231 · `qa
 - [x] Commit functions prod confermato: `744f6f9` (utente, 2026-11-12)
 - [x] Deploy functions prod (`cd functions && npm run deploy`, codice di `f086405`): 2026-11-12 09:26-09:28 UTC, esito ok (3 callable create); `functions:list`: 40 callable, runtime nodejs22 per tutte; log senza errori subito dopo il deploy
 - [x] Merge `dev -> main` (fast-forward `4f5d08e..f086405`, push 09:38 UTC), run CI (id 43193182316) e `deploy.yml` (id 43193385600): CI ok, hosting `rankex-app` + `rankex-admin` ok (09:39:56 UTC), rules ok (09:40:01 UTC); finestra functions -> hosting/rules circa 12 minuti. Verifica HTTP anonima: entrambi i siti servono il nuovo build con CSP e X-Frame-Options
-- [ ] Smoke test sola lettura (super_admin utente): __; log functions / `audit_logs`: __
+- [x] Smoke test sola lettura (super_admin utente, 2026-11-12): lista org ok; select Modulo senza Lipedema in NUOVA e nel dettaglio org PT e Soccer; nessun salvataggio. Log functions senza errori dalle 09:26 UTC; `audit_logs` controllati in Console: ok
 - [ ] Costi Firebase dopo 24 h: __
 
 ### Rollback plan
