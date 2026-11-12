@@ -74,7 +74,16 @@ build OK · lint OK · unit 641/641 · rules 129/129 · functions 231/231 · `qa
 - [x] Deploy functions prod (`cd functions && npm run deploy`, codice di `f086405`): 2026-11-12 09:26-09:28 UTC, esito ok (3 callable create); `functions:list`: 40 callable, runtime nodejs22 per tutte; log senza errori subito dopo il deploy
 - [x] Merge `dev -> main` (fast-forward `4f5d08e..f086405`, push 09:38 UTC), run CI (id 43193182316) e `deploy.yml` (id 43193385600): CI ok, hosting `rankex-app` + `rankex-admin` ok (09:39:56 UTC), rules ok (09:40:01 UTC); finestra functions -> hosting/rules circa 12 minuti. Verifica HTTP anonima: entrambi i siti servono il nuovo build con CSP e X-Frame-Options
 - [x] Smoke test sola lettura (super_admin utente, 2026-11-12): lista org ok; select Modulo senza Lipedema in NUOVA e nel dettaglio org PT e Soccer; nessun salvataggio. Log functions senza errori dalle 09:26 UTC; `audit_logs` controllati in Console: ok
-- [ ] Costi Firebase dopo 24 h: __
+- [x] Costi Firebase (Sprint #19, voce 3a): letti dall'utente il 2026-11-12 in Console → Billing → Budget e avvisi,
+  spesa **del mese di novembre fino al 12/11** (budget mensili; prima delle 24 h dal deploy). Progetto "RankEX" =
+  fitquest-60a09, "RankEX-…" = rankex-dev; CR = Cloud Run, CRF = Cloud Run Functions, G e V = altri due budget
+  per progetto (servizio non annotato). Tutti con limite di spesa "Configurato".
+  - prod: Rank Ex CR ~0,00 € / 5,00 €; **Rank Ex CRF ~0,01 € / 5,00 €**; Rank Ex G ~0,00 € / 0,00 €; Rank Ex V ~0,00 € / 0,00 €
+  - dev: Rank Ex DEV CR ~0,00 € / 0,00 €; **Rank Ex DEV CRF ~0,07 € / 1,00 €**; DEV G ~0,00 € / 0,00 €;
+    DEV V ~0,00 € / 0,00 €
+  - account (Overall Allarm): 0,00 € / 5,00 € (include un risparmio di -0,06 €). Nessun credito utilizzato.
+  - Uso per servizio (letture/scritture Firestore al giorno, invocazioni Functions, transfer Hosting): **non letto**,
+    per decisione dell'utente (2026-11-12): basta la spesa, sostanzialmente nulla e sotto ogni limite.
 
 ### Rollback plan
 Prev: hosting+rules `4f5d08e`; functions `744f6f9` (confermato). Dettagli e motivazioni in `CLAUDE.md`.

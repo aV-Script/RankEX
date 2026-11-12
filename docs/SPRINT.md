@@ -81,7 +81,7 @@ deploy in produzione.
 | 2a | DONE | review HIGH: CHANGES REQUESTED -> APPROVED. `4223cf4`; prova reale `npm run deploy:dev` con tree sporco da PowerShell -> "Deploy rifiutato", exit 1, firebase non lanciato; da tree pulito ha stampato `functions deploy da 5090d9ab…` e deployato (ritorno a HEAD della 3b) |
 | 2b | DONE | review medium x3. `af44491`; deny 72 regole in `.claude/settings.json` (non tracciato); provati negati in repo usa e getta: `reset --hard`, `reset HEAD --hard`, `checkout -- .`, `checkout HEAD -- <file>`, `restore .`, `restore <file>`, `clean -xdf`, `switch -f` (PowerShell), varianti `-C`; scoperto e chiuso il buco `git -C`; `git switch x-fix` ammesso |
 | 2c | DONE | review medium. `5090d9a` |
-| 3a | BLOCKED | fino al 2026-11-13 (costi letti dall'utente in Console) |
+| 3a | DONE | spesa di novembre fino al 12/11 letta dall'utente (Budget e avvisi): prod CRF ~0,01 €/5 €, dev CRF ~0,07 €/1 €, resto ~0 €; uso per servizio non letto (decisione utente). Annotato nella voce `[2026.11.12]` del CHANGELOG |
 | 3b | DONE | rollback functions rankex-dev a `224d1bb` (Node 22, 40 callable) e ritorno a `5090d9a`; 40 callable nodejs22 prima/durante/dopo (`functions:list`); checklist corretta (CLAUDE.md: `<prev>` Node 22, `worktree remove --force`, ramo callable nuove non provato) |
 | 3c | DONE | hosting rollback a `a08e1c1359dde364` / `cdfd07d5be31372a` con `hosting:clone`; rules rollback a `cc42e34` (verificato via Rules API); ritorno a HEAD con `deploy:rules:dev` e `deploy:all:dev` (versioni `872fa06401f90ee3` / `257381cd90f5651d`) |
 | 3d | DONE | review medium. `d42d23b` + `555f925`; `qa:dev` 36/36 sul nuovo `roles.spec.js` |
@@ -179,7 +179,7 @@ helper di `e2e/qa-dev/` con il suo test, `docs/*`. I file:riga si annotano nella
 | 2a. Guard deploy functions (script Node + riga checklist) | READY | review HIGH |
 | 2b. Controprove su copia (regola + DENY settings.json) | READY | skill `update-config`; review medium |
 | 2c. Regola tabella ambiente/modulo (3 file) | READY | review medium |
-| 3a. Costi Firebase | BLOCKED (tempo) | dal 2026-11-13, lettura utente in Console |
+| 3a. Costi Firebase | DONE | letti il 2026-11-12 (vedi esiti) |
 | 3b. Rollback functions rankex-dev | BACKLOG | dopo 2a |
 | 3c. Rollback hosting + rules rankex-dev | BACKLOG | mai durante `qa:dev` |
 | 3d. Test unitario caso del lunedi' (slot E2E) | READY | review medium |
