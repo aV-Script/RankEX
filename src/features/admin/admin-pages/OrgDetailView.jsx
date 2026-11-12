@@ -13,7 +13,7 @@ import { useToast }             from '../../../hooks/useToast'
 import { EmptyState, Input }    from '../../../components/ui'
 import { getPlanLimits, PLAN_OPTIONS } from '../../../config/plans.config'
 import {
-  MODULES, MODULE_OPTIONS, TERMINOLOGY_VARIANTS_BY_MODULE, getModuleLabel, isModuleChangeAllowed,
+  MODULES, TERMINOLOGY_VARIANTS_BY_MODULE, getModuleLabel, getSelectableModuleOptions, isModuleChangeAllowed,
 } from '../../../config/modules.config'
 
 const ICON_MEMBERS = (
@@ -60,8 +60,9 @@ export function OrgDetailView({ org, onBack }) {
   // non è noto (caricamento o errore) il cambio da/verso lipedema resta bloccato.
   const knownClientCount = loading || loadFailed ? null : clientCount
   const isModuleOptionAllowed = (value) => isModuleChangeAllowed(moduleType, value, knownClientCount)
-  const hasBlockedModuleOption = MODULE_OPTIONS.some(opt => !isModuleOptionAllowed(opt.value))
-  const isModuleLocked = MODULE_OPTIONS.every(opt => opt.value === moduleType || !isModuleOptionAllowed(opt.value))
+  const moduleOptions = getSelectableModuleOptions({ currentModule: moduleType })
+  const hasBlockedModuleOption = moduleOptions.some(opt => !isModuleOptionAllowed(opt.value))
+  const isModuleLocked = moduleOptions.every(opt => opt.value === moduleType || !isModuleOptionAllowed(opt.value))
 
   const handleMemberCreated = (member) => {
     setMembers(prev => [member, ...prev])
@@ -203,7 +204,7 @@ export function OrgDetailView({ org, onBack }) {
                 className="input-base text-[11px] py-1.5 px-2"
                 style={{ width: 'auto', minWidth: 150 }}
               >
-                {MODULE_OPTIONS.map(opt => (
+                {moduleOptions.map(opt => (
                   <option key={opt.value} value={opt.value} disabled={!isModuleOptionAllowed(opt.value)}>
                     {opt.label}
                   </option>

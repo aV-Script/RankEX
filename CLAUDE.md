@@ -57,6 +57,9 @@ con terminologie, test e comportamenti UI diversi.
   facoltativa, nessun campo di gamification sul doc; il paziente non accede all'app (v1)
 - Tutto il modulo è dato sanitario (art. 9(2)(h) GDPR): l'audit `CLIENT_CREATED` non
   contiene il nome
+- Fuori da dev (prod/UAT) `lipedema` non è selezionabile da super_admin né in `CreateOrgForm` né in
+  `OrgDetailView`: `IS_LIPEDEMA_SELECTABLE` / `getSelectableModuleOptions` in `config/modules.config.js`.
+  Solo UI (le rules non lo impediscono); si toglie quando STORY-029 (DPA + informativa) è chiusa
 - Cambio di `moduleType` da/verso `lipedema` bloccato se l'org ha clienti
   (`isAllowedModuleChange` in `firestore.rules` + `OrgDetailView`)
 - Informativa: `client.privacyNotice` scritto solo via `registraInformativaPaziente` (o dal

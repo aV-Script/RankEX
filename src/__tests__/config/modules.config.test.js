@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
+import { isDev } from '../../utils/env'
 import {
+  getSelectableModuleOptions,
+  IS_LIPEDEMA_SELECTABLE,
   getCategoriaFromEta,
   resolveCategoria,
   getModule,
@@ -187,6 +190,31 @@ describe('isModuleChangeAllowed (ADR-015 §6)', () => {
 
   it('stesso modulo: nessun cambio, sempre permesso', () => {
     expect(isModuleChangeAllowed(LIPEDEMA, LIPEDEMA, 5)).toBe(true)
+  })
+})
+
+describe('getSelectableModuleOptions (blocco lipedema fuori da dev, Sprint #18 1d)', () => {
+  const { PERSONAL_TRAINING: PT, SOCCER_ACADEMY: SOCCER, LIPEDEMA } = MODULES
+  const values = options => options.map(opt => opt.value)
+
+  it('fuori da dev lipedema è escluso', () => {
+    expect(values(getSelectableModuleOptions({ isLipedemaSelectable: false }))).toEqual([PT, SOCCER])
+  })
+
+  it('in dev tutti i moduli sono selezionabili', () => {
+    expect(values(getSelectableModuleOptions({ isLipedemaSelectable: true }))).toEqual([PT, SOCCER, LIPEDEMA])
+  })
+
+  it('un\'org già lipedema ne conserva l\'opzione anche fuori da dev', () => {
+    expect(values(getSelectableModuleOptions({ isLipedemaSelectable: false, currentModule: LIPEDEMA })))
+      .toEqual([PT, SOCCER, LIPEDEMA])
+    expect(values(getSelectableModuleOptions({ isLipedemaSelectable: false, currentModule: PT })))
+      .toEqual([PT, SOCCER])
+  })
+
+  it('default = ambiente corrente (test in modalità non development: lipedema escluso)', () => {
+    expect(IS_LIPEDEMA_SELECTABLE).toBe(isDev)
+    expect(values(getSelectableModuleOptions()).includes(LIPEDEMA)).toBe(isDev)
   })
 })
 

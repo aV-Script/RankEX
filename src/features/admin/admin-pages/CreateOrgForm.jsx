@@ -2,7 +2,7 @@ import { useState }           from 'react'
 import { createOrganization } from '../../../firebase/services/org'
 import { ADMIN_COLOR }        from '../../../config/app.config'
 import { Modal, Field, Button } from '../../../components/ui'
-import { MODULES, MODULE_OPTIONS, TERMINOLOGY_VARIANTS_BY_MODULE } from '../../../config/modules.config'
+import { MODULES, getSelectableModuleOptions, TERMINOLOGY_VARIANTS_BY_MODULE } from '../../../config/modules.config'
 
 const PLAN_OPTIONS = [
   { value: 'free',       label: 'Free' },
@@ -94,7 +94,7 @@ export function CreateOrgForm({ onClose, onCreated, ownerUid }) {
               value={form.moduleType}
               onChange={e => handleModuleChange(e.target.value)}
             >
-              {MODULE_OPTIONS.map(opt => (
+              {getSelectableModuleOptions().map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>

@@ -1309,6 +1309,17 @@ export const RUNBOOK_SUITES = [
         ],
         expected: ['Aspetto e comportamento invariati rispetto a prima della migrazione; disabilitati sempre al 50% con cursore non consentito'],
       },
+      {
+        id: 'TP-087', usId: 'STORY-029', severity: 'important', title: 'Modulo Lipedema non selezionabile fuori da dev (creazione org e cambio modulo)',
+        preconditions: 'Super_admin su rankex-admin prod (o UAT) e su rankex-admin-dev; un\'org PT senza clienti.',
+        steps: [
+          'rankex-admin prod/UAT → Organizzazioni → NUOVA: la select Modulo propone solo Personal Training e Soccer Academy',
+          'Stessa select a 360 px: opzioni leggibili, nessun overflow, terminologia coerente col modulo scelto',
+          'Apri l\'org PT → INFO → select Modulo: solo Personal Training e Soccer Academy; a 360 px la select non esce dalla card',
+          'Su rankex-admin-dev ripeti entrambe: Lipedema Edition è presente e selezionabile (con le regole sui clienti invariate)',
+        ],
+        expected: ['Fuori da dev Lipedema non compare né in creazione né nel cambio modulo; in dev sì. Un\'org già lipedema mostrerebbe comunque il proprio modulo'],
+      },
     ],
   },
 ]
