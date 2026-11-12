@@ -73,7 +73,7 @@ async function openSlotPopup(page) {
   if (isInPreviousWeek) await page.getByRole('button', { name: 'Periodo precedente' }).click()
 
   const slotButton = page.getByRole('button', { name: new RegExp(`${fixtures.slotStart}.*${escapeRegExp(fixtures.clientName)}`) }).first()
-  await slotButton.waitFor()
+  await expect(slotButton).toBeVisible()
   await slotButton.click()
 
   const popup = page.getByRole('dialog', { name: /^Dettaglio / })
