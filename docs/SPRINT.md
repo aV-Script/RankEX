@@ -60,7 +60,7 @@ deploy in produzione.
 3. **Verifiche rimaste del #18**
    - **3a. Costi Firebase post-rilascio** (dal 2026-11-13): li legge l'utente in Console, annotati nel CHANGELOG.
    - **3b. Rollback functions su rankex-dev.** Checklist di CLAUDE.md alla lettera: a un commit precedente e
-     ritorno a HEAD, tempi annotati, checklist corretta se serve. SOLO rankex-dev. Dopo 2a (usa lo stesso guard).
+     ritorno a HEAD, tempi annotati, checklist corretta se serve. SOLO rankex-dev. Dopo 2a: il rollback (`npx firebase-tools` da worktree esterno) NON passa dal guard, sha annotato a mano; solo il ritorno a HEAD con `npm run deploy:dev` passa dal guard.
    - **3c. Rollback hosting e rules su rankex-dev**, poi ritorno a HEAD. Mai durante `qa:dev`.
    - **3d. Caso del lunedi' (slot E2E).** Estrarre dal global setup la funzione pura che sceglie la data dello
      slot; test unitario Vitest su lunedi', domenica, cambio mese. Nessuna modifica al run di `qa:dev`.
@@ -94,11 +94,31 @@ utente), login reali in prod (3f), qualsiasi deploy su `fitquest-60a09`, merge s
 
 | Voce | dev (rankex-dev) | UAT | prod (fitquest-60a09) |
 |------|------------------|-----|-----------------------|
-| 1 | push `dev` -> CI + `deploy-dev` | n/a | non toccata (main fermo a `f086405`) |
-| 2a | guard attivo su `deploy:dev` | n/a | guard attivo su `deploy`, non eseguito in questo sprint | 
-| 3b/3c/3e | solo qui | n/a | vietato |
-| 3d | test unitario locale | n/a | n/a |
+| 1 | push `dev` -> CI + `deploy-dev` | non verificato | non toccata (main fermo a `f086405`) |
+| 2a | guard attivo su `deploy:dev` | non verificato | guard attivo su `deploy`, non eseguito in questo sprint | 
+| 3b/3c/3e | solo qui | non verificato | vietato |
+| 3d | test unitario locale | non verificato | non verificato (nessun effetto atteso) |
 | IS_LIPEDEMA_SELECTABLE | selezionabile | nascosto (invariato) | nascosto |
+
+**Tabelle per voce 3b/3c/3e (voce 2c, file:riga letti nel codice il 2026-11-12):**
+
+| 3b rollback functions | dev (rankex-dev) | UAT | prod (fitquest-60a09) |
+|-----------------------|------------------|-----|-----------------------|
+| Cosa si fa | worktree esterno a commit precedente, `npm ci`, `npx firebase-tools deploy --only functions --project rankex-dev`: NON passa dal guard di 2a, sha annotato a mano. Solo il ritorno a HEAD con `npm run deploy:dev` passa dal guard | non toccato; nessun progetto UAT in `.firebaserc:5-18` (solo `fitquest-60a09`, `rankex-dev`): non verificato | non toccato, vietato |
+| Riferimenti | `functions/package.json:13` (`deploy:dev` = guard + `--project rankex-dev`); sorgente `firebase.json:2-6` | - | `functions/package.json:12` (`deploy`, non eseguito); `.firebaserc:3` default = prod |
+
+| 3c rollback hosting + rules | dev | UAT | prod |
+|-----------------------------|-----|-----|------|
+| Cosa si fa | rules: `firebase deploy --only firestore:rules --project rankex-dev` da cartella temporanea; hosting: Console rollback di `rankex-app-dev` e `rankex-admin-dev`; ritorno a HEAD con `npm run deploy:rules:dev` e `npm run deploy:all:dev` | non toccato, non verificato (nessun target) | non toccato, vietato |
+| Riferimenti | `package.json:23` (rules dev), `:28-30` (hosting dev); target `.firebaserc:12-17`; `firebase.json:8` (sorgente rules del solo ritorno a HEAD con `deploy:rules:dev`; il rollback rules usa una cartella temporanea con il proprio `firebase.json`), `:21` target app, `:43` target admin | - | `package.json:22,25-27` non eseguiti; `.firebaserc:6-10` |
+
+| 3e banner RICARICA | dev | UAT | prod |
+|--------------------|-----|-----|------|
+| Cosa si fa | deploy hosting dev con scheda aperta su `rankex-app-dev`; dopo il poll (5 min) compare il banner, osservato anche a 360 px | non verificato (nessun hosting UAT) | non toccato; il comportamento in prod non e' provato qui |
+| Riferimenti | `src/app/App.jsx:21` (`useVersionCheck`), `:54-67` (banner, RICARICA a `:64`); `src/hooks/useVersionCheck.js:3` (`POLL_MS` 5 min), `:12-18` (confronto `v` di `/version.json`); `vite.config.js:14-19` (scrive `dist/version.json` al build); caso runbook `config/runbook.config.js:1265`. Il banner non dipende da `isDev`/modulo: stesso codice in tutti gli ambienti | idem | idem |
+
+Moduli (PT/GYM/Soccer/Lipedema, `moduleType` null): le tre voci non dipendono dal modulo (nessun riferimento a
+`getModule` in `App.jsx`/`useVersionCheck.js`).
 
 Nessuna voce tocca codice di modulo (PT/GYM/Soccer/Lipedema, org legacy `moduleType` null): file toccati =
 `functions/package.json` + script di guard, `CLAUDE.md`, `.claude/settings.json`, `.claude/agents/*.md`, un

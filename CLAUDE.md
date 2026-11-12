@@ -857,6 +857,26 @@ vale per feature nuove o cambi che toccano permessi, piani, o dati sensibili.
 Developer se manca un backlog approvato o un'analisi tecnica del Tech Lead per un cambio
 non banale.
 
+### Voci con comportamento per ambiente o modulo
+
+Ogni voce di sprint/BACKLOG/BUGS il cui comportamento dipende dall'ambiente o dal modulo **apre con una tabella**:
+- colonne ambiente: dev (rankex-dev, `isDev`) / UAT / prod (fitquest-60a09); righe o colonne PT / GYM / Soccer /
+  Lipedema dove il modulo conta (più org legacy `moduleType` null se rilevante);
+- ogni cella = comportamento atteso + `file:riga` confermato leggendo il codice, mai a memoria;
+- cella non verificabile = "non verificato", mai supposta; la tabella si aggiorna se i file:riga cambiano prima
+  della chiusura. Il developer la conferma prima di implementare; lo scrum-master non mette READY senza.
+- Causa (retro #18): in 1d la voce non diceva cosa fare in UAT e il developer ha scelto `isDev` invece di
+  `!isProduction` senza chiedere. UAT è distinguibile dal codice solo con `isUat` (`VITE_ENV === 'uat'`), ma nel
+  repo non esiste un deploy/progetto UAT (solo rankex-dev e fitquest-60a09): in pratica non verificabile.
+
+| Caso | dev | UAT | prod |
+|------|-----|-----|------|
+| `ENV`/flag (`utils/env.js:1-5`; `ENV` ripiega su `import.meta.env.MODE` se `VITE_ENV` manca, riga 1) | `isDev` (3) true con `VITE_ENV=development` | `isUat` (5) true solo con `VITE_ENV=uat`; nessun deploy UAT nel repo: non verificato | `isProduction` (4) |
+| Select modulo (`config/modules.config.js:30` `IS_LIPEDEMA_SELECTABLE = isDev`, `:37-40`; usata in `CreateOrgForm.jsx:97`, `OrgDetailView.jsx:63`) | PT/Soccer/Lipedema | PT e Soccer; Lipedema solo se è già il modulo dell'org | idem UAT |
+| `isAdminDomain` (`utils/env.js:13-15`) | sempre false | hostname `admin-uat.rankex.app` in lista (7): non verificato dal vivo | hostname admin |
+
+Fix di una riga / typo: esenti (vedi "Quando saltare la pipeline").
+
 ---
 
 

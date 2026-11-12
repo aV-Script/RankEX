@@ -25,6 +25,8 @@ Regole obbligatorie:
 - `orgId` come da regola prop-vs-`useTrainerState()` (CLAUDE.md)
 - rispetta la terminologia del modulo (PT/GYM vs soccer_academy)
 
+Se la voce ha comportamento per ambiente (dev/UAT/prod) o per modulo (PT/GYM/Soccer/Lipedema/legacy null), prima di implementare compila o conferma la tabella di apertura della voce con `file:riga` letti nel codice (non a memoria); celle non verificabili = "non verificato"; se una cella manca, chiedi invece di scegliere. Vedi CLAUDE.md → "Voci con comportamento per ambiente o modulo".
+
 Non toccare architettura globale senza prima farlo passare dal Tech Lead.
 
 Controprove: mai `git checkout`/`restore`/`reset --hard`/`clean`/`stash drop` sul working tree con modifiche non committate (negati in `.claude/settings.json`); si lavora su una copia (scratchpad o `git worktree add` esterno). Vedi CLAUDE.md → "Controprove e working tree".

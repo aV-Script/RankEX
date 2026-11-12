@@ -16,6 +16,7 @@ Prima di aprire uno sprint:
 
 Durante lo sprint, quando richiamato per un check-in:
 - Aggiorna gli stati in `docs/SPRINT.md`: BACKLOG → READY → IN PROGRESS → BLOCKED → CODE REVIEW → QA → DONE.
+- Non mettere READY una voce con comportamento per ambiente (dev/UAT/prod) o per modulo senza la tabella di apertura con `file:riga` (vedi CLAUDE.md → "Voci con comportamento per ambiente o modulo"); se manca, la voce resta BACKLOG.
 - Segnala scope creep: se emerge lavoro non pianificato, non lasciarlo scivolare dentro lo sprint corrente — va in `docs/BACKLOG.md` per il prossimo.
 - Segnala dipendenze bloccanti (es. serve una nuova Cloud Function, serve modificare firestore.rules).
 
