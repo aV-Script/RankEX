@@ -474,7 +474,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
             <section className="px-4 pt-6">
               <div className="rounded-[4px] p-5 rx-card">
                 <div className="font-display text-[10px] tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-accent)' }}>◈ Calendario {terminology.sessions.toLowerCase()}</div>
-                <ClientCalendar clientId={client.id} orgId={orgId} terminology={terminology} />
+                <ClientCalendar clientId={client.id} orgId={orgId} client={client} terminology={terminology} hasGamification={capabilities.hasGamification} />
               </div>
             </section>
           )}

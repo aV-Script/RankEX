@@ -1,3 +1,5 @@
+import { SLOT_STATUS } from '../constants/slotStatus'
+
 /** Altezza in px di un'ora nelle viste settimana e giorno. */
 export const HOUR_HEIGHT_PX = 60
 
@@ -59,16 +61,49 @@ export function getWeekRange(date) {
 }
 
 /**
- * Calcola la percentuale di completamento mensile per un cliente.
- * @param {object[]} clientSlots — slot del mese in cui il cliente è iscritto
- * @param {string}   clientId   — id del cliente
- * @returns {{ planned: number, completed: number, pct: number }}
+ * Stato di una sessione per un cliente. Regole in ordine: `skipped` vince su tutto;
+ * cliente in `attendees` = completed; sessione chiusa senza il cliente tra i presenti
+ * = absent; altrimenti planned (anche nel passato non chiuso: nessuno stato "da chiudere").
+ * @param {object} slot
+ * @param {string} clientId
+ * @returns {'completed'|'absent'|'skipped'|'planned'}
  */
-export function calcMonthlyCompletion(clientSlots, clientId) {
-  const planned   = clientSlots.length
-  const completed = clientSlots.filter(s => s.attendees?.includes(clientId)).length
-  if (planned === 0) return { planned: 0, completed: 0, pct: 0 }
-  return { planned, completed, pct: Math.round((completed / planned) * 100) }
+export function getClientSlotState(slot, clientId) {
+  if (slot.status === SLOT_STATUS.SKIPPED) return 'skipped'
+  if (slot.attendees?.includes(clientId)) return 'completed'
+  if (slot.status === SLOT_STATUS.COMPLETED) return 'absent'
+  return 'planned'
+}
+
+/**
+ * Riepilogo mensile presenze: saltate e pianificate escluse dal denominatore.
+ * @param {object[]} slots — slot del mese del cliente
+ * @param {string} clientId
+ * @returns {{ present: number, absent: number, pct: number }}
+ */
+export function calcClientMonthSummary(slots, clientId) {
+  let present = 0
+  let absent  = 0
+  for (const slot of slots) {
+    const state = getClientSlotState(slot, clientId)
+    if (state === 'completed') present += 1
+    else if (state === 'absent') absent += 1
+  }
+  const total = present + absent
+  return { present, absent, pct: total === 0 ? 0 : Math.round((present / total) * 100) }
+}
+
+const UPCOMING_DAY_NAMES   = ['DOM', 'LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB']
+const UPCOMING_MONTH_NAMES = ['GEN', 'FEB', 'MAR', 'APR', 'MAG', 'GIU', 'LUG', 'AGO', 'SET', 'OTT', 'NOV', 'DIC']
+
+/**
+ * 'YYYY-MM-DD' → "MER 4 NOV" (data costruita in ora locale, non UTC).
+ * @param {string} dateStr
+ */
+export function formatUpcomingDate(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const date = new Date(y, m - 1, d)
+  return `${UPCOMING_DAY_NAMES[date.getDay()]} ${d} ${UPCOMING_MONTH_NAMES[m - 1]}`
 }
 
 /**

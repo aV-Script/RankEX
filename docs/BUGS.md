@@ -298,7 +298,7 @@ Formato:
 ## [BUG-028] Calendario cliente: sessione passata con cliente assente o saltata resta "Pianificata"
 **Severity:** P2
 **Modulo/Ruolo:** area cliente (PT/GYM e soccer; lipedema non ha area cliente), ruolo client e vista trainer del cliente — `src/features/client/ClientCalendar.jsx:98-99` (`isCompleted`, `isPlanned = hasSlots && !isCompleted`) e `:102` (`dayXP`); `calcMonthlyCompletion` in `src/utils/calendarUtils.js:67-72`. Trovato nel censimento del 12/11/2026 su `ab65b45`. Assorbito da STORY-047.
-**Status:** OPEN
+**Status:** FIXED nel codice (Sprint #20, STORY-047; da verificare dal vivo con TP-092)
 **Reproduction steps:** il trainer chiude una sessione passata con il cliente assente, oppure la salta (`status: 'skipped'`); aprire il calendario del cliente nel mese.
 **Expected:** stati distinti completata / assente / saltata / pianificata e stima XP solo per le sessioni future; "completamento mese" non conta saltate e future.
 **Actual:** il giorno resta "Pianificata" (pallino blu) con stima "+N XP"; la barra COMPLETAMENTO MESE conta tutti gli slot del mese, anche futuri e saltati.

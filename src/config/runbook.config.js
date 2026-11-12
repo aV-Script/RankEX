@@ -540,6 +540,20 @@ export const RUNBOOK_SUITES = [
         ],
         expected: ['Il pannello è un dialog modale accessibile da tastiera', 'Le notifiche si segnano lette solo con azione esplicita', 'Header intero a 360 px'],
       },
+      {
+        id: 'TP-092', usId: 'STORY-047', severity: 'important', title: 'Calendario cliente: assente, saltata, prossime sessioni, presenze',
+        preconditions: 'Org PT o Soccer con un cliente (account attivo) e un trainer; una org lipedema con un paziente e almeno una sessione.',
+        steps: [
+          'Come trainer: creare due sessioni passate per il cliente, chiuderne una con il cliente ASSENTE e saltare la seconda; creare 4 sessioni future',
+          'Area cliente → Calendario: i giorni mostrano pallini rosso (Assente) e grigio (Saltata); nessuna stima "+N XP" sui giorni passati; legenda a 4 voci',
+          'PROSSIME: compaiono solo le prime 3 sessioni pianificate (es. "MER 4 NOV · 18:30 – 19:30"); senza sessioni future: "Nessuna sessione in programma"',
+          'PRESENZE = presenti / (presenti + assenti) con percentuale; saltate e pianificate escluse; mese senza sessioni chiuse: "0 / 0"; STRISCIA e "XP ×1,4" coerenti con lo streak',
+          'Vista trainer del cliente → tab calendario: stessi stati, stesse PROSSIME e riepilogo',
+          'Org lipedema, vista trainer del paziente: stati e PRESENZE presenti, nessuna STRISCIA né stima XP',
+          'A 360x640: griglia a 7 colonne dentro lo schermo, card PRESENZE e STRISCIA sulla stessa riga, nessuno scroll orizzontale',
+        ],
+        expected: ['Assente e Saltata distinte da Pianificata', 'Stima XP solo per sessioni pianificate da oggi in poi', 'Riepilogo e prossime corretti', 'Nessuna gamification in lipedema'],
+      },
     ],
   },
   {

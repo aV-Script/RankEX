@@ -305,7 +305,7 @@ export function ClientDashboardPage({
                 <div className="font-display text-[10px] tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-accent)' }}>
                   ◈ Calendario allenamenti
                 </div>
-                <ClientCalendar clientId={clientId} orgId={orgId} />
+                <ClientCalendar clientId={clientId} orgId={orgId} client={client} />
               </div>
             </section>
           )}

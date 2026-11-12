@@ -14,7 +14,7 @@ import { SLOT_STATUS } from '../../constants/slotStatus'
 import { useToast } from '../../hooks/useToast'
 import { useTrainerState } from '../../context/TrainerContext'
 
-export { calcMonthlyCompletion, getMonthRange, getWeekRange } from '../../utils/calendarUtils'
+export { getMonthRange, getWeekRange } from '../../utils/calendarUtils'
 
 export function useCalendar(orgId) {
   const [slots, setSlots]           = useState([])

@@ -21,12 +21,16 @@ export function calcStreakPreview(client) {
   return (client.sessionStreak ?? 0) + 1
 }
 
+/** Moltiplicatore XP di una sessione dato lo streak (max +100% a streak 10). */
+export function calcStreakMultiplier(streak = 0) {
+  return 1 + Math.min(streak * 0.1, 1.0)
+}
+
 /**
  * Calcola EXP per sessione basata SOLO su streak
  */
 export function calcSessionXP(baseXP, streak = 0) {
-  const multiplier = 1 + Math.min(streak * 0.1, 1.0) // max +100% a streak 10
-  return Math.round(baseXP * multiplier)
+  return Math.round(baseXP * calcStreakMultiplier(streak))
 }
 
 

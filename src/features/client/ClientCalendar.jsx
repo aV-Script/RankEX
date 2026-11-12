@@ -1,21 +1,44 @@
 import { useState, useEffect, useMemo } from 'react'
-import { getClientSlots } from '../../firebase/services/calendar'
-import { getMonthRange, calcMonthlyCompletion } from '../calendar/useCalendar'
-import { calcStreakPreview, calcSessionXP } from '../../utils/gamification'
-import { toLocalDateStr } from '../../utils/calendarUtils'
+import { getClientSlots, getUpcomingClientSlots } from '../../firebase/services/calendar'
+import { getMonthRange } from '../calendar/useCalendar'
+import { calcStreakPreview, calcSessionXP, calcStreakMultiplier } from '../../utils/gamification'
+import {
+  toLocalDateStr, getClientSlotState, calcClientMonthSummary, formatUpcomingDate,
+} from '../../utils/calendarUtils'
 import { bySessionGender, DEFAULT_TERMINOLOGY } from '../../config/modules.config'
 
 const MONTH_NAMES = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
   'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
 const DAY_NAMES = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom']
 
-// terminology: del modulo (vista trainer); l'area cliente usa il default
-export function ClientCalendar({ clientId, orgId, clients, terminology = DEFAULT_TERMINOLOGY }) {
+const UPCOMING_FETCH_LIMIT = 20
+const UPCOMING_SHOWN       = 3
+const MAX_DAY_DOTS         = 3
+
+const STATE_COLORS = {
+  completed: '#34d399',
+  absent:    '#f87171',
+  skipped:   'rgba(255,255,255,0.35)',
+  planned:   '#60a5fa',
+}
+
+const PANEL_STYLE = { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }
+
+const byTime = (a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? '')
+
+// terminology: del modulo (vista trainer); l'area cliente usa il default.
+// client: serve per striscia e stima XP; senza, non compaiono.
+// hasGamification: false per i moduli senza XP (lipedema): nessuna striscia né stima.
+export function ClientCalendar({
+  clientId, orgId, client = null, terminology = DEFAULT_TERMINOLOGY, hasGamification = true,
+}) {
   const [slots,        setSlots]        = useState([])
+  const [upcoming,     setUpcoming]     = useState([])
   const [currentYear,  setCurrentYear]  = useState(new Date().getFullYear())
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1)
 
   const { from, to } = getMonthRange(currentYear, currentMonth)
+  const today = toLocalDateStr()
 
   // Ottieni i dati delle sessioni del client
   useEffect(() => {
@@ -29,7 +52,21 @@ export function ClientCalendar({ clientId, orgId, clients, terminology = DEFAULT
     return () => { cancelled = true }
   }, [orgId, clientId, from, to])
 
-  const client = clients?.find(c => c.id === clientId)
+  // Prossime sessioni: indipendenti dal mese mostrato
+  useEffect(() => {
+    if (!orgId || !clientId) return
+    let cancelled = false
+    getUpcomingClientSlots(orgId, clientId, today, UPCOMING_FETCH_LIMIT)
+      .then(data => {
+        if (cancelled) return
+        const planned = data
+          .filter(slot => getClientSlotState(slot, clientId) === 'planned')
+          .sort((a, b) => a.date.localeCompare(b.date) || byTime(a, b))
+        setUpcoming(planned.slice(0, UPCOMING_SHOWN))
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [orgId, clientId, today])
 
   // Mappa dei giorni del mese per calendario
   const calendarDays = useMemo(() => {
@@ -40,48 +77,59 @@ export function ClientCalendar({ clientId, orgId, clients, terminology = DEFAULT
     for (let i = 0; i < startOffset; i++) days.push(null)
     for (let d = 1; d <= lastDay.getDate(); d++) {
       const dateStr = `${currentYear}-${String(currentMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`
-      days.push({ day: d, dateStr, slots: slots.filter(s => s.date === dateStr) })
+      const daySlots = slots.filter(s => s.date === dateStr).sort(byTime)
+      days.push({ day: d, dateStr, slots: daySlots })
     }
     return days
   }, [currentYear, currentMonth, slots])
 
-  const { planned, completed, pct } = calcMonthlyCompletion(slots, clientId)
-  const today = toLocalDateStr()
+  const { present, absent, pct } = calcClientMonthSummary(slots, clientId)
+  const showStreak = hasGamification && Boolean(client)
+  const streakMultiplier = showStreak ? calcStreakMultiplier(calcStreakPreview(client)) : 1
 
   const prevMonth = () => setCurrentMonth(m => { if (m === 1) { setCurrentYear(y => y-1); return 12 } return m-1 })
   const nextMonth = () => setCurrentMonth(m => { if (m === 12) { setCurrentYear(y => y+1); return 1 } return m+1 })
 
+  const legend = [
+    { state: 'completed', label: bySessionGender(terminology, 'Completato', 'Completata') },
+    { state: 'absent',    label: 'Assente' },
+    { state: 'skipped',   label: bySessionGender(terminology, 'Saltato', 'Saltata') },
+    { state: 'planned',   label: bySessionGender(terminology, 'Pianificato', 'Pianificata') },
+  ]
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Prossime sessioni */}
+      <div className="rounded-[3px] p-3.5" style={PANEL_STYLE}>
+        <div className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] mb-2">
+          PROSSIME {terminology.sessions.toUpperCase()}
+        </div>
+        {upcoming.length === 0 ? (
+          <p className="font-body text-[13px] text-white/40 m-0">
+            {bySessionGender(terminology, 'Nessun', 'Nessuna')} {terminology.session.toLowerCase()} in programma
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-1.5 list-none m-0 p-0">
+            {upcoming.map(slot => (
+              <li key={slot.id} className="font-display text-[13px] font-semibold text-white/80">
+                {formatUpcomingDate(slot.date)}
+                {slot.startTime && ` · ${slot.startTime}${slot.endTime ? ` – ${slot.endTime}` : ''}`}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
       {/* Navigazione */}
       <div className="flex items-center justify-between">
-        <button onClick={prevMonth}
+        <button onClick={prevMonth} aria-label="Mese precedente"
           className="bg-transparent border border-white/10 rounded-[3px] w-8 h-8 flex items-center justify-center cursor-pointer hover:border-white/20 transition-all text-white/40 hover:text-white/70 text-[16px]">‹</button>
         <span className="font-display font-black text-[16px] text-white">
           {MONTH_NAMES[currentMonth - 1]} {currentYear}
         </span>
-        <button onClick={nextMonth}
+        <button onClick={nextMonth} aria-label="Mese successivo"
           className="bg-transparent border border-white/10 rounded-[3px] w-8 h-8 flex items-center justify-center cursor-pointer hover:border-white/20 transition-all text-white/40 hover:text-white/70 text-[16px]">›</button>
       </div>
-
-      {/* Barra completamento */}
-      {planned > 0 && (
-        <div className="rounded-[3px] p-3.5"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-          <div className="flex justify-between items-center mb-2">
-            <span className="font-display text-[11px] font-semibold text-white/30 tracking-[2px]">COMPLETAMENTO MESE</span>
-            <span className="font-display text-[12px]"
-              style={{ color: pct === 100 ? '#34d399' : pct >= 50 ? '#f59e0b' : '#f87171' }}>
-              {completed}/{planned}
-            </span>
-          </div>
-          <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
-            <div className="h-full rounded-full transition-[width] duration-700"
-              style={{ width: `${pct}%`, background: pct === 100 ? '#34d399' : pct >= 50 ? '#f59e0b' : '#f87171' }} />
-          </div>
-        </div>
-      )}
 
       {/* Griglia */}
       <div>
@@ -93,31 +141,43 @@ export function ClientCalendar({ clientId, orgId, clients, terminology = DEFAULT
         <div className="grid grid-cols-7 gap-1">
           {calendarDays.map((cell, i) => {
             if (!cell) return <div key={`e-${i}`} />
-            const isToday     = cell.dateStr === today
-            const hasSlots    = cell.slots.length > 0
-            const isCompleted = hasSlots && cell.slots.every(s => s.attendees?.includes(clientId))
-            const isPlanned   = hasSlots && !isCompleted
+            const isToday   = cell.dateStr === today
+            const hasSlots  = cell.slots.length > 0
+            const states    = cell.slots.map(slot => getClientSlotState(slot, clientId))
+            const mainState = states[0]
 
-            // Stima XP giorno (preview)
-            const dayXP = client && hasSlots && isPlanned ? calcSessionXP(client.baseXP ?? 50, calcStreakPreview(client)) : 0
+            // Stima XP: solo giorni con una sessione pianificata da oggi in poi
+            const hasUpcomingPlanned = cell.dateStr >= today && states.includes('planned')
+            const dayXP = showStreak && hasUpcomingPlanned
+              ? calcSessionXP(client.baseXP ?? 50, calcStreakPreview(client))
+              : 0
 
             return (
               <div key={cell.dateStr}
-                className="rounded-[3px] flex flex-col items-center justify-center gap-0.5 py-2 min-h-[44px]"
+                className="rounded-[3px] flex flex-col items-center justify-center gap-0.5 py-2 min-h-[44px] min-w-0"
                 style={{
-                  background:  isCompleted ? '#34d39911' : isToday ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.02)',
-                  border: `1px solid ${isCompleted ? '#34d39933' : isToday ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)'}`,
+                  background: isToday ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.02)',
+                  border: `1px solid ${mainState === 'completed' ? '#34d39933' : isToday ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)'}`,
                 }}>
                 <span className="font-display text-[11px]"
-                  style={{ color: isCompleted ? '#34d399' : isToday ? '#00c8ff' : 'rgba(255,255,255,0.5)' }}>
+                  style={{ color: isToday ? '#00c8ff' : mainState === 'completed' ? '#34d399' : 'rgba(255,255,255,0.5)' }}>
                   {cell.day}
                 </span>
                 {hasSlots && cell.slots[0].startTime && (
                   <span className="font-display text-[8px] text-white/60">{cell.slots[0].startTime}</span>
                 )}
-                {isCompleted && <div className="w-1 h-1 rounded-full bg-emerald-400" />}
-                {isPlanned   && <div className="w-1 h-1 rounded-full bg-blue-400 opacity-60" />}
-                {dayXP > 0 && isPlanned && (
+                {hasSlots && (
+                  <div className="flex gap-0.5" aria-hidden="true">
+                    {states.slice(0, MAX_DAY_DOTS).map((state, idx) => (
+                      <div key={idx} className="w-1 h-1 rounded-full"
+                        style={{ background: STATE_COLORS[state], opacity: state === 'planned' ? 0.6 : 1 }} />
+                    ))}
+                  </div>
+                )}
+                {hasSlots && (
+                  <span className="sr-only">{legend.find(item => item.state === mainState)?.label}</span>
+                )}
+                {dayXP > 0 && (
                   <span className="font-display text-[8px] text-emerald-400">+{dayXP} XP</span>
                 )}
               </div>
@@ -127,15 +187,36 @@ export function ClientCalendar({ clientId, orgId, clients, terminology = DEFAULT
       </div>
 
       {/* Legenda */}
-      <div className="flex gap-4">
-        <div className="flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-full bg-emerald-400" />
-          <span className="font-display font-bold text-[11px] text-white/30">{bySessionGender(terminology, 'Completato', 'Completata')}</span>
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        {legend.map(item => (
+          <div key={item.state} className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full"
+              style={{ background: STATE_COLORS[item.state], opacity: item.state === 'planned' ? 0.6 : 1 }} />
+            <span className="font-display font-bold text-[11px] text-white/30">{item.label}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Riepilogo mese */}
+      <div className={`grid gap-2 ${showStreak ? 'grid-cols-2' : 'grid-cols-1'}`}>
+        <div className="rounded-[3px] p-3.5 min-w-0" style={PANEL_STYLE}>
+          <div className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] mb-1">PRESENZE</div>
+          <div className="font-display text-[16px] font-black text-white">
+            {present} / {present + absent}
+            <span className="text-[12px] font-semibold text-white/50"> · {pct} %</span>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-full bg-blue-400 opacity-60" />
-          <span className="font-display font-bold text-[11px] text-white/30">{bySessionGender(terminology, 'Pianificato', 'Pianificata')}</span>
-        </div>
+        {showStreak && (
+          <div className="rounded-[3px] p-3.5 min-w-0" style={PANEL_STYLE}>
+            <div className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] mb-1">STRISCIA</div>
+            <div className="font-display text-[16px] font-black text-white">
+              {client.sessionStreak ?? 0}
+              <span className="text-[12px] font-semibold text-emerald-400">
+                {' '}· XP ×{streakMultiplier.toFixed(1).replace('.', ',')}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

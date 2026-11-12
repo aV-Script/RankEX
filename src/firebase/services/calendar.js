@@ -1,6 +1,6 @@
 import {
   collection, getDocs,
-  query, where, orderBy,
+  query, where, orderBy, limit,
 } from 'firebase/firestore'
 import { db }                         from './db'
 import { slotsPath, recurrencesPath } from '../paths'
@@ -26,6 +26,19 @@ export const getClientSlots = async (orgId, clientId, from, to) => {
     where('date', '>=', from),
     where('date', '<=', to),
     orderBy('date'),
+  )
+  const snap = await getDocs(q)
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+}
+
+/** Sessioni del cliente da `fromDate` in poi (ordinate per data), al massimo `max`. */
+export const getUpcomingClientSlots = async (orgId, clientId, fromDate, max) => {
+  const q    = query(
+    collection(db, slotsPath(orgId)),
+    where('clientIds', 'array-contains', clientId),
+    where('date', '>=', fromDate),
+    orderBy('date'),
+    limit(max),
   )
   const snap = await getDocs(q)
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
