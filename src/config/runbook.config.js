@@ -1320,6 +1320,18 @@ export const RUNBOOK_SUITES = [
         ],
         expected: ['Fuori da dev Lipedema non compare né in creazione né nel cambio modulo; in dev sì. Un\'org già lipedema mostrerebbe comunque il proprio modulo'],
       },
+      {
+        id: 'TP-088', usId: 'BUG-026', severity: 'important', title: 'Banner "Nuova versione disponibile" non copre login, bottom nav e controlli',
+        preconditions: 'Build vecchia aperta su rankex-dev mentre si deploya la nuova (il banner compare entro 5 minuti, anche sul login); account cliente e trainer.',
+        steps: [
+          'Login a 360x640 col banner visibile: il banner sta in alto, "Password dimenticata?" e ACCEDI sono visibili e cliccabili; il testo non esce dallo schermo',
+          'Area cliente a 360 px: la bottom nav resta intera e cliccabile, il banner non la copre',
+          'Area trainer a 360 px: il pulsante logout dell\'header mobile resta visibile e cliccabile; il banner sta sotto l\'header',
+          'A 1366 px: banner in basso al centro come prima, invariato',
+          'RICARICA: la pagina si ricarica e il banner non compare più',
+        ],
+        expected: ['Il banner non copre mai link/bottoni del login, la bottom nav cliente e il logout trainer; da 1024 px resta in basso al centro'],
+      },
     ],
   },
 ]

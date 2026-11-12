@@ -52,7 +52,7 @@ export default function App() {
       {showSessionWarning && <SessionWarningDialog onExtend={extendSession} />}
       <ThemeDevPanel />
       {hasUpdate && (
-        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-3 px-5 py-3 rounded-[4px] border"
+        <div className="fixed top-16 lg:top-auto lg:bottom-5 left-1/2 -translate-x-1/2 z-[9999] w-max max-w-[calc(100vw-1.5rem)] flex items-center justify-between gap-3 px-4 lg:px-5 py-3 rounded-[4px] border"
           style={{
             background:   'var(--rx-card-bg)',
             borderColor:  'color-mix(in srgb, var(--rx-accent) 35%, transparent)',

@@ -279,7 +279,7 @@ Formato:
 ## [BUG-026] Banner RICARICA copre "Password dimenticata?" sul login a 360 px
 **Severity:** P3 (UI; workaround immediato)
 **Modulo/Ruolo:** tutti — pagina di login, `src/app/App.jsx:54-67` (banner `fixed bottom-5`). Trovato nella voce 3e dello Sprint #19 (12/11, rankex-app-dev, dopo il deploy hosting)
-**Status:** OPEN
+**Status:** FIXED nel codice (Sprint #20, da verificare dal vivo su rankex-dev con TP-088): sotto `lg` il banner sta in alto (`top-16`), da `lg` resta in basso
 **Reproduction steps:** login aperto a 360×640 con build vecchia; deployare una nuova build; attendere fino a 5 min (`POLL_MS`, `useVersionCheck.js:3`) finché compare il banner RICARICA.
 **Expected:** il banner non nasconde i controlli del form.
 **Actual:** il banner copre il link "Password dimenticata?" finché non si ricarica. A 1366 px non copre nulla.

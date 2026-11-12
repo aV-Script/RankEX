@@ -125,7 +125,7 @@ Ambiente: nessuna voce tocca codice condizionato da ambiente (`grep isDev|isProd
 | 0. Apertura sprint (docs) | DONE | questo commit |
 | 1. checkPrev (AI 1) | DONE | review medium APPROVED (2 LOW: costante inutilizzata tolta; `process` no-undef come in `deployGuard.test.js`, `functions/` fuori da `eslint src`). `744f6f9` exit 1, `f086405` exit 0 (Git Bash e PowerShell); test d'integrazione su repo temporaneo (CI shallow, `ci.yml:14`); functions 252/252 |
 | 2. check:deny (AI 3) | DONE | review medium APPROVED (4 LOW, nessuna azione; a capo in CLAUDE.md corretto). `npm run check:deny` 72/72 exit 0 sul file vero; copia nello scratchpad senza `Bash(git checkout HEAD*)` → exit 1 (Bash e PowerShell); TD-014 aggiornato (resta OPEN per i buchi noti); unit 664/664, lint ok. Fuori voce: `goals.test.js` falliva tra 00:00 e 01:00 (UTC vs data locale nel test), corretto in `597540a` |
-| BUG-026 (AI 2) | READY | tabella compilata |
+| BUG-026 (AI 2) | QA | codice fatto: sotto `lg` banner in alto (`top-16`, sotto l'header mobile trainer `AppNav.jsx:99`), da `lg` in basso come prima; `max-w-[calc(100vw-1.5rem)]`. Review medium nella sessione principale: nessun finding. Caso TP-088. Lint, unit 664/664, build ok. Rischio noto: in area cliente a 360 px può coprire in parte la sub-tab bar finché non si preme RICARICA. Da osservare in QA dal vivo (TP-088) |
 | 3. STORY-045 negozio avatar sicuro | READY | assorbe BUG-027 |
 | 4. STORY-046 a11y + navigazione | READY | assorbe BUG-030, BUG-031 p.1 e 4 |
 | 5. STORY-047 calendario cliente | READY | assorbe BUG-028; cella lipedema vista trainer "non verificato": conferma del developer prima di implementare |
