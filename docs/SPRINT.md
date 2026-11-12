@@ -7,7 +7,140 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-Nessuno sprint aperto. Ultimo chiuso: #19 (primo sotto "Sprint chiuso (storico)").
+# SPRINT #20 — EPIC-011 Area cliente allineata al canvas + action item del #19 — aperto il 2026-11-12
+
+**Branch:** `feature/lipedema-module`. All'apertura HEAD `ab65b45` = `origin/dev`; poi commit locale `0d06a5c` (docs
+backlog EPIC-011 + BUG-027..031); il commit di apertura di questo sprint e' il secondo. Nessun push. `lipidemia/` e
+`mobile-app/` untracked e non si committano; stash "lipedema docs" da non toccare; branch locale `dev` fermo a
+`f086405`, ignorato. Nessun deploy su `fitquest-60a09`. Deploy hosting su rankex-dev solo a fine sprint, con via
+libera dell'utente, mai durante `qa:dev`.
+
+**Goal:** chiudere i difetti dell'area cliente a rischio (acquisto avatar senza conferma, pannello notifiche e
+navigazione non accessibili, calendario con stati sbagliati) e gli action item del #19 che sono codice (checkPrev,
+check:deny, BUG-026), con QA dal vivo su rankex-dev a 1366 px e 360x640.
+
+**Situazione iniziale (verificata con git il 2026-11-12/13):**
+- CI ed E2E di `ab65b45` verdi; "Deploy to Firebase" run 43273458102: `deploy-dev` success, `deploy-prod` skipped.
+- `origin/main` = `f086405`. Prod `fitquest-60a09` a `f086405` (functions, hosting, rules; 40 callable nodejs22).
+  rankex-dev: functions, hosting e rules a `5090d9a` (dopo, solo docs).
+- `docs/BUGS.md`: nessun P0/P1 aperto. OPEN: BUG-005 P3, BUG-008 P3, BUG-026 P3, BUG-027 P2, BUG-028 P2, BUG-029 P3,
+  BUG-030 P2, BUG-031 P3. `docs/TECH-DEBT.md`: TD-014, TD-015 OPEN.
+- Non verificato e accettato dal #19: 3f (rinviato al primo onboarding reale in prod), org QA GYM (rinviata alla
+  prima org GYM reale), UAT inesistente, rollback functions prod solo fix forward (TD-015).
+
+**Decisioni prese (2026-11-12, utente; la riga 9 e' una scelta dello scrum-master, dichiarata):**
+
+| # | Decisione |
+|---|-----------|
+| 1 | AI 3 (TD-014): copia tracciata dei deny in `docs/git-deny.json` + `scripts/check-deny.mjs` + `npm run check:deny` (exit 1 se un pattern della copia manca da `permissions.deny` di `.claude/settings.json`, 0 altrimenti). Controprova su un settings di prova nello scratchpad, mai sul file vero. TD-014 aggiornato: chiuso il "non tracciato", resta OPEN per i buchi noti |
+| 2 | AI 4 (org QA GYM) sostituito dalla story "negozio avatar sicuro" (STORY-045). GYM: "rinviata alla prima org GYM reale" |
+| 3 | AI 5: STORY-029 (b)/(c) rinviato al contratto con la prima org Lipedema; 3f rinviato al primo onboarding reale in prod (gia' in #19 e BACKLOG) |
+| 4 | Centro del pentagono: resta l'avatar; rank/media al centro col #21 (STORY-048) |
+| 5 | Peso inserito dal cliente: fuori dal #20 (STORY-050, backlog senza sprint) |
+| 6 | Sblocco avatar per rank: fuori dal #20 (STORY-051, backlog senza sprint) |
+| 7 | Schermate solo nel codice (Scarica dati, Attivita', BIA cliente, reset password): le disegna l'utente sul canvas in parallelo; nessuna voce. Canvas in sola lettura per gli agenti |
+| 8 | Composizione: voce 1 checkPrev (AI 1) · voce 2 check:deny (AI 3) · voce 3 STORY-045 (assorbe BUG-027) · voce 4 STORY-046 (assorbe BUG-030 e BUG-031 punti 1 e 4) · voce 5 STORY-047 (assorbe BUG-028). Bug S fuori voce: BUG-026 (AI 2, con caso TP-), BUG-029, BUG-031 punti 2 e 3 (fix di una riga, pipeline saltata). STORY-048/049 solo backlog per il #21 |
+| 9 | (scrum-master) STORY-047: riepilogo mese senza sessioni chiuse mostra "0 / 0" (scelta PO, gia' nell'AC); terminologia del modulo nell'area cliente resta BUG-008, fuori sprint |
+
+**Voci, nell'ordine (consigliato: 1, 2, BUG-026, 3, 4, 5, bug S):**
+0. **Apertura sprint** (questo commit di docs). DONE.
+1. **checkPrev (AI 1).** `functions/scripts/checkPrev.mjs <sha>`, Node puro, nessuna dipendenza: stampa `engines.node`
+   di `<sha>` (`git show <sha>:functions/package.json`) e di HEAD; exit 1 con motivo se il runtime di `<sha>` e'
+   dismesso o diverso da quello atteso (`nodejs22`), 0 altrimenti; sha inesistente o JSON illeggibile = exit 1. Test
+   Vitest in `functions/test/` (logica pura separata, come `deployGuardLib.mjs`). Citato nella checklist di rollback
+   di CLAUDE.md (riga "Prev functions", sezione "Da annotare in CHANGELOG prima di ogni deploy prod",
+   CLAUDE.md:1203-1208) e nella regola di `.claude/agents/developer.md` e `scrum-master.md` ("sha, runtime, versione =
+   output di un comando, non conferma verbale"). *Fatto quando:* `node functions/scripts/checkPrev.mjs 744f6f9` esce 1
+   (`engines.node` = 20), `... f086405` esce 0 (`engines.node` = 22), citato nei 3 file. **Review medium.**
+2. **check:deny (AI 3).** `docs/git-deny.json` (copia dei 72 pattern di `permissions.deny`), `scripts/check-deny.mjs`
+   (logica pura testata; dove stia il test, `src/__tests__/` o accanto allo script, lo sceglie il developer e lo
+   dichiara), script `check:deny` in `package.json`. *Fatto quando:* `npm run check:deny` esce 0 oggi sul file vero
+   (sola lettura) ed esce 1 su un settings di prova nello scratchpad con un pattern tolto; TD-014 aggiornato.
+   **Review medium.**
+3. **BUG-026 (AI 2).** Banner RICARICA (`src/app/App.jsx:54-67`, `fixed bottom-5`) che non copre "Password
+   dimenticata?" (`src/features/auth/components/LoginForm.jsx:75-84`) a 360x640. Caso `TP-` in
+   `src/config/runbook.config.js` (ultimo caso oggi TP-087, riga 1313). *Fatto quando:* a 360x640 su rankex-dev il
+   link e' cliccabile col banner visibile, BUG-026 FIXED. **Review medium.**
+4. **STORY-045** negozio avatar sicuro (AC in BACKLOG; assorbe BUG-027). Callable `acquistaAvatar` invariata.
+   **Review medium.**
+5. **STORY-046** accessibilita' e navigazione area cliente (AC in BACKLOG; assorbe BUG-030 e BUG-031 punti 1 e 4).
+   **Review medium.**
+6. **STORY-047** calendario cliente (AC in BACKLOG; assorbe BUG-028), con test Vitest della funzione pura di stato
+   slot. **Review medium.**
+7. **Bug S fuori voce** (pipeline saltata, un commit): BUG-029 (`src/features/client/client-view/ClientHub.jsx:199`,
+   `:277`), BUG-031 punto 2 (`src/features/client/client-dashboard/NotesSection.jsx:90`, montata readonly in
+   `ClientDashboardPage.jsx:337`) e punto 3 (`src/features/client/client-dashboard/GoalsSection.jsx:161`).
+8. **Fine sprint.** Deploy hosting su rankex-dev (`npm run deploy:app:dev`, via libera dell'utente, mai durante
+   `qa:dev`), QA dal vivo su rankex-app-dev.web.app con le utenze `qadev.pt.*` e il cliente di base di `qa-pt`
+   ("QA Cliente PT"), a 1366 px e 360x640: "Password dimenticata?" col banner, conferma acquisto con saldo, pannello
+   notifiche da tastiera, calendario con sessione assente/saltata, vetrina Trofei e barre StatsSection a 360 px
+   (osservazione per STORY-049). Esiti qui, bug nuovi in BUGS.md.
+
+**Tabelle ambiente/modulo (regola CLAUDE.md "Voci con comportamento per ambiente o modulo"; file:riga verificati il
+2026-11-13 su `0d06a5c`):**
+
+Ambiente: nessuna voce tocca codice condizionato da ambiente (`grep isDev|isProduction|isUat` su
+`src/features/client`, `src/features/notification`, `src/features/auth`, `src/app/App.jsx`,
+`src/hooks/useVersionCheck.js` = 0 risultati).
+
+| Voce | dev (rankex-dev) | UAT | prod (fitquest-60a09) |
+|------|------------------|-----|-----------------------|
+| Tutte | deploy hosting a fine sprint (`npm run deploy:app:dev`) | nessun progetto/hosting nel repo (`.firebaserc:5-18`): non verificato | non toccata (main a `f086405`, nessun deploy) |
+| 1 checkPrev | n/a (script locale di sola lettura git) | n/a | non eseguito, nessun accesso: serve alla checklist di rollback prod, legge solo il commit |
+| 2 check:deny | n/a (locale; nessun ambiente Firebase) | n/a | n/a; `.claude/settings.json` non tracciato (`.gitignore:21-22` `.claude/*` + `!.claude/agents/`): vale solo su questa macchina |
+| BUG-026 | banner indipendente da ambiente e modulo (`App.jsx:21` `useVersionCheck`, `useVersionCheck.js:3` `POLL_MS` 5 min); osservabile solo su rankex-dev dopo il deploy di fine sprint | non verificato | non osservato |
+
+| Voci 3-5 e bug S, per modulo | Comportamento / riferimenti |
+|------------------------------|-----------------------------|
+| Area cliente (ruolo `client`) | Raggiungibile solo dal ruolo `client`: `src/app/routes.config.jsx:60-70`, `ClientView` a riga 67, `ChangePasswordScreen` se `mustChangePassword` |
+| PT (e GYM) | `hasClientLogin` true (`src/config/modules.config.js:83`). GYM = `personal_training` con `terminologyVariant` gym: stesso codice di PT; nessuna org QA GYM: non verificato (rinviato alla prima org GYM reale) |
+| Soccer | `hasClientLogin` true (`modules.config.js:88`) |
+| Lipedema | `hasClientLogin` false (`modules.config.js:93`): nessun account paziente, le voci non lo toccano. STORY-047 tocca anche la vista trainer del cliente (`src/features/client/ClientDashboard.jsx:477`): verificato il 2026-11-13: il tab calendario e' visibile anche in lipedema (`src/features/client/client-dashboard/dashboardTabs.js:16`, nessuna capability; montato a `ClientDashboard.jsx:473-479` con `terminology`). Gli stati completata/assente/saltata/pianificata e le prossime valgono anche per gli Appuntamenti; STRISCIA, moltiplicatore XP e stima "+N XP" solo con `hasGamification` (lipedema false, `modules.config.js:93`). Oggi la stima XP non compare nella vista trainer perche' `ClientCalendar` non riceve `clients` (`ClientCalendar.jsx:32`, `:102`) |
+| Legacy `moduleType` null | Mappato a PT nei punti di ingresso trainer (CLAUDE.md "Capability per modulo"); l'area cliente non ramifica sul modulo: stesso comportamento di PT |
+| STORY-045 | Monete/negozio solo con `hasGamification`; la callable `acquistaAvatar` rifiuta lipedema (`functions/src/callable/acquistaAvatar.js`, `requireCapability(..., 'hasGamification')`) |
+| BUG-031 punto 3 (`GoalsSection`) | Obiettivi solo con `hasGoals`: PT/Soccer true, Lipedema false (`modules.config.js:83/88/93`) |
+
+**Casi limite da tracciare per ogni voce:**
+- **360 px** su ogni voce UI (banner, dialog acquisto, pannello notifiche, griglia calendario, card riepilogo).
+- **Doppio click/tap:** acquisto (bottone in `loading`), Invio in cambio password.
+- **Esc con dialog sopra il pannello notifiche:** `useEscapeKey` a pila, un Esc chiude solo l'ultimo livello.
+- **Fuso orario e mezzanotte** per "oggi" nel calendario (`toLocalDateStr`).
+- **Slot senza `attendees`/`absentees`** (documenti vecchi): la funzione pura di stato deve reggere.
+- **Mese a cavallo** per "prossime sessioni": `getClientSlots` carica solo il mese; seconda query da oggi a +N giorni
+  (scelta developer/tech-lead).
+- **check:deny** con settings senza `permissions` o JSON malformato: exit 1. **checkPrev** con sha inesistente: exit 1.
+- **Windows PowerShell e Git Bash** per gli script (Node puro, niente sintassi di shell).
+- **Ruoli** `staff_readonly`/`trainer`/`org_admin`: la vista trainer del calendario (`ClientDashboard.jsx:477`) deve
+  restare coerente con quella del cliente.
+
+**Dipendenze bloccanti segnalate:**
+- Nessuna Cloud Function nuova o modificata, nessuna modifica a `firestore.rules`: nessun deploy functions/rules.
+- Deploy hosting dev e push su `dev` solo con via libera dell'utente. Nessun deploy su `fitquest-60a09`.
+- STORY-048/049 (e 050/051) fuori sprint: 048/049 in bozza per il #21; 050/051 richiedono rules/functions.
+
+**Status board:**
+
+| Task | Status | Note |
+|------|--------|------|
+| 0. Apertura sprint (docs) | DONE | questo commit |
+| 1. checkPrev (AI 1) | READY | tabella compilata |
+| 2. check:deny (AI 3) | READY | tabella compilata |
+| BUG-026 (AI 2) | READY | tabella compilata |
+| 3. STORY-045 negozio avatar sicuro | READY | assorbe BUG-027 |
+| 4. STORY-046 a11y + navigazione | READY | assorbe BUG-030, BUG-031 p.1 e 4 |
+| 5. STORY-047 calendario cliente | READY | assorbe BUG-028; cella lipedema vista trainer "non verificato": conferma del developer prima di implementare |
+| Bug S: BUG-029, BUG-031 p.2 e 3 | READY | pipeline saltata, un commit |
+| QA dal vivo + deploy hosting dev | BACKLOG | a fine sprint, via libera utente |
+| Chiusura sprint | BACKLOG | |
+
+**Rischi:** (1) STORY-047 e' la piu' grande (taglia M, forse una query aggiuntiva per il mese successivo): se
+scivola, si chiude con stati distinti + riepilogo e le "prossime sessioni" restano al #21, decisione da dichiarare
+qui, non da lasciar scivolare a meta'. (2) STORY-046 tocca focus trap e pila Esc: rischio di regressioni su altri
+dialog, da coprire con test. (3) Il deploy hosting di fine sprint non puo' sovrapporsi a `qa:dev`. (4) Le
+osservazioni a 360 px per STORY-049 non diventano fix dentro il #20 (scope creep: vanno in BACKLOG). Principio:
+finire > iniziare.
+
+Ultimo chiuso: #19 (primo sotto "Sprint chiuso (storico)").
 
 ---
 
