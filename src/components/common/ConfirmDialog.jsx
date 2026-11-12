@@ -8,8 +8,10 @@ import { useEscapeKey } from '../../hooks/useEscapeKey'
  * Riusato per campionamento, creazione cliente e qualsiasi altra azione
  * che richiede una conferma esplicita prima di procedere.
  */
-export function ConfirmDialog({ title, description, confirmLabel = 'CONFERMA', cancelLabel = 'ANNULLA', loading = false, variant = 'default', confirmDisabled = false, children, onConfirm, onCancel }) {
+export function ConfirmDialog({ title, description, confirmLabel = 'CONFERMA', cancelLabel = 'ANNULLA', loading = false, variant = 'default', confirmDisabled = false, largeTargets = false, children, onConfirm, onCancel }) {
   const isDanger = variant === 'danger'
+  // largeTargets: bottoni alti almeno 44 px (touch target delle tavole mobile del canvas), opt-in per non cambiare gli altri dialog
+  const buttonClassName = largeTargets ? 'flex-1 min-h-[44px]' : 'flex-1'
   const dialogRef = useRef(null)
   useFocusTrap(dialogRef, true)
 
@@ -42,13 +44,13 @@ export function ConfirmDialog({ title, description, confirmLabel = 'CONFERMA', c
         )}
         {children}
         <div className="flex gap-3">
-          <Button variant="neutral" size="sm" className="flex-1" onClick={onCancel} disabled={loading}>
+          <Button variant="neutral" size="sm" className={buttonClassName} onClick={onCancel} disabled={loading}>
             {cancelLabel}
           </Button>
           <Button
             variant={isDanger ? 'dangerGhost' : 'primary'}
             size="sm"
-            className="flex-1"
+            className={buttonClassName}
             onClick={onConfirm}
             loading={loading}
             disabled={confirmDisabled}

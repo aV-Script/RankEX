@@ -8,6 +8,7 @@ import { getAvatarsForOrg, isAvatarUnlocked } from '../../../../config/avatars.c
 import { purchaseAvatarUseCase } from '../../../../usecases/purchaseAvatarUseCase'
 import { useToast } from '../../../../hooks/useToast'
 import { Button } from '../../../../components/ui'
+import { ConfirmDialog } from '../../../../components/common/ConfirmDialog'
 import { AvatarDisplay } from './AvatarDisplay'
 
 export function AvatarPicker({ client, clientId, orgId, color }) {
@@ -18,7 +19,8 @@ export function AvatarPicker({ client, clientId, orgId, color }) {
   const [saving,    setSaving]    = useState(false)
   const [savedOk,   setSavedOk]   = useState(false)
   const [saveError, setSaveError] = useState(false)
-  const [purchasingId, setPurchasingId] = useState(null)
+  const [pendingAvatar, setPendingAvatar] = useState(null)
+  const [isPurchasing, setIsPurchasing] = useState(false)
 
   const coins = client.coins ?? 0
 
@@ -37,9 +39,10 @@ export function AvatarPicker({ client, clientId, orgId, color }) {
     }
   }
 
-  const handlePurchase = async (avatar) => {
-    if (purchasingId) return
-    setPurchasingId(avatar.id)
+  const handleConfirmPurchase = async () => {
+    if (isPurchasing || !pendingAvatar) return
+    const avatar = pendingAvatar
+    setIsPurchasing(true)
     try {
       await purchaseAvatarUseCase(orgId, clientId, avatar.id)
       toastSuccess(`${avatar.name} sbloccato!`)
@@ -48,7 +51,8 @@ export function AvatarPicker({ client, clientId, orgId, color }) {
     } catch (err) {
       toastError(err.message?.includes('Monete insufficienti') ? 'Monete insufficienti' : 'Acquisto non riuscito')
     } finally {
-      setPurchasingId(null)
+      setIsPurchasing(false)
+      setPendingAvatar(null)
     }
   }
 
@@ -82,7 +86,6 @@ export function AvatarPicker({ client, clientId, orgId, color }) {
         {avatars.map(a => {
           const active   = avatarId === a.id
           const unlocked = isAvatarUnlocked(a, client)
-          const purchasing = purchasingId === a.id
 
           return (
             <div key={a.id} className="relative flex flex-col items-center overflow-hidden rounded-[4px]"
@@ -114,12 +117,12 @@ export function AvatarPicker({ client, clientId, orgId, color }) {
                   </span>
                   {a.unlockType === 'purchase' && (
                     <button
-                      onClick={() => handlePurchase(a)}
-                      disabled={purchasing || coins < a.price}
+                      onClick={() => setPendingAvatar(a)}
+                      disabled={isPurchasing || coins < a.price}
                       className="pointer-events-auto font-display text-[7px] tracking-[1px] px-2 py-1 rounded-[3px] cursor-pointer border disabled:opacity-40 disabled:cursor-not-allowed"
                       style={{ color, borderColor: color + '66', background: color + '22' }}
                     >
-                      {purchasing ? '…' : 'ACQUISTA'}
+                      ACQUISTA
                     </button>
                   )}
                 </div>
@@ -138,6 +141,35 @@ export function AvatarPicker({ client, clientId, orgId, color }) {
       >
         {saveLabel}
       </Button>
+
+      {pendingAvatar && (
+        <ConfirmDialog
+          title={`Acquistare ${pendingAvatar.name}?`}
+          confirmLabel="ACQUISTA"
+          cancelLabel="ANNULLA"
+          loading={isPurchasing}
+          largeTargets
+          onConfirm={handleConfirmPurchase}
+          onCancel={() => setPendingAvatar(null)}
+        >
+          <div className="flex flex-col items-center gap-3 mb-5">
+            <AvatarDisplay avatarId={pendingAvatar.id} orgId={orgId} width={72} height={72}
+              style={{ borderRadius: 8, border: '1px solid var(--rx-border)' }} />
+            <dl className="w-full m-0 font-display text-[11px] tracking-[1px]">
+              {[
+                ['Prezzo', `${pendingAvatar.price} Monete`],
+                ['Le tue Monete', `${coins} Monete`],
+                ['Dopo l\'acquisto', `${coins - pendingAvatar.price} Monete`],
+              ].map(([label, value]) => (
+                <div key={label} className="flex justify-between py-1">
+                  <dt style={{ color: 'var(--rx-text-muted)' }}>{label}</dt>
+                  <dd className="m-0 text-white">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </ConfirmDialog>
+      )}
     </div>
   )
 }

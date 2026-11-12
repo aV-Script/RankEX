@@ -582,6 +582,19 @@ export const RUNBOOK_SUITES = [
         ],
         expected: ['Re-auth obbligatoria', 'Policy applicata (min 8, 1 numero, 1 maiuscola)', 'Login riuscito con nuova password'],
       },
+      {
+        id: 'TP-089', usId: 'STORY-045', severity: 'important', title: 'Negozio avatar: conferma con saldo prima/dopo e Monete nella barra',
+        preconditions: 'Cliente PT o Soccer con Monete sufficienti per un avatar acquistabile (unlockType purchase) e un secondo avatar più caro del saldo.',
+        steps: [
+          'Profilo → Avatar: annotare il saldo Monete, toccare ACQUISTA su un avatar: si apre "Acquistare <nome>?" con Prezzo, Le tue Monete e Dopo l\'acquisto (saldo meno prezzo); nessuna Moneta scalata',
+          'ANNULLA, poi Esc, poi click fuori dal dialog: si chiude ogni volta e il saldo resta invariato',
+          'Riaprire e premere ACQUISTA due volte in fretta: bottone in caricamento, un solo acquisto, toast "sbloccato!", saldo sceso del prezzo',
+          'Un avatar più caro del saldo: il bottone ACQUISTA è disabilitato',
+          'A 1366 px, fuori dall\'hub (es. Test, Calendario): nella barra in alto accanto alla campana compare "N MONETE" e coincide con il saldo della pagina Avatar',
+          'A 360x640: dialog interamente nello schermo, nessuno scroll orizzontale, saldo visibile nella pagina Avatar',
+        ],
+        expected: ['Nessun acquisto senza conferma esplicita', 'Un solo addebito per conferma', 'Saldo in barra desktop aggiornato dopo l\'acquisto'],
+      },
     ],
   },
   {

@@ -20,6 +20,10 @@ const BOTTOM_ITEMS = [
   { id: 'profilo',    label: 'Profilo',    icon: ICON_PROFILO },
 ]
 
+// Giallo brand dei badge (Pulcini): stesso valore di ClientCard
+const COINS_BADGE_COLOR = '#facc15'
+const COINS_BADGE_BORDER = 'rgba(250,204,21,0.35)'
+
 // ── Slot top nav desktop: tutte le 5 sezioni ──────────────────────────────────
 
 import { PENTAGON_SECTIONS } from './ClientHub'
@@ -38,6 +42,8 @@ export function ClientBottomNav({
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const isHome     = activeTab === 'home'
+  // L'area cliente esiste solo per PT/Soccer (hasClientLogin), entrambi con gamification
+  const coins     = client?.coins ?? 0
   const isActive   = (id) => activeTab === id || activeTab.startsWith(id + '/')
 
   // ── NavBtn compatto (mobile bassa + desktop alta) ──────────────────────────
@@ -192,6 +198,16 @@ export function ClientBottomNav({
 
           {/* Notifiche + logout */}
           <div className="flex items-center gap-1" style={{ marginLeft: 16 }}>
+            <span
+              className="font-display"
+              style={{
+                fontWeight: 800, fontSize: 12, color: COINS_BADGE_COLOR,
+                border: `1px solid ${COINS_BADGE_BORDER}`, borderRadius: 3,
+                padding: '4px 8px', marginRight: 8, whiteSpace: 'nowrap',
+              }}
+            >
+              {coins} MONETE
+            </span>
             <button
               onClick={onOpenNotifs}
               style={{

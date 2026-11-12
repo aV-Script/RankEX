@@ -289,7 +289,7 @@ Formato:
 ## [BUG-027] Acquisto avatar senza conferma: un tap scala le Monete
 **Severity:** P2
 **Modulo/Ruolo:** area cliente (PT/GYM e soccer; lipedema non ha area cliente), ruolo client — `src/features/client/client-view/avatar/AvatarPicker.jsx:117` (`onClick={() => handlePurchase(a)}`). Trovato nel censimento ux-ui-designer del 12/11/2026 su `ab65b45`. Assorbito da STORY-045.
-**Status:** OPEN
+**Status:** FIXED nel codice (Sprint #20, STORY-045; da verificare dal vivo con TP-089)
 **Reproduction steps:** login client con Monete sufficienti → Avatar → tap su ACQUISTA di un avatar acquistabile.
 **Expected:** una conferma con prezzo, saldo attuale e saldo dopo l'acquisto (canvas `ClienteAcquistaAvatar`, `MobileClienteAcquista`).
 **Actual:** la callable `acquistaAvatar` parte subito e le Monete scendono senza possibilità di annullare.
