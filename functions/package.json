@@ -9,8 +9,8 @@
   "main": "src/index.js",
   "scripts": {
     "serve": "cross-env NODE_OPTIONS=--dns-result-order=ipv4first firebase emulators:start --only functions",
-    "deploy": "cross-env NODE_OPTIONS=--dns-result-order=ipv4first firebase deploy --only functions --project fitquest-60a09",
-    "deploy:dev": "cross-env NODE_OPTIONS=--dns-result-order=ipv4first firebase deploy --only functions --project rankex-dev",
+    "deploy": "node scripts/deployGuard.mjs && cross-env NODE_OPTIONS=--dns-result-order=ipv4first firebase deploy --only functions --project fitquest-60a09",
+    "deploy:dev": "node scripts/deployGuard.mjs && cross-env NODE_OPTIONS=--dns-result-order=ipv4first firebase deploy --only functions --project rankex-dev",
     "logs": "cross-env NODE_OPTIONS=--dns-result-order=ipv4first firebase functions:log --project fitquest-60a09",
     "test": "vitest run"
   },

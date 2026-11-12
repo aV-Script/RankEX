@@ -1100,6 +1100,11 @@ cd functions
 npm run deploy:dev   → cross-env ... firebase deploy --only functions --project rankex-dev
 npm run deploy       → cross-env ... firebase deploy --only functions --project fitquest-60a09
 ```
+`deploy`/`deploy:dev` eseguono prima `node scripts/deployGuard.mjs` (Node puro, funziona da PowerShell e Git Bash):
+rifiuta con exit 1 se `functions/` o `firebase.json` hanno modifiche non committate (anche untracked) o se git non è
+disponibile, e stampa lo sha di HEAD. I file ignorati da git (`node_modules`, `.env*` di `functions/`) non sono
+verificabili: per i `.env*` ignorati il guard stampa solo un avviso coi nomi (mai il contenuto), così come per un
+commit non presente su origin.
 Non ci sono script per singola funzione — `deploy`/`deploy:dev` ridistribuiscono sempre
 tutte le callable in `functions/src/callable/`. Non fanno parte di `deploy.yml` (CI/CD):
 vanno lanciati manualmente, sempre prima su `rankex-dev` per verifica.
@@ -1161,8 +1166,9 @@ cd functions && npm test
 
 ### Da annotare in CHANGELOG prima di ogni deploy prod
 - Commit in prod: hosting + rules = `git rev-parse origin/main`; functions = commit dell'ultimo deploy functions
-  prod (ultima voce CHANGELOG che lo registra; in mancanza `git log -1 origin/main -- functions/` come stima, da
-  dichiarare "da confermare"). Se ignoto, scriverlo: il rollback functions non è garantito.
+  prod (riga "functions prod a `<sha>`" dell'ultima voce CHANGELOG che lo registra; in mancanza
+  `git log -1 origin/main -- functions/` come stima, da dichiarare "da confermare": vale solo per i deploy
+  precedenti al guard). Se ignoto, scriverlo: il rollback functions non è garantito.
 - Rollback per layer, con i commit reali (`<prev>` = commit annotato sopra):
   - **rules**: Console → Firestore → Rules → cronologia, ripubblica la versione precedente. Da CLI (non usa il
     working tree): cartella temporanea con `git show <prev>:firestore.rules > firestore.rules` e un
@@ -1175,7 +1181,8 @@ cd functions && npm test
     per `node_modules`), poi nella cartella del worktree, con `NODE_OPTIONS` ipv4first (comandi per Git Bash o
     PowerShell come sopra): `cd functions && npm ci`, quindi
     `npx firebase-tools deploy --only functions --project fitquest-60a09` (o `firebase` globale). Non usare
-    `npm run deploy` del commit vecchio: chiama `firebase` senza `cross-env` né devDependency. Torna anche il
+    `npm run deploy` del commit vecchio: chiama `firebase` senza `cross-env` né devDependency (e il guard di
+    deploy non si applica a questo percorso: il worktree è un checkout di `<prev>`, ma `node_modules` è ignorato da git e non verificato). Torna anche il
     runtime Node del commit vecchio. Finito, `git worktree remove` **solo dopo** aver verificato che
     `functions/node_modules` sia una cartella reale e non una junction (su Windows `worktree remove` seguirebbe
     la junction e cancellerebbe il `node_modules` reale).
@@ -1189,7 +1196,10 @@ cd functions && npm test
     sintassi con `--help` prima.
 
 ### Deploy
-1. `cd functions && npm run deploy` (via libera). Annotare ora ed esito in CHANGELOG. Subito dopo
+1. `cd functions && npm run deploy` (via libera). Lo script esegue prima `functions/scripts/deployGuard.mjs`: rifiuta
+   un working tree sporco in `functions/` o in `firebase.json` (file modificati, staged o untracked) e stampa `functions deploy da <sha>
+   (<branch>)`; vale anche per `deploy:dev`. Copiare quello sha completo nel CHANGELOG come **riga obbligatoria
+   "functions prod a `<sha>`"**. Annotare ora ed esito in CHANGELOG. Subito dopo
    `firebase functions:list --project fitquest-60a09`: callable attese = prod + nuove (conteggio) e runtime
    atteso per tutte (es. `nodejs22`); una sola con runtime diverso = deploy parziale, fermarsi.
 2. Subito dopo, merge `dev → main` e push (via libera separato): `deploy.yml` → CI, hosting, rules. Annotare il run id.
