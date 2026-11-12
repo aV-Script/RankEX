@@ -190,8 +190,8 @@ rischio accettato, decisione 7).
   prod confermate a `744f6f9` prima del deploy; deploy functions prod 09:26-09:28 UTC -> 40 callable nodejs22,
   log puliti; merge dev -> main ff `4f5d08e..f086405` push 09:38 UTC, CI 43193182316 ok, deploy.yml
   43193385600: hosting rankex-app + rankex-admin 09:39:56, rules 09:40:01; finestra ~12 min; verifica HTTP
-  anonima del nuovo build; smoke test in sola lettura dell'utente ok. E2E su main (43193182295): in corso al
-  momento della chiusura.
+  anonima del nuovo build; smoke test in sola lettura dell'utente ok. E2E su main (43193182295): rosso per un
+  difetto del test (vedi "Non verificato"), corretto in `3f7d5f3`.
 - Nessun dato manuale creato (solo `E2E-` cancellati dal teardown; script temporanei cancellati).
 
 ## Non verificato
@@ -201,7 +201,7 @@ rischio accettato, decisione 7).
 - GYM: nessuna org QA.
 - Nessun login trainer/cliente reale in prod (smoke solo super_admin).
 - Banner RICARICA in prod non osservato esplicitamente.
-- Esito E2E su main (43193182295): in corso alla chiusura.
+- Esito E2E su main (43193182295): **rosso** (1 failed, 1 flaky) per un difetto del test, non dell'app: `real-flows.spec.js` "email già usata" contava le card con `count()` prima del caricamento (stesso errore su dev il 2026-10-31). Corretto in `3f7d5f3` (verde in locale contro rankex-dev); E2E in CI da rivedere al prossimo push. Flaky: "chiusura sessione con doppio click" (passato al retry).
 
 ## Non completato (motivo)
 - **Voce 4** (prima org lipedema in prod): fuori sprint, STORY-029 aperta.
