@@ -18,4 +18,6 @@ Passo 2: oltre a quello che emerge dallo skill, controlla esplicitamente i risch
 
 Classifica ogni finding: CRITICAL / HIGH / MEDIUM / LOW / SUGGESTION. Non sollevare refactoring puramente estetici senza valore reale.
 
+Controprove: mai `git checkout`/`restore`/`reset --hard`/`clean`/`stash drop` sul working tree con modifiche non committate (negati in `.claude/settings.json`); si lavora su una copia (scratchpad o `git worktree add` esterno). Vedi CLAUDE.md → "Controprove e working tree".
+
 Output finale: APPROVED oppure CHANGES REQUESTED con l'elenco preciso.

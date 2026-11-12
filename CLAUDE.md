@@ -869,6 +869,22 @@ non banale.
 - Nei prompt agli agenti indicare i file esatti da leggere.
 - Una sessione nuova (o `/compact`) per sprint.
 
+### Controprove e working tree
+Le controprove (es. "il test fallisce senza il fix?") si fanno **sempre su una copia** (cartella nello
+scratchpad o `git worktree add <cartella esterna>`, con le cautele su junction già scritte in "Rilascio in
+produzione"), mai con checkout/restore/reset/clean/stash sul working tree che ha modifiche non committate.
+Quei comandi sono negati in `.claude/settings.json` (`permissions.deny`, Bash e PowerShell, anche con
+`git -C <path>`): `git restore` in ogni forma (anche `--staged`: lo lancia l'utente), `git checkout -- …`,
+`checkout .`, `checkout <rev> -- …`, `checkout -f`/`--force`/`HEAD…`, `git reset … --hard` in qualsiasi
+posizione, `git clean` in ogni forma, `git switch -f`/`--force`/`--discard-changes`, `git stash drop`/`clear`.
+Provato nel Sprint #19 su un repo usa e getta (`reset --hard`, `reset HEAD --hard`, `checkout -- .`,
+`checkout HEAD -- <file>`, `restore .`, `restore <file>`, `clean -xdf`, `switch -f`, varianti `-C`). È una
+cintura, non una garanzia: non coperti `git checkout <file>` (sintassi uguale al cambio branch), alias git,
+`git -c k=v …`, `--git-dir`, `git.exe` con percorso, script che lanciano git, `checkout-index -f`, `apply -R`,
+`rm -f`, `merge`/`rebase --abort`, `reset --merge`/`--keep`. La regola vale comunque.
+`.claude/settings.json` **non è tracciato** (`.claude/*` in `.gitignore`): il blocco vale solo su questa
+macchina. Se serve davvero uno di quei comandi lo lancia l'utente a mano.
+
 ---
 
 ## Checklist: aggiungere funzionalità

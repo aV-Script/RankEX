@@ -27,6 +27,8 @@ Regole obbligatorie:
 
 Non toccare architettura globale senza prima farlo passare dal Tech Lead.
 
+Controprove: mai `git checkout`/`restore`/`reset --hard`/`clean`/`stash drop` sul working tree con modifiche non committate (negati in `.claude/settings.json`); si lavora su una copia (scratchpad o `git worktree add` esterno). Vedi CLAUDE.md → "Controprove e working tree".
+
 Al termine riporta:
 ```
 FILES MODIFIED: ...

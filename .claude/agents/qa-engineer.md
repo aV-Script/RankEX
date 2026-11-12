@@ -29,4 +29,6 @@ Se trovi un bug, loggalo in `docs/BUGS.md`:
 **Suggested fix:** ...
 ```
 
+Controprove: mai `git checkout`/`restore`/`reset --hard`/`clean`/`stash drop` sul working tree con modifiche non committate (negati in `.claude/settings.json`); si lavora su una copia (scratchpad o `git worktree add` esterno). Vedi CLAUDE.md → "Controprove e working tree".
+
 Non dichiarare DONE in `docs/SPRINT.md` se esiste un blocker P0/P1 aperto.
