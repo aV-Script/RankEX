@@ -7,6 +7,157 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
+# SPRINT #18 — EPIC-010 Lipedema Edition, rilascio in produzione (codice, modulo non attivato) — aperto il 2026-11-12
+
+**Branch:** `feature/lipedema-module` (HEAD `ce43c1b`). Commit in locale fino alla voce 3; `lipidemia/` e
+`mobile-app/` non si committano. Prima del rilascio i deploy restano su `rankex-dev`; i deploy su
+`fitquest-60a09` solo con via libera esplicito dell'utente, uno per ciascun passo (vedi voce 3).
+
+**Goal:** rilasciare in produzione (fitquest-60a09) il codice di EPIC-010 Lipedema senza attivare il modulo
+lipedema in prod, e chiudere gli action item del #17 che riducono il rischio del rilascio.
+
+**Situazione iniziale (da ricontrollare in apertura):**
+- rankex-dev: hosting `511bfe0`, rules `04a676c` (ADR-020), functions `224d1bb` (TD-009).
+- Test: `qa:dev` 30/30, unit 637/637, functions 222/222, rules 129/129.
+- Prod: `origin/main` `4f5d08e`, mai toccata dal modulo Lipedema.
+- Dopo `git fetch`: `feature/lipedema-module` ha 55 commit non su `origin/dev` e 72 non su `origin/main`;
+  `origin/dev` ha 17 commit non su `main`; nessuna divergenza (fast-forward possibile).
+
+**Riferimenti backlog:** EPIC-010 (BACKLOG r.892), STORY-029 (r.991, aperta: (b)/(c) DPA e testo informativa),
+STORY-026 (r.813, retention, decisione utente), STORY-044 (r.1532, da ridisegnare sul canvas). Nessuna di
+queste entra nel #18; nessuno stato da aggiornare in `BACKLOG.md` all'apertura.
+
+**Decisioni prese (utente / tech-lead):**
+
+| # | Decisione | Origine |
+|---|-----------|---------|
+| 1 | Script `functions/` con `cross-env` + ipv4first, nota workaround tolta da CLAUDE.md | utente |
+| 2 | Regola "audit e side effect attesi prima del return" verificata da un test Vitest in `functions/` che scansiona i sorgenti delle callable (non ESLint) | utente |
+| 3 | Slot futuro e gruppo `E2E-` creati nel global setup di `qa:dev` e cancellati nel teardown, a ogni run (non nel seed) | utente |
+| 4 | Checklist di rilascio come sezione "Rilascio in produzione" di CLAUDE.md; stato del singolo rilascio in `docs/CHANGELOG.md` (non `docs/RELEASE.md`) | utente |
+| 5 | Ordine di rilascio A: merge su dev, verifica, deploy functions prod, SUBITO merge dev -> main (hosting + rules) | utente, su stima tech-lead |
+| 6 | Conteggio org prod per `moduleType` fatto DALL'UTENTE in Console; nessun accesso automatico a prod | utente |
+| 7 | Modulo lipedema non attivabile in prod: flag per ambiente in config (es. `LIPEDEMA_ORG_CREATION_ENABLED = !isProduction`), solo UI; le rules non lo impediscono a un super_admin (rischio accettato); si sblocca con STORY-029 chiusa | utente |
+| 8 | Smoke test in prod in sola lettura, solo col super_admin dell'utente | utente |
+
+Motivazione ordine A (tech-lead): le rules nuove non rifiutano le scritture PT/Soccer del client vecchio;
+`moduleType` null -> PT, nessun backfill; con A, nella finestra tra deploy functions e merge, c'e' solo la doppia
+voce audit (`client.deleted` client + `CLIENT_DELETED` functions: action diversi; la creazione e' gia' doppia
+oggi in prod); con B le eliminazioni nella finestra resterebbero senza audit (non recuperabile). **Rischio
+principale:** un'org prod con `moduleType` non nullo ma sconosciuto verrebbe bloccata dalle callable (tutto
+`false`): per questo la query preventiva (decisione 6).
+
+**Voci, nell'ordine:**
+1. **Action item del #17 e blocco UI**
+   - **1a. Script functions** — `functions/package.json`: `deploy`/`deploy:dev` con
+     `cross-env NODE_OPTIONS=--dns-result-order=ipv4first`; nota workaround rimossa da `CLAUDE.md`.
+     *Fatto quando:* `cd functions && npm run deploy:dev` reale riesce al primo colpo senza variabile manuale.
+     **Review medium.**
+   - **1b. Audit e side effect attesi** — censimento `writeAudit` / `add` su `audit_logs` non attesi in
+     `functions/src/callable/`, correzione, test Vitest in `functions/` che scansiona i sorgenti delle callable.
+     Regola in `CLAUDE.md`. *Fatto quando:* il test fallisce rimettendo una chiamata senza `await`; 0 chiamate
+     non attese nel censimento; `deploy:dev` functions. **Review HIGH** (dati sanitari).
+   - **1c. `qa:dev` con slot e gruppo** — slot futuro e gruppo `E2E-` creati nel global setup, cancellati nel
+     teardown (anche dopo un run interrotto: il setup ripulisce i residui). Casi in `roles.spec.js`:
+     `staff_readonly` su popup slot (niente CHIUDI/SALTA/ELIMINA) e dettaglio gruppo (niente RIMUOVI/AGGIUNGI/
+     RINOMINA/ELIMINA), controllo positivo per il trainer, prova negativa. *Fatto quando:* il caso staff fallisce
+     con la sessione trainer; `qa:dev` verde; 0 slot/gruppi `E2E-` residui dopo il run. **Review medium.**
+   - **1d. Blocco UI lipedema in prod** — flag per ambiente in config letto da `CreateOrgForm` e
+     `OrgDetailView`; in dev resta selezionabile; solo UI. Unit test + caso runbook **TP-087**.
+     *Fatto quando:* con `isProduction` true l'opzione lipedema non e' selezionabile in creazione ne' come
+     cambio modulo; in dev si'. **Review medium.**
+2. **Checklist di rilascio** (action item 4 del #17) — sezione "Rilascio in produzione" in `CLAUDE.md`, stato del
+   rilascio in `docs/CHANGELOG.md`; preparata da release-manager. Contenuto minimo: diff rules dev/prod,
+   functions da deployare, ordine A, verifica post-deploy (`audit_logs`, rules, smoke test), commit attualmente
+   in prod (hosting, rules, functions) e comandi di rollback per layer, da annotare PRIMA di ogni deploy prod.
+   **Review HIGH** (processo di deploy e rules).
+3. **Rilascio, ordine A** (dopo 1 e 2 chiuse):
+   1. Merge `feature/lipedema-module` -> `dev` (CI + `deploy-dev`), verifica su rankex-dev + `qa:dev`.
+   2. Conteggio org prod per `moduleType`, **a cura dell'utente in Console**; esito annotato (nessun
+      `moduleType` sconosciuto; legacy null ammesso).
+   3. Annotare i commit in prod (hosting, rules, functions) e i comandi di rollback nella checklist.
+   4. Deploy functions prod a mano (`cd functions && npm run deploy`) — **via libera esplicito dell'utente.**
+   5. **Subito** merge `dev` -> `main` (CI + `deploy-prod` di hosting e rules) — **via libera esplicito
+      separato.**
+   6. Smoke test in prod in sola lettura col super_admin dell'utente; verifica rules e `audit_logs`.
+   7. Monitoraggio costi Firebase (Console, dopo 24 ore).
+
+**Fuori dal #18:** voce 4 (prima org lipedema in prod: esclusa, STORY-029 aperta), STORY-029 (b)/(c) DPA e
+testo informativa, STORY-026 retention, STORY-044 (canvas, non si tocca), stampa su carta / paginazione PDF
+Firefox, mobile-app. Lavoro emerso fuori elenco -> `docs/BACKLOG.md` per il #19.
+
+**Casi limite da tracciare per ogni voce:**
+- Moduli: PT/GYM/Soccer/Lipedema (GYM senza org QA: da dichiarare non verificato se resta cosi').
+- Org legacy con `moduleType` null in prod (mappata a PT nei punti di ingresso, nessun backfill).
+- Org con `moduleType` sconosciuto (callable bloccate): oggetto della query preventiva.
+- Clienti prod senza `moduleType`/`privacyNotice`: le rules nuove toccano solo misure/trofei dei pazienti
+  lipedema; PT/Soccer invariati.
+- Deploy parziale: solo functions (finestra A: doppia voce audit); solo hosting + rules (functions vecchie: audit
+  client-side ancora attivo, nessuna perdita).
+- Rollback per layer (da scrivere nella checklist con i commit reali):
+  - rules: `git show origin/main:firestore.rules` poi `npm run deploy:rules`, oppure Console;
+  - functions: `git checkout <commit prod> -- functions/` poi `cd functions && npm run deploy` (runtime Node
+    22 -> 20; le 3 callable nuove restano innocue);
+  - hosting: Console -> Hosting -> Release history -> Rollback.
+- Ruoli: `staff_readonly` vs `trainer` vs `org_admin` (voce 1c); super_admin (voce 1d e smoke test).
+- 360 px (voce 1d: select modulo e messaggio di blocco); browser con build vecchia in cache (banner RICARICA
+  dopo il deploy hosting).
+
+**Dipendenze bloccanti segnalate:**
+- Voce 1a/1b: `deploy:dev` functions manuale; 1b modifica le callable -> functions dev ridistribuite. 1a va
+  prima di 1b (il deploy di 1b usa lo script corretto).
+- Voce 1c richiede hosting dev invariato durante `qa:dev` (regola: mai deploy hosting in parallelo).
+- Voce 1d: nessun deploy rules. Hosting dev solo dopo `qa:dev` della 1c.
+- Voce 2 dopo 1a (comandi di deploy definitivi).
+- Voce 3: azioni dell'utente (query Console, due via libera prod); `deploy.yml` deploya le rules prod a ogni
+  merge su `main`; il deploy functions prod NON e' automatico.
+- Voce 3 e' bloccata se la query 3.2 trova un `moduleType` sconosciuto.
+
+**Status board:**
+
+| Task | Status | Note |
+|------|--------|------|
+| 1a. Script `functions/` ipv4first + nota CLAUDE.md + `deploy:dev` reale | READY | Review medium. |
+| 1b. Censimento audit non attesi + correzione + test Vitest scansione sorgenti + regola CLAUDE.md | READY | Review HIGH; `deploy:dev` functions. |
+| 1c. Slot e gruppo `E2E-` in setup/teardown + casi `roles.spec.js` + prova negativa | READY | Review medium. Dopo 1a/1b. |
+| 1d. Flag `LIPEDEMA_ORG_CREATION_ENABLED` + unit test + TP-087 | READY | Review medium. |
+| 2. Checklist "Rilascio in produzione" (CLAUDE.md) + stato in CHANGELOG | BACKLOG | release-manager; Review HIGH. Dopo 1a. |
+| 3.1 Merge -> dev, verifica rankex-dev, `qa:dev` | BACKLOG | Dopo 1 e 2. |
+| 3.2 Conteggio org prod per `moduleType` (utente, Console) | BACKLOG | Blocca 3.4. |
+| 3.3 Annotare commit in prod + comandi di rollback | BACKLOG | Prima di ogni deploy prod. |
+| 3.4 Deploy functions prod | BACKLOG | Via libera esplicito dell'utente. |
+| 3.5 Merge dev -> main (hosting + rules) | BACKLOG | Via libera esplicito separato, subito dopo 3.4. |
+| 3.6 Smoke test prod sola lettura (super_admin utente) + audit/rules | BACKLOG | |
+| 3.7 Monitoraggio costi Firebase | BACKLOG | |
+| STORY-029 (b)(c) / STORY-026 / STORY-044 / voce 4 / stampa carta / mobile-app | fuori sprint | Utente-legale / decisione utente / canvas. |
+
+**Verifica prevista degli action item della retrospettiva #17 (a fine #18):**
+1. Script functions con ipv4first — **voce 1a.** Fatto quando: `npm run deploy:dev` in `functions/` riesce al
+   primo colpo senza variabile manuale (usato anche per il deploy di 1b) e la nota workaround non e' piu' in
+   CLAUDE.md. Verificato nel deploy reale di 1b e nei log del deploy prod (3.4).
+2. Audit/side effect attesi prima del return — **voce 1b.** Fatto quando: il test Vitest in `functions/` fallisce
+   rimettendo una chiamata senza `await`, 0 chiamate non attese nel censimento, regola in CLAUDE.md.
+3. Seed `qa:dev` con slot e gruppo + casi readonly — **voce 1c** (per decisione utente: global setup/teardown
+   a ogni run, non seed). Fatto quando: il caso staff fallisce rimettendo CHIUDI visibile, `qa:dev` verde,
+   teardown cancella slot e gruppo.
+4. Checklist di rilascio — **voce 2 e voce 3.** Fatto quando: il deploy prod segue la checklist con 0 passi
+   fuori elenco e `docs/CHANGELOG.md` e' aggiornato (per decisione utente la checklist sta in CLAUDE.md).
+5. Ogni voce di verifica confermata sul codice prima dell'apertura, con file e riga — **tutte le voci.** Fatto
+   quando: 0 voci del #18 finiscono "non applicabile". Da verificare in apertura (developer, prima del codice):
+   `CreateOrgForm` e `OrgDetailView` leggono il modulo da un punto unico; `isAllowedModuleChange` in
+   `firestore.rules`; punti in cui le callable scrivono audit (`creaCliente`, `eliminaCliente` + censimento
+   completo); global setup/teardown in `e2e/qa-dev/`. Annotare file:riga nella voce prima di iniziare.
+
+**Rischi:** (1) 1d tocca la creazione org: il flag non e' un limite di sicurezza (rules aperte a super_admin),
+va scritto nel runbook e nella checklist. (2) Il rilascio concentra rules, functions e hosting: deploy
+parziale e rollback per layer devono essere nella checklist PRIMA della voce 3. (3) Query prod a cura
+dell'utente: se non disponibile, la voce 3 si ferma a 3.1. (4) Un solo deploy hosting dev alla volta, mai
+durante `qa:dev`. Principio: finire > iniziare; la voce 3 parte solo con 1 e 2 chiuse.
+
+---
+
+## Sprint chiuso (storico)
+
 # SPRINT #17 — EPIC-010 Lipedema Edition, ottava ondata (dati del modulo, audit, sola lettura, verifiche rimaste) — aperto il 2026-11-11, chiuso il 2026-11-12 (goal raggiunto, 5 voci su 5 DONE)
 
 **Branch:** `feature/lipedema-module`. Commit solo in locale, nessun push, nessun merge;
@@ -262,8 +413,6 @@ BUG-022 DUPLICATE; TD-005/006/009/013 RESOLVED; 3 nuovi debiti minori; `qa:dev` 
    ha l'etichetta?") e annotata con file e riga. Fatto quando: 0 voci del #18 finiscono "non applicabile".
 
 ---
-
-## Sprint chiuso (storico)
 
 # SPRINT #16 — EPIC-010 Lipedema Edition, settima ondata (debito UI del #15, stampa PDF automatica, QA residui) — aperto il 2026-11-11, chiuso il 2026-11-11 (goal raggiunto, con 3 verifiche dal vivo non fatte elencate)
 
