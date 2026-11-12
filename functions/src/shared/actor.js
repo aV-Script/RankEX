@@ -4,6 +4,7 @@
 // registraInformativaPaziente, aggiungiValutazione, annullaValutazione.
 
 import { HttpsError } from 'firebase-functions/v2/https'
+import * as logger from 'firebase-functions/logger'
 import { validatePrivacyNoticeInput, formatLocalDateTime } from './lipedema.js'
 import { LOCAL_TIME_ZONE } from './timezone.js'
 
@@ -61,7 +62,7 @@ export function buildClientAuditDetails(capabilities, { clientId, orgId, name })
 }
 
 /**
- * Audit che non fa mai fallire l'operazione (errori ignorati). Restituisce la
+ * Audit che non fa mai fallire l'operazione (errore loggato: solo action e code, mai message/details). Restituisce la
  * promessa: chi deve garantire la traccia la attende prima di rispondere, perché
  * dopo il return di una callable l'istanza può essere fermata. `details` solo identificativi (e versione
  * dell'informativa): mai nomi, valori, motivi o note — nome + org = diagnosi.
@@ -75,5 +76,5 @@ export function writeAudit(db, request, action, details) {
     timestamp: new Date().toISOString(),
     details,
     env:       'functions',
-  }).catch(() => {})
+  }).catch(err => logger.error('writeAudit fallito', { action, code: err?.code }))
 }

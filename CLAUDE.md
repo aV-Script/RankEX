@@ -405,6 +405,11 @@ Componente/hook (src/)
 `requireOrgAccess`/`requireOrgAdmin` in `shared/auth.js` sono l'equivalente server-side
 delle Firestore rules per le callable — **obbligatorie** in ogni nuova callable che
 tocca dati di un'org, perché l'Admin SDK bypassa sempre `firestore.rules`.
+**Audit e side effect vanno attesi prima del return** (`await writeAudit(...)`): dopo il return
+l'istanza può essere fermata e la promise troncata (voce di audit persa). `writeAudit` non blocca
+la callable e logga l'errore (solo `action` e `code`, mai message/details: dati sanitari). Verificato da
+`functions/test/sideEffectsAwaited.test.js` (scansiona `src/callable/*.js`: `writeAudit`,
+`commit`/`recursiveDelete`/`createUser`/`deleteUser(s)`) e `functions/test/writeAudit.test.js`.
 
 ### Copie speculari — rischio di divergenza
 `shared/gamification.js`, `shared/constants.js`, `shared/plans.js`, `shared/testsMeta.js`

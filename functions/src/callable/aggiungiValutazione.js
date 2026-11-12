@@ -124,7 +124,7 @@ export const aggiungiValutazione = onCall({ region: REGION }, async (request) =>
   })
 
   if (supersedes) {
-    writeAudit(db, request, AUDIT_ASSESSMENT_VOIDED, { orgId, clientId, assessmentId: supersedes, testId: saved[0].testId })
+    await writeAudit(db, request, AUDIT_ASSESSMENT_VOIDED, { orgId, clientId, assessmentId: supersedes, testId: saved[0].testId })
   }
 
   return { assessments: saved }

@@ -204,7 +204,7 @@ async function createClientWithoutLogin(db, request, { orgId, trainerId, formDat
     buildClientAuditDetails(capabilities, { clientId, orgId, name: data.name }))
 
   if (privacyNotice) {
-    writeAudit(db, request, AUDIT_PRIVACY_NOTICE_RECORDED, {
+    await writeAudit(db, request, AUDIT_PRIVACY_NOTICE_RECORDED, {
       orgId, clientId, informativaVersion: privacyNotice.informativaVersion,
     })
   }

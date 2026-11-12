@@ -33,7 +33,7 @@ export const registraInformativaPaziente = onCall({ region: REGION }, async (req
     return notice
   })
 
-  writeAudit(db, request, AUDIT_PRIVACY_NOTICE_RECORDED, {
+  await writeAudit(db, request, AUDIT_PRIVACY_NOTICE_RECORDED, {
     orgId, clientId, informativaVersion: privacyNotice.informativaVersion,
   })
 

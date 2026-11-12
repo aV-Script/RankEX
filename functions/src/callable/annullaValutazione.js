@@ -48,7 +48,7 @@ export const annullaValutazione = onCall({ region: REGION }, async (request) => 
   })
 
   // Soli identificativi: motivo, valori e note possono contenere dati sanitari
-  writeAudit(db, request, AUDIT_ASSESSMENT_VOIDED, { orgId, clientId, assessmentId, testId: voided.testId })
+  await writeAudit(db, request, AUDIT_ASSESSMENT_VOIDED, { orgId, clientId, assessmentId, testId: voided.testId })
 
   return { ok: true, ...voided }
 })
