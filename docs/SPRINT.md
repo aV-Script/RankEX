@@ -71,6 +71,25 @@ deploy in produzione.
 4. **Rinomina voce CHANGELOG EPIC-010** a `[2026.11.12] — EPIC-010 Lipedema (modulo non attivo)`; template del file
    aggiornato di conseguenza. Push docs solo su dev. *Fatto quando:* titolo e template coerenti.
 
+**Status board e esiti (aggiornato 2026-11-12):**
+
+| Voce | Stato | Esito |
+|------|-------|-------|
+| 0 | DONE | apertura sprint |
+| 1 | DONE | push `ab315f3` su dev; CI 43196941264 e E2E 43196941420 verdi (40/40), test "doppio click" passato al primo tentativo (15.7 s), `deploy-dev` ok, `deploy-prod` skipped. Nessun BUG |
+| 2a | DONE | review HIGH: CHANGES REQUESTED -> APPROVED. `4223cf4`; prova reale `npm run deploy:dev` con tree sporco da PowerShell -> "Deploy rifiutato", exit 1, firebase non lanciato; da tree pulito ha stampato `functions deploy da 5090d9ab…` e deployato (ritorno a HEAD della 3b) |
+| 2b | DONE | review medium x3. `af44491`; deny 72 regole in `.claude/settings.json` (non tracciato); provati negati in repo usa e getta: `reset --hard`, `reset HEAD --hard`, `checkout -- .`, `checkout HEAD -- <file>`, `restore .`, `restore <file>`, `clean -xdf`, `switch -f` (PowerShell), varianti `-C`; scoperto e chiuso il buco `git -C`; `git switch x-fix` ammesso |
+| 2c | DONE | review medium. `5090d9a` |
+| 3a | BLOCKED | fino al 2026-11-13 (costi letti dall'utente in Console) |
+| 3b | DONE | rollback functions rankex-dev a `224d1bb` (Node 22, 40 callable) e ritorno a `5090d9a`; 40 callable nodejs22 prima/durante/dopo (`functions:list`); checklist corretta (CLAUDE.md: `<prev>` Node 22, `worktree remove --force`, ramo callable nuove non provato) |
+| 3c | DONE | hosting rollback a `a08e1c1359dde364` / `cdfd07d5be31372a` con `hosting:clone`; rules rollback a `cc42e34` (verificato via Rules API); ritorno a HEAD con `deploy:rules:dev` e `deploy:all:dev` (versioni `872fa06401f90ee3` / `257381cd90f5651d`) |
+| 3d | DONE | review medium. `d42d23b` + `555f925`; `qa:dev` 36/36 sul nuovo `roles.spec.js` |
+| 3e | DONE | banner RICARICA comparso su rankex-app-dev (pagina di login, desktop 1366 e 360x640) 5 min dopo il rollback hosting e 5 min dopo il ritorno a HEAD; RICARICA lo toglie. A 360 px copre "Password dimenticata?" finche' non si ricarica: BUG-026 (P3, OPEN) |
+| 3f | NON VERIFICATO | per decisione dell'utente (decisione 6) |
+| 4 | DONE | CHANGELOG: voce rinominata `[2026.11.12] — EPIC-010 Lipedema (modulo non attivo)`, template e schema aggiornati, riga "functions prod a `f086405`" |
+
+Stato rankex-dev a fine prove: hosting, rules e functions a `5090d9a`; prod invariata a `f086405`.
+
 **Fuori dal #19:** STORY-044 (canvas, non si tocca), stampa su carta, mobile-app, STORY-029 (b)/(c) DPA e
 informativa (requisito non di codice, bloccante per attivare lipedema in prod), STORY-026 retention (decisione
 utente), login reali in prod (3f), qualsiasi deploy su `fitquest-60a09`, merge su `main`. Lavoro emerso fuori elenco

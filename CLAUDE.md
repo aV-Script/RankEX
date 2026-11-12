@@ -1209,7 +1209,8 @@ cd functions && npm test
   - **rules**: Console → Firestore → Rules → cronologia, ripubblica la versione precedente. Da CLI (non usa il
     working tree): cartella temporanea con `git show <prev>:firestore.rules > firestore.rules` e un
     `firebase.json` con `{"firestore":{"rules":"firestore.rules"}}`, poi lì (con `NODE_OPTIONS` ipv4first)
-    `firebase deploy --only firestore:rules --project fitquest-60a09`. Non tocca gli indici. `npm run
+    `firebase deploy --only firestore:rules --project fitquest-60a09` (via CLI provata su rankex-dev, verificata
+    confrontando il ruleset live via Rules API). Non tocca gli indici. `npm run
     deploy:rules` pubblica il file del working tree: va bene solo se è già lo stato precedente. Un push
     successivo su `main` ripubblica le rules di `main`: dopo un rollback manuale, o si ripristina anche `main`
     o non si pusha.
@@ -1218,18 +1219,31 @@ cd functions && npm test
     PowerShell come sopra): `cd functions && npm ci`, quindi
     `npx firebase-tools deploy --only functions --project fitquest-60a09` (o `firebase` globale). Non usare
     `npm run deploy` del commit vecchio: chiama `firebase` senza `cross-env` né devDependency (e il guard di
-    deploy non si applica a questo percorso: il worktree è un checkout di `<prev>`, ma `node_modules` è ignorato da git e non verificato). Torna anche il
-    runtime Node del commit vecchio. Finito, `git worktree remove` **solo dopo** aver verificato che
-    `functions/node_modules` sia una cartella reale e non una junction (su Windows `worktree remove` seguirebbe
-    la junction e cancellerebbe il `node_modules` reale).
-    **Callable nuove al rollback:** la CLI le trova in prod ma non nel codice vecchio e propone di cancellarle.
+    deploy non si applica a questo percorso: il worktree è un checkout di `<prev>`, ma `node_modules` è ignorato da git e non verificato).
+    **`<prev>` deve essere un commit Node 22:** i commit precedenti a `13052d6` (31/10/2026) hanno
+    `engines.node: 20`, runtime dismesso da Cloud Functions il 30/10/2026, quindi un rollback a quei commit non è
+    deployabile così (functions prod oggi a `f086405`, Node 22; il commit precedente `744f6f9` è Node 20: vedi
+    voce `[2026.11.12]` del CHANGELOG). Con lo stesso set di callable, `npx
+    firebase-tools deploy --only functions --project <p> --non-interactive` va senza prompt. Finito,
+    `git worktree remove --force` (il worktree ha `functions/node_modules` non tracciato) **solo dopo** aver
+    verificato che `functions/node_modules` sia una cartella reale e non una junction (su Windows `worktree
+    remove` seguirebbe la junction e cancellerebbe il `node_modules` reale). `npm ci` nel worktree stampa
+    "npm warn install-scripts" (script di install non eseguiti): innocuo.
+    **Callable nuove al rollback** (ramo NON provato: tutti i commit Node 22 hanno le stesse 40 callable): la CLI
+    le trova in prod ma non nel codice vecchio e propone di cancellarle.
     In modo interattivo rispondere **No** (restano, innocue); `--force` le cancella; in modo non interattivo
     senza `--force` il deploy **fallisce**. Per cancellarle volutamente:
     `firebase functions:delete <a> <b> <c> --region europe-west1 --project fitquest-60a09`.
   - **hosting**: Console → Hosting → Release history → Rollback, **per entrambi** i siti `rankex-app` e
     `rankex-admin`. Un push successivo su `main` lo sovrascrive (deploy hosting a ogni merge): dopo il rollback
-    non pushare su `main` finché non è corretto. Alternativa CLI `firebase hosting:clone`: verificare la
-    sintassi con `--help` prima.
+    non pushare su `main` finché non è corretto. Via CLI (provata su rankex-dev):
+    `firebase hosting:clone <site>@<versionId> <site>:live`, per entrambi i siti (la sintassi `@versionId` non è
+    in `--help` ma funziona); i versionId stanno in Console → Hosting → Release history o nella REST API
+    (`firebasehosting.googleapis.com/v1beta1/sites/<site>/channels/live/releases`); la release risulta di tipo
+    ROLLBACK.
+  - Tempi misurati (rankex-dev, prova #19): worktree + `npm ci` 14 s; deploy rollback functions 1:37; ritorno a
+    HEAD `npm run deploy:dev` 1:45; `hosting:clone` 7 s per 2 siti; rules rollback 7 s, ritorno 8 s; ritorno
+    hosting (build + deploy) 20 s.
 
 ### Deploy
 1. `cd functions && npm run deploy` (via libera). Lo script esegue prima `functions/scripts/deployGuard.mjs`: rifiuta
@@ -1259,7 +1273,8 @@ cd functions && npm test
 - Smoke test **in sola lettura** col super_admin su `rankex-admin`: login, lista org, dettaglio di una org PT e di
   una Soccer; mai salvare. Verificare le differenze di ambiente note (es. in prod la select modulo non offre
   Lipedema in "NUOVA" né nel dettaglio org).
-- Client con build vecchia aperta: deve comparire il banner RICARICA.
+- Client con build vecchia aperta: deve comparire il banner RICARICA, entro `POLL_MS`
+  (5 min, `src/hooks/useVersionCheck.js:3`) anche sulla pagina di login: attendere fino a 5 minuti.
 - Costi Firebase in Console dopo 24 ore (vedi sotto).
 
 ---

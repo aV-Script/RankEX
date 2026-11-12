@@ -5,7 +5,7 @@ Gestito dal Release Manager, una voce per release verso `main`/produzione.
 Formato:
 
 ```
-## [vX.Y] — <data>
+## [AAAA.MM.GG] — <etichetta>
 ### Features
 ### Bug Fixes
 ### Known Issues
@@ -13,9 +13,12 @@ Formato:
 ### Rollback plan
 ```
 
+Schema: data del deploy prod + etichetta; più rilasci nello stesso giorno: suffisso `.2`, `.3`
+(es. `[2026.11.12.2]`).
+
 ---
 
-## [EPIC-010] — NON RILASCIATA / IN RILASCIO (preparata 2026-11-12, HEAD `31f5727` su `feature/lipedema-module`)
+## [2026.11.12] — EPIC-010 Lipedema (modulo non attivo)
 
 Processo: `CLAUDE.md` → "Rilascio in produzione". Ordine A: functions prod a mano, poi **subito** merge
 `dev → main`. Sprint #18. Voce da completare durante il rilascio (campi `__` vuoti).
@@ -67,6 +70,7 @@ build OK · lint OK · unit 641/641 · rules 129/129 · functions 231/231 · `qa
 - [x] Merge `feature/lipedema-module -> dev`, verifica rankex-dev + `qa:dev`: fast-forward `4516331..f086405` (2026-11-12); CI 43189927434 ok, E2E 43189927392 ok, `deploy.yml` 43190111563 (`deploy-dev` ok, `deploy-prod` skipped); `qa:dev` 36/36 sull'hosting deployato dalla CI
 - [x] Query prod `moduleType` (utente, Console): solo valori ammessi (`personal_training`, `soccer_academy`, assente/null), 2026-11-12
 - [x] Commit functions prod confermato: `744f6f9` (utente, 2026-11-12)
+- [x] functions prod a `f086405` (codice di `f086405`; sha del deploy come registrato in questa voce, prima del guard)
 - [x] Deploy functions prod (`cd functions && npm run deploy`, codice di `f086405`): 2026-11-12 09:26-09:28 UTC, esito ok (3 callable create); `functions:list`: 40 callable, runtime nodejs22 per tutte; log senza errori subito dopo il deploy
 - [x] Merge `dev -> main` (fast-forward `4f5d08e..f086405`, push 09:38 UTC), run CI (id 43193182316) e `deploy.yml` (id 43193385600): CI ok, hosting `rankex-app` + `rankex-admin` ok (09:39:56 UTC), rules ok (09:40:01 UTC); finestra functions -> hosting/rules circa 12 minuti. Verifica HTTP anonima: entrambi i siti servono il nuovo build con CSP e X-Frame-Options
 - [x] Smoke test sola lettura (super_admin utente, 2026-11-12): lista org ok; select Modulo senza Lipedema in NUOVA e nel dettaglio org PT e Soccer; nessun salvataggio. Log functions senza errori dalle 09:26 UTC; `audit_logs` controllati in Console: ok
@@ -79,6 +83,10 @@ Comandi da Git Bash; in PowerShell `$env:NODE_OPTIONS='--dns-result-order=ipv4fi
   `git show 4f5d08e:firestore.rules > firestore.rules` + `firebase.json` minimo, poi (con NODE_OPTIONS ipv4first)
   `firebase deploy --only firestore:rules --project fitquest-60a09`. Non tocca gli indici. Un push successivo su
   `main` ripubblica le rules di `main`.
+- **Functions — piano NON eseguibile così (scoperto nel Sprint #19, 2026-11-12):** `744f6f9` ha
+  `engines.node: 20`, runtime dismesso da Cloud Functions il 30/10/2026 (`13052d6`): il deploy del codice
+  vecchio non è possibile senza portarlo a Node 22. Finché non si decide, il rollback functions prod è solo fix
+  forward. Piano originale, per riferimento:
 - Functions: `git worktree add ../rankex-fn-rollback 744f6f9`; poi, con NODE_OPTIONS ipv4first,
   `cd ../rankex-fn-rollback/functions && npm ci && npx firebase-tools deploy --only functions --project fitquest-60a09`
   (a 744f6f9 `npm run deploy` chiama `firebase` senza `cross-env`: non usarlo). Runtime torna a Node 20. Le 3
