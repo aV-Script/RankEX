@@ -186,6 +186,81 @@ Proposta, non pianificazione (decide l'utente):
 4. Script functions con `cross-env`/ipv4first.
 5. Stampa su carta (utente).
 
+## Retrospettiva
+Dati: 12 commit (`f5ab223`..`c76ae4c`: 2 apertura/chiusura docs, 3 fix (rules, audit, readonly), 1 refactor
+(TD-013), 1 ADR, 5 docs di esito/regola); 5 voci su 5 DONE; 0 bug nuovi; BUG-003, BUG-007, BUG-024 VERIFIED,
+BUG-022 DUPLICATE; TD-005/006/009/013 RESOLVED; 3 nuovi debiti minori; `qa:dev` 30/30; unit 637/637, functions
+222/222, rules 129/129. Rework: 2 correzioni da review prima del commit (audit fire-and-forget, banner staff).
+
+**Verifica degli action item del #16**
+1. Audit readonly per ruolo: **fatto**. `1ad3f02`: censimento approvato l'11/11, BUG-007/024 VERIFIED a 1280 e
+   360 px in 3 moduli (`86d6a37`), 9 casi `roles.spec.js` con prova negativa (trainer: atteso 0, trovati 9),
+   TP-085. Limite: popup slot e dettaglio gruppo non coperti (org `qa-*` senza slot/gruppi). GYM non verificato.
+2. Misurare prima del layout mobile: **parziale**. 0 rework di layout registrati nel #17 e test sull'esito,
+   ma il calcolo in px in apertura non e' documentato in SPRINT.md: non dimostrabile, solo assenza di danni.
+3. Regola deploy/`qa:dev` + test cursore: **fatto**. `3f6bebc` in CLAUDE.md, test sul cursore in `511bfe0`,
+   `qa:dev` 30/30 senza giri rossi.
+4. Prerequisiti in apertura: **parziale**. Firefox, "Professionista/i" e RICARICA tutti VERIFIED (295 s). Ma
+   la spec Firefox non e' stata aggiunta (script usa e getta); la paginazione PDF resta non verificabile
+   (`page.pdf` solo Chromium, previsto 80-100 MB, scaricati 124 MB). "Non completato" = carta + paginazione.
+5. TD-013: **fatto**. `511bfe0`, 6 bottoni su `Button`, TD-013 RESOLVED, TP-086.
+
+**WHAT WENT WELL**
+- 5 voci su 5 con "fatto quando" misurabile; ADR-020 prima del codice delle rules (9 test falliscono senza la
+  modifica). Causa: azioni del #16 scritte come comandi di verifica.
+- Le review high/medium hanno intercettato 2 difetti reali prima del commit. Causa: livello di review per
+  rischio (rules, dati sanitari).
+- Verifica dal vivo con scrittura diretta (client SDK) e `audit_logs` via Admin SDK: prova il limite di
+  sicurezza, non la UI. Tutti i dati di test `E2E-` o ripristinati.
+
+**WHAT WENT WRONG / CAUSED BUGS**
+- Audit fire-and-forget in `creaCliente`/`eliminaCliente` (persi se l'istanza si ferma dopo il return).
+  ROOT CAUSE: pattern di `auditLog` client (non attesa) copiato nelle callable, dove il contesto di
+  esecuzione termina al return. IMPACT: perdita silenziosa di audit di dati sanitari, bloccata in review.
+  ACTION: azione 2.
+- Banner "sessioni passate non chiuse" visibile allo staff. ROOT CAUSE: lo stesso difetto di BUG-007 (azione
+  senza gate readonly) in un punto non nel censimento; il censimento e' per pagina, non per testo d'azione.
+  IMPACT: 1 giro di review. ACTION: azione 3.
+- Voce 4(b) mal formulata: il PDF gruppo non ha etichetta esaminatori; la prima prova con due valutazioni
+  dello stesso test mostrava 1 esaminatore (corretto: ultima per test). ROOT CAUSE: scope scritto senza
+  leggere il codice del PDF. IMPACT: prova ripetuta. ACTION: azione 5 (scope verificato col codice).
+
+**WHAT WAS SLOW**
+- `deploy:dev` functions fallito 2 volte ("Failed to list functions", "Failed to make request"). ROOT CAUSE:
+  gli script di `functions/` non usano `cross-env`/ipv4first come la root (DNS IPv6 su Windows). IMPACT: 2
+  tentativi persi, workaround solo in CLAUDE.md. ACTION: azione 1.
+- Banner RICARICA: 295 s di attesa del polling, inevitabile. GateGuard (hook locale) ha chiesto conferma a
+  ogni primo Write/Edit/Bash: overhead di sessione, nessuna azione (ambiente).
+
+**WHAT CAUSED REWORK**
+- Vedi sopra: audit awaited prima del commit, banner staff nascosto prima del commit, prova "Professionisti"
+  rifatta con test diversi. Nessun rework di layout (azione 2 del #16 non smentita).
+
+**WHAT CREATED TECHNICAL DEBT**
+- Script `deploy` di `functions/` senza ipv4first. ROOT CAUSE: workaround documentato invece che corretto.
+  ACTION: azione 1.
+- `qa:dev` senza slot/gruppi: popup slot e dettaglio gruppo in readonly senza copertura automatica. ROOT
+  CAUSE: seed minimale (un cliente) e dati creati a mano in script usa e getta. ACTION: azione 3.
+- Debito di processo: rules e functions di prod indietro e `deploy.yml` deploya le rules prod a ogni merge su
+  `main`; le functions no. ACTION: azione 4.
+
+**ACTION ITEM per lo Sprint #18** (max 5)
+1. Correggere gli script `deploy`/`deploy:dev` di `functions/` con `cross-env NODE_OPTIONS=--dns-result-order=ipv4first`
+   (come la root). Fatto quando: `cd functions && npm run deploy:dev` riesce al primo colpo senza variabile
+   manuale e la nota workaround in CLAUDE.md e' rimossa.
+2. Regola per le callable: ogni scrittura di audit/side effect va attesa prima del return. Fatto quando:
+   `grep -n "auditLog\|logAudit" functions/src/callable` non mostra chiamate senza `await` (o un test
+   functions lo asserisce) e la regola e' in CLAUDE.md.
+3. Seed `qa:dev` con 1 slot e 1 gruppo `E2E-` (org qa-pt/qa-soccer/qa-lipedema) e casi in `roles.spec.js`:
+   popup slot e dettaglio gruppo con `staff_readonly` = 0 azioni di scrittura. Fatto quando: il caso fallisce
+   rimettendo CHIUDI visibile e `qa:dev` resta verde; il teardown cancella slot e gruppo.
+4. Checklist di rilascio prima del merge su `main`, nel `docs/` del release-manager: diff rules dev/prod,
+   functions da deployare, ordine (functions prima, rules via `deploy.yml`, hosting), verifica post-deploy
+   su `audit_logs` e rules. Fatto quando: il deploy prod del #18 segue la checklist con 0 passi fuori elenco
+   e CHANGELOG aggiornato.
+5. Ogni voce di verifica nello scope viene confermata sul codice prima dell'apertura (es. "il PDF gruppo
+   ha l'etichetta?") e annotata con file e riga. Fatto quando: 0 voci del #18 finiscono "non applicabile".
+
 ---
 
 ## Sprint chiuso (storico)
