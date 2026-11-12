@@ -67,7 +67,7 @@ build OK · lint OK · unit 641/641 · rules 129/129 · functions 231/231 · `qa
 - [x] Merge `feature/lipedema-module -> dev`, verifica rankex-dev + `qa:dev`: fast-forward `4516331..f086405` (2026-11-12); CI 43189927434 ok, E2E 43189927392 ok, `deploy.yml` 43190111563 (`deploy-dev` ok, `deploy-prod` skipped); `qa:dev` 36/36 sull'hosting deployato dalla CI
 - [x] Query prod `moduleType` (utente, Console): solo valori ammessi (`personal_training`, `soccer_academy`, assente/null), 2026-11-12
 - [x] Commit functions prod confermato: `744f6f9` (utente, 2026-11-12)
-- [ ] Deploy functions prod (`cd functions && npm run deploy`): ora __, esito __; `functions:list`: __ callable (attese 40), runtime __ (atteso nodejs22)
+- [x] Deploy functions prod (`cd functions && npm run deploy`, codice di `f086405`): 2026-11-12 09:26-09:28 UTC, esito ok (3 callable create); `functions:list`: 40 callable, runtime nodejs22 per tutte; log senza errori subito dopo il deploy
 - [ ] Merge `dev -> main`, run CI (id __) e `deploy.yml` (id __): CI __, hosting __, rules __
 - [ ] Smoke test sola lettura (super_admin utente): __; log functions / `audit_logs`: __
 - [ ] Costi Firebase dopo 24 h: __
