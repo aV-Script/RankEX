@@ -728,6 +728,12 @@ npm run qa:dev        → playwright.qa-dev.config.js, spec in e2e/qa-dev/tests/
   notifiche, valutazioni e account (Admin SDK, `e2e/qa-dev/cleanup.js`).
 - Il seed non tocca mai un account esistente di un'altra org (prefisso `qadev.`: `qa.*` è della
   QA manuale).
+- **Non deployare l'hosting mentre gira `npm run qa:dev`**: la suite gira contro l'hosting
+  deployato, un deploy a metà mischia due build (e fa comparire il banner RICARICA). Prima il
+  deploy, poi `qa:dev`, mai in parallelo.
+- `cd functions && npm run deploy:dev` su questa macchina va lanciato con
+  `NODE_OPTIONS=--dns-result-order=ipv4first` (gli script di `functions/` non usano `cross-env`
+  come quelli della root): senza, fallisce con "Failed to list functions" / "Failed to make request".
 
 ## Calendario
 
