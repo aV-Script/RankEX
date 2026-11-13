@@ -35,7 +35,7 @@ all'apertura: `docs/BACKLOG.md`, `docs/BUGS.md` modificati; `lipidemia/`, `mobil
 
 | # | ID | Titolo | Taglia | Stato | Dipende da |
 |---|----|--------|--------|-------|-----------|
-| 1 | AI 4 | Riga "precondizione QA" e "effetto visivo = una misura" in `.claude/agents/scrum-master.md` e `developer.md` | S | DONE 13/11 (regole in `.claude/agents/scrum-master.md` e `developer.md`, non tracciati: nessun commit) | - |
+| 1 | AI 4 | Riga "precondizione QA" e "effetto visivo = una misura" in `.claude/agents/scrum-master.md` e `developer.md` | S | DONE 13/11 (regole in `.claude/agents/scrum-master.md` e `developer.md`: tracciati, a differenza di `settings.json`) | - |
 | 2 | BUG-034 | Cambio password a campi vuoti: messaggio fuorviante (`ChangePasswordScreen.jsx:16-25`) | S | FIXED `122180b` (test Vitest; "fallisce prima" provato in scratchpad con node); verifica dal vivo a fine sprint | - |
 | 3 | BUG-035 | "PROSSIME APPUNTAMENTI" in lipedema (`ClientCalendar.jsx:105`) | S | FIXED `438019b`; verifica dal vivo a fine sprint | - |
 | 4 | BUG-036 | Campana mobile senza `aria-label` (`ClientBottomNav.jsx:100`) | S | FIXED `438019b`; verifica dal vivo a fine sprint | - |
@@ -111,7 +111,7 @@ Nessuna cella dipende dall'ambiente (nessun `isDev`/`isUat`/`isProduction`). Il 
 2. Monete/streak: **niente accredito manuale**. Il seed crea per il cliente di base uno slot passato (pianificato,
    non chiuso) nell'org `qa-pt`; la QA lo chiude via UI (`chiudiSessione`) e cosi' ottiene `coins` > 0 e
    `sessionStreak` >= 1 reali. Il seed non scrive `coins` ne' `sessionStreak`.
-3. AI 4: la fa la sessione principale in `.claude/agents/*.md` (non tracciati: la regola vale solo su questa macchina).
+3. AI 4: la fa la sessione principale in `.claude/agents/*.md`. Verificato con `git ls-files`: gli agenti sono tracciati (ignorato e' solo `settings.json`), quindi entra nel commit.
 4. BUG-034 richiede un account con `mustChangePassword: true`: si verifica con un cliente `E2E-…` creato dal wizard,
    non col cliente di base (che il seed porta a `false`).
 

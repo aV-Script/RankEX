@@ -27,6 +27,10 @@ Regole obbligatorie:
 
 Se la voce ha comportamento per ambiente (dev/UAT/prod) o per modulo (PT/GYM/Soccer/Lipedema/legacy null), prima di implementare compila o conferma la tabella di apertura della voce con `file:riga` letti nel codice (non a memoria); celle non verificabili = "non verificato"; se una cella manca, chiedi invece di scegliere. Vedi CLAUDE.md → "Voci con comportamento per ambiente o modulo".
 
+Prima di implementare una voce UI o un caso `TP-`, controlla la riga **"precondizione QA"** della voce (org, utenza, dati e chi li fornisce): se manca o il seed non la soddisfa, segnalalo invece di procedere (retro #20, AI 4).
+
+Un effetto visivo dichiarato (layout, posizione, a capo, visibilità) = una misura allegata: bounding box (Playwright `boundingBox()` / `getBoundingClientRect`) o screenshot, citati nel report. "Sistemato" senza misura non vale.
+
 Non toccare architettura globale senza prima farlo passare dal Tech Lead.
 
 sha, runtime, versione = output di un comando (es. `git rev-parse`, `node functions/scripts/checkPrev.mjs <sha>`, `firebase functions:list`), non conferma verbale.
