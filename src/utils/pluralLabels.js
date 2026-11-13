@@ -30,6 +30,16 @@ export function plannedDoneLabel(terminology, done) {
   return `${noun} ${participle}`
 }
 
+/** "PROSSIME SESSIONI" / "PROSSIMI APPUNTAMENTI": aggettivo concordato col genere del modulo. */
+export function upcomingSessionsTitle(terminology) {
+  return `${bySessionGender(terminology, 'PROSSIMI', 'PROSSIME')} ${terminology.sessions.toUpperCase()}`
+}
+
+/** Nome accessibile della campana notifiche: "Notifiche" o "Notifiche, 2 non lette". */
+export function notificationsAriaLabel(unreadCount) {
+  return unreadCount > 0 ? `Notifiche, ${unreadLabel(unreadCount)}` : 'Notifiche'
+}
+
 /** "1 paziente ha raggiunto il massimale mensile." / "2 pazienti hanno raggiunto…". */
 export function monthlyLimitMessage(terminology, count) {
   return `${clientCountLabel(terminology, count)} ${pluralize(count, 'ha', 'hanno')} raggiunto il massimale mensile.`

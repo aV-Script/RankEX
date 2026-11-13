@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   clientCountLabel, unreadLabel, commentCountLabel, plannedDoneLabel, monthlyLimitMessage,
   slotClientsLabel, filledCountLabel, repetitionsLabel, examinersLabel,
+  upcomingSessionsTitle, notificationsAriaLabel,
 } from '../../utils/pluralLabels.js'
 import { TERMINOLOGIES } from '../../config/modules.config.js'
 
@@ -54,6 +55,23 @@ describe('plannedDoneLabel', () => {
     expect(plannedDoneLabel(PT, 0)).toBe('0 sessioni svolte')
     expect(plannedDoneLabel(PT, 1)).toBe('1 sessione svolta')
     expect(plannedDoneLabel(PT, 2)).toBe('2 sessioni svolte')
+  })
+})
+
+describe('upcomingSessionsTitle (BUG-035)', () => {
+  it('aggettivo concordato col genere del modulo', () => {
+    expect(upcomingSessionsTitle(PT)).toBe('PROSSIME SESSIONI')
+    expect(upcomingSessionsTitle(GYM)).toBe('PROSSIMI ALLENAMENTI')
+    expect(upcomingSessionsTitle(SOCCER)).toBe('PROSSIMI ALLENAMENTI')
+    expect(upcomingSessionsTitle(LIPEDEMA)).toBe('PROSSIMI APPUNTAMENTI')
+  })
+})
+
+describe('notificationsAriaLabel (BUG-036)', () => {
+  it('senza e con non lette', () => {
+    expect(notificationsAriaLabel(0)).toBe('Notifiche')
+    expect(notificationsAriaLabel(1)).toBe('Notifiche, 1 non letta')
+    expect(notificationsAriaLabel(2)).toBe('Notifiche, 2 non lette')
   })
 })
 

@@ -6,6 +6,7 @@ import {
   toLocalDateStr, getClientSlotState, calcClientMonthSummary, formatUpcomingDate,
 } from '../../utils/calendarUtils'
 import { bySessionGender, DEFAULT_TERMINOLOGY } from '../../config/modules.config'
+import { upcomingSessionsTitle } from '../../utils/pluralLabels'
 
 const MONTH_NAMES = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
   'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
@@ -102,7 +103,7 @@ export function ClientCalendar({
       {/* Prossime sessioni */}
       <div className="rounded-[3px] p-3.5" style={PANEL_STYLE}>
         <div className="font-display text-[11px] font-semibold text-white/30 tracking-[2px] mb-2">
-          PROSSIME {terminology.sessions.toUpperCase()}
+          {upcomingSessionsTitle(terminology)}
         </div>
         {upcoming.length === 0 ? (
           <p className="font-body text-[13px] text-white/40 m-0">
