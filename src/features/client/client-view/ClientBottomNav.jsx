@@ -6,6 +6,7 @@ import { AvatarDisplay }  from './avatar/AvatarDisplay'
 import { logout }         from '../../../firebase/services/auth'
 import { BellIcon, LogoutIcon } from './client.config'
 import { ConfirmDialog }  from '../../../components/common/ConfirmDialog'
+import { CoinsBadge }     from './CoinsBadge'
 import { notificationsAriaLabel } from '../../../utils/pluralLabels'
 import {
   ICON_TEST, ICON_TROFEI, ICON_CALENDARIO, ICON_PROFILO,
@@ -20,10 +21,6 @@ const BOTTOM_ITEMS = [
   { id: 'calendario', label: 'Calendario', icon: ICON_CALENDARIO },
   { id: 'profilo',    label: 'Profilo',    icon: ICON_PROFILO },
 ]
-
-// Giallo brand dei badge (Pulcini): stesso valore di ClientCard
-const COINS_BADGE_COLOR = '#facc15'
-const COINS_BADGE_BORDER = 'rgba(250,204,21,0.35)'
 
 // ── Slot top nav desktop: tutte le 5 sezioni ──────────────────────────────────
 
@@ -200,16 +197,7 @@ export function ClientBottomNav({
 
           {/* Notifiche + logout */}
           <div className="flex items-center gap-1" style={{ marginLeft: 16 }}>
-            <span
-              className="font-display"
-              style={{
-                fontWeight: 800, fontSize: 12, color: COINS_BADGE_COLOR,
-                border: `1px solid ${COINS_BADGE_BORDER}`, borderRadius: 3,
-                padding: '4px 8px', marginRight: 8, whiteSpace: 'nowrap',
-              }}
-            >
-              {coins} MONETE
-            </span>
+            <CoinsBadge coins={coins} style={{ marginRight: 8 }} />
             <button
               onClick={onOpenNotifs}
               aria-label={notificationsAriaLabel(unreadCount)}
