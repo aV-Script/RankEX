@@ -79,9 +79,10 @@ export function qaUsers(moduleKey) {
 
 /**
  * Moduli di cui il global setup salva anche la sessione del cliente di base (primo accesso fatto dal
- * seed, Sprint #21 AI 1). Solo pt: gli spec di area cliente (STORY-048 T6) aggiungono qui soccer.
+ * seed, Sprint #21 AI 1). pt e soccer (STORY-048 T6: Home cliente con terminologia Coach/Allenamento);
+ * lipedema non ha login cliente.
  */
-export const QA_CLIENT_LOGIN_MODULES = ['pt']
+export const QA_CLIENT_LOGIN_MODULES = ['pt', 'soccer']
 
 /** Cliente di base con login di un modulo: stessa forma di qaUsers, ruolo 'client'. Vuoto se il modulo non ne ha */
 export function qaClientUsers(moduleKey) {
