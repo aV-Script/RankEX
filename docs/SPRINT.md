@@ -7,7 +7,13 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-# SPRINT #21 — EPIC-011 Area cliente, parte 2 (Home cliente + action item del #20) — aperto il 2026-11-13
+Nessuno sprint attivo: il #21 e' chiuso (13/11), vedi "Sprint chiuso (storico)". Il #22 si apre dal blocco "Passa al #22".
+
+---
+
+## Sprint chiuso (storico)
+
+# SPRINT #21 — EPIC-011 Area cliente, parte 2 (Home cliente + action item del #20) — aperto il 2026-11-13, chiuso il 2026-11-13 (goal raggiunto; GYM, "Assegnato dal coach" e stato errore della Home non verificati dal vivo)
 
 **Goal:** L'area cliente e' provabile dal vivo su rankex-dev (set avatar per `qa-pt`, cliente di base con primo accesso
 fatto, spec di layout automatica) e la Home cliente mostra livello, striscia, prossima sessione, ultime notifiche e
@@ -36,12 +42,12 @@ all'apertura: `docs/BACKLOG.md`, `docs/BUGS.md` modificati; `lipidemia/`, `mobil
 | # | ID | Titolo | Taglia | Stato | Dipende da |
 |---|----|--------|--------|-------|-----------|
 | 1 | AI 4 | Riga "precondizione QA" e "effetto visivo = una misura" in `.claude/agents/scrum-master.md` e `developer.md` | S | DONE 13/11 (regole in `.claude/agents/scrum-master.md` e `developer.md`: tracciati, a differenza di `settings.json`) | - |
-| 2 | BUG-034 | Cambio password a campi vuoti: messaggio fuorviante (`ChangePasswordScreen.jsx:16-25`) | S | FIXED `122180b` (test Vitest; "fallisce prima" provato in scratchpad con node); verifica dal vivo a fine sprint | - |
-| 3 | BUG-035 | "PROSSIME APPUNTAMENTI" in lipedema (`ClientCalendar.jsx:105`) | S | FIXED `438019b`; verifica dal vivo a fine sprint | - |
-| 4 | BUG-036 | Campana mobile senza `aria-label` (`ClientBottomNav.jsx:100`) | S | FIXED `438019b`; verifica dal vivo a fine sprint | - |
-| 5 | AI 1 | Set avatar `qa-pt` + seed: cliente di base con primo accesso fatto + dati QA; poi TP-089 dal vivo, BUG-027 VERIFIED | S/M | CODICE FATTO (commit sotto): avatar `qa_pt_01..09`, seed con primo accesso + slot/notifiche `qaSeedMarker` (`e2e/qa-dev/qaSeedData.js`); seed, TP-089 e BUG-027 dal vivo a fine sprint | 2-4 non bloccano; il TP-089 dal vivo richiede hosting dev aggiornato |
-| 6 | AI 2 | Spec Playwright di layout del pannello notifiche cliente a 360/1366 in `e2e/qa-dev/tests/` + controprova su copia di `aa84e73` | M | CODICE FATTO: `e2e/qa-dev/tests/clientNotificationsLayout.spec.js` (360x640 e 1366x768), sessione cliente `pt-cliente` salvata dal setup (`qaClientUsers`); esecuzione e controprova a fine sprint, piano nella nota AI 2 sotto | AI 1 (cliente col primo accesso fatto e >= 1 notifica non letta) |
-| 7 | STORY-048 | Home cliente (T1..T7, incluso BUG-008) | M/L | CODICE FATTO (commit locali, nessun push): T1 `57b6c30` (BUG-008), T2 `9029bd1`, T3 `828a3db`, T4 `1bcf1a0`, T5 `b750c1b`; T6 (spec `e2e/qa-dev/tests/clientHomeLayout.spec.js` + `layoutHelpers.js` + `soccer` in `QA_CLIENT_LOGIN_MODULES`) `0c1c19b` e T7 (caso TP-094, BUG-008 → FIXED) `b9685d6`. QA dal vivo, esecuzione spec e controprova a fine sprint (piano sotto) | AI 1, AI 2 (T6 estende la spec di AI 2) |
+| 2 | BUG-034 | Cambio password a campi vuoti: messaggio fuorviante (`ChangePasswordScreen.jsx:16-25`) | S | DONE 13/11: FIXED `122180b` (test Vitest; "fallisce prima" provato in scratchpad con node), VERIFIED dal vivo a `bac03ee` | - |
+| 3 | BUG-035 | "PROSSIME APPUNTAMENTI" in lipedema (`ClientCalendar.jsx:105`) | S | DONE 13/11: FIXED `438019b`, VERIFIED dal vivo a `bac03ee` | - |
+| 4 | BUG-036 | Campana mobile senza `aria-label` (`ClientBottomNav.jsx:100`) | S | DONE 13/11: FIXED `438019b`, VERIFIED (spec AI 2 + controprova su `aa84e73`) | - |
+| 5 | AI 1 | Set avatar `qa-pt` + seed: cliente di base con primo accesso fatto + dati QA; poi TP-089 dal vivo, BUG-027 VERIFIED | S/M | DONE 13/11: avatar `qa_pt_01..09`, seed con primo accesso + slot/notifiche `qaSeedMarker` (`e2e/qa-dev/qaSeedData.js`); seed idempotente (1° lancio 7 nuovi documenti, 2° lancio 0), TP-089 PASS, BUG-027 VERIFIED; seed corretto da `fcb5d72` | 2-4 non bloccano; il TP-089 dal vivo richiede hosting dev aggiornato |
+| 6 | AI 2 | Spec Playwright di layout del pannello notifiche cliente a 360/1366 in `e2e/qa-dev/tests/` + controprova su copia di `aa84e73` | M | DONE 13/11: `e2e/qa-dev/tests/clientNotificationsLayout.spec.js` (360x640 e 1366x768), verde su HEAD; controprova su copia di `aa84e73` (`aa84e731292419749a889b5daa919b99844b6017`): 2/2 FAIL su "una sola campana visibile" (parte titolo/Chiudi non eseguita) | AI 1 (cliente col primo accesso fatto e >= 1 notifica non letta) |
+| 7 | STORY-048 | Home cliente (T1..T7, incluso BUG-008) | M/L | DONE 13/11 con eccezioni (GYM, "Assegnato dal coach", stato errore: non verificati, vedi chiusura). Commit: T1 `57b6c30` (BUG-008), T2 `9029bd1`, T3 `828a3db`, T4 `1bcf1a0`, T5 `b750c1b`; T6 (spec `e2e/qa-dev/tests/clientHomeLayout.spec.js` + `layoutHelpers.js` + `soccer` in `QA_CLIENT_LOGIN_MODULES`) `0c1c19b` e T7 (caso TP-094, BUG-008 → FIXED) `b9685d6`; poi `aa5bde2` (spec: misura dopo scroll al centro, titolo PROSSIMA senza word boundary). QA dal vivo TP-094 PASS a 360 e 1366, BUG-008 VERIFIED; controprova su copia di `aa5bde2` senza `grid-cols-2`: "stessa riga" 4/4 FAIL | AI 1, AI 2 (T6 estende la spec di AI 2) |
 
 Ordine STORY-048: T1 (BUG-008, terminologia) → T2 (hook sessioni) → T3 (`useNotifications` status) → T4 (componenti
 Home) → T5 (Monete) → T6 (spec Home 360/1366 + controprova) → T7 (caso `TP-` + chiusura BUG-008). Un task alla volta,
@@ -182,9 +188,99 @@ Nessuna cella dipende dall'ambiente (nessun `isDev`/`isUat`/`isProduction`). Il 
 - STORY-049: RIMANDATA al #22. BUG-005: RIMANDATO (fuori).
 - Invariati fuori sprint: STORY-050/051, STORY-029 (b)/(c), 3f, org GYM, UAT, rollback functions prod.
 
----
+## Goal
+L'area cliente e' provabile dal vivo su rankex-dev e la Home cliente mostra livello, striscia, prossima sessione, ultime
+notifiche e Monete con la terminologia del modulo, misurata a 360 e 1366 px. **Raggiunto**, con tre verifiche non fatte
+(vedi "Non verificato"). Prod `fitquest-60a09` invariata a `f086405`, `main` invariato, functions invariate (nessun file in
+`functions/` ne' `firestore.rules` modificato nello sprint).
 
-## Sprint chiuso (storico)
+## Chiusura sprint
+
+**Stato del repo a fine sprint (output di comandi, verificato dalla sessione principale il 2026-11-13):** push su
+`origin/dev` `48370e1..bac03ee` (no force); CI 43410342276 success; deploy.yml 43410517819: `deploy-dev` success,
+`deploy-prod` skipped, quindi hosting e rules rankex-dev a `bac03ee`. Ancora da pushare: `fcb5d72` (fix seed),
+`aa5bde2` (spec Home) e la modifica non committata alla spec Home (controllo dei termini vietati solo su testata/STRISCIA/PROSSIMA).
+Unit 718/718, lint e build ok. `qa:dev` completo su `bac03ee`: 56 passed, 6 failed, tutti in `clientHomeLayout` per errori
+della spec (non dell'app); dopo `aa5bde2`: `clientHomeLayout` + `clientNotificationsLayout` 26/26, dopo l'ultima modifica terminologia 4/4.
+
+### Completato
+- **Voce 1 AI 4** (riga "precondizione QA" e "effetto visivo = una misura" in `scrum-master.md` e `developer.md`).
+- **Voce 2 BUG-034** `122180b`, VERIFIED dal vivo (allievo `E2E-` dal wizard, 360 px, campi vuoti → "obbligatoria").
+- **Voce 3 BUG-035** `438019b`, VERIFIED (lipedema "PROSSIMI APPUNTAMENTI", PT "PROSSIME SESSIONI").
+- **Voce 4 BUG-036** `438019b`, VERIFIED (spec AI 2 a 360 + controprova su `aa84e73`).
+- **Voce 5 AI 1** set avatar `qa-pt`, seed con primo accesso e dati QA. Seed lanciato su rankex-dev: 7 nuovi documenti al primo
+  lancio, 0 al secondo (idempotente). TP-089 PASS a 360 e 1366 (dialog 328x303 dentro 360, un solo addebito al doppio click,
+  saldo 30→0); **BUG-027 VERIFIED**.
+- **Voce 6 AI 2** spec `clientNotificationsLayout.spec.js`; controprova su copia di `aa84e73` fallisce 2/2: la spec rileva BUG-033/036.
+- **Voce 7 STORY-048** Home cliente T1..T7 (`57b6c30`, `9029bd1`, `828a3db`, `1bcf1a0`, `b750c1b`, `0c1c19b`, `b9685d6`) + fix spec `aa5bde2`.
+  TP-094 PASS su qa-pt e qa-soccer a 360 e 1366 (Monete in alto a destra, Categoria solo PT, PROSSIMA/PROSSIMO col genere, max 2
+  notifiche, VEDI TUTTE; allievo nuovo: "0 MONETE", STRISCIA 0 "XP ×1,1", "Nessun allenamento in programma", "Nessuna notifica").
+  Controprova su copia di `aa5bde2` senza `grid-cols-2`: "stessa riga" 4/4 FAIL (44,5 px a 360, 101,5 a 1366). **BUG-008 VERIFIED**
+  (soccer e PT).
+- **Fuori voce `fcb5d72`:** `calendarUtils` importava `../constants/slotStatus` senza `.js`: `npm run qa:dev:seed` sotto Node falliva con
+  `ERR_MODULE_NOT_FOUND`. Regressione di `56684a6` (Sprint #20): il seed non era mai stato lanciato dopo quel commit.
+- Dati di test: da trainer chiusi 3 slot passati del cliente di base qa-pt (10, 11, 12 nov) e 1 dell'allievo qa-soccer (10 nov) → qa-pt
+  30 MONETE / striscia 3 / "XP ×1,4"; qa-soccer 10 MONETE / striscia 1 / "XP ×1,2". Creato 1 allievo `E2E-` (BUG-034).
+
+### Non completato (motivo)
+- Nessuna voce pianificata e' rimasta fuori. STORY-049 e BUG-005 erano rimandati al #22 gia' all'apertura.
+
+### Non verificato
+| Cosa | Motivo / stato |
+|------|----------------|
+| Terminologia GYM (BUG-008, TP-094 passo 4) | nessuna org QA GYM (decisione gia' accettata: prima org GYM reale) |
+| "Assegnato dal coach" su un badge manuale | nessun badge assegnato nei dati QA |
+| Stato errore della Home ("Impossibile caricare" + RIPROVA) | **non riproducibile come scritto**: con la rete offline la Home mostra i dati dalla cache di Firestore (0 errori, 0 RIPROVA). Passo di TP-094 corretto in `src/config/runbook.config.js`: simulare bloccando `firestore.googleapis.com` (Network request blocking) PRIMA del caricamento. Verificato solo da codice/unit |
+| Controprova AI 2, parte titolo/Chiudi (variante col localizzatore per icona) | non eseguita; eseguita la parte campana |
+| 3f, UAT, rollback functions prod, STORY-029 (b)/(c) | invariati (gia' accettati) |
+
+### Blockers
+- Nessun blocco sul codice. STORY-029 (b)/(c) resta requisito non di codice, bloccante solo per attivare lipedema in prod.
+- BUG-037 richiede modifica e deploy delle functions (non era nel perimetro del #21: vincolo "nessun file in `functions/`").
+
+### Tech debt emerso
+- **Seed rotto da `56684a6` senza che nessun test lo rilevasse:** `scripts/seed-qa-orgs.mjs` gira sotto Node (ESM nativo) e importa `src/`;
+  Vitest/Vite accettano import senza estensione, Node no. Visto solo al primo lancio reale, un intero sprint dopo. Candidato: un controllo
+  (anche solo l'import del seed o `node --check` in CI/`check:*`) per gli script che importano da `src/`.
+- **Spec `qa:dev` scritte senza essere eseguite sbagliano al primo run reale:** su 2 spec nuove (notifiche, Home) la Home ha avuto 2 errori
+  della spec e non dell'app (6 test rossi su 62): STRISCIA misurato senza scorrere (`scrollIntoViewIfNeeded` non scorre un elemento
+  parzialmente visibile sotto la bottom nav fissa) e regex di inizio parola contro textContent "ProssimaSAB 14 NOV". Per la spec notifiche
+  non risultano errori nei fatti ricevuti. Ipotesi da confermare in retro, non conclusa: regola "una spec si lancia almeno una volta
+  sull'hosting prima del commit" nel processo del developer.
+- **Riferimento BUG-037 da allineare:** la sessione principale cita "BUG-037" per il controllo dei termini vietati della spec Home (modifica
+  non committata); in BUGS.md BUG-037 e' la notifica di `chiudiSessione`. Correggere il riferimento nel messaggio di commit.
+- Bug nuovi (P3 S, OPEN): **BUG-037** (notifica `chiudiSessione` senza terminologia del modulo e con data ISO grezza, "Sessione del
+  2026-11-10 completata! +55 XP (streak 1)" anche per soccer; richiede deploy functions) e **BUG-038** (descrizioni dei trofei in soccer con
+  "sessione/sessioni di allenamento", testi fissi nel config dei badge).
+- Osservazione (non bug): la PROSSIMA come bottone ha textContent "ProssimaSAB 14 NOV · 18:15 – 19:00": il nome accessibile unisce titolo
+  e data senza separatore; migliorabile con `aria-label`.
+
+### Verificato / non verificato (per ambiente)
+
+| Voce | In dev (rankex-dev) | In prod (fitquest-60a09) | Non verificato |
+|------|---------------------|--------------------------|----------------|
+| BUG-034/035/036 | VERIFIED dal vivo a `bac03ee` | non toccata | - |
+| AI 1 / TP-089 / BUG-027 | PASS a 360 e 1366, VERIFIED | non toccata (il set `qa-pt` va in prod col prossimo rilascio, voce inerte) | - |
+| AI 2 spec notifiche | verde, controprova 2/2 FAIL su `aa84e73` | n/a | parte titolo/Chiudi della controprova |
+| STORY-048 / TP-094 / BUG-008 | PASS qa-pt e qa-soccer a 360 e 1366; spec Home verde | non toccata | GYM, "Assegnato dal coach", stato errore |
+| Functions / rules | invariate (`5090d9a`, nessun deploy) | invariate a `f086405` | - |
+
+### Passa al #22
+Candidati, in ordine consigliato (il PO decide le priorita', il Tech Lead la fattibilita'):
+- **STORY-049** Test a righe e fix a 360 px (rimandata dal #21).
+- **BUG-037** (P3 S): testo della notifica `chiudiSessione` con terminologia del modulo e data leggibile; modifica functions, review
+  medium, deploy prima dev poi (con via libera) prod.
+- **BUG-038** (P3 S): descrizioni dei trofei con la terminologia del modulo.
+- **BUG-005** (P3, soccer: tab BIA), rimandato.
+- Miglioramento a11y: `aria-label` sulla PROSSIMA della Home.
+- Tech debt: controllo che il seed/gli script Node che importano `src/` partano; regola "spec lanciata una volta prima del commit".
+- **Da decidere (utente):** release `dev → main` (prod ferma a `f086405`): contiene il set avatar `qa-pt` (inerte in prod) e STORY-045..048;
+  se si rilascia, pre-flight completo e, se si include BUG-037, functions prima del merge.
+Fuori sprint: STORY-050, STORY-051 (rules/functions, review HIGH), STORY-029 (b)/(c), 3f, org GYM, UAT, rollback functions prod (TD-015).
+Operativo: push di `fcb5d72`, `aa5bde2` e della spec Home modificata su `dev` (via libera); poi `qa:dev` da rilanciare (mai in parallelo
+a un deploy hosting).
+
+---
 
 # SPRINT #20 — EPIC-011 Area cliente allineata al canvas + action item del #19 — aperto il 2026-11-12, chiuso il 2026-11-13 (goal raggiunto; TP-089 e BUG-027 non verificati dal vivo)
 

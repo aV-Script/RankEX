@@ -104,7 +104,7 @@ Formato:
 ## [BUG-008] Area cliente (atleta) con terminologia PT fissa
 **Severity:** P3
 **Modulo/Ruolo:** soccer_academy / GYM — client (preesistente, trovato in code review di BUG-002/004)
-**Status:** FIXED — `57b6c30` (STORY-048 T1, Sprint #21: `terminology` da `useAuth` a `ClientView` e alle sezioni dell'area cliente); verifica dal vivo a fine sprint col nuovo TP-094 (allievo soccer, org qa-soccer) e con `clientHomeLayout.spec.js` (terminologia in Home)
+**Status:** VERIFIED (Sprint #21, 13/11, QA dal vivo su rankex-app-dev a `bac03ee`, allievo qa-soccer): Calendario "CALENDARIO ALLENAMENTI" / "PROSSIMI ALLENAMENTI" / "Nessun allenamento in programma", Scheda "Il tuo coach non ha ancora assegnato una scheda di allenamento.", Note "Il tuo coach non ha ancora scritto note."; PT invariato. Fix `57b6c30` (STORY-048 T1). Non verificati: org GYM (nessuna org QA GYM), "Assegnato dal coach" su un badge manuale (nessun badge assegnato). Residui di terminologia soccer: BUG-037, BUG-038
 **Reproduction steps:** login come allievo di un'org soccer → hub → Scheda / Calendario / Profilo › Note.
 **Expected:** termini del modulo (Coach, Allenamento…).
 **Actual:** `ClientView` non riceve `terminology`, quindi `ClientDashboardPage`, `ClientWorkoutSection` ("Il tuo trainer non ha ancora assegnato…"), `NotesSection` (badge "Trainer"), `PlanProgress` ("Sessione N di M") e `ClientCalendar` usano il default PT: l'allievo soccer vede "Trainer"/"Sessione".
@@ -289,7 +289,7 @@ Formato:
 ## [BUG-027] Acquisto avatar senza conferma: un tap scala le Monete
 **Severity:** P2
 **Modulo/Ruolo:** area cliente (PT/GYM e soccer; lipedema non ha area cliente), ruolo client — `src/features/client/client-view/avatar/AvatarPicker.jsx:117` (`onClick={() => handlePurchase(a)}`). Trovato nel censimento ux-ui-designer del 12/11/2026 su `ab65b45`. Assorbito da STORY-045.
-**Status:** FIXED nel codice (Sprint #20, STORY-045); NON verificato dal vivo (13/11, TP-089 bloccato: `AVATAR_CATALOG` non ha un set per `qa-pt`/`qa-soccer`, la pagina Avatar mostra "Nessun avatar disponibile"; dialog letto solo nel codice, `AvatarPicker.jsx:145-171`). Per chiuderlo: aggiungere un set per `qa-pt` in `src/config/avatars.config.js` (stesse immagini VDP5) e rifare TP-089 con un cliente con almeno 30 Monete
+**Status:** VERIFIED (Sprint #21, 13/11, TP-089 su rankex-app-dev a `bac03ee`, qa-pt con 30 Monete dopo 3 sessioni chiuse da trainer): 3 bottoni ACQUISTA, abilitato solo `_07`; dialog "Acquistare Numero 7?" Prezzo 30 / Le tue Monete 30 / Dopo l'acquisto 0, 328x303 px dentro 360, scrollWidth=clientWidth; ANNULLA, Esc e click fuori chiudono senza addebito; doppio click su ACQUISTA = un solo acquisto, toast "Numero 7 sbloccato!", saldo 30→0, gli altri ACQUISTA disabilitati; a 1366 in Calendario la barra mostra "0 MONETE". (In precedenza: FIXED nel codice, Sprint #20, STORY-045; sbloccato dal set avatar `qa-pt`, AI 1)
 **Reproduction steps:** login client con Monete sufficienti → Avatar → tap su ACQUISTA di un avatar acquistabile.
 **Expected:** una conferma con prezzo, saldo attuale e saldo dopo l'acquisto (canvas `ClienteAcquistaAvatar`, `MobileClienteAcquista`).
 **Actual:** la callable `acquistaAvatar` parte subito e le Monete scendono senza possibilità di annullare.
@@ -359,7 +359,7 @@ Formato:
 ## [BUG-034] Cambio password a campi vuoti: messaggio fuorviante sulla nuova password
 **Severity:** P3 (messaggio, nessun blocco)
 **Modulo/Ruolo:** area cliente (PT/GYM e soccer), ruolo client con `mustChangePassword` — `src/features/client/ChangePasswordScreen.jsx:16-25` (`validate`). Trovato nella QA dal vivo dello Sprint #20 (13/11, TP-091, `f42278f`), non loggato fino alla chiusura.
-**Status:** FIXED — fix: `validateChangePasswordForm` estratta in `src/utils/changePasswordValidation.js`, la regola "diversa dalla temporanea" vale solo con nuova password valida (test `changePasswordValidation.test.js`), commit: `122180b`
+**Status:** VERIFIED (Sprint #21, 13/11, su rankex-app-dev a `bac03ee`): allievo `E2E-` creato dal wizard (qa-soccer), primo accesso a 360, invio a campi vuoti → "Password temporanea obbligatoria" + "Password obbligatoria" (non più "diversa dalla temporanea"). Fix: `validateChangePasswordForm` estratta in `src/utils/changePasswordValidation.js`, la regola "diversa dalla temporanea" vale solo con nuova password valida (test `changePasswordValidation.test.js`), commit: `122180b`
 **Reproduction steps:** login con password temporanea → schermata di cambio password → lasciare i tre campi vuoti e premere Invio o il bottone.
 **Expected:** sulla nuova password il messaggio di lunghezza/complessita' di `validatePassword` (o "obbligatoria").
 **Actual:** `password === current` (entrambe `''`) a riga 22 sovrascrive l'errore di riga 20: il campo "nuova password" mostra "La nuova password deve essere diversa da quella temporanea", fuorviante a campi vuoti. Screenshot `scratchpad\qa20\tp91-360-errors.png`.
@@ -369,7 +369,7 @@ Formato:
 ## [BUG-035] Calendario in lipedema: "PROSSIME APPUNTAMENTI" con genere sbagliato
 **Severity:** P3 (grammatica)
 **Modulo/Ruolo:** lipedema — vista trainer del cliente (tab Calendario) — `src/features/client/ClientCalendar.jsx:105` (`PROSSIME {terminology.sessions.toUpperCase()}`: "prossime" fisso al femminile, gli altri testi usano `bySessionGender`, righe 94-97 e 109). Trovato nella QA dal vivo dello Sprint #20 (13/11, TP-092, `f42278f`), non loggato fino alla chiusura. Stessa famiglia di BUG-010.
-**Status:** FIXED — fix: `upcomingSessionsTitle(terminology)` in `utils/pluralLabels.js` (aggettivo da `sessionGender`), usata in `ClientCalendar.jsx`; verifica dal vivo a fine sprint, commit: `438019b`
+**Status:** VERIFIED (Sprint #21, 13/11, su rankex-app-dev a `bac03ee`): scheda paziente lipedema lato professionista → "PROSSIMI APPUNTAMENTI"; cliente PT → "PROSSIME SESSIONI". Fix: `upcomingSessionsTitle(terminology)` in `utils/pluralLabels.js` (aggettivo da `sessionGender`), usata in `ClientCalendar.jsx`, commit: `438019b`
 **Reproduction steps:** org lipedema → paziente → tab Calendario con slot futuri → titolo della colonna delle prossime.
 **Expected:** "PROSSIMI APPUNTAMENTI" (maschile); in PT/GYM/Soccer "PROSSIME SESSIONI/ALLENAMENTI" invariato.
 **Actual:** "PROSSIME APPUNTAMENTI".
@@ -379,8 +379,33 @@ Formato:
 ## [BUG-036] Campana notifiche della bottom nav mobile senza nome accessibile
 **Severity:** P3 (accessibilita', bassa)
 **Modulo/Ruolo:** area cliente (PT/GYM e soccer), ruolo client, mobile — `src/features/client/client-view/ClientBottomNav.jsx:100-126` (bottone campana con solo icona e contatore, senza `aria-label`; la scritta "Notifiche" e' uno `span` fratello fuori dal bottone, `:127-132`). La campana desktop invece ce l'ha (`:212-214`, fix di BUG-033). Trovato il 13/11/2026 all'apertura dello Sprint #21 leggendo il codice, non ancora osservato a schermo.
-**Status:** FIXED — fix: `aria-label={notificationsAriaLabel(unreadCount)}` sulla campana mobile, stessa funzione della desktop (`utils/pluralLabels.js`); verifica dal vivo a fine sprint, commit: `438019b`
+**Status:** VERIFIED (Sprint #21, 13/11): spec `clientNotificationsLayout.spec.js` su `bac03ee` a 360 con nome "Notifiche, N non lette"; controprova su copia di `aa84e73` (`aa84e731292419749a889b5daa919b99844b6017`, vite preview su localhost:4173): 2/2 FAIL su "una sola campana visibile" (0 campane con nome) a 360 e 1366, quindi la spec rileva BUG-033/036. Fix: `aria-label={notificationsAriaLabel(unreadCount)}` sulla campana mobile, stessa funzione della desktop (`utils/pluralLabels.js`), commit: `438019b`
 **Reproduction steps:** login client a 360 px con notifiche non lette → albero di accessibilita' del bottone al centro della bottom nav.
 **Expected:** nome accessibile "Notifiche" (con "N non lette" quando ce ne sono), come sul desktop.
 **Actual (da codice, non verificato dal vivo):** il nome del bottone e' solo il contatore ("2", "9+") o vuoto.
 **Suggested fix:** stesso `aria-label` della campana desktop (`:214`: `unreadCount > 0 ? \`Notifiche, ${unreadLabel(unreadCount)}\` : 'Notifiche'`), meglio condiviso. **Stima: S.**
+
+## [BUG-037] Notifica di `chiudiSessione` senza terminologia del modulo e con data ISO grezza
+**Severity:** P3 (testo)
+**Modulo/Ruolo:** soccer (e GYM, non verificato) — area cliente e vista trainer del cliente; la notifica la scrive `functions/src/callable/chiudiSessione.js` (type `session`).
+
+| Caso | dev | UAT | prod |
+|------|-----|-----|------|
+| PT | "Sessione del 2026-11-10 completata! +55 XP (streak 1)": termine corretto, data ISO grezza | non verificato | stesso codice a `f086405`: non verificato dal vivo |
+| Soccer | stessa frase con "Sessione" (dovrebbe essere "Allenamento") e data ISO; visto dal vivo in Home e pannello dell'allievo qa-soccer | non verificato | non verificato dal vivo |
+| GYM / Lipedema | non verificato (lipedema senza area cliente) | non verificato | non verificato |
+
+**Status:** OPEN — candidato #22 (richiede modifica e deploy delle functions, prima dev poi prod)
+**Reproduction steps:** da trainer, chiudere con presenza uno slot di un allievo qa-soccer → login allievo → Home › ULTIME NOTIFICHE (o pannello).
+**Expected:** testo con la terminologia del modulo ("Allenamento del 10 nov completato! …") e data leggibile.
+**Actual:** "Sessione del 2026-11-10 completata! +55 XP (streak 1)".
+**Suggested fix:** nella callable leggere la terminologia dell'org (`getOrgCapabilities`/modulo) e formattare la data; test in `functions/test`. **Stima: S.** Trovato nella QA dal vivo dello Sprint #21 (13/11).
+
+## [BUG-038] Descrizioni dei trofei in area cliente soccer con "sessione/sessioni di allenamento"
+**Severity:** P3 (testo)
+**Modulo/Ruolo:** soccer (e GYM, non verificato), ruolo client — testi fissi nel config dei badge (`src/config/badges.config.js`), non derivati dalla terminologia.
+**Status:** OPEN — candidato #22
+**Reproduction steps:** allievo soccer → Trofei.
+**Expected:** "allenamento/allenamenti" (terminologia del modulo).
+**Actual:** "Hai completato la tua prima sessione di allenamento", "STRISCIA X5 — Hai completato 5 sessioni di allenamento".
+**Suggested fix:** descrizioni parametrizzate sulla terminologia (o funzione di render con `terminology`), come fatto in BUG-008 per le altre sezioni. **Stima: S.** Trovato nella QA dal vivo dello Sprint #21 (13/11); stessa famiglia di BUG-008.

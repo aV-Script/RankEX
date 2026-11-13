@@ -1785,8 +1785,11 @@ passarlo.
   - Deciso 2026-11-13 (D3): nessun header nuovo; badge "N MONETE" in alto a destra della Home su mobile e desktop; la
     campana resta nella bottom nav mobile; su desktop si raggiunge il pannello con "Vedi tutte".
 - **Priority:** P2 (Sprint #21, taglia M/L: 7 task, 4 S + 2 M + 1 S di test)
-- **Status:** READY (Sprint #21, 13/11) — D1-D3 decise. Il developer conferma la tabella modulo (celle "non verificato"
-  in `docs/SPRINT.md` → Sprint #21) prima di T1. T6/T7 e il caso `TP-` dipendono da AI 1 e AI 2 (seed e spec di layout)
+- **Status:** DONE (Sprint #21, 13/11; T1..T7 `57b6c30`..`b9685d6`, QA dal vivo su rankex-app-dev a `bac03ee`, TP-094).
+  Home qa-pt e qa-soccer a 360 e 1366 corretta; spec `clientHomeLayout.spec.js` verde (26/26 con la spec notifiche, dopo `aa5bde2`) con controprova
+  su copia (senza `grid-cols-2`: 4/4 FAIL). BUG-008 VERIFIED per soccer e PT. **Non verificati:** org GYM (nessuna org QA GYM), "Assegnato dal
+  coach" su un badge manuale (nessun badge assegnato), stato errore "Impossibile caricare" + RIPROVA (non riproducibile con rete offline: la
+  Home usa la cache di Firestore; verificato solo da codice/unit). Residui terminologia: BUG-037, BUG-038 (#22).
 
 ### STORY-049 — Test a righe per i test con valore grezzo e fix a 360 px
 - **Contesto:** canvas `ClienteTest` / `MobileClienteTest`, `ClienteTrofei` / `MobileClienteTrofei`. Difetti a
