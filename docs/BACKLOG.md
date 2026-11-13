@@ -1677,6 +1677,15 @@ a 1366 px e a 360×640 px.
   `src/features/client/client-view/ClientHub.jsx:281` `sec.label.slice(0, 3)` su mobile → etichette
   "Tes/Tro/Cal/Sch/Pro".
 - **Modulo:** personal_training | soccer_academy (area cliente)
+- **Osservazioni a schermo a 360x640 (QA dal vivo #20, 13/11/2026, rankex-app-dev a `f42278f`, solo annotate, nessun fix):**
+  - Etichette tronche CONFERMATE nell'hub cliente (`TES / TRO / CAL / SCH / PRO`): `C:\Users\vAito\AppData\Local\Temp\claude\0d5da70ea05ac5cc\07e2ac0c-853a-40e5-b30d-7f0ab1b72105\scratchpad\qa20\hub-m.png`. La bottom nav
+    cliente ha le etichette intere (TEST / TROFEI / NOTIFICHE / CALENDARIO / PROFILO); nella bottom nav trainer a 360 le
+    etichette sono troncate con i puntini ("CALENDA...", "RICORRE...", "GUIDA TE..."): `C:\Users\vAito\AppData\Local\Temp\claude\0d5da70ea05ac5cc\07e2ac0c-853a-40e5-b30d-7f0ab1b72105\scratchpad\qa20\tp92-trainer-m.png`.
+  - Vetrina Trofei: con i 5 slot vuoti ("+") sta nello schermo senza overflow; il caso 5 badge pieni da 68 px (404 px su ~328)
+    NON e' stato visto (cliente di prova con 1 trofeo): da riprovare con 5 badge in vetrina. `C:\Users\vAito\AppData\Local\Temp\claude\0d5da70ea05ac5cc\07e2ac0c-853a-40e5-b30d-7f0ab1b72105\scratchpad\qa20\s49-trofei-m.png`.
+  - StatsSection: con stats a 0 le barre non sono visibili (cliente di prova senza test), quindi la riduzione a ~0 px delle barre
+    (`3fr 2fr`) NON e' confermata ne' smentita; osservato solo che nel pannello STATUS il radar e' piccolo e l'etichetta "RES" del
+    vertice destro tocca il bordo della card. Da riprovare con un cliente con campionamenti. `C:\Users\vAito\AppData\Local\Temp\claude\0d5da70ea05ac5cc\07e2ac0c-853a-40e5-b30d-7f0ab1b72105\scratchpad\qa20\s49-test-m.png`.
 - **Acceptance Criteria:** in bozza, da scrivere a inizio Sprint #21 dopo la conferma a schermo dei difetti.
 - **Priority:** P2 (Sprint #21)
 - **Status:** BACKLOG

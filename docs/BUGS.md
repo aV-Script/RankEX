@@ -279,7 +279,7 @@ Formato:
 ## [BUG-026] Banner RICARICA copre "Password dimenticata?" sul login a 360 px
 **Severity:** P3 (UI; workaround immediato)
 **Modulo/Ruolo:** tutti — pagina di login, `src/app/App.jsx:54-67` (banner `fixed bottom-5`). Trovato nella voce 3e dello Sprint #19 (12/11, rankex-app-dev, dopo il deploy hosting)
-**Status:** FIXED nel codice (Sprint #20, da verificare dal vivo su rankex-dev con TP-088): sotto `lg` il banner sta in alto (`top-16`), da `lg` resta in basso
+**Status:** VERIFIED (Sprint #20, 13/11, TP-088 su rankex-app-dev a `f42278f`): sotto `lg` il banner sta in alto (`top-16`, y 64-128 a 360 px), da `lg` resta in basso; a 360 "Password dimenticata?" e ACCEDI cliccabili, bottom nav cliente intera, logout trainer visibile. Copre solo testo non interattivo (logo sul login, nome nell'hub): accettato
 **Reproduction steps:** login aperto a 360×640 con build vecchia; deployare una nuova build; attendere fino a 5 min (`POLL_MS`, `useVersionCheck.js:3`) finché compare il banner RICARICA.
 **Expected:** il banner non nasconde i controlli del form.
 **Actual:** il banner copre il link "Password dimenticata?" finché non si ricarica. A 1366 px non copre nulla.
@@ -289,7 +289,7 @@ Formato:
 ## [BUG-027] Acquisto avatar senza conferma: un tap scala le Monete
 **Severity:** P2
 **Modulo/Ruolo:** area cliente (PT/GYM e soccer; lipedema non ha area cliente), ruolo client — `src/features/client/client-view/avatar/AvatarPicker.jsx:117` (`onClick={() => handlePurchase(a)}`). Trovato nel censimento ux-ui-designer del 12/11/2026 su `ab65b45`. Assorbito da STORY-045.
-**Status:** FIXED nel codice (Sprint #20, STORY-045; da verificare dal vivo con TP-089)
+**Status:** FIXED nel codice (Sprint #20, STORY-045); NON verificato dal vivo (13/11, TP-089 bloccato: `AVATAR_CATALOG` non ha un set per `qa-pt`/`qa-soccer`, la pagina Avatar mostra "Nessun avatar disponibile"; dialog letto solo nel codice, `AvatarPicker.jsx:145-171`). Per chiuderlo: aggiungere un set per `qa-pt` in `src/config/avatars.config.js` (stesse immagini VDP5) e rifare TP-089 con un cliente con almeno 30 Monete
 **Reproduction steps:** login client con Monete sufficienti → Avatar → tap su ACQUISTA di un avatar acquistabile.
 **Expected:** una conferma con prezzo, saldo attuale e saldo dopo l'acquisto (canvas `ClienteAcquistaAvatar`, `MobileClienteAcquista`).
 **Actual:** la callable `acquistaAvatar` parte subito e le Monete scendono senza possibilità di annullare.
@@ -298,7 +298,7 @@ Formato:
 ## [BUG-028] Calendario cliente: sessione passata con cliente assente o saltata resta "Pianificata"
 **Severity:** P2
 **Modulo/Ruolo:** area cliente (PT/GYM e soccer; lipedema non ha area cliente), ruolo client e vista trainer del cliente — `src/features/client/ClientCalendar.jsx:98-99` (`isCompleted`, `isPlanned = hasSlots && !isCompleted`) e `:102` (`dayXP`); `calcMonthlyCompletion` in `src/utils/calendarUtils.js:67-72`. Trovato nel censimento del 12/11/2026 su `ab65b45`. Assorbito da STORY-047.
-**Status:** FIXED nel codice (Sprint #20, STORY-047; da verificare dal vivo con TP-092)
+**Status:** VERIFIED (Sprint #20, 13/11, TP-092 su rankex-app-dev a `f42278f`): cliente e vista trainer mostrano completata/assente/saltata/pianificata, "+N XP" solo sulle pianificate, PROSSIME max 3, PRESENZE 1 / 2 · 50 %; lipedema senza STRISCIA/XP; 360 px senza overflow. Non provati "0 / 0" e "Nessuna sessione in programma"
 **Reproduction steps:** il trainer chiude una sessione passata con il cliente assente, oppure la salta (`status: 'skipped'`); aprire il calendario del cliente nel mese.
 **Expected:** stati distinti completata / assente / saltata / pianificata e stima XP solo per le sessioni future; "completamento mese" non conta saltate e future.
 **Actual:** il giorno resta "Pianificata" (pallino blu) con stima "+N XP"; la barra COMPLETAMENTO MESE conta tutti gli slot del mese, anche futuri e saltati.
@@ -307,7 +307,7 @@ Formato:
 ## [BUG-029] ClientHub: variabili CSS inesistenti nel pentagono
 **Severity:** P3
 **Modulo/Ruolo:** area cliente (PT/GYM e soccer; lipedema non ha area cliente), ruolo client — `src/features/client/client-view/ClientHub.jsx:199` (`var(--bg-base)`) e `:277` (`var(--text-primary)` / `var(--text-secondary)`). Trovato nel censimento del 12/11/2026 su `ab65b45`. Fuori voce di sprint (pipeline saltata: fix di una riga).
-**Status:** FIXED nel codice (Sprint #20, fuori voce): `--rx-bg`, `--rx-text`, `--rx-text-muted`; da osservare in QA dal vivo sull'hub
+**Status:** VERIFIED (Sprint #20, 13/11, osservazione visiva dell'hub a 1366 e 360 su `f42278f`): `--rx-bg`, `--rx-text`, `--rx-text-muted`; cerchio centrale scuro e opaco, etichette con il colore muted del tema
 **Reproduction steps:** login client → hub pentagono; ispezionare il cerchio sotto i badge e le etichette dei vertici.
 **Expected:** colori dal tema (`--rx-*`).
 **Actual:** le variabili non esistono in `src/index.css` (0 occorrenze, vedi CLAUDE.md → Design system): il cerchio-maschera è trasparente e le etichette prendono il colore ereditato.
@@ -316,7 +316,7 @@ Formato:
 ## [BUG-030] Pannello notifiche non accessibile e lettura implicita
 **Severity:** P2
 **Modulo/Ruolo:** area cliente (PT/GYM e soccer; lipedema non ha area cliente), ruolo client — `src/features/notification/NotificationsPanel.jsx` (nessun `role="dialog"`, `useFocusTrap`, `useEscapeKey`) e `src/features/client/ClientView.jsx:31-34` (`handleOpenNotifs` chiama `markAllRead()`). Trovato nel censimento del 12/11/2026 su `ab65b45`. Assorbito da STORY-046.
-**Status:** FIXED nel codice (Sprint #20, STORY-046; da verificare dal vivo con TP-090)
+**Status:** VERIFIED (Sprint #20, 13/11, TP-090 su rankex-app-dev a `f42278f`): role=dialog, focus trap, Esc con focus di ritorno alla campana, apertura che non segna lette, "Segna tutte come lette" a chiamata singola. Resta il difetto di layout dell'header del pannello: BUG-032
 **Reproduction steps:** login client con notifiche non lette → apri la campana → premi Esc / Tab.
 **Expected:** dialog con focus trap, Esc chiude, focus alla campana alla chiusura; le notifiche si segnano lette solo con azione esplicita.
 **Actual:** nessun ruolo dialog, Esc non chiude, il focus esce dal pannello; aprire il pannello segna tutto come letto.
@@ -325,7 +325,7 @@ Formato:
 ## [BUG-031] Quattro difetti minori dell'area cliente e del login
 **Severity:** P3
 **Modulo/Ruolo:** area cliente e login (PT/GYM e soccer; lipedema non ha area cliente), ruolo client. Trovato nel censimento del 12/11/2026 su `ab65b45`.
-**Status:** FIXED nel codice (Sprint #20): punti 1 e 4 con STORY-046 (TP-091), punti 2 e 3 fuori voce (TP-093); allievo soccer in area cliente vede ancora "trainer": terminologia = BUG-008
+**Status:** VERIFIED (Sprint #20, 13/11, su rankex-app-dev a `f42278f`): punti 1 e 4 con TP-091 (Invio nei 3 campi, doppio Invio = 1 salvataggio, `autocomplete` username/current-password/new-password), punti 2 e 3 con TP-093 (PT: cliente "Il tuo trainer non ha ancora scritto note.", staff "Nessuna nota scritta finora."); allievo soccer in area cliente vede ancora "trainer": terminologia = BUG-008 (non visto dal vivo: l'account di base ha `mustChangePassword`)
 **Reproduction steps / Actual:**
 1. `src/features/client/ChangePasswordScreen.jsx`: nessun `<form>`/`onSubmit`, Invio non invia (bottone con `onClick={handleSubmit}` a riga 107) → STORY-046.
 2. `src/features/client/client-dashboard/NotesSection.jsx:90`: l'empty state "Aggiungi la prima nota per tenere traccia…" compare anche al cliente `readonly` (montata `readonly` in `ClientDashboardPage.jsx:337`), che non può scrivere note. Fix diretto fuori voce.
@@ -333,3 +333,25 @@ Formato:
 4. `src/features/auth/components/LoginForm.jsx`: 0 `autoComplete` su email e password → STORY-046.
 **Expected:** (1) Invio invia; (2) in readonly testo tipo "Il tuo <trainer> non ha ancora scritto note" con terminologia del modulo; (3) termine da `getTerminology` (PT trainer, GYM personal trainer, Soccer coach); (4) `autoComplete="username"` / `"current-password"`.
 **Suggested fix:** come indicato per ciascun punto; (1) e (4) in STORY-046, (2) e (3) fix di una riga fuori sprint.
+
+## [BUG-032] Pannello notifiche cliente: l'header e' schiacciato e il titolo si sovrappone
+**Severity:** P3 (UI, nessun controllo irraggiungibile)
+**Modulo/Ruolo:** area cliente (PT/GYM e soccer), ruolo client — `src/features/notification/NotificationsPanel.jsx:124-150` (riga header `flex items-center flex-wrap` con colonna testo `flex-1 min-w-0` accanto a "Segna tutte come lette" `shrink-0` e al bottone chiudi `shrink-0`). Trovato nella QA dal vivo dello Sprint #20 (13/11, TP-090, `f42278f`). Introdotto da STORY-046.
+**Status:** OPEN
+| Viewport | Comportamento osservato |
+|----------|-------------------------|
+| 1366x768 (drawer largo 360 px) | colonna "N NON LETTE / NOTIFICHE" larga ~30 px: "2 NON LETTE" va a capo una parola per riga, "NOTIFICHE" sborda sotto il bottone "Segna tutte come lette" |
+| 360x640 (drawer 331 px) | stessa cosa: l'etichetta del contatore e' tagliata e "NOTIFICHE" si sovrappone al bordo del bottone |
+**Reproduction steps:** login client con almeno 1 notifica non letta → campana → guardare l'header del pannello (a 1366 e a 360).
+**Expected:** titolo "Notifiche" e "N non lette" leggibili; con poco spazio il bottone "Segna tutte come lette" va a capo sotto (il `flex-wrap` c'e' gia', TP-090 passo 5: "Header intero a 360 px").
+**Actual:** `min-w-0` permette alla colonna di restringersi a ~0 invece di scatenare il wrap, quindi il bottone non va mai a capo e il testo viene schiacciato. Tab, Esc e click funzionano; screenshot `scratchpad\qa20\tp90-open-d.png` e `tp90-open-m.png`.
+**Suggested fix:** dare alla colonna testo una base minima (`min-w-[120px]`/`basis-[120px]`) in modo che il bottone vada a capo, oppure mettere il bottone in una riga propria sotto l'header. **Stima: S.**
+
+## [BUG-033] Campana notifiche della barra desktop senza nome accessibile
+**Severity:** P3 (accessibilita')
+**Modulo/Ruolo:** area cliente (PT/GYM e soccer), ruolo client, desktop — `src/features/client/client-view/ClientBottomNav.jsx:212-232` (bottone campana senza `aria-label`; il contenuto e' solo l'icona e il contatore). Trovato nella QA dal vivo dello Sprint #20 (13/11, TP-090).
+**Status:** OPEN
+**Reproduction steps:** login client a 1366 con notifiche non lette → albero di accessibilita' del bottone campana nella barra in alto.
+**Expected:** nome accessibile "Notifiche" (con il numero di non lette) su un bottone che apre un dialog "Notifiche" e a cui il focus ritorna alla chiusura (AC STORY-046).
+**Actual:** il nome accessibile e' solo il contatore ("2") o vuoto senza non lette; uno screen reader non annuncia a cosa serve. La campana della bottom nav mobile ha l'etichetta visibile "NOTIFICHE".
+**Suggested fix:** un `aria-label` "Notifiche" (con "N non lette" quando ce ne sono) sul bottone (riga ~212). **Stima: S.**
