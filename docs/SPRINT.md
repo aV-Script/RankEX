@@ -280,6 +280,92 @@ Fuori sprint: STORY-050, STORY-051 (rules/functions, review HIGH), STORY-029 (b)
 Operativo: push di `fcb5d72`, `aa5bde2` e della spec Home modificata su `dev` (via libera); poi `qa:dev` da rilanciare (mai in parallelo
 a un deploy hosting).
 
+## Retrospettiva
+Dati (da `git log 48370e1..aac9e52` e dai blocchi sopra): 17 commit = 12 di codice/test (BUG-034, BUG-035/036, set avatar +
+seed, spec notifiche, STORY-048 T1-T6 con refactor, fix seed `fcb5d72`, 2 fix di spec) e 5 docs (apertura, AI 4, runbook TP-094,
+voce 7, chiusura); voci 1-7 tutte DONE, 0 non completate; bug: 5 chiusi VERIFIED (008, 027, 034, 035, 036), 2 nuovi OPEN P3
+(037, 038); unit 718/718; `qa:dev` su `bac03ee` 56 passed / 6 failed (tutti errori di spec), poi 26/26 e 4/4; 0 deploy in prod,
+`main` e functions invariati. Rework: 3 (`fcb5d72`, `aa5bde2`, `5de1fa6`) + 1 controprova ripetuta + 1 agente rilanciato.
+Non verificato: GYM, "Assegnato dal coach", stato errore Home, controprova titolo/Chiudi, tempi.
+
+**Verifica dei 5 action item del #20**
+1. Area cliente provabile (avatar `qa-pt` + seed): **raggiunto.** Seed idempotente (7 documenti poi 0), TP-089 PASS a 360 e 1366,
+   BUG-027 VERIFIED. Scoperto di passaggio che il seed era rotto da `56684a6` (vedi sotto).
+2. Spec di layout del pannello notifiche: **raggiunto, con limite.** Verde su HEAD, controprova su `aa84e73` 2/2 FAIL, ma solo
+   sulla parte campana (BUG-036); la parte titolo/Chiudi (BUG-032) non e' stata riprovata.
+3. BUG-034/035: **raggiunto.** `122180b` (test Vitest che fallisce prima del fix), `438019b`, entrambi VERIFIED dal vivo.
+4. Regola "precondizione QA" + "effetto visivo = una misura": **raggiunto.** Scritta in `scrum-master.md:20-21` e
+   `developer.md:30,32`; 0 casi TP- BLOCCATI per precondizione. Non ha pero' coperto la fattibilita' del passo (TP-094 errore).
+5. STORY-048 misurata a 360/1366 prima della review: **raggiunto sul fatto, non sul processo.** Spec Home 24 test verde a
+   360 e 1366, controprova `grid-cols-2` 4/4 FAIL, 0 bug di layout nuovi (BUG-037/038 sono testi). Che la review citi
+   l'esito della spec: non verificato nei docs. La spec pero' e' stata scritta senza lanciarla e ha sbagliato al primo run.
+
+**WHAT WENT WELL**
+- Tutte le 7 voci DONE, 5 bug VERIFIED dal vivo, STORY-048 consegnata con terminologia corretta e controprova. Causa: AC con
+  "fatto quando" misurabile e righe "precondizione QA" (AI 4) che hanno evitato blocchi: il seed forniva i dati, nessun TP- bloccato.
+- Le spec di layout (AI 2, T6) sono utili a scoprire e provare i difetti: controprova con difetto reintrodotto fallisce. Causa:
+  misure con boundingBox al posto di giudizio a vista (regola AI 4).
+- La QA dal vivo ha trovato 3 cose che il codice letto non mostrava (BUG-037, seed rotto, passo offline infattibile).
+
+**WHAT WENT WRONG / CAUSED BUGS**
+- Seed `qa:dev` rotto da `56684a6` (Sprint #20), scoperto un sprint dopo. ROOT CAUSE: `scripts/seed-qa-orgs.mjs` gira in Node ESM
+  nativo e importa da `src/`; Vitest/Vite accettano import senza `.js`, Node no, e nessun test o CI esegue gli script Node che
+  importano da `src/`. Stessa classe del problema `indexImport.test.js` delle functions (Vitest permissivo, Node no), non estesa
+  agli script. IMPACT: seed inutilizzabile per 1 sprint, `fcb5d72` di rework; scoperto solo perche' AI 1 lo ha lanciato. ACTION: azione 1.
+- BUG-037 (notifica server "Sessione del 2026-11-10 completata!" anche per soccer) visto solo dal vivo. ROOT CAUSE: BUG-008 era
+  stato analizzato solo sul client; la terminologia e' una duplicazione di testi in 3 luoghi (client, `config/badges.config.js`,
+  `functions/`) e l'AC diceva "area cliente" senza un inventario dei testi cablati fuori da `src/features/client`. BUG-038 (trofei)
+  e' la stessa famiglia, trovato nello stesso modo. IMPACT: P3, 2 bug nuovi aperti, BUG-037 richiede deploy functions (fuori
+  perimetro #21). ACTION: azione 4.
+- Il passo TP-094 "rete offline → stato errore" non e' riproducibile (la cache di Firestore risponde). ROOT CAUSE: il passo e' stato
+  scritto negli AC senza provarne la fattibilita'; AI 4 chiede la precondizione dei dati, non che il passo si possa eseguire.
+  IMPACT: stato errore della Home non verificato dal vivo, passo corretto a fine sprint (blocco della richiesta a
+  `firestore.googleapis.com`, ancora non provato). ACTION: azione 3.
+
+**WHAT WAS SLOW / CAUSED REWORK**
+- 2 spec su 2 scritte senza poterle eseguire (la suite gira solo contro l'hosting deployato, a fine sprint): la spec notifiche e'
+  passata al primo run, la Home no (6/62 rossi, 2 errori di spec: `scrollIntoViewIfNeeded` che non scorre sotto la bottom nav fissa,
+  regex `\b` contro textContent senza spazio) = `aa5bde2`, `5de1fa6`. ROOT CAUSE: il ciclo spec → feedback e' lungo per scelta
+  (push + deploy dev a fine sprint) e il primo run reale avviene a codice finito; i trucchi di misura (scroll al centro, testo
+  del nome accessibile) non sono in un helper provato. Gli errori erano di spec, non dell'app: costo = 2 commit e un secondo giro di `qa:dev`.
+- Controprova Home invalidata al primo tentativo: un `vite preview` precedente teneva la porta 4173 (TaskStop non uccide il node
+  figlio), quindi la build mostrata non era quella della copia. Ripetuta dopo aver fermato il processo. ROOT CAUSE: la procedura
+  di controprova (note AI 2/T6) non ha il passo "verificare che la porta sia libera e che il server serva la build della copia".
+  Un falso risultato (la controprova che "passa" o "fallisce" sulla build sbagliata) e' il rischio, qui intercettato.
+- Un agente developer interrotto da errore API 403 senza modifiche, rilanciato: causa esterna, nessuna azione.
+
+**WHAT CREATED TECHNICAL DEBT**
+- Nessun TD in TECH-DEBT.md; debito emerso (vedi "Tech debt emerso"): script Node che importano `src/` senza controllo, passi
+  di spec non provati, testi di terminologia fissi nel config dei badge e nelle callable (BUG-037/038), `aria-label` della PROSSIMA.
+- Il riferimento "BUG-037" nel messaggio di `5de1fa6` e' corretto (ricontrollato dalla sessione principale): il controllo dei
+  termini e' stato ristretto proprio perche' il testo della notifica scritto da `chiudiSessione` (BUG-037) dice "Sessione" anche per soccer.
+
+**ACTION ITEM per lo Sprint #22** (max 5; vincoli: nessun deploy in prod senza via libera, `main` a `f086405`)
+1. **Controllo che gli script Node con import da `src/` partano (developer, ~1 h).** Test in `functions/test/` o `npm run
+   check:node-imports` che esegue `import()` con il loader nativo di Node di `scripts/seed-qa-orgs.mjs` (senza lanciarlo contro
+   Firebase: serve solo che la risoluzione dei moduli riesca) e di ogni `scripts/*.mjs` che importa da `src/`, agganciato a CI.
+   *Fatto quando:* sul commit `56684a6` (copia/worktree esterno) esce con exit 1 per `ERR_MODULE_NOT_FOUND`, su HEAD con 0; il
+   comando e' in `ci.yml` o nel pre-flight di CLAUDE.md.
+2. **Spec nuova = lanciata una volta prima del commit, con helper di misura provati (developer + scrum-master, ~1 h).** Regola
+   in `developer.md`/`scrum-master.md`: ogni spec `qa:dev` nuova va lanciata almeno una volta sull'hosting dev (push + deploy-dev
+   intermedio pianificato come voce) prima della review; gli helper `scrollToCenter`/lettura del nome accessibile in
+   `e2e/qa-dev/tests/layoutHelpers.js` con commento sul perche'. *Fatto quando:* a fine #22 le spec nuove hanno 0 test rossi per
+   errore di spec al primo `qa:dev` di sprint (conteggio citato in chiusura) e la regola e' nei due file.
+3. **Fattibilita' dei passi prima di READY (scrum-master + qa-engineer, ~1 h).** Ogni AC/caso `TP-` che simula condizioni di rete,
+   permessi o errori riporta "come si simula" e l'ha provato una volta prima di READY. Subito: provare il passo corretto di
+   TP-094 (blocco `firestore.googleapis.com` prima del caricamento) sulla Home. *Fatto quando:* TP-094 passo errore e'
+   PASS o BLOCCATO con motivo scritto in `runbook.config.js`, e 0 passi di AC/TP- del #22 corretti a posteriori per infattibilita'.
+4. **Terminologia del modulo: BUG-037 + BUG-038 con un inventario, non caso per caso (developer, ~2 h, review medium).** Prima un
+   `grep` dei testi cablati ("sessione", "trainer", "cliente", "allenamento") in `functions/src/callable`, `functions/src/shared`
+   e `src/config/badges.config.js`, elenco in BUGS.md; poi fix di BUG-037 (testo di `chiudiSessione`, data leggibile, deploy
+   prima su rankex-dev) e BUG-038, con un test che fallisce se un testo soccer contiene la terminologia PT. *Fatto quando:*
+   BUG-037 e BUG-038 FIXED con test (fallisce prima del fix), inventario in BUGS.md con ogni voce residua come bug o "accettato",
+   `functions` non deployato in prod senza via libera.
+5. **Controprova su copia affidabile (developer, ~30 min).** Aggiungere alle note di controprova (e allo script se utile) il passo
+   "porta 4173 libera prima (`netstat`/`Get-NetTCPConnection`) e dopo il build la pagina servita contiene lo sha/hash della copia";
+   fermare il processo node figlio e non solo il task. *Fatto quando:* la prossima controprova del #22 cita l'output del controllo
+   della porta e non ci sono controprove ripetute per porta occupata.
+
 ---
 
 # SPRINT #20 — EPIC-011 Area cliente allineata al canvas + action item del #19 — aperto il 2026-11-12, chiuso il 2026-11-13 (goal raggiunto; TP-089 e BUG-027 non verificati dal vivo)
