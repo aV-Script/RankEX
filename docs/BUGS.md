@@ -355,3 +355,21 @@ Formato:
 **Expected:** nome accessibile "Notifiche" (con il numero di non lette) su un bottone che apre un dialog "Notifiche" e a cui il focus ritorna alla chiusura (AC STORY-046).
 **Actual:** il nome accessibile e' solo il contatore ("2") o vuoto senza non lette; uno screen reader non annuncia a cosa serve. La campana della bottom nav mobile ha l'etichetta visibile "NOTIFICHE".
 **Suggested fix:** un `aria-label` "Notifiche" (con "N non lette" quando ce ne sono) sul bottone (riga ~212). **Stima: S.**
+
+## [BUG-034] Cambio password a campi vuoti: messaggio fuorviante sulla nuova password
+**Severity:** P3 (messaggio, nessun blocco)
+**Modulo/Ruolo:** area cliente (PT/GYM e soccer), ruolo client con `mustChangePassword` — `src/features/client/ChangePasswordScreen.jsx:16-25` (`validate`). Trovato nella QA dal vivo dello Sprint #20 (13/11, TP-091, `f42278f`), non loggato fino alla chiusura.
+**Status:** OPEN
+**Reproduction steps:** login con password temporanea → schermata di cambio password → lasciare i tre campi vuoti e premere Invio o il bottone.
+**Expected:** sulla nuova password il messaggio di lunghezza/complessita' di `validatePassword` (o "obbligatoria").
+**Actual:** `password === current` (entrambe `''`) a riga 22 sovrascrive l'errore di riga 20: il campo "nuova password" mostra "La nuova password deve essere diversa da quella temporanea", fuorviante a campi vuoti. Screenshot `scratchpad\qa20\tp91-360-errors.png`.
+**Suggested fix:** applicare la regola "diversa dalla temporanea" solo se `form.password` non e' vuota e `pwCheck.valid`. **Stima: S.** Nessun fix nel #20.
+
+## [BUG-035] Calendario in lipedema: "PROSSIME APPUNTAMENTI" con genere sbagliato
+**Severity:** P3 (grammatica)
+**Modulo/Ruolo:** lipedema — vista trainer del cliente (tab Calendario) — `src/features/client/ClientCalendar.jsx:105` (`PROSSIME {terminology.sessions.toUpperCase()}`: "prossime" fisso al femminile, gli altri testi usano `bySessionGender`, righe 94-97 e 109). Trovato nella QA dal vivo dello Sprint #20 (13/11, TP-092, `f42278f`), non loggato fino alla chiusura. Stessa famiglia di BUG-010.
+**Status:** OPEN
+**Reproduction steps:** org lipedema → paziente → tab Calendario con slot futuri → titolo della colonna delle prossime.
+**Expected:** "PROSSIMI APPUNTAMENTI" (maschile); in PT/GYM/Soccer "PROSSIME SESSIONI/ALLENAMENTI" invariato.
+**Actual:** "PROSSIME APPUNTAMENTI".
+**Suggested fix:** `bySessionGender(terminology, 'PROSSIMI', 'PROSSIME')`. **Stima: S.** Nessun fix nel #20.

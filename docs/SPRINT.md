@@ -7,7 +7,14 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-# SPRINT #20 — EPIC-011 Area cliente allineata al canvas + action item del #19 — aperto il 2026-11-12
+_Nessuno sprint aperto._ Ultimo chiuso: #20 (primo sotto "Sprint chiuso (storico)"). Lo apre la prossima sessione
+dopo aver letto BACKLOG, BUGS e TECH-DEBT; candidati in "Passa al #21" dello sprint #20.
+
+---
+
+## Sprint chiuso (storico)
+
+# SPRINT #20 — EPIC-011 Area cliente allineata al canvas + action item del #19 — aperto il 2026-11-12, chiuso il 2026-11-13 (goal raggiunto; TP-089 e BUG-027 non verificati dal vivo)
 
 **Branch:** `feature/lipedema-module`. All'apertura HEAD `ab65b45` = `origin/dev`; poi commit locale `0d06a5c` (docs
 backlog EPIC-011 + BUG-027..031); il commit di apertura di questo sprint e' il secondo. Nessun push. `lipidemia/` e
@@ -125,13 +132,14 @@ Ambiente: nessuna voce tocca codice condizionato da ambiente (`grep isDev|isProd
 | 0. Apertura sprint (docs) | DONE | questo commit |
 | 1. checkPrev (AI 1) | DONE | review medium APPROVED (2 LOW: costante inutilizzata tolta; `process` no-undef come in `deployGuard.test.js`, `functions/` fuori da `eslint src`). `744f6f9` exit 1, `f086405` exit 0 (Git Bash e PowerShell); test d'integrazione su repo temporaneo (CI shallow, `ci.yml:14`); functions 252/252 |
 | 2. check:deny (AI 3) | DONE | review medium APPROVED (4 LOW, nessuna azione; a capo in CLAUDE.md corretto). `npm run check:deny` 72/72 exit 0 sul file vero; copia nello scratchpad senza `Bash(git checkout HEAD*)` → exit 1 (Bash e PowerShell); TD-014 aggiornato (resta OPEN per i buchi noti); unit 664/664, lint ok. Fuori voce: `goals.test.js` falliva tra 00:00 e 01:00 (UTC vs data locale nel test), corretto in `597540a` |
-| BUG-026 (AI 2) | QA | codice fatto: sotto `lg` banner in alto (`top-16`, sotto l'header mobile trainer `AppNav.jsx:99`), da `lg` in basso come prima; `max-w-[calc(100vw-1.5rem)]`. Review medium nella sessione principale: nessun finding. Caso TP-088. Lint, unit 664/664, build ok. Rischio noto: in area cliente a 360 px può coprire in parte la sub-tab bar finché non si preme RICARICA. Da osservare in QA dal vivo (TP-088) |
-| 3. STORY-045 negozio avatar sicuro | QA | codice fatto: ACQUISTA apre ConfirmDialog (prezzo, saldo, dopo), conferma una volta sola (`loading`), badge "N MONETE" nella barra desktop; prop opt-in `largeTargets` di ConfirmDialog per bottoni ≥ 44 px (gli altri dialog invariati). Review medium nella sessione principale. TP-089. Lint, unit 664/664, build ok |
-| 4. STORY-046 a11y + navigazione | QA | codice fatto: pannello notifiche role=dialog + focus trap + Esc + focus di ritorno alla campana, apertura non segna lette, bottone esplicito "Segna tutte come lette" (44 px, disabilitato durante la chiamata); cambio password in <form> con guard sul doppio Invio; login con name/autoComplete. Review medium nella sessione principale. TP-090, TP-091. Lint, unit 664/664, build ok |
-| 5. STORY-047 calendario cliente | QA | codice fatto: `getClientSlotState` (skipped > completed > absent > planned), `calcClientMonthSummary`, `formatUpcomingDate` (ora locale), `calcStreakMultiplier` estratto (XP invariato, copia server non toccata); `getUpcomingClientSlots` sola lettura (stessi campi di `getClientSlots`: indice e rule esistenti); legenda a 4 stati, PROSSIME (max 3), PRESENZE, STRISCIA solo con `hasGamification`; `calcMonthlyCompletion` rimossa (unico uso). Review medium APPROVED (7 LOW; fetch limit alzato a 20). TP-092. Unit 675/675, lint ok |
-| Bug S: BUG-029, BUG-031 p.2 e 3 | QA | pipeline saltata: BUG-029 `5867bc5` (token `--rx-*` in ClientHub); BUG-031 p.2 (note vuote: testo per cliente/staff in sola lettura) e p.3 (obiettivi: termine del modulo, prop `isClientView`/`terminology`) nel commit successivo. TP-093 |
-| QA dal vivo + deploy hosting dev | QA | deploy-dev `f42278f` OK, `qa:dev` 36/36; QA dal vivo 2026-11-13 (blocco "QA dal vivo" sotto): TP-088/091/092/093 PASS, TP-090 parziale (BUG-032 P3), TP-089 bloccato (nessun set avatar per qa-pt) |
-| Chiusura sprint | BACKLOG | |
+| BUG-026 (AI 2) | DONE | codice fatto: sotto `lg` banner in alto (`top-16`, sotto l'header mobile trainer `AppNav.jsx:99`), da `lg` in basso come prima; `max-w-[calc(100vw-1.5rem)]`. Review medium nella sessione principale: nessun finding. Caso TP-088. Lint, unit 664/664, build ok. Rischio noto: in area cliente a 360 px può coprire in parte la sub-tab bar finché non si preme RICARICA. Da osservare in QA dal vivo (TP-088) |
+| 3. STORY-045 negozio avatar sicuro | DONE (codice; BUG-027 non verificato dal vivo) | codice fatto: ACQUISTA apre ConfirmDialog (prezzo, saldo, dopo), conferma una volta sola (`loading`), badge "N MONETE" nella barra desktop; prop opt-in `largeTargets` di ConfirmDialog per bottoni ≥ 44 px (gli altri dialog invariati). Review medium nella sessione principale. TP-089. Lint, unit 664/664, build ok |
+| 4. STORY-046 a11y + navigazione | DONE | codice fatto: pannello notifiche role=dialog + focus trap + Esc + focus di ritorno alla campana, apertura non segna lette, bottone esplicito "Segna tutte come lette" (44 px, disabilitato durante la chiamata); cambio password in <form> con guard sul doppio Invio; login con name/autoComplete. Review medium nella sessione principale. TP-090, TP-091. Lint, unit 664/664, build ok |
+| 5. STORY-047 calendario cliente | DONE | codice fatto: `getClientSlotState` (skipped > completed > absent > planned), `calcClientMonthSummary`, `formatUpcomingDate` (ora locale), `calcStreakMultiplier` estratto (XP invariato, copia server non toccata); `getUpcomingClientSlots` sola lettura (stessi campi di `getClientSlots`: indice e rule esistenti); legenda a 4 stati, PROSSIME (max 3), PRESENZE, STRISCIA solo con `hasGamification`; `calcMonthlyCompletion` rimossa (unico uso). Review medium APPROVED (7 LOW; fetch limit alzato a 20). TP-092. Unit 675/675, lint ok |
+| Bug S: BUG-029, BUG-031 p.2 e 3 | DONE | pipeline saltata: BUG-029 `5867bc5` (token `--rx-*` in ClientHub); BUG-031 p.2 (note vuote: testo per cliente/staff in sola lettura) e p.3 (obiettivi: termine del modulo, prop `isClientView`/`terminology`) nel commit successivo. TP-093 |
+| QA dal vivo + deploy hosting dev | DONE | deploy-dev `f42278f` OK, `qa:dev` 36/36; QA dal vivo 2026-11-13 (blocco "QA dal vivo" sotto): TP-088/091/092/093 PASS, TP-090 parziale (BUG-032 P3), TP-089 bloccato (nessun set avatar per qa-pt) |
+| Fuori voce: BUG-032, BUG-033 (trovati dalla QA, P3 S) | DONE | `353acfa` + fix di review `f31a2a6` (chiudi prima di "Segna tutte" nel DOM); review medium nella sessione principale; lint, unit 675/675, build ok; push su dev: CI, E2E, deploy-dev success; ricontrollo TP-090 PASS, VERIFIED |
+| Chiusura sprint | DONE | blocco "Chiusura sprint" sotto; docs `c6a1ba3`, `f8b0ef8` e il commit di chiusura locali, non pushati |
 
 **Rischi:** (1) STORY-047 e' la piu' grande (taglia M, forse una query aggiuntiva per il mese successivo): se
 scivola, si chiude con stati distinti + riepilogo e le "prossime sessioni" restano al #21, decisione da dichiarare
@@ -169,11 +177,110 @@ Hub ClientHub (BUG-029): a 1366 e 360 il cerchio centrale e' scuro e opaco (masc
 
 **Dati di test creati e cancellati:** 2 clienti `E2E-QA20 Cliente/Compagno ...` in `qa-pt` (con account Auth, `/users`, notifiche; `clientCount` -2), 9 slot in `qa-pt` e 3 in `qa-lipedema` (marker `E2E-slot-qa20*`). Verifica finale: `qa-pt`, `qa-soccer`, `qa-lipedema` con solo il cliente di base, 0 slot, 0 notifiche, `clientCount` 1. Restano le voci `audit_logs` di creaCliente (la cancellazione e' stata fatta con Admin SDK, senza voce di eliminazione).
 
-Ultimo chiuso: #19 (primo sotto "Sprint chiuso (storico)").
+## Goal
+Chiudere i difetti dell'area cliente a rischio (acquisto avatar senza conferma, pannello notifiche e navigazione non
+accessibili, calendario con stati sbagliati) e gli action item del #19 che sono codice (checkPrev, check:deny,
+BUG-026), con QA dal vivo su rankex-dev a 1366 px e 360x640. **Raggiunto**, con TP-089 non completabile dal vivo
+(vedi "Non verificato"). Prod `fitquest-60a09` invariata a `f086405` (functions, hosting, rules; `origin/main` =
+`f086405`).
+
+## Chiusura sprint
+
+**Stato del repo a fine sprint (verificato il 2026-11-13 con git e con le run di CI):** HEAD `f8b0ef8` prima di questo
+commit di chiusura (locale). Push su `dev` degli 11 commit `ab65b45..f42278f`: CI 43394639920 success, E2E
+43394639935 success, Deploy to Firebase 43394815820 (`deploy-dev` success, `deploy-prod` skipped). Poi push
+`f42278f..f31a2a6`: CI, E2E e `deploy-dev` success (run di deploy creata 09:05:51Z), `deploy-prod` skipped. rankex-dev:
+hosting e rules a `f31a2a6`; functions invariate a `5090d9a` (nessuna function toccata nel #20). I commit docs
+`c6a1ba3`, `f8b0ef8` e quello di chiusura non sono pushati. `qa:dev` dopo `deploy-dev` di `f42278f`: 36/36 verde.
+Banner RICARICA reale: scheda con build vecchia aperta prima del push, banner comparso alle 08:42Z (~2 min dopo
+`deploy-dev`). `lipidemia/` e `mobile-app/` untracked, non committati.
+
+### Completato
+- **Voce 1 checkPrev (AI 1)** `55535bc`: `functions/scripts/checkPrev.mjs`; `744f6f9` exit 1 (Node 20), `f086405` exit 0
+  (Node 22); citato in CLAUDE.md e nelle regole di `developer.md`/`scrum-master.md`. Review medium APPROVED.
+- **Voce 2 check:deny (AI 3)** `15c8e6c`: `docs/git-deny.json` (72 pattern), `scripts/check-deny.mjs`, `npm run check:deny`
+  (exit 0 sul file vero, exit 1 su copia senza un pattern). Review medium APPROVED. Fuori voce `597540a`: `goals.test.js`
+  falliva tra 00:00 e 01:00 (data UTC vs locale).
+- **BUG-026 (AI 2)** `4f9640e`: banner RICARICA in alto sotto `lg`; TP-088 PASS dal vivo, VERIFIED.
+- **Voce 3 STORY-045** `335b71e` (codice): ConfirmDialog con prezzo/saldo/dopo, conferma a chiamata singola, "N MONETE"
+  nella barra desktop. Dal vivo visto solo il badge Monete (TP-089 parziale); BUG-027 resta FIXED, non VERIFIED.
+- **Voce 4 STORY-046** `aa84e73`: pannello notifiche accessibile (dialog, focus trap, Esc, focus di ritorno), lettura
+  esplicita, Invio nel cambio password, autocomplete login. TP-090 e TP-091 PASS dal vivo; BUG-030 e BUG-031 p.1 e 4
+  VERIFIED.
+- **Voce 5 STORY-047** `56684a6`: stati completata/assente/saltata/pianificata, PROSSIME (max 3), PRESENZE/STRISCIA,
+  `getClientSlotState` con test (unit 675/675). TP-092 PASS dal vivo (PT, vista trainer, lipedema, 360 px); BUG-028
+  VERIFIED. "Nessuna sessione in programma" e "0 / 0" provati nel ricontrollo di `f31a2a6`.
+- **Bug S fuori voce:** BUG-029 `5867bc5` (VERIFIED a vista su hub 1366/360), BUG-031 p.2 e 3 `f42278f` (TP-093 PASS).
+- **BUG-032 e BUG-033** (nuovi dalla QA, P3 S, fixati nello stesso sprint): `353acfa` + `f31a2a6`; ricontrollo TP-090
+  PASS su `f31a2a6`, entrambi VERIFIED.
+- Deploy hosting dev, `qa:dev` 36/36, banner RICARICA reale osservato, QA dal vivo TP-088..093 (blocco "QA dal vivo"
+  sopra). Dati di test cancellati: `qa-pt`/`qa-soccer`/`qa-lipedema` con solo il cliente di base, 0 slot, 0 notifiche,
+  `clientCount` 1 (restano le voci `audit_logs` di creaCliente).
+
+### Non completato (motivo)
+- Nessuna voce pianificata e' rimasta fuori. STORY-048 e STORY-049 erano solo backlog per il #21 (decisione 8);
+  STORY-050/051 senza sprint (decisioni 5, 6).
+
+### Non verificato
+| Cosa | Motivo / stato |
+|------|----------------|
+| **TP-089 passi 1-4 e 6 (BUG-027, STORY-045)**: dialog di conferma, ANNULLA/Esc/click fuori, doppio ACQUISTA, bottone disabilitato, dialog a 360, coincidenza saldo barra/pagina Avatar | `AVATAR_CATALOG` (`src/config/avatars.config.js:4-62`) non ha voci per `qa-pt`/`qa-soccer`: la pagina Avatar mostra "Nessun avatar disponibile". Letto solo nel codice (`AvatarPicker.jsx:145-171`, `:121`). **BUG-027 resta FIXED**, non VERIFIED. Serve un set avatar per qa-pt o un test con un'org che ne ha |
+| Acquisto reale (callable `acquistaAvatar` da UI) | non provato; nessun accredito manuale di Monete |
+| Password manager reale (TP-091) | in headless si sono verificati solo gli attributi `autocomplete` |
+| Vetrina Trofei con 5 badge pieni; barre StatsSection con campionamenti reali (a 360 px) | cliente di prova con 1 trofeo e senza test; passano a STORY-049 |
+| Allievo Soccer lato cliente (testo "trainer" = BUG-008) | l'account di base ha `mustChangePassword`, non toccato |
+| Sub-tab bar di Profilo col banner RICARICA a 360 px (rischio noto del fix BUG-026) | non guardata |
+| 3f login trainer/cliente in prod | rinviato al primo onboarding reale (decisione 3, gia' accettato dal #19) |
+| Org QA GYM | rinviata alla prima org GYM reale (decisione 2, gia' accettato) |
+| UAT | nessun progetto/hosting nel repo (`.firebaserc:5-18`) |
+| Rollback functions prod | solo fix forward, TD-015 (gia' accettato) |
+| STORY-029 (b)/(c) DPA e informativa | rinviato al contratto con la prima org Lipedema (decisione 3, gia' accettato) |
+
+### Blockers
+- Nessun blocco sul codice. STORY-029 (b)/(c) resta requisito non di codice (utente/legale), bloccante solo per
+  attivare lipedema in prod.
+- TP-089 dipende da un set avatar per `qa-pt` (vedi "Passa al #21", proposta da decidere).
+
+### Tech debt emerso
+- Nessun TD nuovo. TD-014: chiuso il "non tracciato" (copia + `check:deny`), resta OPEN per i buchi noti dei pattern.
+  TD-015 invariato (OPEN).
+- Bug aperti nuovi, non fixati (P3 S, BUGS.md): **BUG-034** (cambio password a campi vuoti: messaggio "deve essere
+  diversa dalla temporanea" sulla nuova password, `ChangePasswordScreen.jsx:22`) e **BUG-035** ("PROSSIME APPUNTAMENTI"
+  in lipedema, `ClientCalendar.jsx:105`). Non loggato come bug: il primo "Segna tutte come lette" a freddo ha aggiornato
+  la UI dopo >2,5 s (nessun optimistic update, poi ok): osservazione da rivedere se si ripresenta.
+- Osservazioni a 360 px per STORY-049 gia' in BACKLOG (etichette tronche nell'hub, vetrina Trofei, StatsSection,
+  bottom nav trainer con etichette troncate).
+
+### Verificato / non verificato (per ambiente)
+
+| Voce | In dev (rankex-dev) | In prod (fitquest-60a09) | Non verificato |
+|------|---------------------|--------------------------|----------------|
+| 1 checkPrev, 2 check:deny | locali, provati da Git Bash e PowerShell | n/a | - |
+| BUG-026 / TP-088 | VERIFIED a 1366 e 360; banner reale visto alle 08:42Z | non toccata | sub-tab bar di Profilo col banner |
+| STORY-045 / TP-089 | solo badge "N MONETE" | non toccata | dialog e acquisto (nessun avatar per qa-pt) |
+| STORY-046 / TP-090-091 | PASS a 1366 e 360 (dopo BUG-032/033 `f31a2a6`) | non toccata | password manager reale |
+| STORY-047 / TP-092 | PASS PT, vista trainer, lipedema, 360 px | non toccata | - |
+| Bug S / TP-093 | PASS | non toccata | allievo Soccer lato cliente |
+| Functions / rules | invariate (`5090d9a`, nessun deploy) | invariate a `f086405` | - |
+
+### Passa al #21
+Candidati, in ordine consigliato (il PO decide le priorita', il Tech Lead la fattibilita'):
+- **STORY-048** Home cliente (striscia, prossima sessione, ultime notifiche; centro pentagono rank/media): AC in bozza da
+  scrivere a inizio sprint. Dipende da STORY-047 e STORY-045, ora DONE.
+- **STORY-049** Test a righe e fix a 360 px: AC da scrivere dopo aver confermato a schermo vetrina Trofei con 5 badge e
+  StatsSection con campionamenti (osservazioni in BACKLOG).
+- **BUG-008** (P3) terminologia PT fissa nell'area cliente soccer/GYM; si lega a STORY-048 (stessa area).
+- **BUG-034, BUG-035** (P3 S): due fix di una riga, candidati come bug S fuori voce.
+- **Proposta da decidere (utente):** un set avatar per `qa-pt` in `src/config/avatars.config.js` (stesse immagini VDP5)
+  per rifare TP-089 con un cliente con almeno 30 Monete e chiudere BUG-027 come VERIFIED. Alternativa: test con
+  un'org che ha gia' un set. Costo S; senza, BUG-027 resta FIXED non verificato.
+- BUG-005 (P3, soccer: tab BIA) invariato.
+Fuori sprint: STORY-050, STORY-051 (rules/functions, review HIGH, nessuno sprint); STORY-029 (b)/(c), 3f, org GYM,
+UAT, rollback functions prod (solo fix forward, TD-015).
+Operativo: push dei commit docs locali su `dev` (via libera dell'utente); `main` resta a `f086405` fino al prossimo
+rilascio. Deploy hosting dev e `qa:dev` mai in parallelo.
 
 ---
-
-## Sprint chiuso (storico)
 
 # SPRINT #19 — EPIC-010 Lipedema Edition, chiusura dei "non verificato" del rilascio e action item del #18 — aperto il 2026-11-12, chiuso il 2026-11-12 (goal raggiunto, 3f non verificato per decisione dell'utente)
 

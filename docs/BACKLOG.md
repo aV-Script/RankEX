@@ -1576,7 +1576,7 @@ a 1366 px e a 360×640 px.
   - [ ] Caso runbook `TP-` aggiunto in `src/config/runbook.config.js` (suite `client-selfservice`)
 - **Dependencies:** nessuna. Nessun backend toccato.
 - **Priority:** P2 (Sprint #20, taglia S)
-- **Status:** BACKLOG
+- **Status:** DONE (Sprint #20, `335b71e`; BUG-027 FIXED ma non verificato dal vivo: nessun set avatar per qa-pt, TP-089 bloccato)
 
 ### STORY-046 — Accessibilità e navigazione dell'area cliente: pannello notifiche, Invio, autocomplete
 - **Contesto:** assorbe BUG-030 e i punti (1) e (4) di BUG-031. `src/features/notification/NotificationsPanel.jsx`
@@ -1609,7 +1609,7 @@ a 1366 px e a 360×640 px.
 - **Risks:** `useEscapeKey` ha una pila globale (un Esc chiude solo l'ultimo livello): il pannello va
   registrato come livello.
 - **Priority:** P2 (Sprint #20, taglia S/M)
-- **Status:** BACKLOG
+- **Status:** DONE (Sprint #20, `aa84e73` + BUG-032/033 `353acfa`, `f31a2a6`; QA dal vivo TP-090/091 PASS, 13/11)
 
 ### STORY-047 — Calendario cliente corretto: assente e saltata distinte, prossime sessioni, riepilogo mese
 - **Contesto:** assorbe BUG-028. `src/features/client/ClientCalendar.jsx:98-99`: `isCompleted = hasSlots &&
@@ -1654,7 +1654,7 @@ a 1366 px e a 360×640 px.
   `terminology`): fuori scope, è BUG-008 (P3, OPEN).
 - **Risks:** nessun backend.
 - **Priority:** P2 (Sprint #20, taglia M)
-- **Status:** BACKLOG
+- **Status:** DONE (Sprint #20, `56684a6`; QA dal vivo TP-092 PASS, 13/11; "0 / 0" provato nel ricontrollo)
 
 ### STORY-048 — Home cliente: striscia, prossima sessione, ultime notifiche
 - **Contesto:** canvas `ClienteHub` / `MobileClienteHub`: saluto "CIAO <NOME>", badge rank, "Categoria <cat> ·
