@@ -7,7 +7,7 @@ import { ClientWorkoutSection }       from '../client-dashboard/ClientWorkoutSec
 import { ClientCalendar }             from '../ClientCalendar'
 import { calcAge }                    from '../../../utils/validation'
 import { DEFAULT_TERMINOLOGY }        from '../../../config/modules.config'
-import { ClientHub }                  from './ClientHub'
+import { ClientHome }                 from './ClientHome'
 import { ClientBottomNav }            from './ClientBottomNav'
 import { AvatarPicker }               from './avatar/AvatarPicker'
 import { TrophiesSection }            from '../client-dashboard/TrophiesSection'
@@ -148,6 +148,7 @@ function SubTabBar({ tabs, active, onSelect, stickyClass = 'sticky top-0 lg:top-
 
 export function ClientDashboardPage({
   client, clientId, orgId, color, rankObj, biaRankObj: _biaRankObj,
+  media = 0, capabilities, notifications = [], notificationsStatus, onRetryNotifs,
   unreadCount = 0, onOpenNotifs, terminology = DEFAULT_TERMINOLOGY,
 }) {
   const prevStats   = client.campionamenti?.[1]?.stats ?? null
@@ -209,11 +210,19 @@ export function ClientDashboardPage({
 
       {/* ── Hub (pentagono) ──────────────────────────────────────────────── */}
       {isHome && (
-        <ClientHub
+        <ClientHome
           client={client}
+          clientId={clientId}
           orgId={orgId}
           color={displayColor}
           rankObj={rankObj}
+          media={media}
+          capabilities={capabilities}
+          terminology={terminology}
+          notifications={notifications}
+          notificationsStatus={notificationsStatus}
+          onRetryNotifs={onRetryNotifs}
+          onOpenNotifs={onOpenNotifs}
           onTabChange={handleTabChange}
         />
       )}

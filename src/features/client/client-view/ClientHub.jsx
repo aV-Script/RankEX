@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { AvatarDisplay }       from './avatar/AvatarDisplay'
 import { BadgeMedal }          from '../../../components/ui/BadgeMedal'
-import { RankBadge }           from '../../../components/ui'
 import { BADGES }              from '../../../config/badges.config'
 
 // ── Icone sezioni ─────────────────────────────────────────────────────────────
@@ -78,7 +77,7 @@ function getShowcaseBadges(badges, showcase) {
 
 // ── ClientHub ─────────────────────────────────────────────────────────────────
 
-export function ClientHub({ client, orgId, color, rankObj, onTabChange }) {
+export function ClientHub({ client, orgId, color, onTabChange }) {
   const [vpW,        setVpW]        = useState(() => window.innerWidth)
   const [hoveredIdx, setHoveredIdx] = useState(null)
 
@@ -133,29 +132,7 @@ export function ClientHub({ client, orgId, color, rankObj, onTabChange }) {
   const showcaseBadges = getShowcaseBadges(client.badges ?? {}, client.badgeShowcase ?? [])
 
   return (
-    <div
-      className="flex-1 flex flex-col items-center justify-center select-none"
-      style={{ minHeight: 'calc(100svh - 64px)', paddingBottom: 64, gap: mobile ? 12 : 20 }}
-    >
-      {/* Nome + rank + livello */}
-      <div className="text-center px-4">
-        <div
-          className="font-display font-black uppercase text-white leading-tight"
-          style={{ fontSize: mobile ? 16 : 20, letterSpacing: '0.06em', textShadow: '0 0 28px var(--rx-accent-glow)' }}
-        >
-          {client.name}
-        </div>
-        <div className="mt-2 flex items-center justify-center gap-1.5 flex-wrap">
-          {rankObj && <RankBadge label={rankObj.label} color={color} />}
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[3px] font-display font-black"
-            style={{ fontSize: 11, background: color + '12', color: color + 'bb', border: `1px solid ${color}28` }}>
-            <span>LV.{client.level ?? 1}</span>
-            <span style={{ color: color + '40' }}>·</span>
-            <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.5px' }}>{xp} / {xpNext} XP</span>
-          </div>
-        </div>
-      </div>
-
+    <div className="flex justify-center select-none">
       {/* Pentagono — outer div scala il layout, inner div mantiene le coordinate W×H */}
       <div style={{ position: 'relative', width: W * pentScale, height: H * pentScale, flexShrink: 0 }}>
       <div style={{ position: 'absolute', top: 0, left: 0, width: W, height: H, transformOrigin: 'top left', transform: `scale(${pentScale})` }}>

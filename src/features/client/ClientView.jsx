@@ -8,16 +8,18 @@ import { ClientDashboardPage }            from './client-view/ClientDashboardPag
 import { NotificationsPanel }             from '../notification/NotificationsPanel'
 import { calcBiaScore, getBiaRankFromScore } from '../../utils/bia'
 import { calcAge }                           from '../../utils/validation'
-import { resolveTerminology }                from '../../config/modules.config'
+import { resolveTerminology, getModule, MODULES } from '../../config/modules.config'
 
 /**
  * Entry point dell'area cliente.
  * Gestisce fetch, notifiche e passa tutto al layout 2-colonne.
  */
-export default function ClientView({ clientId, orgId, terminology: moduleTerminology }) {
+export default function ClientView({ clientId, orgId, terminology: moduleTerminology, moduleType }) {
   const terminology = resolveTerminology(moduleTerminology)
+  // Org legacy (moduleType null) = PT, come in useAuth
+  const capabilities = getModule(moduleType ?? MODULES.PERSONAL_TRAINING)
   const { client, loading } = useClient(orgId, clientId)
-  const { rankObj: testRankObj, color: testColor } = useClientRank(client)
+  const { rankObj: testRankObj, color: testColor, media } = useClientRank(client)
 
   const profileType = client?.profileType ?? 'tests_only'
   const biaScore    = calcBiaScore(client?.lastBia, client?.sesso, calcAge(client?.dataNascita))
@@ -26,7 +28,9 @@ export default function ClientView({ clientId, orgId, terminology: moduleTermino
   const rankObj = profileType === 'bia_only' ? biaRankObj : testRankObj
   const color   = profileType === 'bia_only' ? biaRankObj.color : testColor
 
-  const { notifications, unreadCount, markAllRead, remove } = useNotifications(orgId, clientId)
+  const {
+    notifications, unreadCount, status: notificationsStatus, retry: retryNotifications, markAllRead, remove,
+  } = useNotifications(orgId, clientId)
 
   const [showNotifs, setShowNotifs] = useState(false)
 
@@ -50,6 +54,11 @@ export default function ClientView({ clientId, orgId, terminology: moduleTermino
         color={color}
         rankObj={rankObj}
         biaRankObj={profileType === 'complete' ? biaRankObj : null}
+        media={media}
+        capabilities={capabilities}
+        notifications={notifications}
+        notificationsStatus={notificationsStatus}
+        onRetryNotifs={retryNotifications}
         unreadCount={unreadCount}
         onOpenNotifs={handleOpenNotifs}
         terminology={terminology}

@@ -8,6 +8,7 @@ import {
 } from '../../utils/calendarUtils'
 import { bySessionGender, DEFAULT_TERMINOLOGY } from '../../config/modules.config'
 import { upcomingSessionsTitle } from '../../utils/pluralLabels'
+import { formatXpMultiplier } from '../../utils/clientHome'
 
 const MONTH_NAMES = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
   'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
@@ -200,7 +201,7 @@ export function ClientCalendar({
             <div className="font-display text-[16px] font-black text-white">
               {client.sessionStreak ?? 0}
               <span className="text-[12px] font-semibold text-emerald-400">
-                {' '}· XP ×{streakMultiplier.toFixed(1).replace('.', ',')}
+                {' '}· {formatXpMultiplier(streakMultiplier)}
               </span>
             </div>
           </div>

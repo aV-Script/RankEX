@@ -9,6 +9,8 @@ const STATUS_LOADING = 'loading'
 const STATUS_READY   = 'ready'
 const STATUS_ERROR   = 'error'
 
+const NO_SESSIONS = []
+
 // Una sola lettura in volo per cliente e giorno: se Home e Calendario chiedono le
 // prossime sessioni nello stesso momento condividono la stessa promise. Si svuota
 // appena la lettura finisce, quindi un nuovo montaggio o un retry rileggono sempre
@@ -29,34 +31,37 @@ function fetchUpcoming(orgId, clientId, today) {
  * Prossime sessioni pianificate del cliente da oggi, in ordine di data e ora.
  * `status`: 'loading' | 'ready' | 'error' ('ready' con lista vuota = nessuna sessione);
  * `retry` ripete la lettura dopo un errore. Chi mostra un sottoinsieme taglia da sé.
+ * Senza orgId o clientId non c'è nulla da leggere: 'ready' e lista vuota. Cambiando cliente
+ * (o ripetendo) lo stato torna a 'loading' finché non arriva la lettura del nuovo.
  *
  * @param {string} orgId
  * @param {string} clientId
  */
 export function useUpcomingSessions(orgId, clientId) {
-  const [sessions,  setSessions]  = useState([])
-  const [status,    setStatus]    = useState(STATUS_LOADING)
+  const [result,    setResult]    = useState({ key: null, sessions: NO_SESSIONS, status: STATUS_LOADING })
   const [reloadKey, setReloadKey] = useState(0)
 
-  const today = toLocalDateStr()
+  const today   = toLocalDateStr()
+  const hasTarget = Boolean(orgId && clientId)
+  const dataKey = `${orgId}|${clientId}|${today}|${reloadKey}`
 
   useEffect(() => {
-    if (!orgId || !clientId) return
+    if (!hasTarget) return
     let cancelled = false
     fetchUpcoming(orgId, clientId, today)
       .then(data => {
         if (cancelled) return
-        setSessions(pickUpcomingPlanned(data, clientId))
-        setStatus(STATUS_READY)
+        setResult({ key: dataKey, sessions: pickUpcomingPlanned(data, clientId), status: STATUS_READY })
       })
-      .catch(() => { if (!cancelled) setStatus(STATUS_ERROR) })
+      .catch(() => {
+        if (!cancelled) setResult({ key: dataKey, sessions: NO_SESSIONS, status: STATUS_ERROR })
+      })
     return () => { cancelled = true }
-  }, [orgId, clientId, today, reloadKey])
+  }, [orgId, clientId, today, hasTarget, dataKey])
 
-  const retry = useCallback(() => {
-    setStatus(STATUS_LOADING)
-    setReloadKey(key => key + 1)
-  }, [])
+  const retry = useCallback(() => setReloadKey(key => key + 1), [])
 
-  return { sessions, status, retry }
+  if (!hasTarget) return { sessions: NO_SESSIONS, status: STATUS_READY, retry }
+  if (result.key !== dataKey) return { sessions: NO_SESSIONS, status: STATUS_LOADING, retry }
+  return { sessions: result.sessions, status: result.status, retry }
 }

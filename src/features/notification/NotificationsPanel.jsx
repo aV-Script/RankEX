@@ -5,6 +5,7 @@ import { useEscapeKey }   from '../../hooks/useEscapeKey'
 import { IconClose }  from '../../components/ui/icons'
 import { EmptyState } from '../../components/ui'
 import { unreadLabel } from '../../utils/pluralLabels'
+import { formatNotificationDate } from '../../utils/notifications'
 
 const TITLE_ID = 'notifications-panel-title'
 
@@ -44,28 +45,6 @@ const TYPE_ICON = {
       <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
     </svg>
   ),
-}
-
-// ── Formattazione data relativa ───────────────────────────────────────────────
-
-function formatDate(raw) {
-  if (!raw) return ''
-  try {
-    const d   = new Date(raw)
-    const now = new Date()
-    const diffMs   = now - d
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHrs  = Math.floor(diffMs / 3600000)
-    const diffDays = Math.floor(diffMs / 86400000)
-    if (diffMins < 2)  return 'Adesso'
-    if (diffMins < 60) return `${diffMins} min fa`
-    if (diffHrs  < 24) return `${diffHrs} ore fa`
-    if (diffDays === 1) return 'Ieri'
-    if (diffDays < 7)  return `${diffDays} giorni fa`
-    return d.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })
-  } catch {
-    return raw
-  }
 }
 
 // ── Componente ────────────────────────────────────────────────────────────────
@@ -209,7 +188,7 @@ export function NotificationsPanel({ notifications, color, onClose, onDelete, on
                         </div>
                         <div className="font-display uppercase mt-1"
                           style={{ fontSize: 8, letterSpacing: '1px', color: 'color-mix(in srgb, var(--rx-accent) 38%, transparent)' }}>
-                          {formatDate(n.date)}
+                          {formatNotificationDate(n.date)}
                         </div>
                       </div>
 
