@@ -104,7 +104,7 @@ Formato:
 ## [BUG-008] Area cliente (atleta) con terminologia PT fissa
 **Severity:** P3
 **Modulo/Ruolo:** soccer_academy / GYM — client (preesistente, trovato in code review di BUG-002/004)
-**Status:** OPEN — assorbito da STORY-048 (Sprint #21, `docs/BACKLOG.md`, task T1); si chiude a verifica fatta
+**Status:** FIXED — `57b6c30` (STORY-048 T1, Sprint #21: `terminology` da `useAuth` a `ClientView` e alle sezioni dell'area cliente); verifica dal vivo a fine sprint col nuovo TP-094 (allievo soccer, org qa-soccer) e con `clientHomeLayout.spec.js` (terminologia in Home)
 **Reproduction steps:** login come allievo di un'org soccer → hub → Scheda / Calendario / Profilo › Note.
 **Expected:** termini del modulo (Coach, Allenamento…).
 **Actual:** `ClientView` non riceve `terminology`, quindi `ClientDashboardPage`, `ClientWorkoutSection` ("Il tuo trainer non ha ancora assegnato…"), `NotesSection` (badge "Trainer"), `PlanProgress` ("Sessione N di M") e `ClientCalendar` usano il default PT: l'allievo soccer vede "Trainer"/"Sessione".

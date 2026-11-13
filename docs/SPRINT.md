@@ -41,7 +41,7 @@ all'apertura: `docs/BACKLOG.md`, `docs/BUGS.md` modificati; `lipidemia/`, `mobil
 | 4 | BUG-036 | Campana mobile senza `aria-label` (`ClientBottomNav.jsx:100`) | S | FIXED `438019b`; verifica dal vivo a fine sprint | - |
 | 5 | AI 1 | Set avatar `qa-pt` + seed: cliente di base con primo accesso fatto + dati QA; poi TP-089 dal vivo, BUG-027 VERIFIED | S/M | CODICE FATTO (commit sotto): avatar `qa_pt_01..09`, seed con primo accesso + slot/notifiche `qaSeedMarker` (`e2e/qa-dev/qaSeedData.js`); seed, TP-089 e BUG-027 dal vivo a fine sprint | 2-4 non bloccano; il TP-089 dal vivo richiede hosting dev aggiornato |
 | 6 | AI 2 | Spec Playwright di layout del pannello notifiche cliente a 360/1366 in `e2e/qa-dev/tests/` + controprova su copia di `aa84e73` | M | CODICE FATTO: `e2e/qa-dev/tests/clientNotificationsLayout.spec.js` (360x640 e 1366x768), sessione cliente `pt-cliente` salvata dal setup (`qaClientUsers`); esecuzione e controprova a fine sprint, piano nella nota AI 2 sotto | AI 1 (cliente col primo accesso fatto e >= 1 notifica non letta) |
-| 7 | STORY-048 | Home cliente (T1..T7, incluso BUG-008) | M/L | READY, ma T6/T7 e il caso `TP-` partono solo dopo AI 1 e AI 2 | AI 1, AI 2 (T6 estende la spec di AI 2) |
+| 7 | STORY-048 | Home cliente (T1..T7, incluso BUG-008) | M/L | CODICE FATTO (commit locali, nessun push): T1 `57b6c30` (BUG-008), T2 `9029bd1`, T3 `828a3db`, T4 `1bcf1a0`, T5 `b750c1b`; T6 (spec `e2e/qa-dev/tests/clientHomeLayout.spec.js` + `layoutHelpers.js` + `soccer` in `QA_CLIENT_LOGIN_MODULES`) e T7 (caso TP-094, BUG-008 → FIXED) da committare. QA dal vivo, esecuzione spec e controprova a fine sprint (piano sotto) | AI 1, AI 2 (T6 estende la spec di AI 2) |
 
 Ordine STORY-048: T1 (BUG-008, terminologia) → T2 (hook sessioni) → T3 (`useNotifications` status) → T4 (componenti
 Home) → T5 (Monete) → T6 (spec Home 360/1366 + controprova) → T7 (caso `TP-` + chiusura BUG-008). Un task alla volta,
@@ -87,6 +87,27 @@ review medium sulla story (AC AI 5: la review cita l'esito della spec a 360 e 13
   6. Pulizia: `git worktree remove --force <cartella>` **dopo** aver verificato che `node_modules` sia una cartella reale e non
      una junction (qui non ce ne sono: `npm ci`); il preview si ferma con Ctrl+C. Nessuna modifica al working tree principale.
 - Citare nel report di fine sprint output e sha (`git -C <worktree> rev-parse HEAD`) della controprova.
+
+**Nota STORY-048 T6 — piano di controprova (AI 5; da eseguire a fine sprint, dopo il push e con hosting dev aggiornato; NON eseguita)**
+- Cosa misura `clientHomeLayout.spec.js` (6 test x 2 moduli x 2 viewport = 24): nessuno scroll orizzontale; STRISCIA e PROSSIMA con y uguale
+  (tolleranza 1 px) e dentro il viewport; ultima card raggiungibile e non sotto la bottom nav (62 px); 5 nodi del pentagono
+  interi nel viewport, >= 44x44, disgiunti fra loro e da testata/STRISCIA/PROSSIMA/ULTIME NOTIFICHE/badge Monete; "Vedi tutte" (>= 44 px) e
+  "N MONETE" visibili e dentro il viewport; barra XP `role=progressbar` con valuemin/now/max e `aria-label`; terminologia (soccer:
+  "allenamenti di fila", "Prossimo", nessuna "Categoria" né "sessione/i"; PT: "sessioni di fila", "Prossima"); pannello da "Vedi tutte"
+  (header misurato come in AI 2, primo focus su "Chiudi notifiche", Esc → focus su "Vedi tutte", pallini non lette e, a 360, nome della
+  campana invariati); "XP ×N,N" della Home uguale a Calendario › STRISCIA. Precondizione: seed lanciato (slot futuro + >= 1 non letta
+  tra le 2 mostrate); se manca fallisce con "precondizione QA mancante". Non scrive nulla, non segna nulla come letto.
+- Su HEAD: `npm run qa:dev -- clientHomeLayout` deve passare a 360 e 1366 per qa-pt e qa-soccer (la sessione `soccer-cliente` la salva il setup).
+- Controprova (stessa procedura della nota AI 2: worktree esterno `git worktree add <scratchpad>\wt-home HEAD`, `npm ci`, copia dei file
+  gitignored `.env.development`/`.env.test`/service account, in `qaDev.config.js` solo nella copia `QA_BASE_URL = 'http://localhost:4173'` e
+  `QA_HOSTNAME = 'localhost'`, `npm run build -- --mode development`, `npx vite preview --mode development --port 4173`):
+  nella copia togliere `grid-cols-2` dal div della riga STRISCIA/PROSSIMA in `src/features/client/client-view/ClientHome.jsx`
+  (`<div className="grid grid-cols-2 gap-3">` → `<div className="grid gap-3">`), ribuildare, rilanciare la spec.
+  Atteso: il test "STRISCIA e PROSSIMA sulla stessa riga" fallisce a 360 (e a 1366, la regola non e' responsive) per tutti e due i moduli
+  con "STRISCIA e PROSSIMA non sono sulla stessa riga". Ripristinare il file nella copia, rifare build e verificare che passi (prova
+  "senza il difetto"). Pulizia come in AI 2 (controllare che `node_modules` non sia una junction prima di `git worktree remove`).
+- Citare nel report/review (AC AI 5) output e sha (`git -C <worktree> rev-parse HEAD`) della controprova e l'esito a 360 e 1366 su HEAD.
+- Verificato staticamente al 13/11: `--list` elenca i 24 test, `npm run lint`, `npm run test:run` (718/718) e `npm run build` verdi.
 
 **Precondizione QA (AI 4)** — dove c'e' QA dal vivo:
 - AI 1 / TP-089: org `qa-pt`; cliente `qadev.pt.cliente@test.rankex` (`e2e/qa-dev/qaDev.config.js:47`) con

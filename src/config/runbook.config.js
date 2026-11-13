@@ -643,6 +643,26 @@ export const RUNBOOK_SUITES = [
         ],
         expected: ['Nessun acquisto senza conferma esplicita', 'Un solo addebito per conferma', 'Saldo in barra desktop aggiornato dopo l\'acquisto'],
       },
+      {
+        id: 'TP-094', usId: 'STORY-048', severity: 'important', title: 'Home cliente: striscia, prossima sessione, ultime notifiche e terminologia del modulo',
+        preconditions: 'Su rankex-dev, dopo npm run qa:dev:seed: org qa-soccer con l\'allievo qadev.soccer.allievo@test.rankex e org qa-pt con il cliente qadev.pt.cliente@test.rankex (password in .env.test, primo accesso già fatto dal seed). Il seed crea per ciascuno 1 slot futuro (domani), 3 slot passati pianificati e 3 notifiche (2 non lette) ma NON scrive Monete né streak: prima, da trainer, chiudere con presenza 1 o più slot passati di ciascuno (10 Monete l\'uno, streak +1), altrimenti "0 MONETE" e STRISCIA 0 e il caso è BLOCCATO, non PASS. Per il passo sugli stati vuoti serve in più un cliente/allievo appena creato dal wizard (nessuno slot, nessuna notifica; primo accesso con cambio password).',
+        steps: [
+          'Allievo soccer → Home: il centro del pentagono resta l\'avatar; in alto a destra "N MONETE" (coincide col saldo di Profilo → Avatar); nome, badge rank, "MEDIA nn" se ci sono campionamenti, nessuna riga "Categoria"; barra XP con "LIVELLO n · x / y XP"',
+          'Soccer: STRISCIA mostra "<n> allenamenti di fila · XP ×N,N"; PROSSIMA (genere maschile) mostra data e orario dello slot di domani, es. "MER 4 NOV · 18:15 – 19:00"; click su PROSSIMA apre Calendario',
+          'Soccer, terminologia (BUG-008): Calendario → "PROSSIMI ALLENAMENTI" e "Nessun allenamento in programma"; Scheda → "Il tuo coach non ha ancora assegnato…" e, con scheda attiva, "Allenamento N di M"; Profilo → Note → "Il tuo coach non ha ancora scritto note."; Trofei → "Assegnato dal coach" su un badge assegnato. Mai "Trainer" né "Sessione"',
+          'Cliente PT (qa-pt) → stesse schermate: STRISCIA "sessioni di fila", PROSSIMA al femminile, "Categoria <nome>" sotto il nome, "trainer" e "Sessione" invariati; org GYM (se disponibile): "Personal Trainer" e "Allenamento"',
+          'STRISCIA: il "XP ×N,N" coincide con Calendario → STRISCIA per lo stesso cliente; streak 0 → "0" e "XP ×1,1" (la card non sparisce)',
+          'ULTIME NOTIFICHE: al massimo 2, dalla più recente, pallino sulle non lette, testo che va a capo senza uscire dalla card; "Vedi tutte" (alto almeno 44 px) apre il pannello, il primo focus è su "Chiudi notifiche", Esc lo chiude e il focus torna su "Vedi tutte"; il contatore delle non lette (campana in bottom nav a 360 px) resta invariato',
+          'Stati: cliente appena creato → "Nessun allenamento in programma" (soccer) / "Nessuna sessione in programma" (PT), "Nessuna notifica", STRISCIA 0; rete offline (DevTools) e Home → Calendario → Home: "Impossibile caricare" con RIPROVA nelle card PROSSIMA e ULTIME NOTIFICHE (distinto dal vuoto), poi online → RIPROVA carica i dati',
+          'A 360x640 e 1366x768: nessuno scroll orizzontale; a 360 STRISCIA e PROSSIMA sulla stessa riga; l\'ultima card si raggiunge scorrendo e non è coperta dalla bottom nav; i 5 nodi del pentagono interi e non sovrapposti ai blocchi (esito automatico: npm run qa:dev -- clientHomeLayout)',
+          'Dopo una chiusura sessione da trainer: "N MONETE" e STRISCIA della Home si aggiornano senza ricaricare',
+        ],
+        expected: [
+          'Home con striscia, prossima sessione, ultime notifiche e Monete, nessun salto di layout tra caricamento, vuoto ed errore',
+          'Allievo soccer: Coach/Allenamento/Squadra ovunque nell\'area cliente; PT invariato; nessuna Home per lipedema (nessun login cliente)',
+          'Aprire il pannello dalla Home non segna nulla come letto',
+        ],
+      },
     ],
   },
   {
