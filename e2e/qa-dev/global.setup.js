@@ -10,7 +10,7 @@ import { initializeApp, cert, getApps }       from 'firebase-admin/app'
 import { getAuth }                            from 'firebase-admin/auth'
 import { getFirestore }                       from 'firebase-admin/firestore'
 import {
-  QA_ORGS, QA_BASE_URL, AUTH_DIR, E2E_FIXTURES_PATH, qaUsers, authStatePath,
+  QA_ORGS, QA_BASE_URL, AUTH_DIR, E2E_FIXTURES_PATH, qaUsers, qaClientUsers, authStatePath,
   assertQaBaseUrl, loadDevServiceAccount, readEnvTest,
 } from './qaDev.config.js'
 import { cleanupE2EData, cleanupE2EFixtures, createE2EFixtures } from './cleanup.js'
@@ -36,7 +36,7 @@ export default async function globalSetup(config) {
   const browser = await chromium.launch()
   try {
     for (const moduleKey of Object.keys(QA_ORGS)) {
-      for (const user of qaUsers(moduleKey)) {
+      for (const user of [...qaUsers(moduleKey), ...qaClientUsers(moduleKey)]) {
         const context = await browser.newContext()
         const page    = await context.newPage()
         await page.goto(`${QA_BASE_URL}/login`)

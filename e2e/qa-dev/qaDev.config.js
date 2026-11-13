@@ -77,6 +77,19 @@ export function qaUsers(moduleKey) {
   }))
 }
 
+/**
+ * Moduli di cui il global setup salva anche la sessione del cliente di base (primo accesso fatto dal
+ * seed, Sprint #21 AI 1). Solo pt: gli spec di area cliente (STORY-048 T6) aggiungono qui soccer.
+ */
+export const QA_CLIENT_LOGIN_MODULES = ['pt']
+
+/** Cliente di base con login di un modulo: stessa forma di qaUsers, ruolo 'client'. Vuoto se il modulo non ne ha */
+export function qaClientUsers(moduleKey) {
+  const baseClient = QA_ORGS[moduleKey]?.baseClient
+  if (!QA_CLIENT_LOGIN_MODULES.includes(moduleKey) || !baseClient?.email) return []
+  return [{ role: 'client', key: `${moduleKey}-cliente`, email: baseClient.email, name: baseClient.name }]
+}
+
 export function authStatePath(userKey) {
   return join(AUTH_DIR, `${userKey}.json`)
 }

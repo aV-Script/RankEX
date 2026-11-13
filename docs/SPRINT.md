@@ -40,7 +40,7 @@ all'apertura: `docs/BACKLOG.md`, `docs/BUGS.md` modificati; `lipidemia/`, `mobil
 | 3 | BUG-035 | "PROSSIME APPUNTAMENTI" in lipedema (`ClientCalendar.jsx:105`) | S | FIXED `438019b`; verifica dal vivo a fine sprint | - |
 | 4 | BUG-036 | Campana mobile senza `aria-label` (`ClientBottomNav.jsx:100`) | S | FIXED `438019b`; verifica dal vivo a fine sprint | - |
 | 5 | AI 1 | Set avatar `qa-pt` + seed: cliente di base con primo accesso fatto + dati QA; poi TP-089 dal vivo, BUG-027 VERIFIED | S/M | CODICE FATTO (commit sotto): avatar `qa_pt_01..09`, seed con primo accesso + slot/notifiche `qaSeedMarker` (`e2e/qa-dev/qaSeedData.js`); seed, TP-089 e BUG-027 dal vivo a fine sprint | 2-4 non bloccano; il TP-089 dal vivo richiede hosting dev aggiornato |
-| 6 | AI 2 | Spec Playwright di layout del pannello notifiche cliente a 360/1366 in `e2e/qa-dev/tests/` + controprova su copia di `aa84e73` | M | READY | AI 1 (cliente col primo accesso fatto e >= 1 notifica non letta) |
+| 6 | AI 2 | Spec Playwright di layout del pannello notifiche cliente a 360/1366 in `e2e/qa-dev/tests/` + controprova su copia di `aa84e73` | M | CODICE FATTO: `e2e/qa-dev/tests/clientNotificationsLayout.spec.js` (360x640 e 1366x768), sessione cliente `pt-cliente` salvata dal setup (`qaClientUsers`); esecuzione e controprova a fine sprint, piano nella nota AI 2 sotto | AI 1 (cliente col primo accesso fatto e >= 1 notifica non letta) |
 | 7 | STORY-048 | Home cliente (T1..T7, incluso BUG-008) | M/L | READY, ma T6/T7 e il caso `TP-` partono solo dopo AI 1 e AI 2 | AI 1, AI 2 (T6 estende la spec di AI 2) |
 
 Ordine STORY-048: T1 (BUG-008, terminologia) → T2 (hook sessioni) → T3 (`useNotifications` status) → T4 (componenti
@@ -59,6 +59,34 @@ review medium sulla story (AC AI 5: la review cita l'esito della spec a 360 e 13
   campana; `qa:dev` verde. Review medium.
 - STORY-048: AC del BACKLOG tutti spuntati; spec Home a 360/1366 verde e citata dalla review; `lint`, `build`,
   `test:run` verdi; 0 bug di layout P3 nuovi in QA; 0 casi `TP-` BLOCCATI per precondizione.
+
+**Nota AI 2 — piano di controprova (da eseguire a fine sprint, dopo il push e con hosting dev aggiornato; NON eseguita)**
+- Cosa misura la spec: campana con nome accessibile (BUG-033/036, mobile e desktop; a desktop entra in "Calendario"
+  perche' la top nav non c'e' sull'hub), nessuno scroll orizzontale, titolo >= 100 px e su una riga, "Chiudi" nel
+  pannello a <= 30 px dal bordo destro e <= 30 px dal bordo alto (BUG-032), "Segna tutte" visibile, primo focus su
+  "Chiudi", Esc → focus alla campana, nome della campana (conteggio non lette) invariato dopo apri/chiudi. Non clicca
+  "Segna tutte". Precondizione: seed lanciato (>= 1 non letta); se la QA manuale ha letto tutto, la spec fallisce con
+  messaggio esplicito sulla campana: rilanciare `npm run qa:dev:seed` NON le riapre, serve riaprirne una a mano su Firestore.
+- Su HEAD: `npm run qa:dev -- clientNotificationsLayout` deve passare a 360 e 1366.
+- Controprova su `aa84e73`: la guardia (`assertQaBaseUrl`, `QA_HOSTNAME` fisso, controllata dal setup su ogni project) rifiuta
+  un baseURL locale e le sessioni salvate sono legate all'host: non si allenta nel repo. Si fa su una copia usa e getta:
+  1. `git worktree add C:\Users\vAito\AppData\Local\Temp\claude\0d5da70ea05ac5cc\f78c5d68-9f6f-4191-8895-2c097e76936b\scratchpad\wt-aa84e73 aa84e73`
+     (cartella esterna, niente junction); `npm ci` nel worktree (root).
+  2. Copiare nel worktree, da HEAD: la spec, `e2e/qa-dev/qaDev.config.js` e `global.setup.js` con `qaClientUsers`, piu' i file
+     gitignored `.env.development` (deve restare `rankex-dev`: la guardia `loadDevClientEnv` lo verifica), `.env.test` e il
+     service account di dev.
+  3. Solo nella copia: in `qaDev.config.js` `QA_BASE_URL = 'http://localhost:4173'` e `QA_HOSTNAME = 'localhost'`.
+     E' l'unico punto in cui la guardia viene indebolita, solo nella copia; i guard su service account e `.env.development`
+     restano. Il browser parla comunque con Auth/Firestore di rankex-dev (localhost e' dominio autorizzato di default).
+  4. Nel worktree: `npm run build -- --mode development` e `npx vite preview --mode development --port 4173`
+     (in un altro terminale), poi `npx playwright test --config playwright.qa-dev.config.js clientNotificationsLayout`.
+  5. Atteso: fallisce a entrambi i viewport sul nome della campana (`toHaveCount(1)` di BELL_NAME: i due bottoni non hanno
+     `aria-label`). Per vedere anche il titolo (BUG-032), solo nella copia sostituire il localizzatore `bell` con
+     `page.locator('button:has(svg path[d^="M18 8A6"])').and(page.locator(':visible')).first()` e saltare le due `expect` sul
+     nome: atteso fallimento su larghezza titolo e/o posizione di "Chiudi".
+  6. Pulizia: `git worktree remove --force <cartella>` **dopo** aver verificato che `node_modules` sia una cartella reale e non
+     una junction (qui non ce ne sono: `npm ci`); il preview si ferma con Ctrl+C. Nessuna modifica al working tree principale.
+- Citare nel report di fine sprint output e sha (`git -C <worktree> rev-parse HEAD`) della controprova.
 
 **Precondizione QA (AI 4)** — dove c'e' QA dal vivo:
 - AI 1 / TP-089: org `qa-pt`; cliente `qadev.pt.cliente@test.rankex` (`e2e/qa-dev/qaDev.config.js:47`) con
