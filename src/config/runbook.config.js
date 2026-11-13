@@ -631,8 +631,9 @@ export const RUNBOOK_SUITES = [
       },
       {
         id: 'TP-089', usId: 'STORY-045', severity: 'important', title: 'Negozio avatar: conferma con saldo prima/dopo e Monete nella barra',
-        preconditions: 'Cliente PT o Soccer con Monete sufficienti per un avatar acquistabile (unlockType purchase) e un secondo avatar più caro del saldo.',
+        preconditions: 'Cliente PT o Soccer con Monete sufficienti per un avatar acquistabile (unlockType purchase) e un secondo avatar più caro del saldo. Su rankex-dev (org qa-pt, cliente qadev.pt.cliente@test.rankex, avatar qa_pt_07 da 30 Monete): dopo npm run qa:dev:seed il seed non accredita Monete, quindi prima di comprare chiudere dal trainer i 3 slot passati del cliente di base (10 Monete ciascuno = 30) e poi accedere come cliente; senza, il caso è BLOCCATO, non PASS.',
         steps: [
+          'Precondizione: da trainer (qa-pt) chiudere con presenza i 3 slot passati del cliente di base prima di comprare l\'avatar _07; il cliente ora ha 30 Monete',
           'Profilo → Avatar: annotare il saldo Monete, toccare ACQUISTA su un avatar: si apre "Acquistare <nome>?" con Prezzo, Le tue Monete e Dopo l\'acquisto (saldo meno prezzo); nessuna Moneta scalata',
           'ANNULLA, poi Esc, poi click fuori dal dialog: si chiude ogni volta e il saldo resta invariato',
           'Riaprire e premere ACQUISTA due volte in fretta: bottone in caricamento, un solo acquisto, toast "sbloccato!", saldo sceso del prezzo',

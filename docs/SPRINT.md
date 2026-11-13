@@ -39,7 +39,7 @@ all'apertura: `docs/BACKLOG.md`, `docs/BUGS.md` modificati; `lipidemia/`, `mobil
 | 2 | BUG-034 | Cambio password a campi vuoti: messaggio fuorviante (`ChangePasswordScreen.jsx:16-25`) | S | FIXED `122180b` (test Vitest; "fallisce prima" provato in scratchpad con node); verifica dal vivo a fine sprint | - |
 | 3 | BUG-035 | "PROSSIME APPUNTAMENTI" in lipedema (`ClientCalendar.jsx:105`) | S | FIXED `438019b`; verifica dal vivo a fine sprint | - |
 | 4 | BUG-036 | Campana mobile senza `aria-label` (`ClientBottomNav.jsx:100`) | S | FIXED `438019b`; verifica dal vivo a fine sprint | - |
-| 5 | AI 1 | Set avatar `qa-pt` + seed: cliente di base con primo accesso fatto + dati QA; poi TP-089 dal vivo, BUG-027 VERIFIED | S/M | READY (tabella ambiente/modulo sotto) | 2-4 non bloccano; il TP-089 dal vivo richiede hosting dev aggiornato |
+| 5 | AI 1 | Set avatar `qa-pt` + seed: cliente di base con primo accesso fatto + dati QA; poi TP-089 dal vivo, BUG-027 VERIFIED | S/M | CODICE FATTO (commit sotto): avatar `qa_pt_01..09`, seed con primo accesso + slot/notifiche `qaSeedMarker` (`e2e/qa-dev/qaSeedData.js`); seed, TP-089 e BUG-027 dal vivo a fine sprint | 2-4 non bloccano; il TP-089 dal vivo richiede hosting dev aggiornato |
 | 6 | AI 2 | Spec Playwright di layout del pannello notifiche cliente a 360/1366 in `e2e/qa-dev/tests/` + controprova su copia di `aa84e73` | M | READY | AI 1 (cliente col primo accesso fatto e >= 1 notifica non letta) |
 | 7 | STORY-048 | Home cliente (T1..T7, incluso BUG-008) | M/L | READY, ma T6/T7 e il caso `TP-` partono solo dopo AI 1 e AI 2 | AI 1, AI 2 (T6 estende la spec di AI 2) |
 
@@ -86,7 +86,7 @@ quale org lo vede. UAT: nessun progetto/hosting nel repo (`.firebaserc:5-18`), n
 | Soccer (`qa-soccer`) | resta senza set (decisione 2: solo `qa-pt`); "Nessun avatar disponibile" | - | - |
 | Lipedema | non ha area cliente (`hasClientLogin: false`, `modules.config.js:93`) | - | - |
 | Org legacy `moduleType` null | non toccata | - | - |
-| Seed (`scripts/seed-qa-orgs.mjs`) | `ensureBaseClient` (`:122-165`): ramo "cliente esistente" (`:127-130`) aggiorna solo la password, ramo nuovo passa da `creaCliente` che scrive `mustChangePassword: true` (`functions/src/callable/creaCliente.js:142`); oggi nessun passaggio a `false` per il cliente (`:91` riguarda lo staff) | rifiuta altri progetti (`assertDevFirestore`, `:44`) | mai eseguito su prod |
+| Seed (`scripts/seed-qa-orgs.mjs`) | Dopo AI 1: `ensureBaseClient` + `completeFirstAccess` portano il cliente di base a `mustChangePassword: false` in entrambi i rami; `ensureClientActivity` crea 3 slot passati + 1 futuro + 3 notifiche (2 non lette) per qa-pt e qa-soccer, id = marker `qa-seed-*`. Prima di AI 1: ramo "cliente esistente" (`:127-130`) aggiorna solo la password, ramo nuovo passa da `creaCliente` che scrive `mustChangePassword: true` (`functions/src/callable/creaCliente.js:142`); oggi nessun passaggio a `false` per il cliente (`:91` riguarda lo staff) | rifiuta altri progetti (`assertDevFirestore`, `:44`) | mai eseguito su prod |
 
 ## Tabella ambiente/modulo — STORY-048 (Home cliente)
 

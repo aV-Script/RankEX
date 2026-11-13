@@ -4,6 +4,9 @@
  * Crea o riallinea su rankex-dev le 3 org fisse della QA automatica (qa-pt, qa-soccer,
  * qa-lipedema), ognuna con org_admin, trainer, staff_readonly e un cliente/paziente
  * di base. Idempotente: rilanciarlo non duplica nulla, reimposta solo le password.
+ * Il cliente di base con login (PT, soccer) ha il primo accesso fatto (mustChangePassword
+ * false) e, per la QA dal vivo, slot e notifiche marcati `qaSeedMarker` (e2e/qa-dev/qaSeedData.js).
+ * Non scrive mai coins né sessionStreak: li accredita chiudiSessione dalla UI.
  * Cancella anche i residui E2E- di esecuzioni interrotte.
  *
  * Rifiuta qualsiasi progetto diverso da rankex-dev (service account e .env.development).
@@ -28,6 +31,8 @@ import {
   loadDevServiceAccount, loadDevClientEnv, readEnvTest, assertDevFirestore,
 } from '../e2e/qa-dev/qaDev.config.js'
 import { cleanupE2EData } from '../e2e/qa-dev/cleanup.js'
+import { buildSeedSlots, buildSeedNotifications, shouldRefreshUpcoming } from '../e2e/qa-dev/qaSeedData.js'
+import { clientsPath, slotsPath, notificationsPath } from '../src/firebase/paths.js'
 
 const REGION    = 'europe-west1'
 const ENV_BLOCK = '# QA automatica rankex-dev (scripts/seed-qa-orgs.mjs)'
@@ -51,7 +56,8 @@ if (removed) console.log(`pulizia: ${removed} clienti E2E- di esecuzioni precede
 
 for (const [moduleKey, org] of Object.entries(QA_ORGS)) {
   const users = await ensureOrgAndStaff(moduleKey, org)
-  await ensureBaseClient(moduleKey, org, users)
+  const baseClient = await ensureBaseClient(moduleKey, org, users)
+  await ensureClientActivity(moduleKey, org.orgId, baseClient)
   await syncCounters(org.orgId)
   console.log(`✓ ${org.orgId}`)
 }
@@ -118,16 +124,14 @@ async function upsertAuthUser(email, displayName, orgId) {
   return existing.uid
 }
 
-/** Il cliente/paziente di base, creato da creaCliente come org_admin se non c'è */
+/** Il cliente/paziente di base, creato da creaCliente come org_admin se non c'è. @returns {Promise<{ id: string, clientAuthUid: string|null }>} */
 async function ensureBaseClient(moduleKey, org, users) {
   const { email: clientEmail, ...formData } = org.baseClient
-  const existing = await db.collection(`organizations/${org.orgId}/clients`)
-    .where('name', '==', formData.name).limit(1).get()
+  const existing = await findBaseClient(org.orgId, formData.name)
 
-  if (!existing.empty) {
-    const { clientAuthUid } = existing.docs[0].data()
-    if (clientAuthUid) await adminAuth.updateUser(clientAuthUid, { password })
-    return
+  if (existing) {
+    if (existing.clientAuthUid) await completeFirstAccess(existing.clientAuthUid, password)
+    return existing
   }
 
   const hasLogin = Boolean(clientEmail)
@@ -162,6 +166,52 @@ async function ensureBaseClient(moduleKey, org, users) {
   } finally {
     await deleteApp(app)
   }
+
+  const created = await findBaseClient(org.orgId, formData.name)
+  if (created?.clientAuthUid) await completeFirstAccess(created.clientAuthUid, password)
+  return created
+}
+
+async function findBaseClient(orgId, name) {
+  const snap = await db.collection(clientsPath(orgId)).where('name', '==', name).limit(1).get()
+  if (snap.empty) return null
+  return { id: snap.docs[0].id, clientAuthUid: snap.docs[0].data().clientAuthUid ?? null }
+}
+
+/** Primo accesso fatto: password nota e nessun cambio password forzato (solo /users/{uid} del cliente di base) */
+async function completeFirstAccess(clientAuthUid, newPassword) {
+  await adminAuth.updateUser(clientAuthUid, { password: newPassword })
+  await db.doc(`users/${clientAuthUid}`).update({ mustChangePassword: false })
+}
+
+/**
+ * Slot e notifiche del cliente di base, con id deterministico: se il documento esiste non si
+ * ricrea e non si tocca (slot già chiusi o notifiche già lette restano tali). Unica eccezione:
+ * lo slot futuro ancora pianificato ma ormai passato viene spostato a domani.
+ */
+async function ensureClientActivity(moduleKey, orgId, baseClient) {
+  if (!baseClient?.clientAuthUid) return
+  const now = new Date()
+  let created = 0
+
+  for (const { id, kind, data } of buildSeedSlots(moduleKey, baseClient.id, now)) {
+    const ref  = db.doc(`${slotsPath(orgId)}/${id}`)
+    const snap = await ref.get()
+    if (!snap.exists) {
+      await ref.set(data)
+      created++
+    } else if (kind === 'upcoming' && shouldRefreshUpcoming(snap.data(), now)) {
+      await ref.update({ date: data.date })
+    }
+  }
+  for (const { id, data } of buildSeedNotifications(moduleKey, baseClient.id, now)) {
+    const ref = db.doc(`${notificationsPath(orgId)}/${id}`)
+    if (!(await ref.get()).exists) {
+      await ref.set(data)
+      created++
+    }
+  }
+  if (created) console.log(`  dati QA del cliente di base: ${created} nuovi documenti`)
 }
 
 /** Solo email con il prefisso riservato alla suite (qa.* è della QA manuale) */

@@ -55,6 +55,18 @@ export const AVATAR_CATALOG = [
   { id: 'test_default_07', orgId: 'test-1tevc', name: 'Numero 7',   imageUrl: '/avatars/vdp5_07.png' },
   { id: 'test_default_08', orgId: 'test-1tevc', name: 'Numero 9',   imageUrl: '/avatars/vdp5_08.png' },
   { id: 'test_default_09', orgId: 'test-1tevc', name: 'Numero 11',  imageUrl: '/avatars/vdp5_09.png' },
+
+  // QA PT (rankex-dev, org fissa della QA automatica) — stesso set VDP5, stesse immagini.
+  // Gli id finiscono in 01-09: le regole di sblocco/prezzo dipendono dal suffisso (invisibile alle altre org)
+  { id: 'qa_pt_01', orgId: 'qa-pt', name: 'Portiere', imageUrl: '/avatars/vdp5_01.png' },
+  { id: 'qa_pt_02', orgId: 'qa-pt', name: 'Capitano', imageUrl: '/avatars/vdp5_02.png' },
+  { id: 'qa_pt_03', orgId: 'qa-pt', name: 'Numero 4', imageUrl: '/avatars/vdp5_03.png' },
+  { id: 'qa_pt_04', orgId: 'qa-pt', name: 'Numero 2', imageUrl: '/avatars/vdp5_04.png' },
+  { id: 'qa_pt_05', orgId: 'qa-pt', name: 'Numero 8', imageUrl: '/avatars/vdp5_05.png' },
+  { id: 'qa_pt_06', orgId: 'qa-pt', name: 'Numero 10', imageUrl: '/avatars/vdp5_06.png' },
+  { id: 'qa_pt_07', orgId: 'qa-pt', name: 'Numero 7', imageUrl: '/avatars/vdp5_07.png' },
+  { id: 'qa_pt_08', orgId: 'qa-pt', name: 'Numero 9', imageUrl: '/avatars/vdp5_08.png' },
+  { id: 'qa_pt_09', orgId: 'qa-pt', name: 'Numero 11', imageUrl: '/avatars/vdp5_09.png' },
 ]
 
 // ── Negozio avatar — spike tecnico EPIC-005 (vedi docs/DECISIONS.md → ADR-002) ────
