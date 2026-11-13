@@ -27,15 +27,18 @@ const CALENDAR_NODE_INDEX = 2
 
 const PRECONDITION_HINT = 'precondizione QA mancante (slot futuro e >= 1 notifica non letta nella Home): rilancia npm run qa:dev:seed'
 
-/** Terminologia attesa in Home per modulo: STRISCIA "<sessioni> di fila", titolo di PROSSIMA col genere giusto */
+/**
+ * Terminologia attesa in Home per modulo: STRISCIA "<sessioni> di fila", titolo di PROSSIMA col genere giusto.
+ * textContent unisce titolo e data senza spazio ("ProssimaSAB 14 NOV"): niente \b, si esclude solo una minuscola.
+ */
 const MODULES = [
   {
     moduleKey: 'pt', label: 'qa-pt (cliente)',
-    streakText: /sessioni di fila/i, nextTitle: /^Prossima\b/,
+    streakText: /sessioni di fila/i, nextTitle: /^Prossima(?![a-zà-ù])/,
   },
   {
     moduleKey: 'soccer', label: 'qa-soccer (allievo)',
-    streakText: /allenamenti di fila/i, nextTitle: /^Prossimo\b/,
+    streakText: /allenamenti di fila/i, nextTitle: /^Prossimo(?![a-zà-ù])/,
     forbidden: [/Categoria/, /\bsession[ei]\b/i],
   },
 ]
@@ -70,7 +73,9 @@ async function openHome(openAs, userKey) {
 
 /** Il locatore, interamente dentro il viewport e sopra la bottom nav (dopo averlo portato in vista) */
 async function expectFullyInViewport(locator, viewport, what) {
-  await locator.scrollIntoViewIfNeeded()
+  // scrollIntoViewIfNeeded non scorre un elemento gia' in parte visibile, anche se sta sotto la bottom nav fissa:
+  // lo si porta al centro, cosi' la misura verifica che sia raggiungibile e non coperto
+  await locator.evaluate(element => element.scrollIntoView({ block: 'center', inline: 'nearest' }))
   const box = await locator.boundingBox()
   expect(box, `${what}: nessun riquadro`).not.toBeNull()
   const navHeight = isDesktopViewport(viewport) ? 0 : BOTTOM_NAV_HEIGHT
