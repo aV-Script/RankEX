@@ -886,8 +886,22 @@ Fix di una riga / typo: esenti (vedi "Quando saltare la pipeline").
   `product-owner`/`ux-ui-designer`/`tech-lead` solo per feature nuove o decisioni vere.
 - Review `medium` di default; `high` solo per rules/permessi/cancellazione dati/limiti piano.
 - QA dal vivo con browser una volta a fine sprint e solo sul nuovo, con org di test fissa su `rankex-dev`.
-- Nei prompt agli agenti indicare i file esatti da leggere.
+- Nei prompt agli agenti indicare i file esatti da leggere (con intervallo di righe quando si sa).
 - Una sessione nuova (o `/compact`) per sprint.
+- Fix S, typo e aggiornamenti docs (stati, sha, chiusure): nella sessione principale, senza agente.
+- Un agente `developer` per gruppo di task collegati, non uno per task; report compatto (formato in `developer.md`).
+- Spec Playwright nuove: eseguite almeno una volta prima del commit (preview locale su copia o hosting dev),
+  non scritte "alla cieca" per la fine sprint (retro #21: 6 test rossi per errori di spec al primo run).
+- Review: per voci S a basso rischio basta controllo AC + test verdi; `/code-review` medium per voci UI/dati,
+  high come sopra. La sessione principale non ripete una review già fatta dal `code-reviewer`.
+- `docs/SPRINT.md` contiene solo lo sprint corrente e l'ultimo chiuso con la sua retro; gli sprint più vecchi stanno
+  in `docs/SPRINT-ARCHIVE.md` (letto solo dalla `retrospective` quando serve lo storico).
+- Script di sessione (prompt incollato a inizio sessione): contiene il blocco "Modalità di lavoro" (quali voci
+  vanno agli agenti e quali no, review per voce, file da leggere per voce), lo stato verificato e le domande
+  aperte con risposta proposta; non riassume lo sprint chiuso (sta in `SPRINT.md`).
+- Hook GateGuard: esenzione path `GATEGUARD_EXEMPT_GLOBS` (`docs/**` e scratchpad) da mettere a mano in
+  `.claude/settings.json` → `env` (non tracciato; Claude non modifica i propri settings). I controlli sui comandi
+  distruttivi restano attivi.
 
 ### Controprove e working tree
 Le controprove (es. "il test fallisce senza il fix?") si fanno **sempre su una copia** (cartella nello
