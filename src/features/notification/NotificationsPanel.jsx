@@ -140,6 +140,15 @@ export function NotificationsPanel({ notifications, color, onClose, onDelete, on
               Notifiche
             </div>
           </div>
+          {/* Chiudi prima di "Segna tutte": col wrap resta in alto a destra e va a capo solo l'altro (BUG-032) */}
+          <button
+            onClick={onClose}
+            aria-label="Chiudi notifiche"
+            className="flex items-center justify-center cursor-pointer shrink-0"
+            style={{ width: 32, height: 32, borderRadius: 6, background: 'color-mix(in srgb, var(--rx-accent) 5%, transparent)', border: '1px solid var(--rx-border)', color: 'color-mix(in srgb, var(--rx-accent) 45%, rgba(255,255,255,0.35))' }}
+          >
+            <IconClose size={14} />
+          </button>
           {unreadCount > 0 && (
             <button
               type="button"
@@ -151,14 +160,6 @@ export function NotificationsPanel({ notifications, color, onClose, onDelete, on
               Segna tutte come lette
             </button>
           )}
-          <button
-            onClick={onClose}
-            aria-label="Chiudi notifiche"
-            className="flex items-center justify-center cursor-pointer shrink-0"
-            style={{ width: 32, height: 32, borderRadius: 6, background: 'color-mix(in srgb, var(--rx-accent) 5%, transparent)', border: '1px solid var(--rx-border)', color: 'color-mix(in srgb, var(--rx-accent) 45%, rgba(255,255,255,0.35))' }}
-          >
-            <IconClose size={14} />
-          </button>
         </div>
 
         {/* Lista */}
