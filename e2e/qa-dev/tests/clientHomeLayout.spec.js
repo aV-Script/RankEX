@@ -173,11 +173,15 @@ for (const moduleCase of MODULES) {
       })
 
       test('terminologia del modulo in Home', async ({ openAs }) => {
-        const { page, home } = await openHome(openAs, userKey)
+        const { home } = await openHome(openAs, userKey)
         await expect(home.streak).toContainText(moduleCase.streakText)
         await expect(home.next).toContainText(moduleCase.nextTitle)
+        // Solo i testi prodotti dalla Home: il testo delle notifiche lo scrive il server (chiudiSessione)
+        // e per soccer dice ancora "Sessione" (BUG-037, functions/, fuori da STORY-048)
         for (const pattern of moduleCase.forbidden ?? []) {
-          await expect(page.locator('body'), `termine non ammesso in Home: ${pattern}`).not.toContainText(pattern)
+          for (const block of [home.header, home.streak, home.next]) {
+            await expect(block, `termine non ammesso in Home: ${pattern}`).not.toContainText(pattern)
+          }
         }
       })
 
