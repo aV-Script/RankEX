@@ -280,6 +280,100 @@ UAT, rollback functions prod (solo fix forward, TD-015).
 Operativo: push dei commit docs locali su `dev` (via libera dell'utente); `main` resta a `f086405` fino al prossimo
 rilascio. Deploy hosting dev e `qa:dev` mai in parallelo.
 
+## Retrospettiva
+Dati (da `git log ab65b45..HEAD` e dai blocchi sopra): 16 commit = 11 di codice/test (checkPrev, check:deny, fix
+`goals.test`, BUG-026, STORY-045, STORY-046, BUG-029, STORY-047, BUG-031 p.2-3, BUG-032/033 + fix di review) e 5 docs
+(backlog, apertura, QA dal vivo, ricontrollo TP-090, chiusura); voci 1-5 e bug S tutte DONE, 0 voci non completate;
+10 bug nel periodo (BUG-026..031 gia' noti all'apertura, BUG-032..035 trovati nello sprint); 2 push su `dev` con CI, E2E
+e deploy-dev verdi al primo colpo; `qa:dev` 36/36; unit 664 -> 675; 0 deploy in prod, 0 debiti nuovi. Rework: 2
+(`f31a2a6` sul fix di BUG-032, trovato dalla review; `597540a` test con data UTC). Non verificato: TP-089 (BUG-027
+resta FIXED, non VERIFIED), tempi di attesa.
+
+**Verifica dei 5 action item del #19**
+1. checkPrev: **raggiunto.** `55535bc`: `744f6f9` esce 1, `f086405` esce 0 (Git Bash e PowerShell), citato in CLAUDE.md
+   e nelle regole dei 2 agenti. Efficacia su un rilascio reale non dimostrabile: non e' stato fatto nessun rilascio/rollback.
+2. BUG-026: **raggiunto.** `4f9640e`, caso TP-088, VERIFIED dal vivo a 360x640 e 1366 (hit test sui controlli).
+3. check:deny: **raggiunto, con limite dichiarato.** `15c8e6c`: 72/72 sul file vero, exit 1 sulla copia senza un
+   pattern. Controlla che i 72 pattern siano nel file, non che coprano le forme di git (TD-014 resta OPEN).
+4. Org QA GYM: **non fatto, sostituito per decisione dell'utente** (decisione 2 del #20, "rinviata alla prima org GYM
+   reale"). Non e' scivolato: e' uscito dall'elenco dei candidati con una decisione scritta (dopo 4 retro che lo citavano).
+5. Decisione su STORY-029 (b)/(c) e 3f: **raggiunto** (decisione 3: rinviati al contratto Lipedema / primo onboarding reale).
+
+**WHAT WENT WELL**
+- Sprint pianificato e chiuso in 2 giorni con tutte le voci DONE e CI/E2E/deploy-dev verdi al primo colpo. Causa:
+  voci piccole con "fatto quando" verificabile, nessuna modifica a functions/rules (zero deploy functions, zero rules),
+  tabelle ambiente/modulo scritte a inizio sprint (nessuna scelta d'ambiente in bivio).
+- La QA dal vivo ha trovato 2 difetti reali che unit test e review non vedono (BUG-032/033) e li ha chiusi nello stesso
+  sprint. Causa: QA su rankex-dev a 2 viewport con misure (bounding box, hit test, conteggio chiamate), non a vista.
+- La review medium ha trovato che il fix del developer di BUG-032 non faceva cio' che dichiarava (`f31a2a6`). Causa:
+  la review controlla il comportamento nel DOM/CSS, non il self-report.
+- Gli action item del #19 che erano codice sono stati chiusi con prova eseguibile (exit code), non con conferma verbale.
+
+**WHAT WENT WRONG / CAUSED BUGS**
+- BUG-032 e BUG-033 sono nati dentro STORY-046 (`aa84e73`): header del pannello notifiche schiacciato e campana senza nome
+  accessibile, in una story il cui scopo era l'accessibilita'. ROOT CAUSE (verificata nei docs): il nuovo layout e'
+  stato consegnato con unit test e review medium, che non misurano il rendering; il primo sguardo a 360/1366 px e' stato
+  la QA di fine sprint, a codice di tutte le voci gia' scritto. Il fix `353acfa` ha poi ripetuto il difetto: il developer
+  ha dichiarato "chiudi resta in alto a destra" senza misurarlo, e `f31a2a6` e' nato dalla review. IMPACT: P3, nessun
+  utente reale; 2 commit di rework e un ricontrollo TP-090. ACTION: azione 2.
+- TP-089 (acquisto avatar, BUG-027, STORY-045) non e' verificabile dal vivo. ROOT CAUSE: `AVATAR_CATALOG`
+  (`src/config/avatars.config.js:4-62`) e' hardcoded per org e non ha voci per `qa-pt`/`qa-soccer`; la precondizione del
+  caso (cliente con avatar acquistabili e >= 30 Monete) non era soddisfacibile sull'ambiente QA ed e' emersa solo in QA,
+  non nella scrittura di STORY-045 ne' del caso runbook. IMPACT: la story che protegge dai tap accidentali sulle Monete
+  (P2) e' chiusa solo a codice letto. ACTION: azioni 1 e 4.
+- L'area cliente non e' provabile con l'account di base: "QA Cliente PT" non ha mai fatto il primo accesso
+  (`mustChangePassword`), quindi la QA e' stata fatta su clienti `E2E-QA20-*` creati dal wizard, creati e cancellati a
+  mano nello script. ROOT CAUSE: il seed (`scripts/seed-qa-orgs.mjs`) crea il cliente ma non porta a termine il primo
+  accesso. IMPACT: ogni QA dell'area cliente rifa' la preparazione (non verificato: tempo). ACTION: azione 1.
+- Test con data UTC (`goals.test.js`, `597540a`) che falliva tra 00:00 e 01:00. ROOT CAUSE: test scritto con una data
+  diversa da quella della funzione (`isGoalMissed` usa la data locale); invisibile finche' non si lavora a mezzanotte.
+  IMPACT: rumore di 1 commit. ACTION: gia' fatta, nessuna ulteriore.
+
+**WHAT WAS SLOW**
+- La QA dal vivo e' avvenuta dopo aver chiuso tutte le voci (una volta a fine sprint, regola di efficienza): i difetti
+  di layout sono tornati indietro dopo il push, con un secondo ciclo push/deploy/ricontrollo. Il ciclo pieno
+  (fix, review, push, CI/E2E/deploy-dev, QA) non e' stato cronometrato: non verificato.
+- Il banner RICARICA reale richiede ~2-5 min di attesa dopo il deploy (`POLL_MS`); per TP-088 si e' simulato
+  `version.json` con Playwright. Il primo "Segna tutte come lette" a freddo ha aggiornato la UI dopo >2,5 s (nessun
+  optimistic update): osservato una volta, non loggato.
+
+**WHAT CAUSED REWORK**
+- `f31a2a6`: dichiarazione del developer su un effetto visivo non misurata (causa comune a BUG-032). `597540a`: test su
+  data. Stessa causa dei 2 sprint precedenti: assunzione non provata prima di dichiarare "fatto".
+
+**WHAT CREATED TECHNICAL DEBT**
+- Nessun TD nuovo (TD-014 ridotto: copia tracciata dei deny; TD-015 invariato). Debito implicito, non in TECH-DEBT.md:
+  il catalogo avatar e' codice per-org, quindi ogni org di test o nuova org richiede una modifica a `avatars.config.js`;
+  e' la causa strutturale del blocco di TP-089. Non aperto come TD perche' l'azione 1 lo aggira con un set per `qa-pt`
+  (da decidere se tracciarlo).
+- Bug aperti P3 per mancanza di spazio, non per scelta: BUG-034, BUG-035 (fix di una riga), BUG-008, BUG-005.
+
+**ACTION ITEM per lo Sprint #21** (max 5; vincoli: nessun deploy in prod, `main` resta a `f086405`, STORY-050/051 e
+STORY-029 (b)/(c) fuori)
+1. **Rendere l'area cliente provabile su rankex-dev (agente, ~2 h).** Set avatar per `qa-pt` in
+   `src/config/avatars.config.js` (stesse immagini VDP5) e, in `scripts/seed-qa-orgs.mjs`, un cliente di base con primo
+   accesso gia' fatto (`mustChangePassword: false`). Poi rifare TP-089 con >= 30 Monete (si guadagnano chiudendo slot).
+   *Fatto quando:* `npm run qa:dev:seed` e' idempotente e TP-089 passi 1-6 sono PASS dal vivo con BUG-027 VERIFIED; se
+   il set avatar si rivela non voluto, BUG-027 resta FIXED e la motivazione e' scritta in BUGS.md. Review medium.
+2. **Controllo di layout automatico sui pannelli nuovi (agente, ~2 h).** Spec in `e2e/qa-dev/tests/` (o
+   `e2e/tests/` se non serve l'hosting) che apre il pannello notifiche del cliente a 360 e 1366 px e asserisce con
+   bounding box: titolo >= 100 px di larghezza, bottone chiudi nell'angolo in alto a destra, nessuno scroll orizzontale,
+   campana desktop con nome accessibile. *Fatto quando:* la controprova fatta su una copia (worktree esterno) di
+   `aa84e73` fallisce sul titolo e/o sul nome della campana, e su HEAD passa; `qa:dev` resta verde. Review medium.
+3. **Chiudere BUG-034 e BUG-035 come bug S fuori voce (agente, ~30 min).** `ChangePasswordScreen.jsx:20-22`: l'errore di
+   lunghezza non deve essere sovrascritto da `password === current`; `ClientCalendar.jsx:105`: titolo dalla terminologia
+   del modulo con il genere giusto. *Fatto quando:* BUG-034 ha un test Vitest sull'ordine delle validazioni
+   (fallisce prima del fix), BUG-035 e' verificato in lipedema e PT a vista; entrambi FIXED in BUGS.md.
+4. **Regola di pianificazione sulla testabilita' (scrum-master, ~30 min).** Ogni voce UI o caso `TP-` del #21 (STORY-048
+   per prima) riporta nella voce la riga "precondizione QA": org, utenza e dati necessari e dove li fornisce il seed;
+   lo scrum-master non mette READY senza. Regola scritta in `.claude/agents/scrum-master.md` e `developer.md` insieme a
+   "un effetto visivo dichiarato = una misura (bounding box o screenshot) allegata alla voce". *Fatto quando:* le voci UI
+   del #21 hanno la riga e a fine sprint 0 casi `TP-` risultano BLOCCATI per precondizione.
+5. **Provare lo STORY-048 sui due viewport prima della review (agente, incluso nella story).** Per la Home cliente
+   (STORY-048) la misura a 360x640 e 1366x768 con la nuova spec dell'azione 2 e' parte della definizione di fatto,
+   non solo della QA finale. *Fatto quando:* la review medium di STORY-048 cita l'esito della spec a 360 e 1366 e la
+   QA dal vivo non apre bug di layout P3 nuovi sulla stessa schermata (0 BUG di layout su STORY-048).
+
 ---
 
 # SPRINT #19 — EPIC-010 Lipedema Edition, chiusura dei "non verificato" del rilascio e action item del #18 — aperto il 2026-11-12, chiuso il 2026-11-12 (goal raggiunto, 3f non verificato per decisione dell'utente)
