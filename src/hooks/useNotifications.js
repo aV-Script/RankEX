@@ -7,8 +7,14 @@ import { markAllNotificationsReadUseCase } from '../usecases/markAllNotification
 
 const NOTIF_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 giorni
 
+const STATUS_LOADING = 'loading'
+const STATUS_READY   = 'ready'
+const STATUS_ERROR   = 'error'
+
 /**
  * Gestisce il ciclo di vita completo delle notifiche cliente.
+ * `status`: 'loading' | 'ready' | 'error' ('ready' con lista vuota = nessuna notifica);
+ * `retry` ripete il caricamento dopo un errore. Ordine: dalla più recente (service).
  *
  * @param {string} orgId    — ID organizzazione
  * @param {string} clientId — ID cliente
@@ -16,10 +22,16 @@ const NOTIF_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 giorni
 export function useNotifications(orgId, clientId) {
   const [notifications, setNotifications] = useState([])
   const [unreadCount,   setUnreadCount]   = useState(0)
+  const [status,        setStatus]        = useState(STATUS_LOADING)
+  const [reloadKey,     setReloadKey]     = useState(0)
 
   useEffect(() => {
     if (!orgId || !clientId) return
+    // Cambiando cliente o ripetendo il caricamento, una risposta vecchia non deve
+    // sovrascrivere quella attuale
+    let cancelled = false
     getNotifications(orgId, clientId).then(raw => {
+      if (cancelled) return
       const now   = Date.now()
       const fresh = []
       raw.forEach(n => {
@@ -32,12 +44,19 @@ export function useNotifications(orgId, clientId) {
       })
       setNotifications(fresh)
       setUnreadCount(fresh.filter(n => !n.read).length)
-    }).catch(err => {
-      // Le notifiche non bloccano la dashboard: il pannello resta vuoto, ma
-      // l'errore resta visibile in console invece di diventare una promise rifiutata.
-      console.error('[useNotifications] caricamento fallito', err)
+      setStatus(STATUS_READY)
+    }).catch(() => {
+      // Le notifiche non bloccano la dashboard: chi le mostra distingue l'errore
+      // dal "nessuna notifica" tramite `status` e può ripetere con `retry`.
+      if (!cancelled) setStatus(STATUS_ERROR)
     })
-  }, [orgId, clientId])
+    return () => { cancelled = true }
+  }, [orgId, clientId, reloadKey])
+
+  const retry = useCallback(() => {
+    setStatus(STATUS_LOADING)
+    setReloadKey(key => key + 1)
+  }, [])
 
   const markAllRead = useCallback(async () => {
     const readAt = new Date().toISOString()
@@ -59,5 +78,5 @@ export function useNotifications(orgId, clientId) {
     })
   }, [orgId])
 
-  return { notifications, unreadCount, markAllRead, remove }
+  return { notifications, unreadCount, status, retry, markAllRead, remove }
 }

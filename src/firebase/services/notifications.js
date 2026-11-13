@@ -4,6 +4,7 @@ import {
 } from 'firebase/firestore'
 import { db }               from './db'
 import { notificationsPath } from '../paths'
+import { sortNotificationsNewestFirst } from '../../utils/notifications'
 
 export const getNotifications = async (orgId, clientId) => {
   const q    = query(
@@ -12,7 +13,7 @@ export const getNotifications = async (orgId, clientId) => {
   )
   const snap = await getDocs(q)
   const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-  return docs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  return sortNotificationsNewestFirst(docs)
 }
 
 export const deleteNotification = (orgId, id) =>
