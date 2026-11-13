@@ -337,7 +337,7 @@ Formato:
 ## [BUG-032] Pannello notifiche cliente: l'header e' schiacciato e il titolo si sovrappone
 **Severity:** P3 (UI, nessun controllo irraggiungibile)
 **Modulo/Ruolo:** area cliente (PT/GYM e soccer), ruolo client — `src/features/notification/NotificationsPanel.jsx:124-150` (riga header `flex items-center flex-wrap` con colonna testo `flex-1 min-w-0` accanto a "Segna tutte come lette" `shrink-0` e al bottone chiudi `shrink-0`). Trovato nella QA dal vivo dello Sprint #20 (13/11, TP-090, `f42278f`). Introdotto da STORY-046.
-**Status:** FIXED (Sprint #20, 13/11: colonna testo `min-w-[120px]` al posto di `min-w-0`; verifica dal vivo da fare)
+**Status:** VERIFIED (13/11, TP-090 su `f31a2a6`): colonna testo `min-w-[120px]`; a 1366 e 360 "2 NON LETTE" e "NOTIFICHE" leggibili su due righe di testo, chiudi in alto a destra, "Segna tutte come lette" a capo sotto (188x44 px) e cliccabile, nessuno scroll orizzontale
 | Viewport | Comportamento osservato |
 |----------|-------------------------|
 | 1366x768 (drawer largo 360 px) | colonna "N NON LETTE / NOTIFICHE" larga ~30 px: "2 NON LETTE" va a capo una parola per riga, "NOTIFICHE" sborda sotto il bottone "Segna tutte come lette" |
@@ -350,7 +350,7 @@ Formato:
 ## [BUG-033] Campana notifiche della barra desktop senza nome accessibile
 **Severity:** P3 (accessibilita')
 **Modulo/Ruolo:** area cliente (PT/GYM e soccer), ruolo client, desktop — `src/features/client/client-view/ClientBottomNav.jsx:212-232` (bottone campana senza `aria-label`; il contenuto e' solo l'icona e il contatore). Trovato nella QA dal vivo dello Sprint #20 (13/11, TP-090).
-**Status:** FIXED (Sprint #20, 13/11: `aria-label` "Notifiche, N non lette" sulla campana desktop; verifica dal vivo da fare)
+**Status:** VERIFIED (13/11, TP-090 su `f31a2a6`): campana desktop con nome accessibile "Notifiche, 2 non lette" e, senza non lette, "Notifiche"
 **Reproduction steps:** login client a 1366 con notifiche non lette → albero di accessibilita' del bottone campana nella barra in alto.
 **Expected:** nome accessibile "Notifiche" (con il numero di non lette) su un bottone che apre un dialog "Notifiche" e a cui il focus ritorna alla chiusura (AC STORY-046).
 **Actual:** il nome accessibile e' solo il contatore ("2") o vuoto senza non lette; uno screen reader non annuncia a cosa serve. La campana della bottom nav mobile ha l'etichetta visibile "NOTIFICHE".
