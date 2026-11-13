@@ -7,8 +7,121 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-_Nessuno sprint aperto._ Ultimo chiuso: #20 (primo sotto "Sprint chiuso (storico)"). Lo apre la prossima sessione
-dopo aver letto BACKLOG, BUGS e TECH-DEBT; candidati in "Passa al #21" dello sprint #20.
+# SPRINT #21 — EPIC-011 Area cliente, parte 2 (Home cliente + action item del #20) — aperto il 2026-11-13
+
+**Goal:** L'area cliente e' provabile dal vivo su rankex-dev (set avatar per `qa-pt`, cliente di base con primo accesso
+fatto, spec di layout automatica) e la Home cliente mostra livello, striscia, prossima sessione, ultime notifiche e
+Monete con la terminologia del modulo (STORY-048, incluso BUG-008), misurata a 360 e 1366 px.
+
+**Branch:** `feature/lipedema-module`, HEAD = `origin/dev` = `48370e1` (`git rev-parse` il 2026-11-13). Working tree
+all'apertura: `docs/BACKLOG.md`, `docs/BUGS.md` modificati; `lipidemia/`, `mobile-app/` non tracciati.
+
+**Stato ambienti (apertura):** rankex-dev hosting + rules a `f31a2a6`, functions a `5090d9a`. Prod `fitquest-60a09` a
+`f086405` con 40 callable `nodejs22` (dato dall'utente/CHANGELOG, non rilanciato `functions:list` oggi: non verificato).
+
+**Vincoli dello sprint (decisioni dell'utente 13/11):**
+- Nessuna release in prod: `main` resta a `f086405`, nessun deploy su `fitquest-60a09`.
+- Nessun push fino a fine sprint; la QA dal vivo si fa a fine sprint dopo il push su `dev` (vedi "Punti da
+  confermare" 1); mai deploy hosting in parallelo a `qa:dev`.
+- Controprove solo su copia (worktree esterno, mai checkout/reset sul working tree); niente junction su `node_modules`.
+- Dati di test solo nelle org `qa-*` di rankex-dev; mai account `qa.*` (QA manuale).
+- Nessun file in `functions/` ne' `firestore.rules` modificato (verificato: `acquistaAvatar` usa solo il suffisso
+  dell'id, `functions/src/shared/avatarUnlocks.js:21-22`, e le rules `firestore.rules:64-71` pure; nessuna lista di
+  org lato server).
+- Decisioni: set avatar `qa-pt` entra nel catalogo che va in prod (voce con `orgId: 'qa-pt'`, invisibile alle altre
+  org, come `test-org-soccer`); primo focus del pannello notifiche resta su "Chiudi".
+
+## Voci dello sprint (ordine di esecuzione proposto)
+
+| # | ID | Titolo | Taglia | Stato | Dipende da |
+|---|----|--------|--------|-------|-----------|
+| 1 | AI 4 | Riga "precondizione QA" e "effetto visivo = una misura" in `.claude/agents/scrum-master.md` e `developer.md` | S | READY (la fa la sessione principale; `.claude/*` e' in `.gitignore`, quindi nessun commit lo conterra') | - |
+| 2 | BUG-034 | Cambio password a campi vuoti: messaggio fuorviante (`ChangePasswordScreen.jsx:16-25`) | S | READY (fuori voce, fix S: causa e fix in BUGS.md) | - |
+| 3 | BUG-035 | "PROSSIME APPUNTAMENTI" in lipedema (`ClientCalendar.jsx:105`) | S | READY (idem) | - |
+| 4 | BUG-036 | Campana mobile senza `aria-label` (`ClientBottomNav.jsx:100`) | S | READY (idem; nuovo, registrato oggi) | - |
+| 5 | AI 1 | Set avatar `qa-pt` + seed: cliente di base con primo accesso fatto + dati QA; poi TP-089 dal vivo, BUG-027 VERIFIED | S/M | READY (tabella ambiente/modulo sotto) | 2-4 non bloccano; il TP-089 dal vivo richiede hosting dev aggiornato |
+| 6 | AI 2 | Spec Playwright di layout del pannello notifiche cliente a 360/1366 in `e2e/qa-dev/tests/` + controprova su copia di `aa84e73` | M | READY | AI 1 (cliente col primo accesso fatto e >= 1 notifica non letta) |
+| 7 | STORY-048 | Home cliente (T1..T7, incluso BUG-008) | M/L | READY, ma T6/T7 e il caso `TP-` partono solo dopo AI 1 e AI 2 | AI 1, AI 2 (T6 estende la spec di AI 2) |
+
+Ordine STORY-048: T1 (BUG-008, terminologia) → T2 (hook sessioni) → T3 (`useNotifications` status) → T4 (componenti
+Home) → T5 (Monete) → T6 (spec Home 360/1366 + controprova) → T7 (caso `TP-` + chiusura BUG-008). Un task alla volta,
+review medium sulla story (AC AI 5: la review cita l'esito della spec a 360 e 1366; senza, non passa a DONE).
+
+**Criterio di done per voce**
+- AI 4: le due regole sono scritte nei due file e `grep` le trova; l'utente le vede (file non tracciati).
+- BUG-034: test Vitest sull'ordine delle validazioni che fallisce prima del fix; FIXED in BUGS.md.
+- BUG-035: titolo con genere giusto verificato a vista in lipedema e in PT; FIXED in BUGS.md.
+- BUG-036: bottone mobile con nome accessibile "Notifiche" (+ "N non lette" come il desktop, `:214`); verificato con
+  l'albero di accessibilita' a 360 px; FIXED.
+- AI 1: `npm run qa:dev:seed` idempotente (2 lanci di fila senza duplicati), TP-089 passi 1-6 PASS dal vivo, BUG-027
+  VERIFIED; se il set non e' voluto, BUG-027 resta FIXED con la motivazione in BUGS.md.
+- AI 2: la spec passa su HEAD a 360 e 1366; la controprova su worktree esterno di `aa84e73` fallisce su titolo e/o nome
+  campana; `qa:dev` verde. Review medium.
+- STORY-048: AC del BACKLOG tutti spuntati; spec Home a 360/1366 verde e citata dalla review; `lint`, `build`,
+  `test:run` verdi; 0 bug di layout P3 nuovi in QA; 0 casi `TP-` BLOCCATI per precondizione.
+
+**Precondizione QA (AI 4)** — dove c'e' QA dal vivo:
+- AI 1 / TP-089: org `qa-pt`; cliente `qadev.pt.cliente@test.rankex` (`e2e/qa-dev/qaDev.config.js:47`) con
+  `mustChangePassword: false`, `level` che non sblocchi gli avatar 07-09 per livello (sono solo `purchase`) e
+  `coins` >= 30 (avatar `..._07` costa 30, `avatars.config.js:76`). Fornitore: seed esteso, che crea **3 slot passati**
+  pianificati (giorni diversi) per il cliente di base; la QA li chiude via UI (`chiudiSessione` da' 10 Monete a sessione,
+  `functions/src/callable/chiudiSessione.js:32`) prima del TP-089. Il seed non scrive `coins`. Senza: TP-089 BLOCCATO, non PASS.
+- AI 2 e STORY-048 / nuovo `TP-`: `qa-pt` e `qa-soccer` (allievo `qadev.soccer.allievo@test.rankex`, `qaDev.config.js:54`)
+  con primo accesso fatto, >= 1 slot pianificato da oggi, >= 2 notifiche (>= 1 non letta), `coins` > 0,
+  `sessionStreak` >= 1. Fornitore: stesso seed (`scripts/seed-qa-orgs.mjs`).
+- BUG-034: nessun cliente pronto serve: serve un account con `mustChangePassword: true`, cioe' un cliente `E2E-…` appena
+  creato dal wizard (cancellato dal teardown) perche' il seed lo porta a `false` per il cliente di base.
+
+## Tabella ambiente/modulo — AI 1 (set avatar `qa-pt`)
+
+Nessuna dipendenza da `isDev`/`isUat`/`isProduction`: il catalogo e' dato statico, uguale in ogni ambiente; cambia solo
+quale org lo vede. UAT: nessun progetto/hosting nel repo (`.firebaserc:5-18`), non verificato.
+
+| Caso | dev (rankex-dev) | UAT | prod (fitquest-60a09) |
+|------|------------------|-----|----------------------|
+| Catalogo per org (`getAvatarsForOrg`, `src/config/avatars.config.js:86-88`) | org `qa-pt`: dopo la modifica 9 avatar, oggi 0 (voci esistenti: `vdp5-tgtdu` `:5-13`, `test-org-soccer` `:16-24`, `test-org-pt` `:27-35`, `soccer-demo-moaokrn4` `:38-46`, `test-1tevc` `:49-57`; nessuna `qa-pt`/`qa-soccer`) | non verificato | il codice va in prod solo al prossimo rilascio (nessun deploy nel #21); poi voce inerte: nessuna org prod ha `orgId` `qa-pt` (non verificato in Console) |
+| Regole di sblocco | per suffisso dell'id `01`-`09` (`:69-79`): `qa_pt_07` costa 30, `_08` 60, `_09` 100; speculari in `functions/src/shared/avatarUnlocks.js:21-22` e `firestore.rules:64-71`: nuovi id devono finire in `01`-`09` o non sono acquistabili/equipaggiabili come previsto | idem | idem |
+| Server | `acquistaAvatar` non ha lista di org: nessun deploy functions | idem | idem (nessuna modifica a functions/rules) |
+| PT / GYM (`qa-pt` e' PT) | avatar visibili in Avatar | - | - |
+| Soccer (`qa-soccer`) | resta senza set (decisione 2: solo `qa-pt`); "Nessun avatar disponibile" | - | - |
+| Lipedema | non ha area cliente (`hasClientLogin: false`, `modules.config.js:93`) | - | - |
+| Org legacy `moduleType` null | non toccata | - | - |
+| Seed (`scripts/seed-qa-orgs.mjs`) | `ensureBaseClient` (`:122-165`): ramo "cliente esistente" (`:127-130`) aggiorna solo la password, ramo nuovo passa da `creaCliente` che scrive `mustChangePassword: true` (`functions/src/callable/creaCliente.js:142`); oggi nessun passaggio a `false` per il cliente (`:91` riguarda lo staff) | rifiuta altri progetti (`assertDevFirestore`, `:44`) | mai eseguito su prod |
+
+## Tabella ambiente/modulo — STORY-048 (Home cliente)
+
+La tabella e' nella story (`docs/BACKLOG.md`, STORY-048, in testa): rimando senza duplicarla. Verificata oggi
+leggendo il codice: `hasClientLogin` PT/Soccer `true` (`modules.config.js:83,88`), lipedema `false` (`:93`); legacy
+null → PT (`useAuth.js:22,26,30`); `routes.config.jsx:67` monta `ClientView` senza `terminology`; `ClientView.jsx:24-25`
+rank BIA solo `bia_only`; `useClientRank.js:14-20` media da `stats`; `ClientDashboardPage.jsx:308,315,336` senza
+`terminology`; `ClientWorkoutSection.jsx:52` "trainer" cablato; `ClientCalendar.jsx:56-69` fonte delle prossime sessioni;
+`ClientBottomNav.jsx:202-211` badge Monete (solo nella barra desktop; la bottom nav mobile `:94-135` non lo ha:
+la Home mobile lo mostra con un componente nuovo estratto da qui); `:100-126` campana mobile senza `aria-label`.
+**Celle non verificate:** `routes.config.jsx:62` (helpers: letto, ma la nota "la hanno gia' helpers" non e'
+controllata riga per riga); `ClientWorkoutSection.jsx:76` (`PlanProgress`, la ricerca non l'ha trovato: da
+riverificare dal developer prima di T1); `modules.config.js:259` `DEFAULT_TERMINOLOGY` (la ricerca non ha restituito
+la definizione: da riverificare); testo GYM "Personal Trainer/Membro" mostrato in area cliente (letto solo
+`modules.config.js:169-170`); ordinamento delle notifiche del service (dichiarato non verificato nelle AC).
+Nessuna cella dipende dall'ambiente (nessun `isDev`/`isUat`/`isProduction`). Il developer conferma la tabella prima di T1.
+
+## Punti da confermare — risolti 2026-11-13
+1. Push vs QA dal vivo: si segue il piano di sessione. Sviluppo con soli commit locali; a fine sprint push su `dev`
+   (deploy.yml aggiorna hosting+rules dev), poi `qa:dev`, poi QA dal vivo (TP-089, AI 2, TP di STORY-048). Nessun
+   deploy manuale a meta' sprint.
+2. Monete/streak: **niente accredito manuale**. Il seed crea per il cliente di base uno slot passato (pianificato,
+   non chiuso) nell'org `qa-pt`; la QA lo chiude via UI (`chiudiSessione`) e cosi' ottiene `coins` > 0 e
+   `sessionStreak` >= 1 reali. Il seed non scrive `coins` ne' `sessionStreak`.
+3. AI 4: la fa la sessione principale in `.claude/agents/*.md` (non tracciati: la regola vale solo su questa macchina).
+4. BUG-034 richiede un account con `mustChangePassword: true`: si verifica con un cliente `E2E-…` creato dal wizard,
+   non col cliente di base (che il seed porta a `false`).
+
+## Passa al #21 — esito (dal #20)
+- STORY-048: PRESA (voce 7; D1-D3 decise 2026-11-13). BUG-008: PRESO dentro STORY-048 (T1).
+- BUG-034, BUG-035: PRESI (voci 2, 3) + BUG-036 nuovo (voce 4).
+- Set avatar `qa-pt` (proposta del #20): PRESO, decisione 2 (voce 5, AI 1).
+- AI 2: PRESO (voce 6). AI 4: PRESO (voce 1). AI 5: dentro STORY-048.
+- STORY-049: RIMANDATA al #22. BUG-005: RIMANDATO (fuori).
+- Invariati fuori sprint: STORY-050/051, STORY-029 (b)/(c), 3f, org GYM, UAT, rollback functions prod.
 
 ---
 
@@ -264,6 +377,8 @@ Banner RICARICA reale: scheda con build vecchia aperta prima del push, banner co
 | Functions / rules | invariate (`5090d9a`, nessun deploy) | invariate a `f086405` | - |
 
 ### Passa al #21
+_Esito all'apertura del #21 (13/11): presi STORY-048 (con BUG-008), BUG-034, BUG-035, set avatar `qa-pt`; rimandati
+STORY-049 e BUG-005; dettaglio in "Sprint corrente" → "Passa al #21 — esito"._
 Candidati, in ordine consigliato (il PO decide le priorita', il Tech Lead la fattibilita'):
 - **STORY-048** Home cliente (striscia, prossima sessione, ultime notifiche; centro pentagono rank/media): AC in bozza da
   scrivere a inizio sprint. Dipende da STORY-047 e STORY-045, ora DONE.

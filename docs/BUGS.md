@@ -104,7 +104,7 @@ Formato:
 ## [BUG-008] Area cliente (atleta) con terminologia PT fissa
 **Severity:** P3
 **Modulo/Ruolo:** soccer_academy / GYM — client (preesistente, trovato in code review di BUG-002/004)
-**Status:** OPEN
+**Status:** OPEN — assorbito da STORY-048 (Sprint #21, `docs/BACKLOG.md`, task T1); si chiude a verifica fatta
 **Reproduction steps:** login come allievo di un'org soccer → hub → Scheda / Calendario / Profilo › Note.
 **Expected:** termini del modulo (Coach, Allenamento…).
 **Actual:** `ClientView` non riceve `terminology`, quindi `ClientDashboardPage`, `ClientWorkoutSection` ("Il tuo trainer non ha ancora assegnato…"), `NotesSection` (badge "Trainer"), `PlanProgress` ("Sessione N di M") e `ClientCalendar` usano il default PT: l'allievo soccer vede "Trainer"/"Sessione".
@@ -364,6 +364,7 @@ Formato:
 **Expected:** sulla nuova password il messaggio di lunghezza/complessita' di `validatePassword` (o "obbligatoria").
 **Actual:** `password === current` (entrambe `''`) a riga 22 sovrascrive l'errore di riga 20: il campo "nuova password" mostra "La nuova password deve essere diversa da quella temporanea", fuorviante a campi vuoti. Screenshot `scratchpad\qa20\tp91-360-errors.png`.
 **Suggested fix:** applicare la regola "diversa dalla temporanea" solo se `form.password` non e' vuota e `pwCheck.valid`. **Stima: S.** Nessun fix nel #20.
+**Sprint:** #21, bug S fuori voce (AI 3).
 
 ## [BUG-035] Calendario in lipedema: "PROSSIME APPUNTAMENTI" con genere sbagliato
 **Severity:** P3 (grammatica)
@@ -373,3 +374,13 @@ Formato:
 **Expected:** "PROSSIMI APPUNTAMENTI" (maschile); in PT/GYM/Soccer "PROSSIME SESSIONI/ALLENAMENTI" invariato.
 **Actual:** "PROSSIME APPUNTAMENTI".
 **Suggested fix:** `bySessionGender(terminology, 'PROSSIMI', 'PROSSIME')`. **Stima: S.** Nessun fix nel #20.
+**Sprint:** #21, bug S fuori voce (AI 3).
+
+## [BUG-036] Campana notifiche della bottom nav mobile senza nome accessibile
+**Severity:** P3 (accessibilita', bassa)
+**Modulo/Ruolo:** area cliente (PT/GYM e soccer), ruolo client, mobile — `src/features/client/client-view/ClientBottomNav.jsx:100-126` (bottone campana con solo icona e contatore, senza `aria-label`; la scritta "Notifiche" e' uno `span` fratello fuori dal bottone, `:127-132`). La campana desktop invece ce l'ha (`:212-214`, fix di BUG-033). Trovato il 13/11/2026 all'apertura dello Sprint #21 leggendo il codice, non ancora osservato a schermo.
+**Status:** OPEN (Sprint #21, bug S fuori voce, AI 3)
+**Reproduction steps:** login client a 360 px con notifiche non lette → albero di accessibilita' del bottone al centro della bottom nav.
+**Expected:** nome accessibile "Notifiche" (con "N non lette" quando ce ne sono), come sul desktop.
+**Actual (da codice, non verificato dal vivo):** il nome del bottone e' solo il contatore ("2", "9+") o vuoto.
+**Suggested fix:** stesso `aria-label` della campana desktop (`:214`: `unreadCount > 0 ? \`Notifiche, ${unreadLabel(unreadCount)}\` : 'Notifiche'`), meglio condiviso. **Stima: S.**

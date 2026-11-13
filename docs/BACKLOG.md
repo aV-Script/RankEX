@@ -1657,16 +1657,136 @@ a 1366 px e a 360×640 px.
 - **Status:** DONE (Sprint #20, `56684a6`; QA dal vivo TP-092 PASS, 13/11; "0 / 0" provato nel ricontrollo)
 
 ### STORY-048 — Home cliente: striscia, prossima sessione, ultime notifiche
+Assorbe BUG-008 (terminologia del modulo nell'area cliente). Voce con comportamento per modulo: nessuna
+dipendenza dall'ambiente (nessun `isDev`/`isUat`/`isProduction` coinvolto: stesso comportamento su dev/UAT/prod).
+
+| Caso | PT | GYM | Soccer | Lipedema | org legacy `moduleType` null |
+|------|----|-----|--------|----------|------------------------------|
+| Area cliente esiste (`hasClientLogin`) | sì (`config/modules.config.js:83`) | sì (stesso modulo PT, variante terminologia) | sì (`:88`) | NO, `hasClientLogin: false` (`:93`): nessuna Home, nessuna regressione possibile | trattato come PT (`useAuth.js:26,30` → `getTerminology('personal_training')`) |
+| Terminologia oggi in area cliente | fissa PT: `routes.config.jsx:67` monta `ClientView` senza `terminology` (la hanno gia' `helpers`, `routes.config.jsx:62`); `ClientDashboardPage.jsx:308/315/336` non la passano; `ClientWorkoutSection.jsx:52` ha "trainer" cablato | "Personal Trainer/Membro/Allenamento" non mostrati (BUG-008) | "Coach/Allievo/Allenamento" non mostrati (BUG-008) | n/a | PT, corretto |
+| Terminologia attesa dopo la story | `getTerminology(moduleType, variant)` risolta in `useAuth.js:22` e passata fino alle sezioni | idem | idem | n/a | PT |
+| Streak/XP/Monete nella Home | si' (`hasGamification`) | si' | si' | n/a | si' |
+| Rank e media | da `useClientRank` (`hooks/useClientRank.js:14-20`); `bia_only` (solo PT) usa il rank BIA (`ClientView.jsx:24-25`) e NON ha media dai test | idem | `tests_only` unico: sempre media | n/a | come PT |
+
+Precondizione QA (action item AI 4 della retro #20): org `qa-pt` e `qa-soccer` su rankex-dev; serve un cliente
+con primo accesso gia' fatto (`mustChangePassword: false`), >= 1 slot pianificato da oggi, >= 2 notifiche
+(almeno 1 non letta), `coins` > 0 e `sessionStreak` >= 1. Fornitore: estensione del seed di AI 1
+(`scripts/seed-qa-orgs.mjs`; oggi `:91` scrive `mustChangePassword: false` per un altro documento, il cliente di base
+come tale: non verificato) oppure clienti `E2E-…` creati dalla spec e cancellati dal teardown
+(`e2e/qa-dev/cleanup.js`, come nella QA #20). Senza questi dati il caso `TP-` e' BLOCCATO: segnalarlo, non
+passarlo.
+
 - **Contesto:** canvas `ClienteHub` / `MobileClienteHub`: saluto "CIAO <NOME>", badge rank, "Categoria <cat> ·
   trainer <nome>", barra "LIVELLO 12 · 3.420 / 4.810 XP" con `role="progressbar"`, card "STRISCIA" e
   "PROSSIMA", sezione "ULTIME NOTIFICHE" (2 righe), pentagono con 5 nodi (etichetta + sottotitolo). Decisione
   utente: il centro del pentagono RESTA l'avatar (`src/features/client/client-view/ClientHub.jsx`); rank e media
   al centro si decidono qui nel #21. Header mobile con "N MONETE" + campana (vedi STORY-045).
 - **Modulo:** personal_training | soccer_academy (area cliente)
-- **Acceptance Criteria:** in bozza, con "fatto quando" a 1366 px e a 360×640, da scrivere a inizio Sprint #21.
-- **Dependencies:** STORY-047 (stato sessioni per "PROSSIMA"), STORY-045 (badge Monete).
-- **Priority:** P2 (Sprint #21)
-- **Status:** BACKLOG
+- **Stato attuale (letto nel codice, 13/11):** la Home e' `ClientHub.jsx` (nome, `RankBadge`, chip "LV.n · xp / xpNext XP"
+  senza `role="progressbar"` `:140-157`, pentagono, avatar al centro `:288-301`) e nient'altro. Su desktop la Home NON
+  ha ne' campana ne' Monete ne' logout: la top nav esiste solo fuori dall'hub (`ClientBottomNav.jsx:142`, badge
+  Monete `:202-211`, campana `:212-234`), quindi da Home a 1366 le notifiche non sono raggiungibili. Su mobile la
+  campana sta al centro della bottom nav (`ClientBottomNav.jsx:98-133`, bottone senza `aria-label`) e non c'e' header.
+  Le "prossime sessioni" sono gia' calcolate in `ClientCalendar.jsx:56-69` con `getUpcomingClientSlots` +
+  `getClientSlotState` (STORY-047): la Home le riusa, non le duplica. `useNotifications.js:20-40` non distingue
+  caricamento / errore / vuoto (l'errore finisce in `console.error`).
+- **Scope (decisione utente):** il centro del pentagono resta l'avatar; BUG-008 e' dentro; nessun backend, nessuna
+  modifica a rules; STORY-049 (etichette `TES/TRO/…`, vetrina, StatsSection) → #22, fuori da qui. Il pannello
+  notifiche NON cambia: primo focus su "Chiudi" (`NotificationsPanel.jsx:144-151`), confermato dall'utente.
+- **Deviazioni dal canvas:** "trainer <nome>" non si mostra (il nome del trainer non e' su `client`, deciso in D1);
+  "Categoria <cat>" si mostra solo per PT (soccer non mostra la categoria, vedi CLAUDE.md → "Soccer").
+- **Acceptance Criteria** (ogni punto va verificato a 1366×768 e a 360×640):
+  - **Header Home**
+    - [ ] La barra XP ha `role="progressbar"`, `aria-valuemin=0`, `aria-valuenow=xp`, `aria-valuemax=xpNext` e un
+          `aria-label` "Livello N: x di y XP"; il testo "LIVELLO n · x / y XP" e' visibile; `xpNext` assente o 0 non
+          rompe (valore massimo almeno 1, barra a 0 %)
+    - [ ] Il rank resta il badge esistente; la media dei test si mostra come da D2 (rank/media non entrano nel
+          centro del pentagono: li' resta l'avatar). Cliente senza campionamenti: nessuna riga "media", rank come oggi
+    - [ ] Solo PT: "Categoria <nome>" sotto il nome (non per soccer, ne' per `bia_only`)
+  - **STRISCIA**
+    - [ ] Card con il numero di sessioni consecutive (`client.sessionStreak ?? 0`) e il moltiplicatore "XP ×N,N" di
+          `calcStreakMultiplier(calcStreakPreview(client))` formattato come nel riepilogo del Calendario
+          (STORY-047): i due valori coincidono per lo stesso cliente
+    - [ ] Streak 0: "0" e "XP ×1,1" (non nascosta: il layout non salta); etichetta con la terminologia del modulo
+  - **PROSSIMA**
+    - [ ] Card con la prima sessione pianificata da oggi (stessa fonte e stesso filtro del Calendario:
+          `getUpcomingClientSlots` + stato `planned`): "MER 4 NOV · 18:30 – 19:30" via `formatUpcomingDate`
+    - [ ] Nessuna sessione: "Nessuna sessione in programma" con il genere/termine del modulo
+          (`bySessionGender(terminology, 'Nessun', 'Nessuna')` + `terminology.session`)
+    - [ ] Caricamento: scheletro della card (stessa altezza, nessun salto di layout); errore di rete: messaggio
+          "Impossibile caricare" con "Riprova", distinto dal vuoto
+    - [ ] Tap/click sulla card apre la sezione Calendario
+  - **ULTIME NOTIFICHE**
+    - [ ] Max 2 notifiche, dalla piu' recente (ordinamento verificato: il service non lo garantisce, non verificato),
+          con pallino "non letta", testo che va a capo senza sforare la card, data relativa come nel pannello
+    - [ ] Vuoto: "Nessuna notifica"; caricamento: scheletro; errore: "Impossibile caricare" (richiede che
+          `useNotifications` esponga lo stato, non solo `[]`)
+    - [ ] Link/bottone "Vedi tutte" (altezza >= 44 px, con nome accessibile) apre `NotificationsPanel` anche da
+          Home desktop; alla chiusura il focus torna su "Vedi tutte"; il primo focus nel pannello resta su "Chiudi"
+    - [ ] Aprire il pannello dalla Home non segna nulla come letto (STORY-046 invariata)
+  - **Monete e campana nella Home**
+    - [ ] Il badge "N MONETE" e' visibile in Home a 1366 e a 360 (decisione di posizione su mobile: D3); stesso
+          componente di `ClientBottomNav.jsx:202-211`, non una copia
+    - [ ] Il numero si aggiorna da solo dopo un acquisto (viene da `client.coins` via `onSnapshot`)
+  - **BUG-008 — terminologia del modulo (assorbito)**
+    - [ ] `terminology` arriva a `ClientView` da `routes.config.jsx:62-67` e di li' a `ClientDashboardPage`,
+          `ClientCalendar` (`:308`), `ClientWorkoutSection` (`:315`, incluso il testo cablato `:52`),
+          `NotesSection` (`:336`) e `PlanProgress` (`ClientWorkoutSection.jsx:76`); le stringhe nuove della Home la usano
+    - [ ] Allievo soccer: la Home, "Calendario", "Scheda" e "Profilo › Note" mostrano Coach/Allenamento/Squadra e
+          non "Trainer"/"Sessione"; membro GYM: Personal Trainer/Allenamento; PT: invariato; org legacy `null`: PT
+    - [ ] `terminology` non ancora risolta (undefined) non manda in crash: fallback `DEFAULT_TERMINOLOGY`
+          (`modules.config.js:259`)
+    - [ ] Le notifiche gia' salvate dal server (testo scritto dalle callable) NON sono riscritte: fuori scope
+  - **Layout (misurato, non dichiarato — action item AI 2 e AI 5 della retro #20)**
+    - [ ] A 360×640 e 1366×768: nessuno scroll orizzontale (`scrollWidth <= innerWidth`) e nessun elemento sotto la
+          bottom nav fissa (62 px): l'ultima card e' raggiungibile scorrendo
+    - [ ] A 360×640 STRISCIA e PROSSIMA stanno su una riga (grid a 2 colonne) senza troncare il testo; PROSSIMA
+          puo' andare a capo ma non uscire dalla card
+    - [ ] I 5 nodi del pentagono restano interi e cliccabili (area >= 44×44 px) e non si sovrappongono a nessun blocco
+          nuovo (bounding box disgiunti, verificato con la spec)
+    - [ ] Spec Playwright in `e2e/qa-dev/tests/` (la stessa dell'AI 2 del pannello notifiche, estesa alla Home; al
+          13/11 nessuna spec di layout cliente esiste: Glob) che a 360 e 1366 asserisce: nessun overflow
+          orizzontale, "Vedi tutte" e Monete visibili e dentro il viewport, controlli con nome accessibile, pannello
+          aperto dalla Home con titolo >= 100 px e "Chiudi" in alto a destra. Il suo esito a 360 e 1366 e' citato
+          nella review medium (AI 5): senza, la story non passa a DONE
+    - [ ] Controprova: su una copia (worktree esterno, mai sul working tree) la spec fallisce se si toglie il
+          `flex-wrap`/la regola che tiene la riga STRISCIA/PROSSIMA su 2 colonne
+  - **Sicurezza/regressioni**
+    - [ ] Nessun file in `functions/` ne' `firestore.rules` modificato; lipedema invariato (`hasClientLogin: false`)
+    - [ ] Test Vitest per le funzioni pure nuove (formato "×N,N" se estratto; scelta delle ultime 2 notifiche;
+          helper dello stato caricamento/errore/vuoto); lint e build verdi
+    - [ ] Caso runbook `TP-` nuovo in `src/config/runbook.config.js` (suite `client-selfservice`, `usId: 'STORY-048'`)
+          con la riga "precondizione QA" qui sopra; il caso usa un allievo soccer per BUG-008
+- **Task:**
+  - T1 (S, P2) BUG-008: far arrivare `terminology` a `ClientView` e alle 4 sezioni (+ stringa cablata `:52`); test
+    di rendering con terminologia soccer
+  - T2 (S, P2) Estrarre da `ClientCalendar.jsx:56-69` un hook `useUpcomingSessions(orgId, clientId)` con stato
+    `loading|ready|error` e riusarlo in Calendario e Home (nessuna doppia logica)
+  - T3 (S, P2) `useNotifications`: esporre `status` (`loading|ready|error`) senza cambiare le firme esistenti; test
+  - T4 (M, P2) Componenti Home (header con progressbar, card STRISCIA/PROSSIMA, ULTIME NOTIFICHE con "Vedi tutte") in
+    `client-view/`, layout 1 colonna a 360 e come da canvas a >= 1024; stati vuoto/caricamento/errore
+  - T5 (S, P2) Badge Monete in alto a destra della Home, mobile e desktop (D3: nessuna campana
+    nella Home, nessun header): estrarre il componente da `ClientBottomNav.jsx:202-211` e riusarlo
+  - T6 (M, P2) Spec Playwright di layout Home 360/1366 (estende quella dell'AI 2) + controprova su worktree esterno
+  - T7 (S, P2) Caso runbook `TP-` + riga precondizione QA; chiusura BUG-008 in BUGS.md a verifica fatta
+- **Dependencies:** STORY-047 (stato sessioni per "PROSSIMA", DONE), STORY-045 (badge Monete, DONE), AI 1 della
+  retro #20 (cliente di base provabile) e AI 2 (spec di layout; se non e' ancora fatta, T6 la crea con il solo
+  perimetro Home + pannello). Nessuna Cloud Function, nessuna migrazione, nessuna modifica a rules. `ClientHub.jsx`
+  e' toccato anche da STORY-049 (#22, etichette): nessun conflitto nel #21 se 049 non parte.
+- **Risks:** (1) layout a 360×640 con piu' blocchi sopra/sotto il pentagono: il pentagono scala con `vpW`
+  (`ClientHub.jsx:122`), rischio di pentagono troppo piccolo o di Home che richiede scroll; da misurare, non
+  dichiarare. (2) Due chiamate a `getUpcomingClientSlots` (Home e Calendario) se non si condivide lo stato: costo
+  Firestore trascurabile ma evitabile. (3) Banner RICARICA (`App.jsx:54-67`) puo' coprire in parte l'alto della Home
+  sotto `lg`: gia' noto da BUG-026. (4) `onSnapshot` resta solo in `useClient`: i nuovi blocchi usano `getDocs`.
+- **Decisioni (ex domande aperte):**
+  - Deciso 2026-11-13 (D1): il nome del trainer NON si mostra in Home (nessuna nuova lettura, nessuna modifica a rules).
+  - Deciso 2026-11-13 (D2): il rank resta nel badge di testa; si aggiunge "MEDIA nn" (da `useClientRank().media`,
+    arrotondata) accanto al chip LV/XP, solo se ci sono campionamenti e il profilo non e' `bia_only`.
+  - Deciso 2026-11-13 (D3): nessun header nuovo; badge "N MONETE" in alto a destra della Home su mobile e desktop; la
+    campana resta nella bottom nav mobile; su desktop si raggiunge il pannello con "Vedi tutte".
+- **Priority:** P2 (Sprint #21, taglia M/L: 7 task, 4 S + 2 M + 1 S di test)
+- **Status:** READY (Sprint #21, 13/11) — D1-D3 decise. Il developer conferma la tabella modulo (celle "non verificato"
+  in `docs/SPRINT.md` → Sprint #21) prima di T1. T6/T7 e il caso `TP-` dipendono da AI 1 e AI 2 (seed e spec di layout)
 
 ### STORY-049 — Test a righe per i test con valore grezzo e fix a 360 px
 - **Contesto:** canvas `ClienteTest` / `MobileClienteTest`, `ClienteTrofei` / `MobileClienteTrofei`. Difetti a
@@ -1687,7 +1807,7 @@ a 1366 px e a 360×640 px.
     (`3fr 2fr`) NON e' confermata ne' smentita; osservato solo che nel pannello STATUS il radar e' piccolo e l'etichetta "RES" del
     vertice destro tocca il bordo della card. Da riprovare con un cliente con campionamenti. `C:\Users\vAito\AppData\Local\Temp\claude\0d5da70ea05ac5cc\07e2ac0c-853a-40e5-b30d-7f0ab1b72105\scratchpad\qa20\s49-test-m.png`.
 - **Acceptance Criteria:** in bozza, da scrivere a inizio Sprint #21 dopo la conferma a schermo dei difetti.
-- **Priority:** P2 (Sprint #21)
+- **Priority:** P2 (Sprint #22: spostata dal #21, decisione utente 13/11/2026 → #22)
 - **Status:** BACKLOG
 
 ### STORY-050 — Peso inserito dal cliente
