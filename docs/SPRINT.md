@@ -35,10 +35,10 @@ all'apertura: `docs/BACKLOG.md`, `docs/BUGS.md` modificati; `lipidemia/`, `mobil
 
 | # | ID | Titolo | Taglia | Stato | Dipende da |
 |---|----|--------|--------|-------|-----------|
-| 1 | AI 4 | Riga "precondizione QA" e "effetto visivo = una misura" in `.claude/agents/scrum-master.md` e `developer.md` | S | READY (la fa la sessione principale; `.claude/*` e' in `.gitignore`, quindi nessun commit lo conterra') | - |
-| 2 | BUG-034 | Cambio password a campi vuoti: messaggio fuorviante (`ChangePasswordScreen.jsx:16-25`) | S | READY (fuori voce, fix S: causa e fix in BUGS.md) | - |
-| 3 | BUG-035 | "PROSSIME APPUNTAMENTI" in lipedema (`ClientCalendar.jsx:105`) | S | READY (idem) | - |
-| 4 | BUG-036 | Campana mobile senza `aria-label` (`ClientBottomNav.jsx:100`) | S | READY (idem; nuovo, registrato oggi) | - |
+| 1 | AI 4 | Riga "precondizione QA" e "effetto visivo = una misura" in `.claude/agents/scrum-master.md` e `developer.md` | S | DONE 13/11 (regole in `.claude/agents/scrum-master.md` e `developer.md`, non tracciati: nessun commit) | - |
+| 2 | BUG-034 | Cambio password a campi vuoti: messaggio fuorviante (`ChangePasswordScreen.jsx:16-25`) | S | FIXED `122180b` (test Vitest; "fallisce prima" provato in scratchpad con node); verifica dal vivo a fine sprint | - |
+| 3 | BUG-035 | "PROSSIME APPUNTAMENTI" in lipedema (`ClientCalendar.jsx:105`) | S | FIXED `438019b`; verifica dal vivo a fine sprint | - |
+| 4 | BUG-036 | Campana mobile senza `aria-label` (`ClientBottomNav.jsx:100`) | S | FIXED `438019b`; verifica dal vivo a fine sprint | - |
 | 5 | AI 1 | Set avatar `qa-pt` + seed: cliente di base con primo accesso fatto + dati QA; poi TP-089 dal vivo, BUG-027 VERIFIED | S/M | READY (tabella ambiente/modulo sotto) | 2-4 non bloccano; il TP-089 dal vivo richiede hosting dev aggiornato |
 | 6 | AI 2 | Spec Playwright di layout del pannello notifiche cliente a 360/1366 in `e2e/qa-dev/tests/` + controprova su copia di `aa84e73` | M | READY | AI 1 (cliente col primo accesso fatto e >= 1 notifica non letta) |
 | 7 | STORY-048 | Home cliente (T1..T7, incluso BUG-008) | M/L | READY, ma T6/T7 e il caso `TP-` partono solo dopo AI 1 e AI 2 | AI 1, AI 2 (T6 estende la spec di AI 2) |

@@ -359,7 +359,7 @@ Formato:
 ## [BUG-034] Cambio password a campi vuoti: messaggio fuorviante sulla nuova password
 **Severity:** P3 (messaggio, nessun blocco)
 **Modulo/Ruolo:** area cliente (PT/GYM e soccer), ruolo client con `mustChangePassword` — `src/features/client/ChangePasswordScreen.jsx:16-25` (`validate`). Trovato nella QA dal vivo dello Sprint #20 (13/11, TP-091, `f42278f`), non loggato fino alla chiusura.
-**Status:** OPEN
+**Status:** FIXED — fix: `validateChangePasswordForm` estratta in `src/utils/changePasswordValidation.js`, la regola "diversa dalla temporanea" vale solo con nuova password valida (test `changePasswordValidation.test.js`), commit: `122180b`
 **Reproduction steps:** login con password temporanea → schermata di cambio password → lasciare i tre campi vuoti e premere Invio o il bottone.
 **Expected:** sulla nuova password il messaggio di lunghezza/complessita' di `validatePassword` (o "obbligatoria").
 **Actual:** `password === current` (entrambe `''`) a riga 22 sovrascrive l'errore di riga 20: il campo "nuova password" mostra "La nuova password deve essere diversa da quella temporanea", fuorviante a campi vuoti. Screenshot `scratchpad\qa20\tp91-360-errors.png`.
@@ -369,7 +369,7 @@ Formato:
 ## [BUG-035] Calendario in lipedema: "PROSSIME APPUNTAMENTI" con genere sbagliato
 **Severity:** P3 (grammatica)
 **Modulo/Ruolo:** lipedema — vista trainer del cliente (tab Calendario) — `src/features/client/ClientCalendar.jsx:105` (`PROSSIME {terminology.sessions.toUpperCase()}`: "prossime" fisso al femminile, gli altri testi usano `bySessionGender`, righe 94-97 e 109). Trovato nella QA dal vivo dello Sprint #20 (13/11, TP-092, `f42278f`), non loggato fino alla chiusura. Stessa famiglia di BUG-010.
-**Status:** OPEN
+**Status:** FIXED — fix: `upcomingSessionsTitle(terminology)` in `utils/pluralLabels.js` (aggettivo da `sessionGender`), usata in `ClientCalendar.jsx`; verifica dal vivo a fine sprint, commit: `438019b`
 **Reproduction steps:** org lipedema → paziente → tab Calendario con slot futuri → titolo della colonna delle prossime.
 **Expected:** "PROSSIMI APPUNTAMENTI" (maschile); in PT/GYM/Soccer "PROSSIME SESSIONI/ALLENAMENTI" invariato.
 **Actual:** "PROSSIME APPUNTAMENTI".
@@ -379,7 +379,7 @@ Formato:
 ## [BUG-036] Campana notifiche della bottom nav mobile senza nome accessibile
 **Severity:** P3 (accessibilita', bassa)
 **Modulo/Ruolo:** area cliente (PT/GYM e soccer), ruolo client, mobile — `src/features/client/client-view/ClientBottomNav.jsx:100-126` (bottone campana con solo icona e contatore, senza `aria-label`; la scritta "Notifiche" e' uno `span` fratello fuori dal bottone, `:127-132`). La campana desktop invece ce l'ha (`:212-214`, fix di BUG-033). Trovato il 13/11/2026 all'apertura dello Sprint #21 leggendo il codice, non ancora osservato a schermo.
-**Status:** OPEN (Sprint #21, bug S fuori voce, AI 3)
+**Status:** FIXED — fix: `aria-label={notificationsAriaLabel(unreadCount)}` sulla campana mobile, stessa funzione della desktop (`utils/pluralLabels.js`); verifica dal vivo a fine sprint, commit: `438019b`
 **Reproduction steps:** login client a 360 px con notifiche non lette → albero di accessibilita' del bottone al centro della bottom nav.
 **Expected:** nome accessibile "Notifiche" (con "N non lette" quando ce ne sono), come sul desktop.
 **Actual (da codice, non verificato dal vivo):** il nome del bottone e' solo il contatore ("2", "9+") o vuoto.
