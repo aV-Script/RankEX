@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   clientCountLabel, unreadLabel, commentCountLabel, plannedDoneLabel, monthlyLimitMessage,
   slotClientsLabel, filledCountLabel, repetitionsLabel, examinersLabel,
-  upcomingSessionsTitle, notificationsAriaLabel,
+  upcomingSessionsTitle, notificationsAriaLabel, noPlanAssignedMessage,
 } from '../../utils/pluralLabels.js'
 import { TERMINOLOGIES } from '../../config/modules.config.js'
 
@@ -124,5 +124,13 @@ describe('examinersLabel', () => {
     expect(examinersLabel(LIPEDEMA, 1)).toBe('Professionista')
     expect(examinersLabel(LIPEDEMA, 2)).toBe('Professionisti')
     expect(examinersLabel(PT, 2)).toBe('Trainer')
+  })
+})
+
+describe('noPlanAssignedMessage', () => {
+  it('usa il termine del modulo, non "trainer" fisso (BUG-008)', () => {
+    expect(noPlanAssignedMessage(PT)).toBe('Il tuo trainer non ha ancora assegnato una scheda di allenamento.')
+    expect(noPlanAssignedMessage(GYM)).toBe('Il tuo personal trainer non ha ancora assegnato una scheda di allenamento.')
+    expect(noPlanAssignedMessage(SOCCER)).toBe('Il tuo coach non ha ancora assegnato una scheda di allenamento.')
   })
 })

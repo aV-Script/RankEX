@@ -6,6 +6,7 @@ import { NotesSection }               from '../client-dashboard/NotesSection'
 import { ClientWorkoutSection }       from '../client-dashboard/ClientWorkoutSection'
 import { ClientCalendar }             from '../ClientCalendar'
 import { calcAge }                    from '../../../utils/validation'
+import { DEFAULT_TERMINOLOGY }        from '../../../config/modules.config'
 import { ClientHub }                  from './ClientHub'
 import { ClientBottomNav }            from './ClientBottomNav'
 import { AvatarPicker }               from './avatar/AvatarPicker'
@@ -147,7 +148,7 @@ function SubTabBar({ tabs, active, onSelect, stickyClass = 'sticky top-0 lg:top-
 
 export function ClientDashboardPage({
   client, clientId, orgId, color, rankObj, biaRankObj: _biaRankObj,
-  unreadCount = 0, onOpenNotifs,
+  unreadCount = 0, onOpenNotifs, terminology = DEFAULT_TERMINOLOGY,
 }) {
   const prevStats   = client.campionamenti?.[1]?.stats ?? null
   const profileType = client.profileType ?? 'tests_only'
@@ -259,7 +260,7 @@ export function ClientDashboardPage({
 
               {/* Obiettivi — sola lettura, li fissa il trainer */}
               {testTab === 'obiettivi' && profile.hasTests && orgId && (
-                <GoalsSection client={{ ...client, id: clientId }} orgId={orgId} color={displayColor} readonly isClientView />
+                <GoalsSection client={{ ...client, id: clientId }} orgId={orgId} color={displayColor} readonly isClientView terminology={terminology} />
               )}
 
               {/* BIA */}
@@ -295,6 +296,7 @@ export function ClientDashboardPage({
               badgeProgress={badgeProgress}
               color={displayColor}
               onUpdateShowcase={handleUpdateShowcase}
+              terminology={terminology}
             />
           )}
 
@@ -305,14 +307,14 @@ export function ClientDashboardPage({
                 <div className="font-display text-[10px] tracking-[3px] uppercase mb-4" style={{ color: 'var(--rx-accent)' }}>
                   ◈ Calendario allenamenti
                 </div>
-                <ClientCalendar clientId={clientId} orgId={orgId} client={client} />
+                <ClientCalendar clientId={clientId} orgId={orgId} client={client} terminology={terminology} />
               </div>
             </section>
           )}
 
           {/* Scheda ──────────────────────────────────────────────────────── */}
           {activeTab === 'scheda' && (
-            <ClientWorkoutSection orgId={orgId} clientId={clientId} color={displayColor} />
+            <ClientWorkoutSection orgId={orgId} clientId={clientId} color={displayColor} terminology={terminology} />
           )}
 
           {/* Profilo ─────────────────────────────────────────────────────── */}
@@ -334,7 +336,7 @@ export function ClientDashboardPage({
 
                 {profiloTab === 'note' && orgId && (
                   <NotesSection orgId={orgId} clientId={clientId} color={displayColor}
-                    author={{ role: 'client', name: client.name }} readonly />
+                    author={{ role: 'client', name: client.name }} readonly terminology={terminology} />
                 )}
 
                 {profiloTab === 'attivita' && (

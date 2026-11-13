@@ -64,7 +64,7 @@ export const PROTECTED_ROUTES = [
         <Suspense fallback={<LoadingScreen />}>
           {profile?.mustChangePassword
             ? <ChangePasswordScreen userId={user.uid} onDone={() => helpers.refreshProfile(user.uid)} />
-            : <ClientView clientId={profile?.clientId} orgId={profile?.orgId} />
+            : <ClientView clientId={profile?.clientId} orgId={profile?.orgId} terminology={helpers.terminology} />
           }
         </Suspense>
       </ErrorBoundary>

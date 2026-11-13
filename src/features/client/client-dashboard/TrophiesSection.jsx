@@ -4,6 +4,7 @@ import { IconClose }             from '../../../components/ui/icons'
 import { EmptyState }            from '../../../components/ui'
 import { ConfirmDialog }         from '../../../components/common/ConfirmDialog'
 import { BADGES, BADGE_TIERS, MANUAL_BADGES } from '../../../config/badges.config'
+import { DEFAULT_TERMINOLOGY }       from '../../../config/modules.config'
 
 const ICON_TROPHY = (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -53,6 +54,7 @@ export function TrophiesSection({
   onRevoke,
   onUpdateShowcase,
   color = 'var(--rx-accent)',
+  terminology = DEFAULT_TERMINOLOGY,
 }) {
   const [showPicker,     setShowPicker]     = useState(false)
   const [note,           setNote]           = useState('')
@@ -243,7 +245,7 @@ export function TrophiesSection({
                       </span>
                       {b.type === 'manual' && (
                         <span className="font-display uppercase" style={{ fontSize: 7, color: 'rgba(255,255,255,0.22)', letterSpacing: '1px' }}>
-                          · Trainer
+                          · {terminology.trainer}
                         </span>
                       )}
                       {dateStr && (
@@ -328,7 +330,7 @@ export function TrophiesSection({
                     </div>
                     {b.type === 'manual' && (
                       <div className="font-display mt-1.5 uppercase" style={{ fontSize: 7, letterSpacing: '1px', color: 'rgba(255,255,255,0.15)' }}>
-                        Assegnato dal trainer
+                        Assegnato dal {terminology.trainer.toLowerCase()}
                       </div>
                     )}
                     <div className="flex items-center gap-2 mt-2 flex-wrap">

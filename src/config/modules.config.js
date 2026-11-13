@@ -259,6 +259,14 @@ export const TERMINOLOGIES = {
 export const DEFAULT_TERMINOLOGY = TERMINOLOGIES.personal_training
 
 /**
+ * Terminologia da usare quando può mancare: `useAuth` la lascia `undefined` finché
+ * l'org non è letta e `null` al logout, e il default dei parametri copre solo `undefined`.
+ */
+export function resolveTerminology(terminology) {
+  return terminology ?? DEFAULT_TERMINOLOGY
+}
+
+/**
  * Sceglie la forma maschile o femminile secondo il genere di un termine.
  * @example byGender(t.sessionGender, 'Nuovo', 'Nuova') + ' ' + t.session.toLowerCase()
  * @param {'m'|'f'} gender — clientGender / sessionGender della terminologia

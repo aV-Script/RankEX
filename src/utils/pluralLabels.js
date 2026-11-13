@@ -35,6 +35,11 @@ export function upcomingSessionsTitle(terminology) {
   return `${bySessionGender(terminology, 'PROSSIMI', 'PROSSIME')} ${terminology.sessions.toUpperCase()}`
 }
 
+/** "Il tuo trainer non ha ancora assegnato…" col termine del modulo ("coach", "personal trainer"). */
+export function noPlanAssignedMessage(terminology) {
+  return `Il tuo ${terminology.trainer.toLowerCase()} non ha ancora assegnato una scheda di allenamento.`
+}
+
 /** Nome accessibile della campana notifiche: "Notifiche" o "Notifiche, 2 non lette". */
 export function notificationsAriaLabel(unreadCount) {
   return unreadCount > 0 ? `Notifiche, ${unreadLabel(unreadCount)}` : 'Notifiche'

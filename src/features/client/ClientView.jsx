@@ -8,12 +8,14 @@ import { ClientDashboardPage }            from './client-view/ClientDashboardPag
 import { NotificationsPanel }             from '../notification/NotificationsPanel'
 import { calcBiaScore, getBiaRankFromScore } from '../../utils/bia'
 import { calcAge }                           from '../../utils/validation'
+import { resolveTerminology }                from '../../config/modules.config'
 
 /**
  * Entry point dell'area cliente.
  * Gestisce fetch, notifiche e passa tutto al layout 2-colonne.
  */
-export default function ClientView({ clientId, orgId }) {
+export default function ClientView({ clientId, orgId, terminology: moduleTerminology }) {
+  const terminology = resolveTerminology(moduleTerminology)
   const { client, loading } = useClient(orgId, clientId)
   const { rankObj: testRankObj, color: testColor } = useClientRank(client)
 
@@ -50,6 +52,7 @@ export default function ClientView({ clientId, orgId }) {
         biaRankObj={profileType === 'complete' ? biaRankObj : null}
         unreadCount={unreadCount}
         onOpenNotifs={handleOpenNotifs}
+        terminology={terminology}
       />
 
       {showNotifs && (

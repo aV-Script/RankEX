@@ -17,6 +17,7 @@ import {
   TERMINOLOGIES,
   TERMINOLOGY_KEYS,
   DEFAULT_TERMINOLOGY,
+  resolveTerminology,
   byGender,
   bySessionGender,
   byClientGender,
@@ -313,6 +314,15 @@ describe('TERMINOLOGIES — forme grammaticali (BUG-002)', () => {
 
   it('DEFAULT_TERMINOLOGY è quella PT', () => {
     expect(DEFAULT_TERMINOLOGY).toBe(TERMINOLOGIES.personal_training)
+  })
+
+  it('resolveTerminology: undefined e null ripiegano sul default PT (BUG-008), altrimenti passa quella data', () => {
+    expect(resolveTerminology(undefined)).toBe(DEFAULT_TERMINOLOGY)
+    expect(resolveTerminology(null)).toBe(DEFAULT_TERMINOLOGY)
+    const soccer = getTerminology('soccer_academy')
+    expect(resolveTerminology(soccer)).toBe(soccer)
+    expect(resolveTerminology(soccer).trainer).toBe('Coach')
+    expect(resolveTerminology(getTerminology('personal_training', 'gym')).trainer).toBe('Personal Trainer')
   })
 
   it('byGender, helper per termine e capitalize', () => {

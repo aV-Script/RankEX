@@ -8,7 +8,7 @@ import { plannedDoneLabel }                    from '../../../utils/pluralLabels
  * registrata alla chiusura della sessione), barra se ci sono sessioni previste,
  * giorno consigliato per il prossimo allenamento. Usato da trainer e cliente.
  * showXP=false (moduli senza gamification) omette il bonus XP di fine scheda.
- * terminology: del modulo (vista trainer); l'area cliente usa il default.
+ * terminology: del modulo (vista trainer e area cliente); senza, default PT.
  */
 export function PlanProgress({ plan, color, showXP = true, terminology = DEFAULT_TERMINOLOGY }) {
   const { done, target, pct, completed, nextDayIndex } = getPlanProgress(plan)

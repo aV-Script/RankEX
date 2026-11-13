@@ -515,6 +515,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
               onAward={(badgeId, note) => handleAwardManual(badgeId, trainerUid, note)}
               onRevoke={handleRevoke}
               onUpdateShowcase={handleUpdateShowcase}
+              terminology={terminology}
             />
           )}
 

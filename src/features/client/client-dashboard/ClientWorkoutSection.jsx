@@ -3,12 +3,14 @@ import { SectionLabel, EmptyState, DayTabs } from '../../../components/ui'
 import { getWorkoutPlanForClient }           from '../../../firebase/services/workoutPlans'
 import { normalizePlanDays, getPlanProgress } from '../../../utils/workoutPlans'
 import { PlanProgress }                      from './PlanProgress'
+import { DEFAULT_TERMINOLOGY }               from '../../../config/modules.config'
+import { noPlanAssignedMessage }             from '../../../utils/pluralLabels'
 
 /**
  * Sezione scheda allenamento nella dashboard cliente.
  * Mostra la scheda attiva assegnata (read-only), con supporto multi-giorno.
  */
-export function ClientWorkoutSection({ orgId, clientId, color }) {
+export function ClientWorkoutSection({ orgId, clientId, color, terminology = DEFAULT_TERMINOLOGY }) {
   const [plan,      setPlan]      = useState(null)
   const [loading,   setLoading]   = useState(true)
   const [activeDay, setActiveDay] = useState(0)
@@ -49,7 +51,7 @@ export function ClientWorkoutSection({ orgId, clientId, color }) {
           color={color}
           icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4v6a6 6 0 0 0 12 0V4"/><line x1="6" y1="20" x2="18" y2="20"/></svg>}
           title="Nessuna scheda assegnata"
-          description="Il tuo trainer non ha ancora assegnato una scheda di allenamento."
+          description={noPlanAssignedMessage(terminology)}
         />
       </div>
     </section>
@@ -73,7 +75,7 @@ export function ClientWorkoutSection({ orgId, clientId, color }) {
           </p>
         )}
 
-        <PlanProgress plan={plan} color={color} />
+        <PlanProgress plan={plan} color={color} terminology={terminology} />
 
         {/* Tab giorni — solo se più di uno */}
         {days.length > 1 && (

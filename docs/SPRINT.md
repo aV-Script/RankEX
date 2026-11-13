@@ -125,11 +125,21 @@ rank BIA solo `bia_only`; `useClientRank.js:14-20` media da `stats`; `ClientDash
 `terminology`; `ClientWorkoutSection.jsx:52` "trainer" cablato; `ClientCalendar.jsx:56-69` fonte delle prossime sessioni;
 `ClientBottomNav.jsx:202-211` badge Monete (solo nella barra desktop; la bottom nav mobile `:94-135` non lo ha:
 la Home mobile lo mostra con un componente nuovo estratto da qui); `:100-126` campana mobile senza `aria-label`.
-**Celle non verificate:** `routes.config.jsx:62` (helpers: letto, ma la nota "la hanno gia' helpers" non e'
-controllata riga per riga); `ClientWorkoutSection.jsx:76` (`PlanProgress`, la ricerca non l'ha trovato: da
-riverificare dal developer prima di T1); `modules.config.js:259` `DEFAULT_TERMINOLOGY` (la ricerca non ha restituito
-la definizione: da riverificare); testo GYM "Personal Trainer/Membro" mostrato in area cliente (letto solo
-`modules.config.js:169-170`); ordinamento delle notifiche del service (dichiarato non verificato nelle AC).
+**Celle chiuse dal developer (13/11, lette nel codice prima di T1, nessuna cambia il piano):**
+`routes.config.jsx:62` l'elemento della route `/client` riceve `helpers` = `{ org, terminology, refreshProfile }` da
+`AppRouter.jsx:26` (`terminology` da `useAuth.js:22,26,30`, ma `undefined` finche' l'org non e' letta e `null` al logout
+`useAuth.js:36,46`: il default dei parametri non copre `null`, per questo `resolveTerminology`); `PlanProgress` e' in
+`src/features/client/client-dashboard/ClientWorkoutSection.jsx:76` (prima di T1, ora `:78`) e usa `terminology.session`
+(`PlanProgress.jsx:26`) con default `DEFAULT_TERMINOLOGY` (`:13`); `DEFAULT_TERMINOLOGY = TERMINOLOGIES.personal_training`
+a `modules.config.js:259`; GYM = blocco `gym` `modules.config.js:168-195` (Personal Trainer/Membro/Allenamento), scelto da
+`getTerminology(moduleType, variant)` (`:379-382`, prima di T1) quando l'org ha `terminologyVariant: 'gym'`; in area
+cliente non arrivava mai (BUG-008). Altri testi cablati trovati oltre l'AC: `TrophiesSection.jsx:246` "· Trainer" e
+`:331` "Assegnato dal trainer", e `ClientDashboardPage.jsx:262` (`GoalsSection` senza `terminology`): corretti in T1.
+Fuori dall'AC e non toccati: `ChangePasswordScreen.jsx:62` "ricevuta dal trainer" (schermata prima di `ClientView`),
+titolo "Calendario allenamenti" `ClientDashboardPage.jsx:306` (cablato, corretto per PT/GYM/Soccer). Ordinamento notifiche:
+GARANTITO dal service (`firebase/services/notifications.js:15`, `createdAt` ISO scritto dalle callable, es.
+`chiudiSessione.js:153,172`); in T3 estratto in `utils/notifications.js` (`sortNotificationsNewestFirst`, senza data
+valida in fondo) con test.
 Nessuna cella dipende dall'ambiente (nessun `isDev`/`isUat`/`isProduction`). Il developer conferma la tabella prima di T1.
 
 ## Punti da confermare — risolti 2026-11-13
