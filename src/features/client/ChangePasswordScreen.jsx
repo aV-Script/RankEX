@@ -5,7 +5,7 @@ import { doc, updateDoc }                        from 'firebase/firestore'
 import { auth }                                  from '../../firebase/services/auth'
 import { db }                                    from '../../firebase/services/db'
 import { getFirebaseErrorMessage }               from '../../utils/firebaseErrors'
-import { validatePassword }                      from '../../utils/validation'
+import { validateChangePasswordForm }            from '../../utils/changePasswordValidation'
 import { auditLog, AUDIT_ACTIONS }               from '../../utils/auditLog'
 
 export default function ChangePasswordScreen({ userId, onDone }) {
@@ -14,12 +14,7 @@ export default function ChangePasswordScreen({ userId, onDone }) {
   const [loading, setLoading] = useState(false)
 
   const validate = () => {
-    const e = {}
-    if (!form.current)                          e.current  = 'Password temporanea obbligatoria'
-    const pwCheck = validatePassword(form.password)
-    if (!pwCheck.valid)                         e.password = pwCheck.error
-    if (form.password !== form.confirm)         e.confirm  = 'Le password non coincidono'
-    if (form.password === form.current)         e.password = 'La nuova password deve essere diversa da quella temporanea'
+    const e = validateChangePasswordForm(form)
     setErrors(e)
     return Object.keys(e).length === 0
   }
