@@ -1,4 +1,4 @@
-import { SLOT_STATUS } from '../constants/slotStatus'
+import { SLOT_STATUS } from '../constants/slotStatus.js'
 
 /** Altezza in px di un'ora nelle viste settimana e giorno. */
 export const HOUR_HEIGHT_PX = 60
