@@ -128,7 +128,7 @@ export function NotificationsPanel({ notifications, color, onClose, onDelete, on
             style={{ width: 34, height: 34, background: color + '15', border: `1px solid ${color}30`, color }}>
             {ICON_BELL}
           </div>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-[120px]">
             <div className="font-display text-[9px] tracking-[3px] uppercase"
               style={{ color: color + '65' }}>
               {unreadCount > 0

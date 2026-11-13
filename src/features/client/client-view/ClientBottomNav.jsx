@@ -6,6 +6,7 @@ import { AvatarDisplay }  from './avatar/AvatarDisplay'
 import { logout }         from '../../../firebase/services/auth'
 import { BellIcon, LogoutIcon } from './client.config'
 import { ConfirmDialog }  from '../../../components/common/ConfirmDialog'
+import { unreadLabel }    from '../../../utils/pluralLabels'
 import {
   ICON_TEST, ICON_TROFEI, ICON_CALENDARIO, ICON_PROFILO,
 } from './ClientHub'
@@ -210,6 +211,7 @@ export function ClientBottomNav({
             </span>
             <button
               onClick={onOpenNotifs}
+              aria-label={unreadCount > 0 ? `Notifiche, ${unreadLabel(unreadCount)}` : 'Notifiche'}
               style={{
                 position: 'relative', width: 34, height: 34,
                 borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
