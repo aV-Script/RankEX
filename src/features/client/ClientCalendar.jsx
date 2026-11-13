@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
-import { getClientSlots, getUpcomingClientSlots } from '../../firebase/services/calendar'
+import { getClientSlots } from '../../firebase/services/calendar'
 import { getMonthRange } from '../calendar/useCalendar'
+import { useUpcomingSessions } from './useUpcomingSessions'
 import { calcStreakPreview, calcSessionXP, calcStreakMultiplier } from '../../utils/gamification'
 import {
   toLocalDateStr, getClientSlotState, calcClientMonthSummary, formatUpcomingDate,
@@ -12,9 +13,8 @@ const MONTH_NAMES = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
   'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre']
 const DAY_NAMES = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom']
 
-const UPCOMING_FETCH_LIMIT = 20
-const UPCOMING_SHOWN       = 3
-const MAX_DAY_DOTS         = 3
+const UPCOMING_SHOWN = 3
+const MAX_DAY_DOTS   = 3
 
 const STATE_COLORS = {
   completed: '#34d399',
@@ -27,14 +27,13 @@ const PANEL_STYLE = { background: 'rgba(255,255,255,0.03)', border: '1px solid r
 
 const byTime = (a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? '')
 
-// terminology: del modulo (vista trainer); l'area cliente usa il default.
+// terminology: del modulo (vista trainer e area cliente); senza, default PT.
 // client: serve per striscia e stima XP; senza, non compaiono.
 // hasGamification: false per i moduli senza XP (lipedema): nessuna striscia né stima.
 export function ClientCalendar({
   clientId, orgId, client = null, terminology = DEFAULT_TERMINOLOGY, hasGamification = true,
 }) {
   const [slots,        setSlots]        = useState([])
-  const [upcoming,     setUpcoming]     = useState([])
   const [currentYear,  setCurrentYear]  = useState(new Date().getFullYear())
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1)
 
@@ -53,21 +52,9 @@ export function ClientCalendar({
     return () => { cancelled = true }
   }, [orgId, clientId, from, to])
 
-  // Prossime sessioni: indipendenti dal mese mostrato
-  useEffect(() => {
-    if (!orgId || !clientId) return
-    let cancelled = false
-    getUpcomingClientSlots(orgId, clientId, today, UPCOMING_FETCH_LIMIT)
-      .then(data => {
-        if (cancelled) return
-        const planned = data
-          .filter(slot => getClientSlotState(slot, clientId) === 'planned')
-          .sort((a, b) => a.date.localeCompare(b.date) || byTime(a, b))
-        setUpcoming(planned.slice(0, UPCOMING_SHOWN))
-      })
-      .catch(() => {})
-    return () => { cancelled = true }
-  }, [orgId, clientId, today])
+  // Prossime sessioni: indipendenti dal mese mostrato. In errore resta "nessuna in programma"
+  const { sessions: upcomingSessions } = useUpcomingSessions(orgId, clientId)
+  const upcoming = upcomingSessions.slice(0, UPCOMING_SHOWN)
 
   // Mappa dei giorni del mese per calendario
   const calendarDays = useMemo(() => {
