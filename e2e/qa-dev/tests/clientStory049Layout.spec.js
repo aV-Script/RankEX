@@ -86,6 +86,11 @@ for (const viewport of VIEWPORTS) {
       const medals = showcase.getByRole('img', { name: /, tier / })
       await expect(medals, SEED_HINT).toHaveCount(SHOWCASE_SIZE)
       await scrollToViewportCenter(showcase)
+      // Le medaglie entrano con `rx-animate-in` (fade + traslazione): misurate a meta' animazione le y differiscono di
+      // ~3 px (1o run #22, errore di spec). Si attende la fine delle animazioni finite.
+      await page.evaluate(() => Promise.all(
+        document.getAnimations().filter(animation => animation.effect?.getComputedTiming().iterations !== Infinity).map(animation => animation.finished),
+      ))
 
       const containerBox = await documentBox(showcase)
       const labels = showcase.locator('div.font-display').filter({ hasNotText: /Profilo \(/ })
