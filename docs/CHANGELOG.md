@@ -37,7 +37,7 @@ invariate, nessun deploy functions. Sprint #23, voce 9.
 - `qa:dev` sull'hosting dev a `5c7f6c6`: **65/66** (rosso `e2e/qa-dev/tests/lipedema.spec.js:103` "chiude un
   appuntamento"), rerun di `lipedema.spec.js` da solo **6/6**: spec instabile, non legata allo sblocco (a backlog).
 - E2E CI rosso solo per BUG-042 (dati di test, `real-flows.spec.js` "campionamento", tetto 50 campionamenti).
-- TP-095 su rankex-dev: passi super_admin da provare a cura dell'utente (esito in SPRINT voce 8).
+- TP-095 su rankex-dev, passi 1, 2, 7, 8 (super_admin): tutti PASS il 27/11, residui = 0 (dettaglio in SPRINT voce 8).
 
 ### Breaking Changes
 - Nessuno. Nessuna modifica a `firestore.rules`, `firestore.index.json`, `firebase.json`, `functions/`.
