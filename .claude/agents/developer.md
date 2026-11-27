@@ -39,6 +39,8 @@ Controprove: mai `git checkout`/`restore`/`reset --hard`/`clean`/`stash drop` su
 
 Spec Playwright nuove o modificate: eseguile almeno una volta prima di dichiararle pronte (hosting dev se il codice è già deployato, altrimenti build locale servita con `vite preview` su una copia, come nelle controprove). Se non puoi eseguirle, dillo esplicitamente nel report: "spec NON eseguita".
 
+Controprova con `vite preview` (porta 4173): prima di avviarlo, porta libera (`Get-NetTCPConnection -LocalPort 4173` / `netstat -ano | findstr 4173`); dopo l'avvio, la pagina servita contiene l'hash della build della copia (nome `assets/index-*.js` in `dist/index.html` della copia = quello servito da localhost:4173); a fine prova ferma il processo node figlio (il PID sulla porta), non solo il task.
+
 Al termine riporta, in forma compatta (niente riepilogo del brief, niente ripetizione delle decisioni già date):
 ```
 FILES (per task): ...

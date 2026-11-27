@@ -24,6 +24,9 @@ jobs:
       - name: Lint
         run: npm run lint --if-present
 
+      - name: Check import degli script (loader ESM nativo)
+        run: npm run check:node-imports
+
       - name: Test
         run: npm run test:run
 

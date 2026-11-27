@@ -1196,7 +1196,7 @@ devDependency del repo; `npx firebase` non funziona, `npx firebase-tools` sì).
 
 ### Pre-flight (tutto verde, su HEAD di `dev`)
 ```
-npm run build · npm run lint · npm run test:run
+npm run build · npm run lint · npm run test:run · npm run check:node-imports
 npm run test:rules                  # emulatore Firestore (serve Java), come in ci.yml
 cd functions && npm test
 ```
