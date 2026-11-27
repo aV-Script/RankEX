@@ -69,11 +69,15 @@ sull'hosting dev a `fb08a28` (run `deploy.yml` 46008321615) · `docs/BUGS.md` se
   functions = `fb08a28`. Deploy `cd functions && npm run deploy` 2026-11-27 14:33:10-14:34:45 UTC, exit 0,
   "Deploy complete!", 40 "Successful update operation", nessuna callable creata o cancellata
 - [x] `functions:list --project fitquest-60a09` dopo il deploy: 40 callable, 40 `nodejs22`
-- [ ] Merge `dev -> main` + push: run CI __, `deploy.yml` __ (`deploy-prod`): __
+- [x] Merge `dev -> main` (fast-forward `f086405..53b5579`, push 14:41:26 UTC): CI 46018184533 ok (14:42:46),
+  `deploy.yml` 46018372099 `deploy-prod` ok (14:43:27 UTC), `deploy-dev` skipped; finestra functions -> hosting/rules
+  circa 9 minuti. E2E 46018184458 su `main`: atteso rosso per BUG-042 (dati di test). Verifica HTTP anonima:
+  `rankex-app` e `rankex-admin` servono `version.json` `{"v":1795790592944}`, Last-Modified 14:43:20 GMT, CSP e
+  `X-Frame-Options: DENY` presenti
+- [x] Log functions prod dal deploy (`functions:log --lines 200`, 160 righe del 27/11 dalle 14 UTC): 0 righe di errore
 - [ ] Smoke test sola lettura super_admin su `rankex-admin` (lista org, una PT, una Soccer; select Modulo senza
   Lipedema): __
 - [ ] Banner RICARICA su build vecchia entro 5 min: __
-- [ ] Log functions senza errori dopo il deploy: __
 
 ### Rollback plan
 Prev: hosting+rules `f086405`; functions `f086405` (Node 22, deployabile: vedi checkPrev sopra). Dettagli in `CLAUDE.md`.
