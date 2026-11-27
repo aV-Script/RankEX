@@ -2068,3 +2068,144 @@ pagare la lettura anche al wearable e a ogni altro update, senza beneficio.
   possono più aggiornare le misure finché non la registrano. È il comportamento voluto, coerente
   con BIA e valutazioni.
 
+## [ADR-021] Terminologia del modulo e data leggibile nelle notifiche di `chiudiSessione` (BUG-037)
+**Data:** 2026-11-27
+**Contesto:** `functions/src/callable/chiudiSessione.js` scrive le notifiche al cliente con un testo
+fisso PT e la data grezza dello slot (`slot.date`, `'YYYY-MM-DD'`):
+- `:147-149` presenza: `Sessione del ${slot.date} completata[ e scheda "<titolo>" finita]! +N XP (streak S)`
+- `:168` assenza: `Sessione del ${slot.date} — assenza registrata. Streak azzerata.`
+
+Un allievo soccer legge "Sessione del 2026-11-10 completata!" invece di "Allenamento del 10 nov
+completato!". GYM (`organizations.terminologyVariant: 'gym'`) ha lo stesso problema (non verificato dal
+vivo). Lipedema non è toccato: senza gamification la callable esce a `:103-110` prima di ogni notifica.
+`functions/` non può importare `src/config/modules.config.js` (`TERMINOLOGIES`, `getTerminology`).
+
+| Caso | dev | UAT | prod |
+|------|-----|-----|------|
+| PT (`moduleType: 'personal_training'` o legacy `null`) | oggi "Sessione del 2026-11-10 completata!" (`chiudiSessione.js:149`); dopo: "Sessione del 10 nov completata!" | non verificato | stesso codice (functions prod a `f086405`): non verificato dal vivo |
+| GYM (`terminologyVariant: 'gym'`) | dopo: "Allenamento del 10 nov completato!" (client: `modules.config.js:175,180`) | non verificato | non verificato |
+| Soccer | oggi "Sessione del …" (visto dal vivo, BUG-037); dopo: "Allenamento del 10 nov completato!" (`modules.config.js:203,208`) | non verificato | non verificato |
+| Lipedema | nessuna notifica (`chiudiSessione.js:103-110`): invariato | — | — |
+| `moduleType` sconosciuto non nullo | rifiutata da `getOrgCapabilities` (`orgModule.js:23-25`) prima di ogni scrittura: invariato | — | — |
+
+**Decisione:** approccio proposto confermato, con tre precisazioni (lettura org, data, perimetro).
+
+1. **Copia minimale della terminologia** — nuovo file `functions/src/shared/terminology.js`, **zero
+   import** tranne `./timezone.js` (il test di parità lo importa in CI, dove `functions/node_modules` non
+   è installato: stessa regola di `timezone.js` e del blocco CORE di `lipedema.js`):
+   ```js
+   // Sottoinsieme speculare di TERMINOLOGIES (src/config/modules.config.js): solo session/sessionGender
+   export const SESSION_TERMS = {
+     personal_training: { session: 'Sessione',     sessionGender: 'f' },
+     gym:               { session: 'Allenamento',  sessionGender: 'm' },
+     soccer_academy:    { session: 'Allenamento',  sessionGender: 'm' },
+     lipedema:          { session: 'Appuntamento', sessionGender: 'm' },
+   }
+   export function resolveSessionTerm(moduleType, variant)   // → { session, sessionGender }
+   export function formatSlotDateIt(isoDate)                 // 'YYYY-MM-DD' → '10 nov'
+   export function sessionCompletedMessage(term, isoDate, { xpGain, streak, planTitle })  // → string
+   export function sessionAbsenceMessage(term, isoDate)      // → string
+   ```
+   - `resolveSessionTerm` replica **esattamente** `getTerminology` (`modules.config.js:381-384`):
+     `variant` noto vince sul modulo, poi `moduleType`, poi default PT. Copre quindi `null`/`undefined`
+     (legacy → PT, come `TrainerView`/`OrgAdminView` e `resolveModuleCapabilities`) e un modulo sconosciuto
+     (→ PT; caso irraggiungibile in `chiudiSessione` perché `getOrgCapabilities` rifiuta prima, ma la
+     funzione resta totale e mai `undefined`). Niente logica nuova "variant solo per PT": il client non la
+     ha, introdurla romperebbe la parità.
+   - `sessionCompletedMessage`: `${term.session} del ${formatSlotDateIt(isoDate)} ${completed}` con
+     `completed = sessionGender === 'f' ? 'completata' : 'completato'`; con `planTitle`:
+     ` e scheda "${planTitle}" finita`; poi `! +${xpGain} XP (streak ${streak})`. Coda invariata.
+   - `sessionAbsenceMessage`: `${term.session} del ${date} — assenza registrata. Streak azzerata.`
+     ("registrata" concorda con "assenza", non col termine: nessun genere da applicare).
+   - `formatSlotDateIt`: `slot.date` è una **data di calendario**, non un istante. Parsing manuale con
+     regex `^(\d{4})-(\d{2})-(\d{2})$` → `new Date(Date.UTC(y, m - 1, d, 12))` formattato con
+     `toLocaleDateString('it-IT', { day: 'numeric', month: 'short', timeZone: LOCAL_TIME_ZONE })`.
+     Mezzogiorno UTC è lo stesso giorno di calendario in Europe/Rome (UTC+1/+2) e in ogni fuso entro
+     ±11 h, quindi né il fuso del server (UTC) né l'ora legale spostano il giorno. **Mai**
+     `new Date('2026-11-10')` (mezzanotte UTC: corretto in Rome ma dipendente dal fuso del formattatore).
+     `day: 'numeric'` ("1 nov", non "01 nov"): è dentro una frase. Niente anno (le notifiche sono recenti).
+     Input non valido/assente → restituisce `String(isoDate ?? '')` invariato, mai `Invalid Date`, mai throw
+     (una notifica non deve far fallire la chiusura della sessione). Verificato su Node locale:
+     `Date.UTC(2026,10,1,12)` → `"1 nov"` (Node 22 ha full-icu).
+
+2. **Nessuna lettura in più dell'org** — in `functions/src/shared/orgModule.js` aggiungere
+   ```js
+   export async function getOrgModule(db, orgId)  // → { moduleType, terminologyVariant, capabilities }
+   ```
+   con la stessa lettura e gli stessi rifiuti di oggi (`not-found`, `failed-precondition` sul modulo
+   sconosciuto); `getOrgCapabilities` diventa `(await getOrgModule(db, orgId)).capabilities`, firma e
+   comportamento invariati per gli altri chiamanti (nessuno da toccare). `chiudiSessione.js:51` passa a
+   `const { capabilities: { hasGamification }, moduleType, terminologyVariant } = await getOrgModule(db, orgId)`
+   e calcola `const term = resolveSessionTerm(moduleType, terminologyVariant)` una volta, fuori dalla
+   transazione (la nota in `orgModule.js:12-14` vale anche qui: il termine cambia solo con un cambio di
+   modulo, raro e non critico per un testo).
+
+3. **Perimetro: solo le due notifiche** (`:147-149`, `:168`). Altri testi della stessa callable,
+   **lasciati fuori** e consegnati all'inventario del gruppo B:
+   - `chiudiSessione.js:117` — label del log XP `'Sessione di allenamento'` (passata a
+     `buildSessionUpdate`, `shared/gamification.js:28`, default `'Sessione'`): visibile nel log XP del
+     cliente. Con il termine soccer/GYM diventerebbe "Allenamento di allenamento": serve una scelta di
+     testo (es. solo `term.session`), che cambia il formato del log anche per PT. Non qui.
+   - `chiudiSessione.js:63` — `HttpsError('failed-precondition', 'Sessione già chiusa')`: errore mostrato
+     al trainer (dipende da `firebaseErrors`), non al cliente.
+   - `chiudiSessione.js:129` — log `Scheda completata: <titolo> (+100 XP)`: neutro, nessun termine di modulo.
+   - `chiudiSessione.js:50` e `shared/gamification.js:30` — campo `date` di notifica/log con
+     `toLocaleDateString` **senza `timeZone`**: sul server UTC, tra 00:00 e 01:00/02:00 di Roma esce il
+     giorno prima. Difetto preesistente, fuori da BUG-037; vale per tutte le callable che scrivono `date`
+     (`salvaXP.js:37`, `salvaBia.js:69`, `salvaCampionamento.js:112,133`, `aggiornaProfiloCliente.js:39`,
+     `shared/gamification.js:59,102,109,139,166`).
+
+**File che il developer tocca (e solo questi):**
+- `functions/src/shared/terminology.js` — nuovo (sopra)
+- `functions/src/shared/orgModule.js` — `getOrgModule` + `getOrgCapabilities` come wrapper
+- `functions/src/callable/chiudiSessione.js` — `:51` e i messaggi `:147-149`, `:168`
+- `functions/test/chiudiSessione.test.js` — test sotto
+- `functions/test/terminology.test.js` — nuovo, unit delle funzioni pure
+- `src/__tests__/parity/clientServerParity.test.js` — **il test di parità sta qui**, non in
+  `functions/test/`; nuovo `describe('Terminologia sessione')`
+- `src/config/modules.config.js` — **solo un commento** sopra `TERMINOLOGIES` ("session/sessionGender
+  hanno una copia in functions/src/shared/terminology.js"), come per gli altri file speculari
+
+**Test da scrivere:**
+- `functions/test/chiudiSessione.test.js` (mock esistente, l'org è già un doc del mock):
+  - **fallisce prima del fix:** org `soccer_academy`, slot `date: '2026-11-10'`, presente con
+    `clientAuthUid` → notifica `type: 'session'` il cui `message` inizia per
+    `'Allenamento del 10 nov completato!'` e **non contiene** `'Sessione'` né `'2026-11-10'`
+  - PT: inizia per `'Sessione del 10 nov completata! +'`; org legacy senza `moduleType`: idem PT
+  - GYM (`personal_training` + `terminologyVariant: 'gym'`): `'Allenamento del 10 nov completato!'`
+  - scheda completata, soccer: `'Allenamento del 10 nov completato e scheda "<titolo>" finita! +'`
+  - assente soccer: `'Allenamento del 10 nov — assenza registrata. Streak azzerata.'`
+  - i test esistenti su moduleType sconosciuto e lipedema restano verdi senza modifiche
+- `functions/test/terminology.test.js`: `formatSlotDateIt('2026-11-10') === '10 nov'`; `'2026-01-01'`
+  → `'1 gen'`; `'2026-03-29'` e `'2026-10-25'` (cambio ora legale) → `'29 mar'` / `'25 ott'`;
+  `'2026-12-31'` → `'31 dic'`; `undefined` / `''` / `'10/11/2026'` → stringa invariata, nessun throw;
+  `resolveSessionTerm(null)`, `(undefined)`, `('xyz')` → PT.
+- `clientServerParity.test.js`: per ogni `moduleType` in `[...Object.keys(clientModules.TERMINOLOGIES),
+  null, undefined, 'sconosciuto']` × `variant` in `[undefined, null, 'gym']`,
+  `resolveSessionTerm(m, v)` uguale a `{ session, sessionGender }` di `clientModules.getTerminology(m, v)`;
+  più `Object.keys(SESSION_TERMS)` uguale a `Object.keys(TERMINOLOGIES)` (un modulo/variante nuovo lato
+  client senza copia server fa fallire il test).
+
+**Regole di parità:** la copia server contiene solo `session` e `sessionGender`; se una callable avrà
+bisogno di altri termini si aggiungono alla stessa mappa e al test (non un secondo file). La mappa non
+può stare in `orgModule.js`: importa `firebase-functions`, non caricabile dal test di parità in CI.
+
+**Alternative scartate:**
+- *Termine passato dal client* (come la descrizione del log in `saveCampionamentoUseCase.js`): il server
+  conosce già il modulo, e il testo finirebbe in notifiche di altri utenti con contenuto scelto dal client.
+- *Copia completa di `TERMINOLOGIES`* (26 chiavi × 4): più superficie da tenere allineata per un solo uso.
+- *Testo neutro senza termine* ("Presenza del 10 nov registrata"): perde il termine del modulo, che è
+  proprio l'atteso di BUG-037.
+- *Seconda `get()` dell'org in `chiudiSessione`*: lettura doppia per nulla; `getOrgModule` la evita senza
+  toccare gli altri chiamanti.
+- *`new Date(slot.date)`*: mezzanotte UTC, giusto oggi ma dipendente dal fuso del formattatore.
+
+**Conseguenze:**
+- Deploy functions: prima `cd functions && npm run deploy:dev`, poi `npm run deploy` (via libera). Nessuna
+  modifica a rules, hosting o client funzionale: compatibile con qualsiasi build client.
+- Le notifiche già scritte restano col testo vecchio (nessuna migrazione: storiche, P3).
+- Nuova copia speculare (`terminology.js` ↔ `TERMINOLOGIES`), coperta dal test di parità.
+- PT cambia solo nella data ("Sessione del 10 nov completata!").
+- Residui per il gruppo B: label del log XP (`:117`), errore `:63`, campo `date` senza `timeZone` in tutte
+  le callable (candidato TECH-DEBT, non creato da questo ADR).
+
