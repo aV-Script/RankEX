@@ -5,9 +5,16 @@ import { getModule, MODULES } from '../../config/modules.config.js'
 const ALL_TABS = ['atleta', 'test', 'bia', 'allenamento', 'obiettivi', 'calendario', 'note', 'attivita', 'misure', 'wearable', 'trofei']
 
 describe('getVisibleTabIds', () => {
-  it('PT e soccer con test: tutte le tab (invariato)', () => {
+  it('PT con test: tutte le tab (invariato)', () => {
     expect(getVisibleTabIds(getModule(MODULES.PERSONAL_TRAINING), true)).toEqual(ALL_TABS)
-    expect(getVisibleTabIds(getModule(MODULES.SOCCER_ACADEMY), true)).toEqual(ALL_TABS)
+  })
+
+  it('soccer: tutte tranne BIA (hasBia: false, BUG-005)', () => {
+    expect(getVisibleTabIds(getModule(MODULES.SOCCER_ACADEMY), true)).toEqual(ALL_TABS.filter(id => id !== 'bia'))
+  })
+
+  it('modulo sconosciuto: nessuna tab BIA', () => {
+    expect(getVisibleTabIds(getModule('sconosciuto'), true)).not.toContain('bia')
   })
 
   it('PT bia_only: tutte tranne Test (invariato)', () => {
