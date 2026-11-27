@@ -14,7 +14,9 @@ import { EmptyState, Input }    from '../../../components/ui'
 import { getPlanLimits, PLAN_OPTIONS } from '../../../config/plans.config'
 import {
   MODULES, TERMINOLOGY_VARIANTS_BY_MODULE, getModuleLabel, getSelectableModuleOptions, isModuleChangeAllowed,
+  getTerminology,
 } from '../../../config/modules.config'
+import { formatOrgCreatedAt }       from '../../../utils/orgDates'
 
 const ICON_MEMBERS = (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -59,6 +61,8 @@ export function OrgDetailView({ org, onBack }) {
   // Conteggio reale dei clienti, non solo org.clientCount (ADR-015 §6). Finché
   // non è noto (caricamento o errore) il cambio da/verso lipedema resta bloccato.
   const knownClientCount = loading || loadFailed ? null : clientCount
+  // Barre utilizzo con i termini dell'org (Trainer/Clienti, Professionisti/Pazienti…)
+  const terminology = getTerminology(moduleType, termVariant)
   const isModuleOptionAllowed = (value) => isModuleChangeAllowed(moduleType, value, knownClientCount)
   const moduleOptions = getSelectableModuleOptions({ currentModule: moduleType })
   const hasBlockedModuleOption = moduleOptions.some(opt => !isModuleOptionAllowed(opt.value))
@@ -226,7 +230,7 @@ export function OrgDetailView({ org, onBack }) {
               ['Status',      org.status ?? 'active'],
               ['Terminologia',termVariant ?? '—'],
               ['Owner',       org.ownerId ?? '—'],
-              ['Creato il',   org.createdAt ? new Date(org.createdAt).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'],
+              ['Creato il',   formatOrgCreatedAt(org.createdAt)],
             ].map(([label, value]) => (
               <div key={label} className="flex items-center justify-between">
                 <span className="font-body text-[12px] text-white/40">{label}</span>
@@ -251,14 +255,14 @@ export function OrgDetailView({ org, onBack }) {
                 style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}
               >
                 <UsageBar
-                  label="Trainer"
+                  label={terminology.trainers}
                   current={members.length}
                   limit={limits.trainers}
                   pct={trainerPct}
                   atLimit={atT}
                 />
                 <UsageBar
-                  label="Clienti"
+                  label={terminology.clients}
                   current={clientCount}
                   limit={limits.clients}
                   pct={clientPct}

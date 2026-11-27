@@ -441,7 +441,7 @@ Formato:
 ## [BUG-042] E2E `real-flows.spec.js` "campionamento: salvato e conteggiato una volta" rosso quando il cliente di test arriva a 50 campionamenti
 **Severity:** P3 (test, non codice prodotto)
 **Modulo/Ruolo:** PT, trainer — solo `e2e.yml` (rankex-dev, org `test-org-pt`, cliente "Mario Rossi (Test)"); non blocca `deploy.yml`.
-**Status:** OPEN
+**Status:** FIXED (in attesa di CI) — `e2e/tests/real-flows.spec.js`: atteso `Math.min(before + 1, MAX_CAMPIONAMENTI)` (50). Spec passata in locale (vite + rankex-dev); `e2e.yml` non ha secret Admin SDK, quindi nessuna pulizia dati.
 **Reproduction steps:** run E2E 46012723193 su `515eb12` (commit di soli docs, 27/11/2026): `expect(after.camps).toBe(before.camps + 1)` (`e2e/tests/real-flows.spec.js:59`) → Expected 51, Received 50, anche al retry. Su `fb08a28` (run 46008168104) era verde.
 **Actual:** ogni run E2E aggiunge un campionamento allo stesso cliente; lo storico è troncato a `MAX_CAMPIONAMENTI = 50` (`src/utils/gamification.js:84,170`, `functions/src/shared/constants.js:11`, `shared/gamification.js:76`), quindi raggiunto il tetto il conteggio non cresce più. Comportamento del prodotto corretto, spec non idempotente.
 **Suggested fix:** nella spec verificare la data/l'ultimo campionamento invece del conteggio (o `Math.min(before + 1, 50)`), oppure riportare il cliente di test sotto il tetto in `seed-test-accounts.mjs`. **Stima: S.** Trovato al push dei docs del rilascio Sprint #22.

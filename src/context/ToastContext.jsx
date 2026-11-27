@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback } from 'react'
 import { Toast }             from '../components/common/Toast'
-import { TOAST_DURATION_MS } from '../config/app.config'
+import { scheduleToastRemoval } from '../config/app.config'
 
 const ToastContext = createContext(null)
 
@@ -17,7 +17,7 @@ export function ToastProvider({ children }) {
   const addToast = useCallback(({ message, variant = 'info' }) => {
     const id = ++nextToastId
     setToasts(prev => [...prev, { id, message, variant }].slice(-MAX_TOASTS))
-    setTimeout(() => removeToast(id), TOAST_DURATION_MS)
+    scheduleToastRemoval(variant, () => removeToast(id))
   }, [removeToast])
 
   return (

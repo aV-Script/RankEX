@@ -1,17 +1,22 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { useFocusTrap } from '../../../hooks/useFocusTrap'
 import { useEscapeKey } from '../../../hooks/useEscapeKey'
 import { Button } from '../../../components/ui'
+import { getDeletedItems, isDeleteNameConfirmed } from './deleteDialogModel'
 
 /**
- * Dialog di conferma eliminazione cliente.
- * Modale semplice con due azioni: annulla e conferma.
+ * Dialog di conferma eliminazione cliente: elenca cosa viene cancellato (dalle
+ * capability del modulo) e richiede di digitare il nome per abilitare la conferma.
  */
-export function DeleteDialog({ clientName, clientLabel = 'Cliente', onConfirm, onCancel }) {
+export function DeleteDialog({ clientName, clientLabel = 'Cliente', capabilities, terminology, isDeleting = false, onConfirm, onCancel }) {
   const dialogRef = useRef(null)
+  const [typedName, setTypedName] = useState('')
   useFocusTrap(dialogRef, true)
 
   useEscapeKey(onCancel)
+
+  const deletedItems = getDeletedItems(capabilities, terminology)
+  const canConfirm = isDeleteNameConfirmed(typedName, clientName)
 
   return (
     <div
@@ -31,21 +36,32 @@ export function DeleteDialog({ clientName, clientLabel = 'Cliente', onConfirm, o
         <h3 id="delete-dialog-title" className="font-display font-black text-[16px] text-white mb-2">
           Elimina {clientLabel.toLowerCase()}
         </h3>
-        <p className="font-body text-[13px] text-white/50 mb-6">
+        <p className="font-body text-[13px] text-white/50 mb-3">
           Stai per eliminare <strong className="text-white">{clientName}</strong>.
-          Questa azione è irreversibile.
+          Questa azione è irreversibile e cancella:
         </p>
+        <ul className="font-body text-[13px] text-white/70 mb-4 pl-5 list-disc">
+          {deletedItems.map(item => <li key={item}>{item}</li>)}
+        </ul>
+        <label htmlFor="delete-dialog-name" className="block font-body text-[12px] text-white/50 mb-1.5">
+          Scrivi il nome per confermare
+        </label>
+        <input
+          id="delete-dialog-name"
+          type="text"
+          className="input-base mb-6"
+          value={typedName}
+          onChange={e => setTypedName(e.target.value)}
+          autoComplete="off"
+          autoFocus
+        />
         <div className="flex gap-3">
           <Button variant="neutral" className="flex-1" onClick={onCancel}>
             ANNULLA
           </Button>
-          <button
-            onClick={onConfirm}
-            className="flex-1 py-2.5 font-display text-[12px] cursor-pointer border-0 transition-opacity hover:opacity-85"
-            style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)', borderRadius: '3px', color: '#ffffff' }}
-          >
-            ELIMINA
-          </button>
+          <Button variant="danger" className="flex-1" disabled={!canConfirm} loading={isDeleting} onClick={onConfirm}>
+            ELIMINA DEFINITIVAMENTE
+          </Button>
         </div>
       </div>
     </div>

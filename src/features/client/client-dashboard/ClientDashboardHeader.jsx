@@ -12,7 +12,7 @@ const TABS = [
   { id: 'valutazioni', labelKey: 'assessments', icon: ICON_TEST },
   { id: 'test',        label: 'Test',        icon: ICON_TEST },
   { id: 'bia',         label: 'BIA',         icon: ICON_BIA },
-  { id: 'allenamento', label: 'Allenamento', icon: ICON_WORKOUT },
+  { id: 'allenamento', labelKey: 'workoutPlanTab', icon: ICON_WORKOUT },
   { id: 'obiettivi',   label: 'Obiettivi',   icon: ICON_GOALS },
   { id: 'calendario',  label: 'Calendario',  icon: ICON_CALENDAR },
   { id: 'note',        label: 'Note',        icon: ICON_NOTES },

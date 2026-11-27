@@ -9,6 +9,7 @@ import { updateWorkoutPlanUseCase }      from '../../../usecases/updateWorkoutPl
 import { deleteWorkoutPlanUseCase }      from '../../../usecases/deleteWorkoutPlanUseCase'
 import { useToast }                      from '../../../hooks/useToast'
 import { normalizePlanDays }             from '../../../utils/workoutPlans'
+import { byGender }                    from '../../../config/modules.config'
 import { PlanProgress }                  from './PlanProgress'
 
 /**
@@ -17,6 +18,10 @@ import { PlanProgress }                  from './PlanProgress'
  */
 export function WorkoutPlanSection({ orgId, clientId, color, readonly, hasGamification, terminology }) {
   const { error: toastError } = useToast()
+  const planShort  = terminology.workoutPlanShort
+  const planGender = terminology.workoutPlanGender
+  // 'la scheda' / 'il piano' e relative concordanze
+  const thePlan = `${byGender(planGender, 'il', 'la')} ${planShort}`
   const [plans,      setPlans]      = useState([])
   const [loading,    setLoading]    = useState(true)
   const [view,       setView]       = useState('read')   // 'read' | 'form'
@@ -32,9 +37,9 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly, hasGamifi
     if (!orgId || !clientId) return
     getClientPlans(orgId, clientId)
       .then(data => setPlans(data))
-      .catch(() => toastError('Impossibile caricare le schede'))
+      .catch(() => toastError(`Impossibile caricare ${byGender(planGender, 'i piani', 'le schede')}`))
       .finally(() => setLoading(false))
-  }, [orgId, clientId, toastError])
+  }, [orgId, clientId, toastError, planGender])
 
   const activePlan  = plans.find(p => p.status === 'active') ?? null
   const archived    = plans.filter(p => p.status !== 'active')
@@ -69,9 +74,9 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly, hasGamifi
       setEditing(null)
       setActiveDay(0)
     } catch {
-      toastError('Impossibile salvare la scheda')
+      toastError(`Impossibile salvare ${thePlan}`)
     }
-  }, [orgId, clientId, activePlan, editing, toastError])
+  }, [orgId, clientId, activePlan, editing, toastError, thePlan])
 
   const handleArchive = useCallback(async (plan) => {
     setArchiving(true)
@@ -80,11 +85,11 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly, hasGamifi
       setPlans(prev => prev.map(p => p.id === plan.id ? { ...p, status: 'archived' } : p))
       setPendingArchive(null)
     } catch {
-      toastError('Impossibile archiviare la scheda')
+      toastError(`Impossibile archiviare ${thePlan}`)
     } finally {
       setArchiving(false)
     }
-  }, [orgId, toastError])
+  }, [orgId, toastError, thePlan])
 
   const handleDelete = useCallback(async (plan) => {
     setDeleting(true)
@@ -93,11 +98,11 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly, hasGamifi
       setPlans(prev => prev.filter(p => p.id !== plan.id))
       setPendingDelete(null)
     } catch {
-      toastError('Impossibile eliminare la scheda')
+      toastError(`Impossibile eliminare ${thePlan}`)
     } finally {
       setDeleting(false)
     }
-  }, [orgId, toastError])
+  }, [orgId, toastError, thePlan])
 
   const handleEdit = (plan) => {
     setEditing(plan)
@@ -138,7 +143,7 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly, hasGamifi
 
         {/* Header */}
         <div className="flex items-center justify-between mb-1">
-          <SectionLabel className="mb-0">◈ Scheda allenamento</SectionLabel>
+          <SectionLabel className="mb-0">◈ {terminology.workoutPlanTitle}</SectionLabel>
           {!readonly && (
             <div className="flex gap-2">
               {activePlan && (
@@ -155,14 +160,14 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly, hasGamifi
                 className="text-[11px] font-display px-3 py-1.5 rounded-[3px] cursor-pointer border transition-all hover:opacity-80"
                 style={{ color, borderColor: color + '55', background: color + '11' }}
               >
-                {activePlan ? 'NUOVA SCHEDA' : 'CREA SCHEDA'}
+                {activePlan ? `${byGender(planGender, 'NUOVO', 'NUOVA')} ${planShort.toUpperCase()}` : `CREA ${planShort.toUpperCase()}`}
               </button>
             </div>
           )}
         </div>
         {!readonly && activePlan && (
           <p className="font-body text-[11px] text-white/60 text-right mb-3 m-0">
-            Creare una nuova scheda archivierà automaticamente quella corrente
+            {`Creare ${byGender(planGender, 'un nuovo', 'una nuova')} ${planShort} archivierà automaticamente ${byGender(planGender, 'quello corrente', 'quella corrente')}`}
           </p>
         )}
 
@@ -171,8 +176,8 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly, hasGamifi
           <EmptyState
             color={color}
             icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4v6a6 6 0 0 0 12 0V4"/><line x1="6" y1="20" x2="18" y2="20"/></svg>}
-            title="Nessuna scheda attiva"
-            description={`Crea una scheda per assegnarla a questo ${terminology.client.toLowerCase()}.`}
+            title={`${byGender(planGender, 'Nessun', 'Nessuna')} ${planShort} ${byGender(planGender, 'attivo', 'attiva')}`}
+            description={`Crea ${byGender(planGender, 'un', 'una')} ${planShort} per ${byGender(planGender, 'assegnarlo', 'assegnarla')} a questo ${terminology.client.toLowerCase()}.`}
           />
         )}
 
@@ -210,6 +215,7 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly, hasGamifi
                     readonly={readonly}
                     onEdit={() => handleEdit(plan)}
                     onDelete={() => setPendingDelete(plan)}
+                    terminology={terminology}
                   />
                 ))}
               </div>
@@ -221,8 +227,8 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly, hasGamifi
       {pendingDelete && (
         <ConfirmDialog
           variant="danger"
-          title="Eliminare la scheda?"
-          description={`"${pendingDelete.title}" verrà eliminata definitivamente. L'operazione non può essere annullata.`}
+          title={`Eliminare ${thePlan}?`}
+          description={`"${pendingDelete.title}" verrà ${byGender(planGender, 'eliminato', 'eliminata')} definitivamente. L'operazione non può essere annullata.`}
           confirmLabel="ELIMINA"
           loading={deleting}
           onConfirm={() => handleDelete(pendingDelete)}
@@ -232,8 +238,8 @@ export function WorkoutPlanSection({ orgId, clientId, color, readonly, hasGamifi
 
       {pendingArchive && (
         <ConfirmDialog
-          title="Archiviare la scheda?"
-          description={`"${pendingArchive.title}" verrà spostata nello storico. Potrai comunque consultarla in seguito.`}
+          title={`Archiviare ${thePlan}?`}
+          description={`"${pendingArchive.title}" verrà ${byGender(planGender, 'spostato', 'spostata')} nello storico. Potrai comunque ${byGender(planGender, 'consultarlo', 'consultarla')} in seguito.`}
           confirmLabel="ARCHIVIA"
           loading={archiving}
           onConfirm={() => handleArchive(pendingArchive)}
@@ -316,7 +322,7 @@ function PlanDisplay({ plan, color, activeDay, onDayChange, readonly, showXP, te
   )
 }
 
-function ArchivedPlanRow({ plan, color, readonly, onEdit, onDelete }) {
+function ArchivedPlanRow({ plan, color, readonly, onEdit, onDelete, terminology }) {
   const [open, setOpen] = useState(false)
   const [activeDay, setActiveDay] = useState(0)
 
@@ -360,7 +366,7 @@ function ArchivedPlanRow({ plan, color, readonly, onEdit, onDelete }) {
             </button>
             <button
               onClick={onDelete}
-              aria-label="Elimina scheda"
+              aria-label={`Elimina ${terminology.workoutPlanShort}`}
               className="text-[11px] bg-transparent border-none cursor-pointer shrink-0 transition-colors"
               style={{ color: 'rgba(255,255,255,0.15)' }}
               onMouseEnter={e => { e.currentTarget.style.color = '#f87171' }}

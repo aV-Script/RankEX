@@ -102,19 +102,26 @@ test('correzione del 2MWT e annullamento del 30s-STS', async ({ openAs }) => {
 
 test('professionista chiude un appuntamento', async ({ openAs }) => {
   const page   = await openAs('lipedema-trainer')
-  const minute = String(new Date().getMinutes()).padStart(2, '0')
+  // Ora corrente: la vista giorno scorre da sé sull'ora attuale, l'evento è nella fascia visibile.
+  // Minuti 00-49 così la fine (:59) è sempre dopo l'inizio.
+  const now      = new Date()
+  const hour     = String(now.getHours()).padStart(2, '0')
+  const minute   = String(now.getMinutes() % 50).padStart(2, '0')
+  const startTime = `${hour}:${minute}`
 
   await page.getByRole('button', { name: 'Calendario', exact: true }).first().click()
   await page.getByRole('button', { name: `Aggiungi appuntamento il ${localDate()}`, exact: true }).click()
   const addDialog = page.getByRole('dialog').filter({ hasText: 'Nuovo appuntamento' })
-  await addDialog.locator('input[type="time"]').nth(0).fill(`06:${minute}`)
-  await addDialog.locator('input[type="time"]').nth(1).fill('06:59')
+  await addDialog.locator('input[type="time"]').nth(0).fill(startTime)
+  await addDialog.locator('input[type="time"]').nth(1).fill(`${hour}:59`)
   await addDialog.getByRole('button', { name: new RegExp(PATIENT_NAME) }).first().click()
   await addDialog.getByRole('button', { name: /crea appuntamento/i }).click()
   await expect(addDialog).toBeHidden({ timeout: 60_000 })
 
   await page.getByRole('button', { name: 'G', exact: true }).click()
-  const event = page.getByText(new RegExp(`06:${minute}`)).first()
+  // Il blocco evento è un bottone con orario e nome della paziente; attesa esplicita che compaia
+  const event = page.getByRole('button', { name: new RegExp(`${startTime}.*${PATIENT_NAME}`) }).first()
+  await expect(event).toBeVisible({ timeout: 30_000 })
   await event.scrollIntoViewIfNeeded()
   await event.click()
   await page.getByRole('dialog').last().getByRole('button', { name: /chiudi appuntamento/i }).click()
@@ -184,6 +191,14 @@ test('staff_readonly vede le valutazioni senza azioni', async ({ openAs }) => {
   await expect(detail.getByText('Best destra')).toBeVisible()
   await expect(detail.getByRole('button', { name: 'CORREGGI' })).toHaveCount(0)
   await expect(detail.getByRole('button', { name: 'ANNULLA VALUTAZIONE' })).toHaveCount(0)
+})
+
+test('tab della scheda paziente: "Esercizi" e nessun "Allenamento" (STORY-059)', async ({ openAs }) => {
+  const page = await openAs('lipedema-trainer')
+  await openClient(page, PATIENT_NAME)
+  const tabBar = page.locator('header').filter({ has: page.getByRole('button', { name: /^valutazioni$/i }) })
+  await expect(tabBar.getByRole('button', { name: /^esercizi$/i })).toBeVisible()
+  await expect(tabBar.getByRole('button', { name: /allenamento/i })).toHaveCount(0)
 })
 
 // ── helper ────────────────────────────────────────────────────────────────────

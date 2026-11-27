@@ -28,6 +28,41 @@ function contrast(foreground, background) {
   return (light + 0.05) / (dark + 0.05)
 }
 
+// Bottoni di components/ui (Button): valori letti dal sorgente, unica fonte
+const uiSource = readFileSync(fileURLToPath(new URL('../../components/ui/index.jsx', import.meta.url)), 'utf8')
+const DANGER_BACKGROUND = uiSource.match(/DANGER_BACKGROUND = '(#[0-9a-fA-F]{6})'/)?.[1]
+const NEUTRAL_ALPHA = Number(uiSource.match(/neutral: \{[^}]*color:\s*'rgba\(255,255,255,([\d.]+)\)'/)?.[1])
+
+function hexToRgb(hex) {
+  const value = hex.replace('#', '')
+  return [0, 2, 4].map(i => parseInt(value.slice(i, i + 2), 16))
+}
+
+// Bianco con alpha composto sul fondo (il Modal usa --rx-surface)
+function whiteOver(alpha, backgroundHex) {
+  const channels = hexToRgb(backgroundHex).map(channel => Math.round(255 * alpha + channel * (1 - alpha)))
+  return `#${channels.map(channel => channel.toString(16).padStart(2, '0')).join('')}`
+}
+
+describe('contrasto bottoni danger e neutral', () => {
+  it('legge danger e neutral da components/ui', () => {
+    expect(DANGER_BACKGROUND).toBe('#dc2626')
+    expect(NEUTRAL_ALPHA).toBe(0.6)
+  })
+
+  it(`danger: bianco su ${DANGER_BACKGROUND} >= ${MIN_CONTRAST}:1`, () => {
+    expect(contrast('#ffffff', DANGER_BACKGROUND)).toBeGreaterThanOrEqual(MIN_CONTRAST)
+  })
+
+  THEMES.forEach(theme => {
+    it(`tema ${theme.id}: neutral (bianco ${NEUTRAL_ALPHA * 100}%) su --rx-surface >= ${MIN_CONTRAST}:1`, () => {
+      const surface = theme.vars['--rx-surface']
+      const ratio = contrast(whiteOver(NEUTRAL_ALPHA, surface), surface)
+      expect(ratio).toBeGreaterThanOrEqual(MIN_CONTRAST)
+    })
+  })
+})
+
 describe('contrasto bottone primario pieno', () => {
   it('legge il testo del primario da --rx-primary-text', () => {
     expect(PRIMARY_TEXT).toMatch(/^#[0-9a-fA-F]{6}$/)

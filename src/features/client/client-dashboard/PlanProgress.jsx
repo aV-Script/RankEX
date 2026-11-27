@@ -38,7 +38,7 @@ export function PlanProgress({ plan, color, showXP = true, terminology = DEFAULT
           className="h-1 rounded-full overflow-hidden mt-2"
           style={{ background: 'rgba(255,255,255,0.06)' }}
           role="progressbar" aria-valuemin={0} aria-valuemax={target} aria-valuenow={Math.min(done, target)}
-          aria-label="Avanzamento scheda"
+          aria-label={`Avanzamento ${terminology.workoutPlanShort}`}
         >
           <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
         </div>

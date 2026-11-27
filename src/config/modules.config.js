@@ -126,6 +126,12 @@ const MODULES_WITH_INCOMPATIBLE_DATA = [MODULES.LIPEDEMA]
 //                                  nei moduli con gamification, il paziente in
 //                                  lipedema
 //   trainers                     → plurale di trainer (contatori del team)
+//   workoutPlanTab / workoutPlan → etichetta della tab ("Allenamento") e nome minuscolo
+//                                  della scheda ("scheda allenamento"); in lipedema
+//                                  "Esercizi" / "piano esercizi" (STORY-059)
+//   workoutPlanTitle / workoutPlanShort / workoutPlanGender
+//                                → "Scheda allenamento" (titolo di sezione), "scheda" (nome breve)
+//                                  e genere ('f'; 'm' per "piano") per la concordanza
 // Le forme sono scritte per esteso invece di essere derivate da regole: i
 // termini sono pochi e così ogni frase si legge direttamente qui.
 
@@ -134,6 +140,7 @@ export const TERMINOLOGY_KEYS = [
   'athlete', 'athletes', 'clientGender', 'sessionGender', 'groupGender',
   'theClient', 'theClients', 'toTheClients', 'theSession', 'theSessions', 'theAthletes',
   'theGroup', 'thisGroup', 'inTheGroup', 'ofTheGroup', 'toTheGroup', 'fromTheGroup', 'toTheGroups',
+  'workoutPlanTab', 'workoutPlan', 'workoutPlanTitle', 'workoutPlanShort', 'workoutPlanGender',
 ]
 
 // `session` e `sessionGender` hanno una copia in functions/src/shared/terminology.js
@@ -166,6 +173,11 @@ export const TERMINOLOGIES = {
     toTheGroup:    'al gruppo',
     fromTheGroup:  'dal gruppo',
     toTheGroups:   'ai gruppi',
+    workoutPlanTab: 'Allenamento',
+    workoutPlan:    'scheda allenamento',
+    workoutPlanTitle: 'Scheda allenamento',
+    workoutPlanShort: 'scheda',
+    workoutPlanGender: 'f',
   },
   gym: {
     trainer:  'Personal Trainer',
@@ -194,6 +206,11 @@ export const TERMINOLOGIES = {
     toTheGroup:    'alla classe',
     fromTheGroup:  'dalla classe',
     toTheGroups:   'alle classi',
+    workoutPlanTab: 'Allenamento',
+    workoutPlan:    'scheda allenamento',
+    workoutPlanTitle: 'Scheda allenamento',
+    workoutPlanShort: 'scheda',
+    workoutPlanGender: 'f',
   },
   soccer_academy: {
     trainer:  'Coach',
@@ -222,6 +239,11 @@ export const TERMINOLOGIES = {
     toTheGroup:    'alla squadra',
     fromTheGroup:  'dalla squadra',
     toTheGroups:   'alle squadre',
+    workoutPlanTab: 'Allenamento',
+    workoutPlan:    'scheda allenamento',
+    workoutPlanTitle: 'Scheda allenamento',
+    workoutPlanShort: 'scheda',
+    workoutPlanGender: 'f',
   },
   lipedema: {
     trainer:     'Professionista',
@@ -250,6 +272,11 @@ export const TERMINOLOGIES = {
     toTheGroup:    'al gruppo',
     fromTheGroup:  'dal gruppo',
     toTheGroups:   'ai gruppi',
+    workoutPlanTab: 'Esercizi',
+    workoutPlan:    'piano esercizi',
+    workoutPlanTitle: 'Piano esercizi',
+    workoutPlanShort: 'piano',
+    workoutPlanGender: 'm',
     // Solo il record dei test (STORY-033), mai uno slot di calendario (ADR-015 §5)
     assessment:  'Valutazione',
     assessments: 'Valutazioni',

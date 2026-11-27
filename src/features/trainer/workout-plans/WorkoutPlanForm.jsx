@@ -3,7 +3,7 @@ import { PLAN_COMPLETION_XP, MAX_PLAN_SESSIONS } from '../../../constants'
 import { ConfirmDialog }         from '../../../components/common/ConfirmDialog'
 import { IconChevronLeft }       from '../../../components/ui/icons'
 import { Button }               from '../../../components/ui'
-import { bySessionGender } from '../../../config/modules.config'
+import { bySessionGender, byGender } from '../../../config/modules.config'
 
 const EMPTY_EXERCISE = { name: '', sets: '', reps: '', restSeconds: '', notes: '' }
 const MAX_DAYS = 7
@@ -42,6 +42,8 @@ function initDays(initialData) {
  */
 export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBack, terminology, showXP = true }) {
   const clientLabel = terminology.client
+  const planShort   = terminology.workoutPlanShort
+  const planGender  = terminology.workoutPlanGender
   const [title,        setTitle]        = useState(initialData?.title       ?? '')
   const [description,  setDescription]  = useState(initialData?.description ?? '')
   const [selClientId,  setSelClientId]  = useState(initialData?.clientId    ?? '')
@@ -155,10 +157,10 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
           onClick={onBack}
           className="flex items-center gap-1.5 text-white/30 font-body text-[13px] hover:text-white/60 transition-colors bg-transparent border-none cursor-pointer p-0"
         >
-          <IconChevronLeft size={12} /> {clientId ? clientLabel : 'Schede'}
+          <IconChevronLeft size={12} /> {clientId ? clientLabel : byGender(planGender, 'Piani', 'Schede')}
         </button>
         <span className="font-display font-black text-[16px] text-white">
-          {initialData ? 'Modifica scheda' : 'Nuova scheda'}
+          {initialData ? `Modifica ${planShort}` : `${byGender(planGender, 'Nuovo', 'Nuova')} ${planShort}`}
         </span>
         <div className="w-20" />
       </div>
@@ -201,7 +203,7 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
             <textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
-              placeholder="Note generali sulla scheda…"
+              placeholder={`Note generali ${byGender(planGender, 'sul', 'sulla')} ${planShort}…`}
               rows={2}
               className="input-base resize-none"
             />
@@ -222,7 +224,7 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
               style={{ maxWidth: 200 }}
             />
             <span className="font-body text-[11px] text-white/35">
-              Ogni presenza registrata in calendario conta {bySessionGender(terminology, 'un', 'una')} {terminology.session.toLowerCase()}. Raggiunto il numero, la scheda è completata
+              Ogni presenza registrata in calendario conta {bySessionGender(terminology, 'un', 'una')} {terminology.session.toLowerCase()}. Raggiunto il numero, {byGender(planGender, 'il', 'la')} {planShort} è {byGender(planGender, 'completato', 'completata')}
               {showXP ? <> e l&apos;atleta riceve +{PLAN_COMPLETION_XP} XP.</> : '.'}
             </span>
             {errors.targetSessions && <span className="text-red-400 text-[11px]">{errors.targetSessions}</span>}
@@ -318,7 +320,7 @@ export function WorkoutPlanForm({ clientId, clients, initialData, onSubmit, onBa
             disabled={loading}
             className="text-[11px]! tracking-[1.5px]!"
           >
-            {loading ? '…' : initialData ? 'SALVA' : 'CREA SCHEDA'}
+            {loading ? '…' : initialData ? 'SALVA' : `CREA ${planShort.toUpperCase()}`}
           </Button>
         </div>
       </div>

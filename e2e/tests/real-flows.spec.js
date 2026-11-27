@@ -10,7 +10,9 @@
 import { test, expect } from '../fixtures/auth.fixture.js'
 import { goto } from '../helpers/page.js'
 
-const CLIENT_NAME = 'Mario Rossi (Test)'
+// Speculare a src/utils/gamification.js (MAX_CAMPIONAMENTI)
+const MAX_CAMPIONAMENTI = 50
+const CLIENT_NAME ='Mario Rossi (Test)'
 // Valori realistici per i 5 test Active (uomo, 30 anni) — stesso ordine del form
 const ACTIVE_VALUES = ['45', '100', '65', '105', '100', '64', '104', '99', '90', '90', '220', '1.85']
 
@@ -56,7 +58,8 @@ test.describe('Flussi reali (scrivono su rankex-dev)', () => {
 
     await openClient(page)
     const after = await readAtleta(page)
-    expect(after.camps).toBe(before.camps + 1)
+    // Lo storico è troncato a MAX_CAMPIONAMENTI (50): raggiunto il tetto il conteggio non cresce (BUG-042)
+    expect(after.camps).toBe(Math.min(before.camps + 1, MAX_CAMPIONAMENTI))
   })
 
   test('chiusura sessione con doppio click: XP assegnati una volta sola', async ({ trainerPage: page }) => {

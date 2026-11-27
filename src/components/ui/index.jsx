@@ -136,9 +136,9 @@ export function SegmentedToggle({ active, onClick, color = 'var(--rx-accent)', s
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
 const MODAL_WIDTHS = {
-  default: 'w-[420px]',
-  lg:      'w-[420px] lg:w-[720px]',
-  xl:      'w-[420px] lg:w-[960px]',
+  default: 'lg:w-[420px]',
+  lg:      'lg:w-[720px]',
+  xl:      'lg:w-[960px]',
 }
 
 export function Modal({ title, onClose, disableOverlayClose, size = 'default', accentColor = 'var(--rx-accent)', children }) {
@@ -149,7 +149,7 @@ export function Modal({ title, onClose, disableOverlayClose, size = 'default', a
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start lg:items-center justify-center overflow-y-auto py-4 px-4"
+      className="fixed inset-0 z-50 flex items-end lg:items-center justify-center lg:overflow-y-auto lg:p-4"
       style={{ background: 'rgba(8,12,18,0.9)' }}
       onClick={disableOverlayClose ? undefined : onClose}
     >
@@ -158,7 +158,7 @@ export function Modal({ title, onClose, disableOverlayClose, size = 'default', a
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        className={`rx-card p-6 lg:p-8 ${MODAL_WIDTHS[size]} max-w-[96vw] my-auto`}
+        className={`rx-card p-6 lg:p-8 pb-[max(1.5rem,env(safe-area-inset-bottom))] lg:pb-8 w-full ${MODAL_WIDTHS[size]} max-w-none lg:max-w-[96vw] max-h-[90dvh] overflow-y-auto lg:max-h-none lg:overflow-visible lg:my-auto rounded-t-[16px]! rounded-b-none! lg:rounded-[4px]!`}
         style={{
           background:  'var(--rx-surface)',
           borderColor: `color-mix(in srgb, ${accentColor} 20%, transparent)`,
@@ -201,6 +201,8 @@ export function Textarea({ className = '', ...props }) {
 
 // ─── Button ───────────────────────────────────────────────────────────────────
 const PRIMARY_TEXT_COLOR = 'var(--rx-primary-text)'
+// Rosso pieno uguale in tutti i temi: bianco su #dc2626 >= 4.5:1 (themes.contrast.test)
+const DANGER_BACKGROUND = '#dc2626'
 
 function variantStyles(variant, accentColor) {
   return {
@@ -220,7 +222,7 @@ function variantStyles(variant, accentColor) {
       fontWeight: 700,
     },
     danger: {
-      background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+      background: DANGER_BACKGROUND,
       border:     'none',
       color:      '#ffffff',
     },
@@ -243,7 +245,7 @@ function variantStyles(variant, accentColor) {
     neutral: {
       background: 'transparent',
       border:     '1px solid rgba(255,255,255,0.1)',
-      color:      'rgba(255,255,255,0.4)',
+      color:      'rgba(255,255,255,0.6)',
     },
   }[variant]
 }

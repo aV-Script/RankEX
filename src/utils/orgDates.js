@@ -10,3 +10,14 @@ export function normalizeCreatedAt(value) {
 export function normalizeOrgData(data) {
   return 'createdAt' in data ? { ...data, createdAt: normalizeCreatedAt(data.createdAt) } : data
 }
+
+const CREATED_AT_FORMAT = { day: '2-digit', month: 'short', year: 'numeric' }
+
+/**
+ * "Creato il" del dettaglio org. Senza `createdAt` (org appena creata, valore del
+ * server non ancora arrivato) mostra la data locale di oggi invece di "—".
+ */
+export function formatOrgCreatedAt(createdAt, now = new Date()) {
+  const date = createdAt ? new Date(createdAt) : now
+  return (Number.isNaN(date.getTime()) ? now : date).toLocaleDateString('it-IT', CREATED_AT_FORMAT)
+}

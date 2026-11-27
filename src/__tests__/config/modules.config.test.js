@@ -311,6 +311,30 @@ describe('TERMINOLOGIES — forme grammaticali (BUG-002)', () => {
     }
   })
 
+  it('STORY-059: PT/GYM/Soccer mantengono "scheda" femminile, Lipedema "piano" maschile', () => {
+    for (const key of ['personal_training', 'gym', 'soccer_academy']) {
+      expect(TERMINOLOGIES[key]).toMatchObject({ workoutPlanTitle: 'Scheda allenamento', workoutPlanShort: 'scheda', workoutPlanGender: 'f' })
+    }
+    expect(TERMINOLOGIES.lipedema).toMatchObject({ workoutPlanTitle: 'Piano esercizi', workoutPlanShort: 'piano', workoutPlanGender: 'm' })
+  })
+
+  it('STORY-059: tab e nome della scheda per modulo (Lipedema "Esercizi", gli altri "Allenamento")', () => {
+    const cases = [
+      ['PT',       getTerminology('personal_training'),        'Allenamento', 'scheda allenamento', 'Trainer',        'Clienti'],
+      ['GYM',      getTerminology('personal_training', 'gym'), 'Allenamento', 'scheda allenamento', 'Personal Trainer', 'Membri'],
+      ['Soccer',   getTerminology('soccer_academy'),           'Allenamento', 'scheda allenamento', 'Coach',          'Allievi'],
+      ['Lipedema', getTerminology('lipedema'),                 'Esercizi',    'piano esercizi',     'Professionisti', 'Pazienti'],
+    ]
+    for (const [, terminology, tab, plan, trainers, clients] of cases) {
+      expect(terminology.workoutPlanTab).toBe(tab)
+      expect(terminology.workoutPlan).toBe(plan)
+      expect(terminology.workoutPlanTitle.toLowerCase()).toBe(plan)
+      // barre utilizzo del dettaglio org (OrgDetailView)
+      expect(terminology.trainers).toBe(trainers)
+      expect(terminology.clients).toBe(clients)
+    }
+  })
+
   it('DEFAULT_TERMINOLOGY è quella PT', () => {
     expect(DEFAULT_TERMINOLOGY).toBe(TERMINOLOGIES.personal_training)
   })

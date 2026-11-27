@@ -37,19 +37,38 @@ export default async function globalSetup(config) {
   try {
     for (const moduleKey of Object.keys(QA_ORGS)) {
       for (const user of [...qaUsers(moduleKey), ...qaClientUsers(moduleKey)]) {
-        const context = await browser.newContext()
-        const page    = await context.newPage()
-        await page.goto(`${QA_BASE_URL}/login`)
-        await page.getByLabel(/email/i).first().fill(user.email)
-        await page.getByLabel(/password/i).first().fill(env.QA_DEV_PASSWORD)
-        await page.getByRole('button', { name: /accedi/i }).click()
-        await page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 30_000 })
-        await context.storageState({ path: authStatePath(user.key) })
-        await context.close()
+        await loginWithRetry(browser, user, env.QA_DEV_PASSWORD)
       }
     }
   } finally {
     await browser.close()
+  }
+}
+
+const LOGIN_ATTEMPTS   = 2
+const LOGIN_TIMEOUT_MS = 60_000   // login = Auth + lettura profilo + primo render: il primo del giorno è lento
+
+/** Login via UI con un nuovo tentativo: un timeout isolato (rete, cold start) non ferma la suite */
+async function loginWithRetry(browser, user, password) {
+  for (let attempt = 1; attempt <= LOGIN_ATTEMPTS; attempt++) {
+    const context = await browser.newContext()
+    try {
+      const page = await context.newPage()
+      await page.goto(`${QA_BASE_URL}/login`, { timeout: LOGIN_TIMEOUT_MS })
+      await page.getByLabel(/email/i).first().fill(user.email)
+      await page.getByLabel(/password/i).first().fill(password)
+      await page.getByRole('button', { name: /accedi/i }).click()
+      // Segnale di login riuscito: si lascia /login (la sessione è nello storage solo dopo)
+      await page.waitForURL(url => !url.pathname.includes('/login'), { timeout: LOGIN_TIMEOUT_MS })
+      await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {})
+      await context.storageState({ path: authStatePath(user.key) })
+      return
+    } catch (error) {
+      if (attempt === LOGIN_ATTEMPTS) throw new Error(`login di ${user.key} fallito dopo ${attempt} tentativi: ${error.message}`)
+      console.warn(`login di ${user.key}: tentativo ${attempt} fallito (${error.message.split('\n')[0]}), riprovo`)
+    } finally {
+      await context.close()
+    }
   }
 }
 

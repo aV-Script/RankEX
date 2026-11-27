@@ -81,6 +81,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
   const [view,         setView]        = useState('dashboard')
   const [activeTab,    setActiveTab]   = useState(null)
   const [showDelete,      setShowDelete]      = useState(false)
+  const [isDeleting,      setIsDeleting]      = useState(false)
   const [showReport,      setShowReport]      = useState(false)
   const [showPrintPicker, setShowPrintPicker] = useState(false)
   const [printMode,       setPrintMode]       = useState('dark')
@@ -153,15 +154,16 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
   const tab        = activeTab ?? defaultTab
 
   const handleDelete = useCallback(async () => {
+    if (isDeleting) return
+    setIsDeleting(true)
     try {
       await onDelete(client.id)
       onBack()
     } catch {
-      // Errore già mostrato da useClients: si resta sulla scheda del cliente
-    } finally {
-      setShowDelete(false)
+      // Errore già mostrato da useClients: il dialog resta aperto e riutilizzabile
+      setIsDeleting(false)
     }
-  }, [onDelete, client.id, onBack])
+  }, [isDeleting, onDelete, client.id, onBack])
 
   const handleSaveCampionamento = useCallback(async (newStats, testValues) => {
     await onCampionamento(client, newStats, testValues)
@@ -525,7 +527,7 @@ export function ClientDashboard({ client, orgId, onBack, onCampionamento, onDele
 
 
       {showDelete && (
-        <DeleteDialog clientName={client.name} clientLabel={terminology.client} onConfirm={handleDelete} onCancel={() => setShowDelete(false)} />
+        <DeleteDialog clientName={client.name} clientLabel={terminology.client} capabilities={capabilities} terminology={terminology} isDeleting={isDeleting} onConfirm={handleDelete} onCancel={() => setShowDelete(false)} />
       )}
       {showPrintPicker && (
         <PrintPickerModal

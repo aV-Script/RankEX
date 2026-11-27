@@ -9,7 +9,7 @@ const TIMEOUT_MS = {
   client:          24 * 60 * 60 * 1000,       // 24 ore
 }
 
-const WARNING_MS = 60 * 1000   // preavviso prima del logout automatico
+export const WARNING_MS = 60 * 1000   // preavviso prima del logout automatico
 
 const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll']
 
