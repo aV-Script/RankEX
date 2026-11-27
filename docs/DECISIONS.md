@@ -2209,3 +2209,22 @@ può stare in `orgModule.js`: importa `firebase-functions`, non caricabile dal t
 - Residui per il gruppo B: label del log XP (`:117`), errore `:63`, campo `date` senza `timeZone` in tutte
   le callable (candidato TECH-DEBT, non creato da questo ADR).
 
+## [ADR-022] Lipedema selezionabile in prod prima dell'approvazione del DPA (Sprint #23)
+**Data:** 2026-11-27
+**Contesto:** EPIC-010 è pronto e provato in prod (smoke TP-095 passi 1-8 PASS, residui 0). STORY-029 (b) DPA e (c) testo
+dell'informativa paziente sono ancora in revisione dal manager. Finché `IS_LIPEDEMA_SELECTABLE` valeva `isDev`, il
+super_admin non poteva creare un'org Lipedema in prod.
+
+**Decisione (utente, 27/11/2026):** `IS_LIPEDEMA_SELECTABLE = true` in ogni ambiente (`src/config/modules.config.js:30`),
+rilasciato con `924734d`. STORY-029 (b)/(c) restano BLOCKED. Il rischio (trattamento di dati sanitari art. 9 GDPR senza DPA
+firmato) è accettato dall'utente; la prima org reale è stata creata dall'utente stesso, con i suoi dati.
+
+**Alternative scartate:**
+- *Aspettare il DPA*: blocca il primo cliente del modulo per un tempo che non dipende da noi.
+- *Flag per singola org* (allowlist di orgId): codice e rules in più per un caso unico; la select è solo del super_admin.
+
+**Conseguenze:**
+- Nessuna modifica a rules o functions; un rollback nasconde solo la select (`isDev`), le org già create restano.
+- Alla firma del DPA: chiudere STORY-029 (b)/(c) e, se il testo dell'informativa cambia, registrarne la nuova versione per
+  i pazienti esistenti (`registraInformativaPaziente`).
+- Nei docs dell'org reale si annota solo l'orgId (CHANGELOG `[2026.11.27.2]`), mai nome o dati.
