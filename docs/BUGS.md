@@ -75,7 +75,7 @@ Formato:
 ## [BUG-005] Soccer: tab BIA visibile nella dashboard allievo nonostante `hasBia: false`
 **Severity:** P3
 **Modulo/Ruolo:** soccer_academy — trainer (preesistente; ora c'è una capability esplicita che non viene usata)
-**Status:** OPEN
+**Status:** VERIFIED (QA dal vivo 27/11/2026, hosting dev a `f2c34c3`): trainer qa-soccer su "QA Allievo Senior" → tab ATLETA, TEST, ALLENAMENTO, OBIETTIVI, CALENDARIO, NOTE, ATTIVITÀ, MISURE, WEARABLE, TROFEI, nessuna BIA; trainer qa-pt su "QA Cliente PT" → BIA presente. Screenshot `scratchpad/qa22/b005-soccer-trainer.png`, `b005-pt-trainer.png`
 **Reproduction steps:** org soccer → apri un allievo → tab bar.
 **Expected:** nessuna tab BIA (CLAUDE.md: "Soccer academy: solo `tests_only`. BIA non supportata"; `MODULE_CAPABILITIES.soccer_academy.hasBia = false`).
 **Actual:** tab BIA presente (ATLETA, TEST, BIA, ALLENAMENTO, …). Era così anche prima del commit.
@@ -395,7 +395,7 @@ Formato:
 | Soccer | stessa frase con "Sessione" (dovrebbe essere "Allenamento") e data ISO; visto dal vivo in Home e pannello dell'allievo qa-soccer | non verificato | non verificato dal vivo |
 | GYM / Lipedema | non verificato (lipedema senza area cliente) | non verificato | non verificato |
 
-**Status:** FIXED (Sprint #22; functions su rankex-dev a `002e43a95e0d0c76e64a9b43a77dddf96802720c`, prod da fare con via libera) — commit `002e43a`, ADR-021. Test che falliva prima: `functions/test/chiudiSessione.test.js` › "soccer, presente: Allenamento del 10 nov completato!" (ricevuto "Sessione del 2026-11-10 completata! …"), più GYM, scheda completata, assente e voce di log XP.
+**Status:** VERIFIED (QA dal vivo 27/11/2026, hosting dev a `f2c34c3`, functions dev a `002e43a`): soccer, chiusura con presente + assente (slot con "QA Allievo Senior" presente e un allievo E2E- assente, entrambi con login) → "Allenamento del 27 nov completato! +65 XP (streak 3)" all'allievo presente e "Allenamento del 27 nov — assenza registrata. Streak azzerata." all'assente, in Home e pannello; PT → "Sessione del 27 nov completata! +70 XP (streak 4)". Nessuna data ISO, nessun "Sessione" in soccer. GYM: non verificato (nessuna org). Le notifiche vecchie (13 nov) restano col testo di prima: sono dati scritti prima del fix. Screenshot `scratchpad/qa22/notif-soccer-base.png`, `notif-soccer-e2e-absent.png`, `notif-pt-base.png`. Era: FIXED (Sprint #22; prod da fare con via libera) — commit `002e43a`, ADR-021. Test che falliva prima: `functions/test/chiudiSessione.test.js` › "soccer, presente: Allenamento del 10 nov completato!" (ricevuto "Sessione del 2026-11-10 completata! …"), più GYM, scheda completata, assente e voce di log XP.
 **Reproduction steps:** da trainer, chiudere con presenza uno slot di un allievo qa-soccer → login allievo → Home › ULTIME NOTIFICHE (o pannello).
 **Expected:** testo con la terminologia del modulo ("Allenamento del 10 nov completato! …") e data leggibile.
 **Actual:** "Sessione del 2026-11-10 completata! +55 XP (streak 1)".
@@ -404,7 +404,7 @@ Formato:
 ## [BUG-038] Descrizioni dei trofei in area cliente soccer con "sessione/sessioni di allenamento"
 **Severity:** P3 (testo)
 **Modulo/Ruolo:** soccer (e GYM, non verificato), ruolo client — testi fissi nel config dei badge (`src/config/badges.config.js`), non derivati dalla terminologia.
-**Status:** FIXED (Sprint #22) — commit `002e43a`: label e descrizioni come funzioni della terminologia (`getBadgeLabel`/`getBadgeDescription` in `badges.config.js`). Test che falliva prima: `src/__tests__/config/badges.config.test.js` › "soccer: nessun sessione/sessioni e nessun trainer" (7/7 rossi: `getBadgeLabel is not a function`). Il server non dipende dai testi (`shared/badges.js` usa solo gli id).
+**Status:** VERIFIED (QA dal vivo 27/11/2026, hosting dev a `f2c34c3`): allievo qa-soccer → Trofei: "PRIMO ALLENAMENTO", "Hai completato il tuo primo allenamento.", "Hai completato 5/10/25 allenamenti.", "Riconoscimento speciale del coach.", "ASSEGNATO DAL COACH" sui badge manuali bloccati; cliente qa-pt: testi originali ("PRIMA SESSIONE", "sessioni", "del trainer", "ASSEGNATO DAL TRAINER"). "Assegnato dal coach" su un badge manuale già assegnato a un allievo soccer: non verificato (il seed assegna badge solo a qa-pt). Screenshot `scratchpad/qa22/trofei-soccer-cliente.png`, `trofei-pt-cliente.png`. Era: FIXED (Sprint #22) — commit `002e43a`: label e descrizioni come funzioni della terminologia (`getBadgeLabel`/`getBadgeDescription` in `badges.config.js`). Test che falliva prima: `src/__tests__/config/badges.config.test.js` › "soccer: nessun sessione/sessioni e nessun trainer" (7/7 rossi: `getBadgeLabel is not a function`). Il server non dipende dai testi (`shared/badges.js` usa solo gli id).
 **Reproduction steps:** allievo soccer → Trofei.
 **Expected:** "allenamento/allenamenti" (terminologia del modulo).
 **Actual:** "Hai completato la tua prima sessione di allenamento", "STRISCIA X5 — Hai completato 5 sessioni di allenamento".
@@ -422,6 +422,21 @@ Formato:
 **Modulo/Ruolo:** soccer, GYM, lipedema — trainer/org_admin: `chiudiSessione.js:63` ("Sessione già chiusa", doppio tap/retry), `aggiungiRicorrenza.js:31,34` ("Nessuna sessione nel periodo scelto", "N sessioni, massimo …"), `estendirRicorrenza.js:45` ("N sessioni future").
 **Status:** OPEN — da pianificare
 **Expected:** termine del modulo ("allenamento/i", "appuntamento/i") con il genere concordato. **Stima: S.** Trovato nell'inventario dello Sprint #22.
+
+## [BUG-041] Home cliente: con la rete assente "Impossibile caricare" non compare mai, si vede un falso vuoto
+**Severity:** P3
+**Modulo/Ruolo:** PT e soccer — client (Home: card PROSSIMA e ULTIME NOTIFICHE; `useUpcomingSessions.js:50-58`, `useNotifications.js:25-51`)
+
+| Caso | dev | UAT | prod |
+|------|-----|-----|------|
+| PT / Soccer, rete che non risponde a Listen/channel | falso vuoto: "Nessuna sessione in programma" e "Nessuna notifica" (verificato dal vivo 27/11/2026 a `f2c34c3`, qa-pt) | non verificato | stesso codice: non verificato dal vivo |
+| GYM / Lipedema | GYM non verificato; lipedema senza area cliente | non verificato | non verificato |
+
+**Status:** OPEN
+**Reproduction steps:** login client qa-pt con Playwright; `page.route` su `firestore.googleapis.com` che abortisce (o risponde 403) le sole POST di Listen/channel col target `"collectionId":"notifications"` / `"slots"` (riconoscibili dal postData); aprire la Home e attendere ~10 s.
+**Expected:** STORY-048: errore di rete → "Impossibile caricare" con "Riprova", distinto dal vuoto.
+**Actual:** il Firestore SDK passa a offline e `getDocs` risolve con una snapshot vuota dalla cache (`metadata.fromCache` true): le card mostrano "Nessuna sessione in programma" / "Nessuna notifica", nessun RIPROVA. Lo stato errore scatta solo con un rifiuto del server (permission-denied), cioè mai per un problema di rete: l'AC di STORY-048 è soddisfatta dal codice ma non raggiungibile nel caso per cui è stata scritta. Altri tentativi: blocco totale prima del caricamento → si resta al login; blocco dopo la Home → l'ascolto già aperto continua a servire i dati. Il caso è BLOCCATO in TP-094 (`39706c5`).
+**Suggested fix:** in `getNotifications` e `fetchUpcoming` leggere `snapshot.metadata.fromCache` e, se la snapshot è vuota e arriva dalla cache, rifiutare (o usare `getDocsFromServer`) così che lo stato errore e RIPROVA compaiano; test unit con snapshot `fromCache: true`. **Stima: S.** Trovato nella QA dal vivo dello Sprint #22 (retro #21 AI 3).
 
 ## Inventario testi terminologia (Sprint #22)
 Testi che arrivano all'utente in `functions/src/callable`, `functions/src/shared`, `src/config/badges.config.js` (non commenti né identificatori). C = cliente/allievo, T = trainer/org_admin. 22 righe: 6 corrette (BUG-037/038), 6 su nuovi bug (BUG-039/040), 10 accettate.
