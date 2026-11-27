@@ -1194,6 +1194,8 @@ merge segue **subito** il deploy functions (finestra corta). Per `qa:dev` vale l
 Comandi: da Git Bash, `NODE_OPTIONS=--dns-result-order=ipv4first <cmd>`; da PowerShell
 `$env:NODE_OPTIONS='--dns-result-order=ipv4first'; <cmd>`. `firebase` = CLI globale in PATH (non è
 devDependency del repo; `npx firebase` non funziona, `npx firebase-tools` sì).
+**Comandi su prod (`fitquest-60a09`, push su `main`): uno per chiamata, mai concatenati** con altri (`&&`, `;`, pipe
+verso un altro comando): un deploy finito per sbaglio dentro un comando di sola lettura parte senza via libera (retro #22).
 
 ### Pre-flight (tutto verde, su HEAD di `dev`)
 ```

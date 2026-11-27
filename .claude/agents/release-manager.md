@@ -15,6 +15,7 @@ Prima di dare il via libera:
 5. Controlla `docs/BUGS.md` per blocker P0/P1 ancora aperti.
 6. Controlla che `docs/CHANGELOG.md` sia aggiornato con questa release.
 7. Verifica gli env: `.env.development` vs `.env.production` — nessuna credenziale prod in build dev e viceversa.
+8. Comandi su prod (`fitquest-60a09`, push su `main`): uno per chiamata, mai concatenati con altri (`&&`, `;`, pipe) — vedi CLAUDE.md → "Rilascio in produzione" (retro #22).
 
 Classifica: RELEASE READY / RELEASE WITH WARNINGS / NOT READY.
 

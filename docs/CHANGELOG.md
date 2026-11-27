@@ -18,6 +18,56 @@ Schema: data del deploy prod + etichetta; più rilasci nello stesso giorno: suff
 
 ---
 
+## [2026.11.27.2] — Sprint #23 Go-live Lipedema (sblocco del modulo in prod) — IN RILASCIO
+
+Processo: `CLAUDE.md` → "Rilascio in produzione". **Solo hosting** (merge `dev → main` → `deploy.yml`): functions
+invariate, nessun deploy functions. Sprint #23, voce 9.
+
+### Features
+- Modulo `lipedema` selezionabile dal super_admin in ogni ambiente (`IS_LIPEDEMA_SELECTABLE = true`,
+  `src/config/modules.config.js:30`; select in `CreateOrgForm.jsx:97` e `OrgDetailView.jsx:63`). Runbook TP-087
+  aggiornato, TP-095 nuovo (go-live, blocker).
+
+### Bug Fixes
+- Nessuno.
+
+### Known Issues
+- **STORY-029 (b)/(c) aperte** (DPA e testo dell'informativa non ancora approvati dal manager): sblocco in prod con
+  rischio accettato dall'utente (27/11/2026). L'org Lipedema reale si crea solo con via libera a sé.
+- `qa:dev` sull'hosting dev a `5c7f6c6`: **65/66** (rosso `e2e/qa-dev/tests/lipedema.spec.js:103` "chiude un
+  appuntamento"), rerun di `lipedema.spec.js` da solo **6/6**: spec instabile, non legata allo sblocco (a backlog).
+- E2E CI rosso solo per BUG-042 (dati di test, `real-flows.spec.js` "campionamento", tetto 50 campionamenti).
+- TP-095 su rankex-dev: passi super_admin da provare a cura dell'utente (esito in SPRINT voce 8).
+
+### Breaking Changes
+- Nessuno. Nessuna modifica a `firestore.rules`, `firestore.index.json`, `firebase.json`, `functions/`.
+
+### Diff verso la produzione (2026-11-27, `git diff --stat origin/main origin/dev`, `53b5579..61f8d93`)
+`CLAUDE.md`, `docs/*`, `src/config/modules.config.js`, `src/__tests__/config/modules.config.test.js`,
+`src/config/runbook.config.js` (7 file). Pre-flight della voce 6: lint ok, unit 758/758, build ok; CI su `61f8d93`
+46046671039 ok, `deploy.yml` 46046868084 `deploy-dev` ok (18:05 UTC).
+
+### Stato attuale della produzione (annotato prima del merge)
+- Hosting + rules prod: `origin/main` = **`53b5579`** (`deploy.yml` 46018372099).
+- Functions prod: **`478a157`** (codice `fb08a28`), 40 callable `nodejs22` — invariate da questo rilascio.
+
+### Rollback plan
+- **hosting** (unico layer toccato): Console → Hosting → Release history → Rollback, per **entrambi** `rankex-app` e
+  `rankex-admin`, alla release di `53b5579` (14:43 UTC del 27/11); oppure `firebase hosting:clone
+  <site>@<versionId> <site>:live` per i 2 siti. Dopo il rollback non pushare su `main` finché non è corretto.
+- Alternativa senza rollback: fix forward con `IS_LIPEDEMA_SELECTABLE = isDev` su `dev` → merge.
+- rules: invariate (il deploy le ripubblica identiche). functions: non toccate.
+- Un'org lipedema già creata in prod resta anche dopo il rollback (che nasconde solo la select): va gestita a parte
+  (Zona pericolosa, con via libera).
+
+### Da compilare durante il rilascio
+- [ ] Merge `dev -> main` + push: CI __, `deploy.yml` __ (`deploy-prod`), ora __
+- [ ] HTTP check anonimo `rankex-app` / `rankex-admin` (`version.json` nuovo, CSP, `X-Frame-Options`): __
+- [ ] Smoke test TP-095 in prod su org temporanea `smoke-lipedema-20261127` (creazione, paziente fittizio,
+  cancellazione, residui = 0): __
+
+---
+
 ## [2026.11.27] — Sprint #22 (area cliente 360 px, terminologia lato server) — IN RILASCIO
 
 Processo: `CLAUDE.md` → "Rilascio in produzione". Ordine: functions prod a mano, poi **subito** merge `dev → main`.
