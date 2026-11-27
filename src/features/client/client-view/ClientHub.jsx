@@ -255,7 +255,7 @@ export function ClientHub({ client, orgId, color, onTabChange }) {
                   transition: 'color 200ms ease',
                   pointerEvents: 'none',
                 }}>
-                  {mobile ? sec.label.slice(0, 3) : sec.label}
+                  {sec.label}
                 </span>
               </div>
             </button>

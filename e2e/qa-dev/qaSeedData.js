@@ -25,10 +25,15 @@ export const UPCOMING_SLOT_DAYS_AHEAD = 1
 
 /** Per chiave modulo di QA_ORGS: cosa crea il seed. Il paziente lipedema non ha login: nulla */
 export const QA_SEED_PLAN = {
-  pt:       { pastSlots: true,  upcomingSlot: true },
+  pt:       { pastSlots: true,  upcomingSlot: true, showcaseBadges: true },   // vetrina da 5 badge manuali (STORY-049 AC2)
   soccer:   { pastSlots: true,  upcomingSlot: true },   // coins > 0 e streak >= 1 anche per l'allievo (STORY-048)
   lipedema: { pastSlots: false, upcomingSlot: false },
 }
+
+/** I 5 badge `type: 'manual'` che il seed assegna al cliente di base e mette in vetrina (ids di config/badges.config.js: li verifica un test) */
+export const SEED_SHOWCASE_BADGE_IDS = ['campione', 'perseveranza', 'spirito', 'talento', 'mvp']
+const SEED_BADGE_AWARDED_BY = 'qa-seed'
+const SEED_BADGE_NOTE = 'QA: badge di prova'
 
 const NOTIFICATIONS = [
   { suffix: 'unread-1', message: 'QA: promemoria di prova (non letto)',         type: 'session', read: false },
@@ -92,4 +97,22 @@ export function buildSeedNotifications(planKey, clientId, now) {
  */
 export function shouldRefreshUpcoming(existingData, now) {
   return existingData?.status === 'planned' && existingData.date < romeDateStr(now)
+}
+
+/**
+ * Aggiornamento del documento cliente per avere 5 badge manuali e la vetrina da 5 (path puntati, come
+ * functions/src/shared/badges.js: non sovrascrivono altri badge). Idempotente: aggiunge solo i badge mancanti
+ * e scrive la vetrina solo se vuota (se la QA l'ha cambiata non si tocca). Nessuna differenza = null (0 scritture).
+ * @returns {object|null} patch per `update()` o null
+ */
+export function planSeedBadges(planKey, clientData, now) {
+  if (!QA_SEED_PLAN[planKey]?.showcaseBadges) return null
+  const patch = {}
+  for (const id of SEED_SHOWCASE_BADGE_IDS) {
+    if (!clientData?.badges?.[id]) {
+      patch[`badges.${id}`] = { awardedAt: now.getTime(), awardedBy: SEED_BADGE_AWARDED_BY, note: SEED_BADGE_NOTE }
+    }
+  }
+  if (!clientData?.badgeShowcase?.length) patch.badgeShowcase = [...SEED_SHOWCASE_BADGE_IDS]
+  return Object.keys(patch).length ? patch : null
 }

@@ -3,7 +3,7 @@ import { BadgeMedal }            from '../../../components/ui/BadgeMedal'
 import { IconClose }             from '../../../components/ui/icons'
 import { EmptyState }            from '../../../components/ui'
 import { ConfirmDialog }         from '../../../components/common/ConfirmDialog'
-import { BADGES, BADGE_TIERS, MANUAL_BADGES } from '../../../config/badges.config'
+import { BADGES, BADGE_TIERS, MANUAL_BADGES, getBadgeLabel, getBadgeDescription } from '../../../config/badges.config'
 import { DEFAULT_TERMINOLOGY }       from '../../../config/modules.config'
 
 const ICON_TROPHY = (
@@ -154,7 +154,7 @@ export function TrophiesSection({
 
       {/* ── Showcase preview ─────────────────────────────────────────────── */}
       {earnedList.length > 0 && (
-        <div className="mb-6 rounded-[4px] p-4">
+        <div className="mb-6 rounded-[4px] p-4" data-testid="trophy-showcase">
           <div className="font-display text-[8px] tracking-[2.5px] uppercase mb-3 flex items-center gap-2" style={{ color: color + '80' }}>
             {ICON_PIN}
             Profilo ({currentShowcase.length}/{MAX_SHOWCASE})
@@ -164,7 +164,8 @@ export function TrophiesSection({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-4">
+          {/* flex-wrap: a 360 px 5×68 + 4×16 = 404 px non entrano in una riga, vanno a capo (3+2) invece di uscire dalla card */}
+          <div className="flex flex-wrap items-center gap-4">
             {Array.from({ length: MAX_SHOWCASE }).map((_, i) => {
               const id = currentShowcase[i]
               return id ? (
@@ -223,16 +224,16 @@ export function TrophiesSection({
                 >
                   {/* Medal */}
                   <div className="shrink-0">
-                    <BadgeMedal badgeId={b.id} unlocked size={52} />
+                    <BadgeMedal badgeId={b.id} unlocked size={52} terminology={terminology} />
                   </div>
 
                   {/* Info */}
                   <div className="flex-1 min-w-0 pt-0.5">
                     <div className="font-display font-black uppercase text-white" style={{ fontSize: 12, letterSpacing: '0.5px', lineHeight: 1.2 }}>
-                      {b.label}
+                      {getBadgeLabel(b, terminology)}
                     </div>
                     <div className="font-body mt-1 leading-snug" style={{ fontSize: 11, color: 'rgba(255,255,255,0.50)' }}>
-                      {b.description}
+                      {getBadgeDescription(b, terminology)}
                     </div>
                     {meta.note && (
                       <div className="font-body mt-1 leading-snug italic" style={{ fontSize: 10, color: color + '90' }}>
@@ -317,16 +318,16 @@ export function TrophiesSection({
                 >
                   {/* Medal */}
                   <div className="shrink-0">
-                    <BadgeMedal badgeId={b.id} unlocked={false} size={52} />
+                    <BadgeMedal badgeId={b.id} unlocked={false} size={52} terminology={terminology} />
                   </div>
 
                   {/* Info */}
                   <div className="flex-1 min-w-0 pt-0.5">
                     <div className="font-display font-black uppercase" style={{ fontSize: 12, letterSpacing: '0.5px', lineHeight: 1.2, color: 'rgba(255,255,255,0.30)' }}>
-                      {b.label}
+                      {getBadgeLabel(b, terminology)}
                     </div>
                     <div className="font-body mt-1 leading-snug" style={{ fontSize: 11, color: 'rgba(255,255,255,0.22)' }}>
-                      {b.description}
+                      {getBadgeDescription(b, terminology)}
                     </div>
                     {b.type === 'manual' && (
                       <div className="font-display mt-1.5 uppercase" style={{ fontSize: 7, letterSpacing: '1px', color: 'rgba(255,255,255,0.15)' }}>
@@ -409,14 +410,14 @@ export function TrophiesSection({
                       opacity:    alreadyEarned ? 0.4 : 1,
                     }}
                   >
-                    <BadgeMedal badgeId={b.id} unlocked={!alreadyEarned} size={36} />
+                    <BadgeMedal badgeId={b.id} unlocked={!alreadyEarned} size={36} terminology={terminology} />
                     <div className="flex-1 min-w-0">
                       <div className="font-display font-black text-white" style={{ fontSize: 11, letterSpacing: '1px' }}>
-                        {b.label}
+                        {getBadgeLabel(b, terminology)}
                         {alreadyEarned && <span style={{ color, marginLeft: 6, fontSize: 9 }}>✓ assegnato</span>}
                       </div>
                       <div className="font-body mt-0.5 text-ellipsis overflow-hidden whitespace-nowrap" style={{ fontSize: 11, color: 'rgba(255,255,255,0.38)' }}>
-                        {b.description}
+                        {getBadgeDescription(b, terminology)}
                       </div>
                     </div>
                     <div className="font-display" style={{ fontSize: 9, color: tier.color, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', flexShrink: 0 }}>
@@ -432,7 +433,7 @@ export function TrophiesSection({
 
       {confirmRevoke && (
         <ConfirmDialog
-          title={`Revocare "${confirmRevoke.label}"?`}
+          title={`Revocare "${getBadgeLabel(confirmRevoke, terminology)}"?`}
           description="Il badge verrà rimosso dal profilo dell'atleta e, se in evidenza, anche dalla vetrina."
           confirmLabel="REVOCA"
           variant="danger"

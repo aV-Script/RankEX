@@ -14,7 +14,7 @@ import { test, expect } from '../fixtures.js'
 import { qaClientUsers } from '../qaDev.config.js'
 import {
   VIEWPORTS, PX_TOLERANCE, BELL_NAME, isDesktopViewport, expectNoHorizontalScroll, expectNotificationsPanelLayout,
-  documentBox, rectsOverlap,
+  documentBox, rectsOverlap, scrollToViewportCenter, readAccessibleName,
 } from '../layoutHelpers.js'
 
 /** Altezza della bottom nav fissa dell'area cliente sotto `lg` (ClientBottomNav: `height: 62`) */
@@ -35,10 +35,12 @@ const MODULES = [
   {
     moduleKey: 'pt', label: 'qa-pt (cliente)',
     streakText: /sessioni di fila/i, nextTitle: /^Prossima(?![a-zà-ù])/,
+    nextName: /^Prossima sessione: .+ · \d{2}:\d{2} – \d{2}:\d{2}$/,
   },
   {
     moduleKey: 'soccer', label: 'qa-soccer (allievo)',
     streakText: /allenamenti di fila/i, nextTitle: /^Prossimo(?![a-zà-ù])/,
+    nextName: /^Prossimo allenamento: .+ · \d{2}:\d{2} – \d{2}:\d{2}$/,
     forbidden: [/Categoria/, /\bsession[ei]\b/i],
   },
 ]
@@ -73,9 +75,8 @@ async function openHome(openAs, userKey) {
 
 /** Il locatore, interamente dentro il viewport e sopra la bottom nav (dopo averlo portato in vista) */
 async function expectFullyInViewport(locator, viewport, what) {
-  // scrollIntoViewIfNeeded non scorre un elemento gia' in parte visibile, anche se sta sotto la bottom nav fissa:
-  // lo si porta al centro, cosi' la misura verifica che sia raggiungibile e non coperto
-  await locator.evaluate(element => element.scrollIntoView({ block: 'center', inline: 'nearest' }))
+  // scrollIntoViewIfNeeded non scorre sotto la bottom nav fissa: vedi scrollToViewportCenter in layoutHelpers.js
+  await scrollToViewportCenter(locator)
   const box = await locator.boundingBox()
   expect(box, `${what}: nessun riquadro`).not.toBeNull()
   const navHeight = isDesktopViewport(viewport) ? 0 : BOTTOM_NAV_HEIGHT
@@ -176,6 +177,8 @@ for (const moduleCase of MODULES) {
         const { home } = await openHome(openAs, userKey)
         await expect(home.streak).toContainText(moduleCase.streakText)
         await expect(home.next).toContainText(moduleCase.nextTitle)
+        // Nome accessibile (STORY-048 voce 6): titolo e data separati da ":", col termine del modulo
+        expect(await readAccessibleName(home.next), 'nome accessibile di PROSSIMA').toMatch(moduleCase.nextName)
         // Solo i testi prodotti dalla Home: il testo delle notifiche lo scrive il server (chiudiSessione)
         // e per soccer dice ancora "Sessione" (BUG-037, functions/, fuori da STORY-048)
         for (const pattern of moduleCase.forbidden ?? []) {

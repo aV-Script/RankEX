@@ -1,6 +1,6 @@
 /**
  * Costanti e misure comuni agli spec di layout dell'area cliente su rankex-dev
- * (clientNotificationsLayout.spec.js, clientHomeLayout.spec.js; Sprint #21 AI 2 e STORY-048 T6).
+ * (clientNotificationsLayout.spec.js, clientHomeLayout.spec.js, clientStory049Layout.spec.js; Sprint #21 AI 2, STORY-048 T6, STORY-049).
  * Le misure sono boundingBox / getBoundingClientRect, mai dichiarazioni.
  */
 import { expect } from '@playwright/test'
@@ -92,4 +92,42 @@ export function documentBox(locator) {
 /** Due rettangoli {x,y,width,height} hanno area in comune (i bordi che si toccano non contano) */
 export function rectsOverlap(a, b) {
   return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height
+}
+
+/**
+ * Porta l'elemento al centro del viewport. `scrollIntoViewIfNeeded` non scorre un elemento gia' in parte
+ * visibile, anche se sta sotto la bottom nav fissa (62 px, sotto `lg`): la misura "dentro il viewport e non
+ * coperto" sarebbe falsata. Al centro l'elemento e' raggiungibile e libero dalla nav.
+ */
+export function scrollToViewportCenter(locator) {
+  return locator.evaluate(element => element.scrollIntoView({ block: 'center', inline: 'nearest' }))
+}
+
+/**
+ * Nome leggibile di un controllo: `aria-label` se c'e', altrimenti `innerText` con gli spazi normalizzati.
+ * Non leggere `textContent` con una regex a confine di parola: unisce i blocchi senza spazi ("ProssimaSAB 14 NOV") e il confine
+ * non esiste; `innerText` rispetta layout e `text-transform` (le etichette uppercase arrivano in maiuscolo).
+ */
+export function readAccessibleName(locator) {
+  return locator.evaluate(element => element.getAttribute('aria-label') ?? element.innerText.replace(/\s+/g, ' ').trim())
+}
+
+/**
+ * Rettangolo del testo vero e proprio, in coordinate di documento. Un elemento con `max-width` ha un box
+ * piu' stretto di una parola lunga che trabocca: il range misura il testo, non il box.
+ */
+export function textDocumentBox(locator) {
+  return locator.evaluate(element => {
+    const range = document.createRange()
+    range.selectNodeContents(element)
+    const rect = range.getBoundingClientRect()
+    return { x: rect.x + window.scrollX, y: rect.y + window.scrollY, width: rect.width, height: rect.height }
+  })
+}
+
+/** Il rettangolo sta dentro il contenitore (con la tolleranza dei sub-pixel) */
+export function rectInside(inner, outer) {
+  return inner.x >= outer.x - PX_TOLERANCE && inner.y >= outer.y - PX_TOLERANCE
+    && inner.x + inner.width <= outer.x + outer.width + PX_TOLERANCE
+    && inner.y + inner.height <= outer.y + outer.height + PX_TOLERANCE
 }

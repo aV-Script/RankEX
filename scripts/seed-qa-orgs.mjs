@@ -31,7 +31,7 @@ import {
   loadDevServiceAccount, loadDevClientEnv, readEnvTest, assertDevFirestore,
 } from '../e2e/qa-dev/qaDev.config.js'
 import { cleanupE2EData } from '../e2e/qa-dev/cleanup.js'
-import { buildSeedSlots, buildSeedNotifications, shouldRefreshUpcoming } from '../e2e/qa-dev/qaSeedData.js'
+import { buildSeedSlots, buildSeedNotifications, shouldRefreshUpcoming, planSeedBadges } from '../e2e/qa-dev/qaSeedData.js'
 import { clientsPath, slotsPath, notificationsPath } from '../src/firebase/paths.js'
 
 const REGION    = 'europe-west1'
@@ -185,7 +185,7 @@ async function completeFirstAccess(clientAuthUid, newPassword) {
 }
 
 /**
- * Slot e notifiche del cliente di base, con id deterministico: se il documento esiste non si
+ * Slot, notifiche e badge (vetrina) del cliente di base, con id deterministico: se il documento esiste non si
  * ricrea e non si tocca (slot già chiusi o notifiche già lette restano tali). Unica eccezione:
  * lo slot futuro ancora pianificato ma ormai passato viene spostato a domani.
  */
@@ -211,7 +211,13 @@ async function ensureClientActivity(moduleKey, orgId, baseClient) {
       created++
     }
   }
-  if (created) console.log(`  dati QA del cliente di base: ${created} nuovi documenti`)
+  const clientRef   = db.doc(`${clientsPath(orgId)}/${baseClient.id}`)
+  const badgesPatch = planSeedBadges(moduleKey, (await clientRef.get()).data(), now)
+  if (badgesPatch) {
+    await clientRef.update(badgesPatch)
+    created++
+  }
+  if (created) console.log(`  dati QA del cliente di base: ${created} nuovi documenti/aggiornamenti`)
 }
 
 /** Solo email con il prefisso riservato alla suite (qa.* è della QA manuale) */

@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import {
   offsetRomeDate, buildSeedSlots, buildSeedNotifications, shouldRefreshUpcoming, QA_SEED_PREFIX,
+  planSeedBadges, SEED_SHOWCASE_BADGE_IDS,
 } from '../../../e2e/qa-dev/qaSeedData.js'
+import { MANUAL_BADGES } from '../../config/badges.config.js'
 import { getAvatarsForOrg } from '../../config/avatars.config.js'
 import { getUnlockRuleForAvatarId } from '../../../functions/src/shared/avatarUnlocks.js'
 
@@ -79,5 +81,41 @@ describe('set avatar qa-pt', () => {
     }
     expect(avatars.find(avatar => avatar.id === 'qa_pt_07')).toMatchObject({ unlockType: 'purchase', price: 30 })
     expect(getAvatarsForOrg('qa-soccer')).toHaveLength(0)
+  })
+})
+
+describe('planSeedBadges (STORY-049 AC2: vetrina da 5)', () => {
+  it('gli id sono 5 badge manuali che esistono in config', () => {
+    expect(SEED_SHOWCASE_BADGE_IDS).toHaveLength(5)
+    const manualIds = MANUAL_BADGES.map(badge => badge.id)
+    for (const id of SEED_SHOWCASE_BADGE_IDS) expect(manualIds).toContain(id)
+  })
+
+  it('PT: assegna i 5 badge e la vetrina nel formato del modello Cliente', () => {
+    const patch = planSeedBadges('pt', { badges: {}, badgeShowcase: [] }, NOW)
+    expect(patch.badgeShowcase).toEqual(SEED_SHOWCASE_BADGE_IDS)
+    for (const id of SEED_SHOWCASE_BADGE_IDS) {
+      expect(patch[`badges.${id}`]).toMatchObject({ awardedAt: NOW.getTime(), awardedBy: 'qa-seed' })
+    }
+  })
+
+  it('secondo lancio: nessuna scrittura; non tocca una vetrina cambiata dalla QA', () => {
+    const done = {
+      badges: Object.fromEntries(SEED_SHOWCASE_BADGE_IDS.map(id => [id, { awardedAt: 1, awardedBy: 'qa-seed' }])),
+      badgeShowcase: SEED_SHOWCASE_BADGE_IDS,
+    }
+    expect(planSeedBadges('pt', done, NOW)).toBeNull()
+    expect(planSeedBadges('pt', { ...done, badgeShowcase: ['mvp'] }, NOW)).toBeNull()
+  })
+
+  it('aggiunge solo i badge mancanti senza toccare gli altri', () => {
+    const patch = planSeedBadges('pt', { badges: { mvp: { awardedAt: 1 } }, badgeShowcase: ['mvp'] }, NOW)
+    expect(Object.keys(patch)).not.toContain('badges.mvp')
+    expect(Object.keys(patch)).toHaveLength(4)
+  })
+
+  it('soccer e lipedema: niente', () => {
+    expect(planSeedBadges('soccer', {}, NOW)).toBeNull()
+    expect(planSeedBadges('lipedema', {}, NOW)).toBeNull()
   })
 })

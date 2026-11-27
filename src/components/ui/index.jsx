@@ -427,7 +427,7 @@ export function StatsSection({ stats = {}, prevStats = null, categoria = 'health
   const statLabels = config.map(t => t.label)
 
   return (
-    <div className="grid gap-6" style={{ gridTemplateColumns: '3fr 2fr' }}>
+    <div className="grid gap-6 grid-cols-1 sm:grid-cols-[3fr_2fr]" data-testid="stats-section">
       {/* Barre statistiche */}
       <div className="flex flex-col justify-center gap-3">
         {statKeys.map((key, i) => {
@@ -441,6 +441,7 @@ export function StatsSection({ stats = {}, prevStats = null, categoria = 'health
                 {statLabels[i]}
               </span>
               <div
+                data-testid="stats-track"
                 className="flex-1 h-[5px] rounded-full overflow-hidden"
                 style={{ background: 'color-mix(in srgb, var(--rx-accent-2) 10%, transparent)' }}
               >

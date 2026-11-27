@@ -2,8 +2,10 @@ import { describe, it, expect } from 'vitest'
 import {
   formatXpMultiplier, getStreakSummary, getXpProgress, getHomeMedia,
   getHomeCategoryLabel, pickLatestNotifications, HOME_NOTIFICATIONS_SHOWN,
+  formatNextSessionWhen, getNextSessionAriaLabel,
 } from '../../utils/clientHome.js'
 import { formatNotificationDate } from '../../utils/notifications.js'
+import { getTerminology, bySessionGender } from '../../config/modules.config.js'
 import { calcStreakMultiplier, calcStreakPreview } from '../../utils/gamification.js'
 
 const CATEGORIES = [{ id: 'health', label: 'Health' }, { id: 'active', label: 'Active' }]
@@ -139,5 +141,39 @@ describe('formatNotificationDate', () => {
 
   it('senza data: stringa vuota', () => {
     expect(formatNotificationDate(undefined, now)).toBe('')
+  })
+})
+
+describe('nome accessibile della card PROSSIMA', () => {
+  const SLOT = { date: '2026-11-26', startTime: '10:00', endTime: '11:00' }
+
+  function labelFor(moduleType, variant, slot) {
+    const terminology = getTerminology(moduleType, variant)
+    const sessionTerm = terminology.session.toLowerCase()
+    return getNextSessionAriaLabel({
+      title: bySessionGender(terminology, 'Prossimo', 'Prossima'),
+      sessionTerm,
+      emptyText: `${bySessionGender(terminology, 'Nessun', 'Nessuna')} ${sessionTerm} in programma`,
+    }, slot)
+  }
+
+  it('PT: separatore tra titolo e data', () => {
+    expect(labelFor('personal_training', 'pt', SLOT)).toBe('Prossima sessione: GIO 26 NOV · 10:00 – 11:00')
+  })
+
+  it('soccer: termine del modulo, mai "sessione"', () => {
+    const label = labelFor('soccer_academy', 'soccer', SLOT)
+    expect(label).toBe('Prossimo allenamento: GIO 26 NOV · 10:00 – 11:00')
+    expect(label).not.toMatch(/sessione/i)
+  })
+
+  it('senza slot: solo il testo del caso vuoto', () => {
+    expect(labelFor('personal_training', 'pt', undefined)).toBe('Nessuna sessione in programma')
+    expect(labelFor('soccer_academy', 'soccer', undefined)).toBe('Nessun allenamento in programma')
+  })
+
+  it('orario assente o senza fine', () => {
+    expect(formatNextSessionWhen({ date: '2026-11-26' })).toBe('GIO 26 NOV')
+    expect(formatNextSessionWhen({ date: '2026-11-26', startTime: '10:00' })).toBe('GIO 26 NOV · 10:00')
   })
 })

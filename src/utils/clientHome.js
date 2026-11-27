@@ -1,5 +1,6 @@
 import { calcStreakMultiplier, calcStreakPreview } from './gamification'
 import { sortNotificationsNewestFirst } from './notifications'
+import { formatUpcomingDate } from './calendarUtils'
 
 export const HOME_NOTIFICATIONS_SHOWN = 2
 
@@ -64,4 +65,20 @@ export function getHomeCategoryLabel(capabilities, client, categories) {
 /** Le ultime `limit` notifiche, dalla più recente (non modifica l'array ricevuto). */
 export function pickLatestNotifications(notifications, limit = HOME_NOTIFICATIONS_SHOWN) {
   return sortNotificationsNewestFirst(notifications ?? []).slice(0, limit)
+}
+
+/** "GIO 28 NOV · 10:00 – 11:00" (senza orario: solo la data; senza fine: solo l'inizio). */
+export function formatNextSessionWhen(slot) {
+  const time = slot.startTime ? ` · ${slot.startTime}${slot.endTime ? ` – ${slot.endTime}` : ''}` : ''
+  return `${formatUpcomingDate(slot.date)}${time}`
+}
+
+/**
+ * Nome accessibile della card PROSSIMA: titolo e data separati da ":" (il testo visibile li affianca
+ * senza spazio e un lettore di schermo leggerebbe "Prossimagio 28 nov"). Con slot: "Prossima sessione: GIO 28 NOV · 10:00";
+ * senza: il testo del caso vuoto.
+ * @param {{ title: string, sessionTerm: string, emptyText: string }} parts
+ */
+export function getNextSessionAriaLabel({ title, sessionTerm, emptyText }, slot) {
+  return slot ? `${title} ${sessionTerm}: ${formatNextSessionWhen(slot)}` : emptyText
 }

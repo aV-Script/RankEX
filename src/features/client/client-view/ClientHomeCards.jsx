@@ -2,9 +2,8 @@
 // Stati vuoto / caricamento / errore distinti; testi con la terminologia del modulo.
 
 import { bySessionGender } from '../../../config/modules.config'
-import { formatUpcomingDate } from '../../../utils/calendarUtils'
 import { formatNotificationDate } from '../../../utils/notifications'
-import { getStreakSummary, pickLatestNotifications } from '../../../utils/clientHome'
+import { getStreakSummary, pickLatestNotifications, formatNextSessionWhen, getNextSessionAriaLabel } from '../../../utils/clientHome'
 
 const TOUCH_TARGET_MIN = 44
 const CARD_MIN_HEIGHT  = 84
@@ -87,22 +86,25 @@ export function NextSessionCard({ sessions, status, onRetry, onOpenCalendar, ter
     )
   }
 
+  const sessionTerm = terminology.session.toLowerCase()
+  const emptyText   = `${bySessionGender(terminology, 'Nessun', 'Nessuna')} ${sessionTerm} in programma`
+
   return (
     <button
       type="button"
       onClick={onOpenCalendar}
+      aria-label={getNextSessionAriaLabel({ title, sessionTerm, emptyText }, next)}
       className={`${CARD_CLASS} cursor-pointer w-full`}
       style={{ minHeight: CARD_MIN_HEIGHT }}
     >
       <div className={TITLE_CLASS} style={{ color: MUTED_TEXT }}>{title}</div>
       {next ? (
         <div className="font-display text-[13px] font-semibold text-white/85 break-words leading-snug">
-          {formatUpcomingDate(next.date)}
-          {next.startTime && ` · ${next.startTime}${next.endTime ? ` – ${next.endTime}` : ''}`}
+          {formatNextSessionWhen(next)}
         </div>
       ) : (
         <div className="font-body text-[12px] break-words" style={{ color: MUTED_TEXT }}>
-          {bySessionGender(terminology, 'Nessun', 'Nessuna')} {terminology.session.toLowerCase()} in programma
+          {emptyText}
         </div>
       )}
     </button>
