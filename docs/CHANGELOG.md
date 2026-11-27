@@ -64,8 +64,11 @@ sull'hosting dev a `fb08a28` (run `deploy.yml` 46008321615) · `docs/BUGS.md` se
 - [x] Push docs su `dev` (`fb08a28..515eb12`): CI 46012723274 ok, `deploy.yml` 46012971301 (`deploy-dev` ok,
   `deploy-prod` skipped); E2E 46012723193 **rosso** su 1 test per dati di test (BUG-042, tetto 50 campionamenti,
   non codice: 38 passed, 21 skipped); `e2e.yml` non blocca `deploy.yml`
-- [ ] functions prod a `__` (sha stampato dal guard); deploy ora/esito: __
-- [ ] `functions:list` dopo il deploy: attese 40 callable, tutte `nodejs22`: __
+- [x] functions prod a `478a1577757deef2dda869aa574cba5afa781da1` (HEAD al deploy, `git rev-parse HEAD` subito
+  dopo; la riga del guard è stata tagliata dall'output catturato, working tree pulito in `functions/`); codice
+  functions = `fb08a28`. Deploy `cd functions && npm run deploy` 2026-11-27 14:33:10-14:34:45 UTC, exit 0,
+  "Deploy complete!", 40 "Successful update operation", nessuna callable creata o cancellata
+- [x] `functions:list --project fitquest-60a09` dopo il deploy: 40 callable, 40 `nodejs22`
 - [ ] Merge `dev -> main` + push: run CI __, `deploy.yml` __ (`deploy-prod`): __
 - [ ] Smoke test sola lettura super_admin su `rankex-admin` (lista org, una PT, una Soccer; select Modulo senza
   Lipedema): __
