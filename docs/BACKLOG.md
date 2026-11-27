@@ -1857,3 +1857,125 @@ passarlo.
 - **Risks:** divergenza silenziosa tra le tre copie; review HIGH (rules).
 - **Priority:** P3 (taglia L)
 - **Status:** BACKLOG — nessuno sprint (decisione utente 12/11/2026)
+
+## [EPIC-012] Interfaccia allineata al canvas — review 1 (design e stati) e 2 (Lipedema)
+
+Story nate dalle review del canvas (`https://claude.ai/artifact/XxYxNXzRYT7gRLko4HEeuL`): review 1
+`https://claude.ai/artifact/4GMo38ECoouHK71CPLPcpd`, review 2 `https://claude.ai/artifact/WTgVYpedaBdKX8RtPaTn78`.
+Decisioni utente del 27/11/2026: sì alle proposte ALTA della review 1 (neutral 60%, danger rosso pieno, toast), sì a modal dal
+basso, conferma col nome per l'eliminazione, sessione con conto alla rovescia; barra admin da ridisegnare sul canvas prima del
+codice; terminologia Lipedema in un'unica story P3; no-cache di `index.html` nel #24. Le proposte BASSA della review 1 e quelle
+della review 2 restano da decidere (status BACKLOG, "da decidere"). Salvo dove scritto, solo frontend: nessuna callable, nessuna
+modifica a `firestore.rules`. Ogni AC di UI va verificato a 1366 px e a 360×640 px.
+
+### STORY-052 — Contrasto dei bottoni neutral e danger
+- **Contesto:** review 1, righe ALTA. `src/components/ui/index.jsx`: variante `danger` (`:222`) sfumatura `#f59e0b → #ef4444`
+  con testo bianco (circa 2,1:1 sul lato ambra), variante `neutral` (`:243`) testo bianco al 40% (circa 3,7:1).
+  `client-dashboard/DeleteDialog.jsx:44` ha un bottone danger scritto a mano.
+- **Acceptance Criteria:**
+  - [ ] `neutral`: testo bianco al 60% (tavola DesignSystem), contrasto ≥ 4,5:1 sul fondo dei dialog in tutti i 7 temi
+  - [ ] `danger`: rosso pieno `#dc2626` con testo bianco (≥ 4,5:1), uguale in tutti i temi; `DeleteDialog` usa la variante
+        invece dello stile a mano
+  - [ ] `themes.config.test` misura anche danger e neutral (oggi misura accento, secondario, testo tenue, principale)
+- **Modulo:** tutti · **Priority:** P1 · **Taglia:** S · **Status:** READY (Sprint #24)
+
+### STORY-053 — Toast come la tavola StatoMessaggi
+- **Contesto:** review 1. Oggi tutti i toast spariscono dopo 3 s (`config/app.config.js:4` `TOAST_DURATION_MS`,
+  `context/ToastContext.jsx:20`), fondo pieno colorato, × da 11 px senza area di tocco, a 1rem dal fondo: su mobile copre la
+  barra in basso (`components/common/Toast.jsx:23,36-46`).
+- **Acceptance Criteria:**
+  - [ ] Conferme 4 s; errori restano finché non li chiudi (×)
+  - [ ] Fondo scuro con bordo colorato per esito, × con area di tocco ≥ 32 px e `aria-label`
+  - [ ] Su mobile il toast sta 76 px sopra la barra di navigazione e non la copre (misura a 360×640)
+  - [ ] `role="status"` per le conferme, `role="alert"` per gli errori; test Vitest sulla durata per variante
+- **Modulo:** tutti · **Priority:** P1 · **Taglia:** S · **Status:** READY (Sprint #24)
+
+### STORY-054 — Modal dal basso su mobile
+- **Contesto:** review 1. `Modal` in `src/components/ui/index.jsx:152` (`items-start lg:items-center`): sotto i 1024 px la
+  finestra sta in alto. Tavole DesignSystem, MobileStatoConferma.
+- **Acceptance Criteria:**
+  - [ ] Sotto `lg` il `Modal` è un pannello ancorato in basso (bordi alti arrotondati, larghezza piena, `max-height` con scroll
+        interno, safe-area in basso); da `lg` resta centrato
+  - [ ] Focus trap ed Esc invariati; i dialog che usano `Modal` (ConfirmDialog e altri) cambiano tutti da un punto solo
+- **Modulo:** tutti · **Priority:** P2 · **Taglia:** S · **Status:** READY (Sprint #24)
+
+### STORY-055 — Eliminazione cliente/paziente con conferma del nome
+- **Contesto:** review 1. `client-dashboard/DeleteDialog.jsx:31-47` dice solo "Stai per eliminare X. Questa azione è
+  irreversibile."; il nome da digitare esiste solo per l'eliminazione di un'org (`OrgDetailView`). Tavola ConfermaElimina.
+  Callable `eliminaCliente` invariata. Montato da `ClientDashboard.jsx:528` con `clientLabel={terminology.client}`.
+- **Acceptance Criteria:**
+  - [ ] Il dialog elenca cosa viene cancellato per modulo, dalle capability: account (solo `hasClientLogin`), campionamenti
+        (solo `hasPercentileTests`), valutazioni (solo `hasAssessments`), BIA (`hasBia`), note, obiettivi (`hasGoals`)
+  - [ ] Bottone "ELIMINA DEFINITIVAMENTE" disabilitato finché il nome digitato non coincide (spazi esterni ignorati,
+        maiuscole indifferenti)
+  - [ ] Terminologia del modulo ("paziente" in Lipedema), nessun nome del paziente nei log o nell'audit
+- **Modulo:** tutti (tabella ambiente/modulo in SPRINT #24) · **Priority:** P2 · **Taglia:** S · **Status:** READY (Sprint #24)
+
+### STORY-056 — Sessione in scadenza con conto alla rovescia
+- **Contesto:** review 1. `common/SessionWarningDialog.jsx:28-36`: "Sessione in scadenza · Verrai disconnesso a breve", solo
+  RESTA CONNESSO. Tavola StatoSessioneScade. Timeout per ruolo in `useSessionTimeout`.
+- **Acceptance Criteria:**
+  - [ ] Titolo "Stai ancora lavorando?", conto alla rovescia mm:ss fino al logout, avviso che i dati non salvati si perdono
+  - [ ] Due azioni: ESCI ORA (logout con audit, come oggi) e RESTA CONNESSO (azzera il timer)
+  - [ ] Il conto alla rovescia è annunciato una volta (`aria-live` polite), non a ogni secondo
+- **Modulo:** tutti · **Priority:** P2 · **Taglia:** S · **Status:** READY (Sprint #24)
+
+### STORY-057 — Barra di navigazione dell'admin org
+- **Contesto:** review 1. 9 voci più il nome con `flex-wrap`: sotto i 1300 px circa va su due righe. Proposta: le tre voci
+  dell'organizzazione in un menu "Organizzazione".
+- **Dependencies:** ridisegno sul canvas prima del codice (decisione utente 27/11/2026).
+- **Modulo:** tutti (org_admin) · **Priority:** P3 · **Taglia:** M · **Status:** BACKLOG — prima la tavola
+
+### STORY-058 — Rifiniture BASSA della review 1
+- **Contesto:** altezza minima 44 px dei bottoni (`Button` in `ui/index.jsx`), testi degli stati vuoti dalla tavola StatiVuoti
+  (`trainer/ClientsPage.jsx:243` e altri `EmptyState`), colori di partenza di `src/index.css:34-50` allineati al tema RankEX.
+- **Modulo:** tutti · **Priority:** P3 · **Taglia:** S · **Status:** BACKLOG — da decidere (non coperte dalle decisioni del 27/11)
+
+### STORY-059 — Terminologia Lipedema residua
+- **Contesto:** smoke test prod del 27/11 e review 2. Tab "Allenamento" fissa (`client-dashboard/ClientDashboardHeader.jsx:15`,
+  tab senza capability in `dashboardTabs.js:14`), contro l'AC di STORY-030 (nessun "Allenamento" nel modulo); testo della
+  chiusura appuntamento sulla scheda che avanza; dettaglio org del super_admin con "Trainer" e "Clienti" fissi
+  (`admin/admin-pages/OrgDetailView.jsx:254,261`) e "Creato il —" prima del reload (`:229`).
+- **Acceptance Criteria:**
+  - [ ] Etichetta della tab e testi della scheda dalla terminologia del modulo (nuova chiave, es. `workoutPlan`): in Lipedema
+        la parola scelta dall'utente (proposta "Esercizi"), PT/GYM/Soccer invariati
+  - [ ] `OrgDetailView`: barre di utilizzo con `trainers`/`clients` della terminologia dell'org (Lipedema: Professionisti /
+        Pazienti)
+  - [ ] "Creato il": mai "—" subito dopo la creazione (valore locale finché non arriva quello del server)
+  - [ ] Test Vitest della terminologia per i 4 casi (PT, GYM, Soccer, Lipedema) e caso spec in `e2e/qa-dev/tests/lipedema.spec.js`
+        che elenca le tab visibili della scheda paziente
+- **Dependencies:** parola per "allenamento" decisa dall'utente (domanda aperta nel #24).
+- **Modulo:** Lipedema, con non regressione su PT/GYM/Soccer · **Priority:** P3 · **Taglia:** S · **Status:** READY (Sprint #24)
+
+### STORY-060 — `index.html` senza cache
+- **Contesto:** `firebase.json` dà `Cache-Control` solo agli asset con hash (`:27-28`, `:49-50`); `index.html` riceve il
+  default dell'hosting (`max-age=3600`): dopo un deploy un browser può tenere la build vecchia fino a 1 ora (successo il 27/11:
+  Lipedema non compariva). Il banner RICARICA (`useVersionCheck`, 5 min) lo copre solo su una scheda già aperta.
+- **Acceptance Criteria:**
+  - [ ] `index.html` (e le route riscritte su di esso) servito con `Cache-Control: no-cache` su entrambi i target; asset con
+        hash invariati (`immutable`)
+  - [ ] Provato prima su rankex-dev: `curl -I` su `/`, `/index.html` e una route interna mostra `no-cache`; un file
+        `/assets/*.js` mostra ancora `immutable`; header di sicurezza (CSP, XFO) presenti in tutti e tre i casi
+- **Risks:** sovrapposizione delle regole `headers` di Firebase Hosting (una regola `**` vale anche per gli asset): verificare
+  con `curl`, non a memoria. Cambia `firebase.json`: per il guard di deploy va committato prima di ogni deploy functions.
+- **Modulo:** tutti · **Priority:** P2 · **Taglia:** S · **Status:** READY (Sprint #24)
+
+### STORY-061 — Card della lista pazienti Lipedema (review 2, da decidere)
+- **Contesto:** `trainer/clients-page/ClientCard.jsx:35-36,50-53`: senza rank la card mostra solo iniziale e nome. Tavole Main,
+  MembroPazienti, MobilePazienti: età, ultima valutazione, avviso informativa, NUOVA VALUTAZIONE / REGISTRA INFORMATIVA e APRI
+  SCHEDA. Proposta della review 2: senza i valori dei test in lista (dati sanitari a colpo d'occhio); la data dell'ultima
+  valutazione scritta dal server sul documento paziente da `aggiungiValutazione` / `annullaValutazione`.
+- **Dependencies:** tech-lead (campo nuovo sul doc paziente, callable); decisione utente sui valori in lista.
+- **Modulo:** Lipedema · **Priority:** P2 · **Taglia:** M · **Status:** BACKLOG — da decidere
+
+### STORY-062 — Pannello "Oggi" nella lista pazienti (review 2, da decidere)
+- **Contesto:** tavole Main e MobilePazienti: appuntamenti del giorno con azione (VALUTA, CHIUDI, APRI). Assente in
+  `trainer/ClientsPage.jsx`. Una lettura `getDocs` degli slot del giorno (nessun `onSnapshot`).
+- **Modulo:** Lipedema (da decidere se anche PT/Soccer) · **Priority:** P3 · **Taglia:** M · **Status:** BACKLOG — da decidere
+
+### STORY-063 — Struttura della scheda paziente come la tavola (review 2, da decidere)
+- **Contesto:** tavola Paziente (riepilogo fisso a sinistra, prima tab VALUTAZIONI con una card per test, "Storico e trend" a
+  parte) contro il codice (tab "Paziente" in `client-dashboard/AtletaTab.jsx:130-133` più tab "Valutazioni" in
+  `assessments/AssessmentsSection.jsx`). Proposta della review 2: tenere il codice fino alla review PT e Soccer (la scheda è
+  condivisa tra moduli).
+- **Modulo:** tutti · **Priority:** P3 · **Taglia:** L · **Status:** BACKLOG — dopo la review 3/5

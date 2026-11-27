@@ -82,8 +82,10 @@ invariate, nessun deploy functions. Sprint #23, voce 9.
   eseguito"), nessun rank/percentile/XP (stampa non lanciata); 7 org eliminata da Zona pericolosa, sparita dalla lista
   (2 org), sessione del trainer chiusa al reload. Log functions prod 18:40-18:50: solo I/D di aggiungiValutazione,
   annullaValutazione, eliminaOrganizzazione, 0 errori. Passo 8 (Console: Authentication senza l'utente smoke,
-  Firestore senza `organizations/smoke-lipedema-20261127-uo9gk`, `audit_logs` senza il nome del paziente): **a cura
-  dell'utente**, nessun accesso Admin SDK a prod da qui
+  Firestore senza `organizations/smoke-lipedema-20261127-uo9gk`, `audit_logs` senza il nome del paziente): **PASS,
+  residui 0** (verificato dall'utente in Console, esito dato il 27/11; nessun accesso Admin SDK a prod da qui)
+- [x] Org Lipedema reale creata dall'utente in prod il 27/11 (via libera e dati suoi, nessun dato inserito da noi).
+  **orgId: da annotare** (lo ricava l'utente da Console; in docs solo l'orgId, mai nome o dati dell'org)
 
 ---
 

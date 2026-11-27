@@ -544,7 +544,8 @@ sono allievi sia Senior che Piccoli (cioè `fasce.length > 1`). Gestito in `useC
 Gli step li costruisce `getWizardSteps(capabilities, profileType)` in `wizard.config.js`:
 - PT: anagrafica → profilo → categoria (assente se `bia_only`) → account
 - Soccer: anagrafica → ruolo → account
-- Lipedema (e modulo sconosciuto): anagrafica → contatto (email facoltativa, nessun account)
+- Lipedema: anagrafica → contatto (email facoltativa, nessun account) → informativa (facoltativa, `hasAssessments`)
+- Modulo sconosciuto: anagrafica → contatto
 La `categoria` (fascia d'età) viene derivata automaticamente dalla data di nascita al momento del submit.
 
 **Blocco piano:** se `clients.length >= getPlanLimits(orgPlan).clients`,
