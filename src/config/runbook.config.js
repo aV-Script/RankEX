@@ -1407,7 +1407,7 @@ export const RUNBOOK_SUITES = [
         steps: [
           'NUOVA org: nome smoke-lipedema-<data>, modulo Lipedema Edition, piano free, terminologia lipedema → creata; nel dettaglio modulo Lipedema e 0/1 professionisti, 0/10 pazienti',
           'Dettaglio org → aggiungi membro trainer smoke.<data>@test.rankex (password temporanea) → al primo login su rankex-app chiede il cambio password',
-          'Trainer: nuovo paziente "SMOKE Paziente" (wizard anagrafica → contatto, email vuota) → creato, nessun account; senza informativa la valutazione è rifiutata o non disponibile',
+          'Trainer: nuovo paziente "SMOKE Paziente" (wizard anagrafica → contatto, email vuota → informativa, lasciata non spuntata per provare il blocco) → creato, nessun account; senza informativa la valutazione è rifiutata o non disponibile',
           'Registra informativa → 1 valutazione per ciascuno dei 5 test (2MWT, 30s Sit-to-Stand, Handgrip, HHD quadricipite, One-Leg Standing) → ognuna nello storico',
           'Correggi una valutazione (la vecchia risulta sostituita) e annullane un\'altra (risulta annullata, non cancellata)',
           'PDF paziente: si genera con le valutazioni valide, senza rank, percentili né XP',
