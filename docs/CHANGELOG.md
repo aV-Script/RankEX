@@ -18,6 +18,73 @@ Schema: data del deploy prod + etichetta; più rilasci nello stesso giorno: suff
 
 ---
 
+## [2026.11.27] — Sprint #22 (area cliente 360 px, terminologia lato server) — IN RILASCIO
+
+Processo: `CLAUDE.md` → "Rilascio in produzione". Ordine: functions prod a mano, poi **subito** merge `dev → main`.
+Sprint #22, voce 10. Voce da completare durante il rilascio.
+
+### Features
+- STORY-049: area cliente PT e soccer a 360 px (etichette hub, vetrina trofei, barre STATUS), spec layout 360/1366.
+- `aria-label` della card PROSSIMA nella Home cliente.
+- Tab BIA della dashboard con `capability: 'hasBia'` (BUG-005).
+- `npm run check:node-imports` in CI e nel pre-flight.
+
+### Bug Fixes
+- BUG-037: notifica di `chiudiSessione` con la terminologia del modulo e data leggibile (nuovo
+  `functions/src/shared/terminology.js`, `shared/orgModule.js`). BUG-038: testi cablati dei badge (ADR-021).
+- `functions/src` vs `origin/main`: 3 file (+83/-17), **0 callable nuove**. Nessuna modifica a `firestore.rules`,
+  `firestore.index.json`, `firebase.json`.
+
+### Known Issues
+- BUG-039/040/041 (P3), TD-016 aperti. GYM non verificato dal vivo (nessuna org QA GYM).
+- Lipedema resta non selezionabile in prod (`IS_LIPEDEMA_SELECTABLE = isDev`): lo sblocco è un rilascio a sé.
+- Finestra tra deploy functions e merge: notifica di chiusura sessione col testo nuovo e client vecchio; nessuna
+  incompatibilità (stessi campi).
+
+### Breaking Changes
+- Nessuno.
+
+### Pre-flight su `fb08a28` (2026-11-27)
+build OK · lint OK · check:node-imports OK · unit 758/758 · functions 268/268 · test:rules 129/129 · `qa:dev` 68/68
+sull'hosting dev a `fb08a28` (run `deploy.yml` 46008321615) · `docs/BUGS.md` senza P0/P1 · `.env.production` /
+`.env.development` corretti (solo le due righe). HEAD di `dev` al rilascio contiene in più **solo docs**
+(`673eb4a` SPRINT.md e questa voce): `qa:dev` non ripetuto.
+
+### Stato attuale della produzione (annotato prima dei deploy)
+- Hosting + rules prod: `origin/main` = **`f086405`** (`git fetch`, 2026-11-27).
+- Functions prod: **`f086405`** (voce `[2026.11.12]`); `functions:list` 27/11 (sola lettura): 40 callable `nodejs22`.
+- `node functions/scripts/checkPrev.mjs f086405`:
+  ```
+  <prev> f086405 deployabile (runtime atteso nodejs22).
+  engines.node f086405: 22
+  engines.node HEAD: 22
+  ```
+
+### Da compilare durante il rilascio
+- [ ] Push docs su `dev` + run CI/deploy-dev: __
+- [ ] functions prod a `__` (sha stampato dal guard); deploy ora/esito: __
+- [ ] `functions:list` dopo il deploy: attese 40 callable, tutte `nodejs22`: __
+- [ ] Merge `dev -> main` + push: run CI __, `deploy.yml` __ (`deploy-prod`): __
+- [ ] Smoke test sola lettura super_admin su `rankex-admin` (lista org, una PT, una Soccer; select Modulo senza
+  Lipedema): __
+- [ ] Banner RICARICA su build vecchia entro 5 min: __
+- [ ] Log functions senza errori dopo il deploy: __
+
+### Rollback plan
+Prev: hosting+rules `f086405`; functions `f086405` (Node 22, deployabile: vedi checkPrev sopra). Dettagli in `CLAUDE.md`.
+Comandi da Git Bash; in PowerShell `$env:NODE_OPTIONS='--dns-result-order=ipv4first'; <cmd>`.
+- Rules: invariate rispetto a `f086405`, nessun rollback necessario.
+- Functions: `git worktree add <cartella-esterna> f086405`; con NODE_OPTIONS ipv4first,
+  `cd <cartella-esterna>/functions && npm ci && npx firebase-tools deploy --only functions --project fitquest-60a09 --non-interactive`
+  (stesse 40 callable: nessun prompt di cancellazione). `git worktree remove --force` solo dopo aver verificato che
+  `functions/node_modules` sia una cartella reale, non una junction.
+- Hosting: Console -> Hosting -> Release history -> Rollback per **entrambi** `rankex-app` e `rankex-admin`, o
+  `firebase hosting:clone <site>@<versionId> <site>:live`; dopo il rollback non pushare su `main`.
+- CI di `main` rossa o `deploy.yml` non parte: hosting/rules restano a `f086405` (compatibili con le functions
+  nuove), fix forward su `dev` -> `main`; rollback functions non richiesto.
+
+---
+
 ## [2026.11.12] — EPIC-010 Lipedema (modulo non attivo)
 
 Processo: `CLAUDE.md` → "Rilascio in produzione". Ordine A: functions prod a mano, poi **subito** merge
