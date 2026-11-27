@@ -61,7 +61,9 @@ sull'hosting dev a `fb08a28` (run `deploy.yml` 46008321615) · `docs/BUGS.md` se
   ```
 
 ### Da compilare durante il rilascio
-- [ ] Push docs su `dev` + run CI/deploy-dev: __
+- [x] Push docs su `dev` (`fb08a28..515eb12`): CI 46012723274 ok, `deploy.yml` 46012971301 (`deploy-dev` ok,
+  `deploy-prod` skipped); E2E 46012723193 **rosso** su 1 test per dati di test (BUG-042, tetto 50 campionamenti,
+  non codice: 38 passed, 21 skipped); `e2e.yml` non blocca `deploy.yml`
 - [ ] functions prod a `__` (sha stampato dal guard); deploy ora/esito: __
 - [ ] `functions:list` dopo il deploy: attese 40 callable, tutte `nodejs22`: __
 - [ ] Merge `dev -> main` + push: run CI __, `deploy.yml` __ (`deploy-prod`): __
