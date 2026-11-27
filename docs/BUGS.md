@@ -438,6 +438,14 @@ Formato:
 **Actual:** il Firestore SDK passa a offline e `getDocs` risolve con una snapshot vuota dalla cache (`metadata.fromCache` true): le card mostrano "Nessuna sessione in programma" / "Nessuna notifica", nessun RIPROVA. Lo stato errore scatta solo con un rifiuto del server (permission-denied), cioè mai per un problema di rete: l'AC di STORY-048 è soddisfatta dal codice ma non raggiungibile nel caso per cui è stata scritta. Altri tentativi: blocco totale prima del caricamento → si resta al login; blocco dopo la Home → l'ascolto già aperto continua a servire i dati. Il caso è BLOCCATO in TP-094 (`39706c5`).
 **Suggested fix:** in `getNotifications` e `fetchUpcoming` leggere `snapshot.metadata.fromCache` e, se la snapshot è vuota e arriva dalla cache, rifiutare (o usare `getDocsFromServer`) così che lo stato errore e RIPROVA compaiano; test unit con snapshot `fromCache: true`. **Stima: S.** Trovato nella QA dal vivo dello Sprint #22 (retro #21 AI 3).
 
+## [BUG-042] E2E `real-flows.spec.js` "campionamento: salvato e conteggiato una volta" rosso quando il cliente di test arriva a 50 campionamenti
+**Severity:** P3 (test, non codice prodotto)
+**Modulo/Ruolo:** PT, trainer — solo `e2e.yml` (rankex-dev, org `test-org-pt`, cliente "Mario Rossi (Test)"); non blocca `deploy.yml`.
+**Status:** OPEN
+**Reproduction steps:** run E2E 46012723193 su `515eb12` (commit di soli docs, 27/11/2026): `expect(after.camps).toBe(before.camps + 1)` (`e2e/tests/real-flows.spec.js:59`) → Expected 51, Received 50, anche al retry. Su `fb08a28` (run 46008168104) era verde.
+**Actual:** ogni run E2E aggiunge un campionamento allo stesso cliente; lo storico è troncato a `MAX_CAMPIONAMENTI = 50` (`src/utils/gamification.js:84,170`, `functions/src/shared/constants.js:11`, `shared/gamification.js:76`), quindi raggiunto il tetto il conteggio non cresce più. Comportamento del prodotto corretto, spec non idempotente.
+**Suggested fix:** nella spec verificare la data/l'ultimo campionamento invece del conteggio (o `Math.min(before + 1, 50)`), oppure riportare il cliente di test sotto il tetto in `seed-test-accounts.mjs`. **Stima: S.** Trovato al push dei docs del rilascio Sprint #22.
+
 ## Inventario testi terminologia (Sprint #22)
 Testi che arrivano all'utente in `functions/src/callable`, `functions/src/shared`, `src/config/badges.config.js` (non commenti né identificatori). C = cliente/allievo, T = trainer/org_admin. 22 righe: 6 corrette (BUG-037/038), 6 su nuovi bug (BUG-039/040), 10 accettate.
 
