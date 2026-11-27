@@ -29,15 +29,15 @@ dati Lipedema: nessun nome di paziente o dato dell'org reale in docs, commit o s
 ## Voci dello sprint
 | # | ID | Taglia | Chi | Review | Stato |
 |---|----|--------|-----|--------|-------|
-| 1 | Retro #23 AI 4: ADR in `docs/DECISIONS.md` sullo sblocco Lipedema senza DPA (rischio accettato 27/11) + orgId dell'org reale in CHANGELOG `[2026.11.27.2]` | S | sessione principale | - | TODO (orgId: lo fornisce l'utente) |
-| 2 | Retro #23 AI 5: regola in `.claude/agents/scrum-master.md` (voci con Chi = utente: chiedere "fatto fuori sessione?" prima della chiusura) | S | sessione principale | - | TODO |
-| 3 | STORY-060 no-cache `index.html` (`firebase.json`), provato su rankex-dev con `curl -I` | S | sessione principale | controllo AC | TODO |
-| 4 | STORY-052 contrasto neutral/danger + STORY-054 modal dal basso (stesso file `ui/index.jsx`) | S+S | developer | /code-review medium | TODO |
-| 5 | STORY-053 toast + STORY-056 sessione in scadenza | S+S | developer | /code-review medium | TODO |
-| 6 | STORY-055 eliminazione con conferma del nome | S | developer | /code-review high (cancellazione dati) | TODO |
-| 7 | STORY-059 terminologia Lipedema residua | S | developer | /code-review medium | BLOCKED: parola per "allenamento" da decidere (proposta "Esercizi") |
-| 8 | Retro #23 AI 2: BUG-042, `e2e/qa-dev/tests/lipedema.spec.js:103` instabile, login lento nel global setup di `qa:dev` | S | developer | controllo AC + test verdi | TODO |
-| 9 | QA dal vivo sul nuovo (1366 e 360×640) su rankex-dev, `qa:dev` completo dopo l'ultimo deploy dev | - | sessione principale | - | TODO |
+| 1 | Retro #23 AI 4: ADR in `docs/DECISIONS.md` sullo sblocco Lipedema senza DPA (rischio accettato 27/11) + orgId dell'org reale in CHANGELOG `[2026.11.27.2]` | S | sessione principale | - | PARZIALE: ADR-022 `279951e`; orgId ancora da fornire |
+| 2 | Retro #23 AI 5: regola in `.claude/agents/scrum-master.md` (voci con Chi = utente: chiedere "fatto fuori sessione?" prima della chiusura) | S | sessione principale | - | DONE (file non tracciato: `.claude/*` in .gitignore) |
+| 3 | STORY-060 no-cache `index.html` (`firebase.json`), provato su rankex-dev con `curl -I` | S | sessione principale | controllo AC | DONE `279951e`: `no-cache` su `/`, `/index.html`, `/clienti`, `/version.json` in rankex-app-dev e rankex-admin-dev; `/assets/*.js` ancora `immutable`; XFO presente (l'emulatore hosting locale non applica gli header: test valido solo sull'hosting) |
+| 4 | STORY-052 contrasto neutral/danger + STORY-054 modal dal basso (stesso file `ui/index.jsx`) | S+S | developer | /code-review medium | DONE `2196aa0` (contrasti misurati: danger 4,83:1, neutral 7,2:1 nei 7 temi) |
+| 5 | STORY-053 toast + STORY-056 sessione in scadenza | S+S | developer | /code-review medium | DONE `2196aa0` (posizione toast a 360 e dialog sessione non misurati dal vivo) |
+| 6 | STORY-055 eliminazione con conferma del nome | S | developer | /code-review high (cancellazione dati) | DONE `2196aa0`; QA dal vivo PT 1366 e Lipedema 360/1366: elenco per modulo, bottone disabilitato senza nome e con nome sbagliato, ANNULLA chiude |
+| 7 | STORY-059 terminologia Lipedema residua | S | developer | /code-review medium | DONE `2196aa0` ("Esercizi" / "Piano esercizi"); tab ESERCIZI vista dal vivo a 360 e 1366; spec STORY-059 verde. Resta il testo server `functions/src/shared/terminology.js:46` (notifica di fine scheda, non visibile in Lipedema: pazienti senza account) |
+| 8 | Retro #23 AI 2: BUG-042, `e2e/qa-dev/tests/lipedema.spec.js:103` instabile, login lento nel global setup di `qa:dev` | S | developer | controllo AC + test verdi | DONE `2196aa0`: E2E CI 46058126576 verde; `lipedema.spec.js` 7/7 sull'hosting dev a `2196aa0` (3 run verdi su 3 per "chiude un appuntamento") |
+| 9 | QA dal vivo sul nuovo (1366 e 360×640) su rankex-dev, `qa:dev` completo dopo l'ultimo deploy dev | - | sessione principale | - | PARZIALE: dialog eliminazione e tab misurati (sopra); `qa:dev` completo non lanciato; toast a 360, Modal dal basso e sessione in scadenza non misurati |
 | 10 | Rilascio `dev → main` (solo hosting), CHANGELOG, smoke sola lettura | - | sessione principale | - | TODO (via libera) |
 
 Ordine: 1-3 subito (docs e config), poi 4 → 5 → 6 → 7 con un agente `developer` per voce, 8 in parallelo; 9 solo dopo l'ultimo
