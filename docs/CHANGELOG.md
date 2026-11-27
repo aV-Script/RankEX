@@ -62,13 +62,16 @@ invariate, nessun deploy functions. Sprint #23, voce 9.
 
 ### Da compilare durante il rilascio
 - [ ] Merge `dev -> main` + push: CI __, `deploy.yml` __ (`deploy-prod`), ora __
-- [ ] HTTP check anonimo `rankex-app` / `rankex-admin` (`version.json` nuovo, CSP, `X-Frame-Options`): __
+- [ ] HTTP check anonimo `rankex-app` / `rankex-admin` (`version.json` nuovo, prima `{"v":1795790592944}`, CSP,
+  `X-Frame-Options`): __
+- [ ] Banner RICARICA sulla scheda `rankex-app` aperta prima del merge (build `1795790592944`), entro 5 min: __
+- [ ] Select Modulo con Lipedema su `rankex-admin` dopo il deploy (NUOVA e dettaglio org): __
 - [ ] Smoke test TP-095 in prod su org temporanea `smoke-lipedema-20261127` (creazione, paziente fittizio,
   cancellazione, residui = 0): __
 
 ---
 
-## [2026.11.27] — Sprint #22 (area cliente 360 px, terminologia lato server) — IN RILASCIO
+## [2026.11.27] — Sprint #22 (area cliente 360 px, terminologia lato server) — RILASCIATO
 
 Processo: `CLAUDE.md` → "Rilascio in produzione". Ordine: functions prod a mano, poi **subito** merge `dev → main`.
 Sprint #22, voce 10. Voce da completare durante il rilascio.
@@ -125,9 +128,13 @@ sull'hosting dev a `fb08a28` (run `deploy.yml` 46008321615) · `docs/BUGS.md` se
   `rankex-app` e `rankex-admin` servono `version.json` `{"v":1795790592944}`, Last-Modified 14:43:20 GMT, CSP e
   `X-Frame-Options: DENY` presenti
 - [x] Log functions prod dal deploy (`functions:log --lines 200`, 160 righe del 27/11 dalle 14 UTC): 0 righe di errore
-- [ ] Smoke test sola lettura super_admin su `rankex-admin` (lista org, una PT, una Soccer; select Modulo senza
-  Lipedema): __
-- [ ] Banner RICARICA su build vecchia entro 5 min: __
+- [x] Smoke test sola lettura super_admin su `rankex-admin` (27/11 sera, Chrome con login dell'utente, nessun
+  salvataggio): **PASS**. Dashboard 2 org (1 PT, 1 Soccer, 0 Lipedema); lista org; dettaglio `dr-valerio-lamberti-2eaoc`
+  (PT) e `vdp5-tgtdu` (Soccer, 16 clienti) con select Modulo = Personal Training / Soccer Academy, **senza Lipedema**;
+  form NUOVA aperto e chiuso con ANNULLA: select Modulo senza Lipedema. `version.json` di entrambi i siti
+  `{"v":1795790592944}` (build del #22)
+- [ ] Banner RICARICA su build vecchia entro 5 min: **non verificato** al deploy del #22 (momento passato); si verifica
+  al deploy `[2026.11.27.2]` con una scheda `rankex-app` aperta sulla build `1795790592944`
 
 ### Rollback plan
 Prev: hosting+rules `f086405`; functions `f086405` (Node 22, deployabile: vedi checkPrev sopra). Dettagli in `CLAUDE.md`.
