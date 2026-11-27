@@ -1809,9 +1809,28 @@ passarlo.
   - StatsSection: con stats a 0 le barre non sono visibili (cliente di prova senza test), quindi la riduzione a ~0 px delle barre
     (`3fr 2fr`) NON e' confermata ne' smentita; osservato solo che nel pannello STATUS il radar e' piccolo e l'etichetta "RES" del
     vertice destro tocca il bordo della card. Da riprovare con un cliente con campionamenti. `C:\Users\vAito\AppData\Local\Temp\claude\0d5da70ea05ac5cc\07e2ac0c-853a-40e5-b30d-7f0ab1b72105\scratchpad\qa20\s49-test-m.png`.
-- **Acceptance Criteria:** in bozza, da scrivere a inizio Sprint #21 dopo la conferma a schermo dei difetti.
+- **Acceptance Criteria (Sprint #22, 27/11/2026 — perimetro: i 3 difetti a 360 px; la parte "righe con valore grezzo" del
+  titolo NON e' in questo sprint, vedi ultimo punto):**
+  - **Precondizione QA (dati):** il seed (`scripts/seed-qa-orgs.mjs`) assegna al cliente di base `qa-pt` 5 badge manuali e una
+    vetrina di 5 (idempotente: secondo run 0 scritture). I campionamenti NON li scrive il seed: prima della prova StatsSection la QA
+    ne fa uno via UI trainer (`salvaCampionamento`) sul cliente di base, con almeno 3 stat > 0.
+  - AC1 Hub (`ClientHub.jsx:258`): a 360x640 le etichette delle 5 sezioni sono intere (TEST, TROFEI, CALENDARIO, SCHEDA, PROFILO o
+    le label del modulo), nessuna troncata a 3 lettere; ogni etichetta e' dentro il viewport (boundingBox x >= 0, x+w <= 360) e
+    non si sovrappone a un'altra etichetta ne' a un altro bottone sezione (intersezione dei boundingBox = 0). A 1366 invariato.
+  - AC2 Vetrina trofei (`TrophiesSection.jsx:167,172`): con 5 badge in vetrina, a 360 nessun elemento della vetrina esce dalla
+    card (boundingBox dei 5 badge dentro quello del contenitore) e la pagina non ha scroll orizzontale
+    (`document.documentElement.scrollWidth <= 360`); le label dei badge restano leggibili (non sovrapposte). A 1366 invariato
+    (5 badge su una riga).
+  - AC3 STATUS (`components/ui/index.jsx:430`): a 360, con un campionamento, ogni barra delle stat ha larghezza della traccia
+    >= 80 px e il valore numerico visibile; il pentagono resta dentro la card (le etichette del radar, `Pentagon.jsx:111`, non
+    escono dal boundingBox della card: nel #20 "RES" toccava il bordo). A 1366 il layout a due colonne (barre + pentagono) resta.
+    Le abbreviazioni a 3 lettere del radar sono accettate (i nomi interi sono nelle barre accanto).
+  - AC4 Spec: `e2e/qa-dev/tests/` estesa (o nuova spec) con le misure di AC1-AC3 a 360 e 1366, lanciata una volta sull'hosting
+    dev prima della review (voce 6b), con controprova: su copia senza fix almeno AC1 e AC2 falliscono.
+  - Fuori: righe per test con valore grezzo (unita' + percentile per test) dal canvas `ClienteTest`: da spezzare in una story
+    nuova se confermata dall'utente.
 - **Priority:** P2 (Sprint #22: spostata dal #21, decisione utente 13/11/2026 → #22)
-- **Status:** BACKLOG
+- **Status:** READY (Sprint #22)
 
 ### STORY-050 — Peso inserito dal cliente
 - **Contesto:** oggi `peso`/`altezza` li scrive solo il trainer (`MisureSection.jsx` montata `readonly` per il

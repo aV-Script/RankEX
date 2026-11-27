@@ -7,7 +7,62 @@ fondo al file come storico, non vanno cancellati (serve alla Retrospective).
 
 ## Sprint corrente
 
-Nessuno sprint attivo: il #21 e' chiuso (13/11), vedi "Sprint chiuso (storico)". Il #22 si apre dal blocco "Passa al #22".
+# SPRINT #22 — Area cliente a 360 px (STORY-049), terminologia del modulo lato server/config (BUG-037/038), action item del #21 — aperto il 2026-11-27
+
+**Goal:** l'area cliente PT e soccer a 360 px non tronca le etichette dell'hub né esce dallo schermo con la vetrina trofei e le
+barre di STATUS (misurato dalla spec di layout a 360 e 1366), i testi scritti dal server e dal config dei badge usano la
+terminologia del modulo (BUG-037/038 con inventario), e gli action item del #21 sono chiusi. Se la QA e il pre-flight sono verdi,
+rilascio `dev → main` (decisione 1).
+
+**Branch:** `feature/lipedema-module`, HEAD = `origin/dev` = `8a8c797` all'apertura (`git rev-parse` 27/11). Non tracciati
+`lipidemia/`, `mobile-app/` (non toccare).
+
+**Stato ambienti (apertura, 27/11):** rankex-dev hosting + rules a `8a8c797` (run `deploy.yml` 43416819261, job `deploy-dev`
+success: verificato con `gh run view`), functions dev a `5090d9a` (da CHANGELOG, non rilanciato `functions:list`). Prod
+`fitquest-60a09`: hosting + rules = `origin/main` = `f086405`; functions a `f086405`, 40 callable `nodejs22` (da CHANGELOG: non verificato oggi).
+
+**Vincoli:** nessun deploy su `fitquest-60a09` né merge su `main` senza via libera esplicito, uno per passo; commit locali, push su
+`dev` solo alla voce 6b e a fine sprint; controprove solo su copia (worktree esterno, niente junction, porta 4173 libera); nessuna
+voce tocca `firestore.rules` (se succede: review high e stop); copie speculari aggiornate su entrambi i lati con test di parità;
+audit/side effect attesi prima del return; dati solo nelle org `qa-*` di rankex-dev, mai account `qa.*`.
+
+## Voci dello sprint
+| # | ID | Taglia | Chi | Review | Stato |
+|---|----|--------|-----|--------|-------|
+| 1 | AI 1: `npm run check:node-imports` in CI + pre-flight; controprova su copia di `56684a6` → exit 1, HEAD → 0 | S | developer A | AC + test verdi | IN PROGRESS |
+| 2 | AI 5: passo "porta 4173 libera + build servita = quella della copia" in `developer.md` | S | developer A | AC | IN PROGRESS |
+| 3 | AI 2: regola "spec lanciata una volta sull'hosting prima della review" (`developer.md`, `scrum-master.md`) + helper commentati in `layoutHelpers.js` | S | regola: sessione principale; helper: developer C | AC | READY |
+| 4 | BUG-005: tab BIA con `capability: 'hasBia'` | S | sessione principale | AC + test verdi | DONE `0ac9913` |
+| 5 | AI 4 + BUG-037 + BUG-038: inventario testi cablati → BUGS.md, fix con test che fallisce prima, deploy functions rankex-dev | M | tech-lead (approccio) → developer B | /code-review medium | IN PROGRESS (tech-lead) |
+| 6 | `aria-label` della PROSSIMA (`ClientHomeCards.jsx:89-108`, nome accessibile oggi titolo+data senza separatore) | S | developer C | AC | READY |
+| 6b | Push intermedio su `dev` (UI 049 + spec pronte) → spec lanciata una volta sull'hosting dev prima della review | - | sessione principale | - | TODO |
+| 7 | STORY-049 (AC in BACKLOG.md) + spec layout 360/1366 + seed badge | M | developer C | /code-review medium, cita esito spec 360/1366 | READY |
+| 8 | AI 3: TP-094 passo errore provato → PASS o BLOCCATO con motivo in `runbook.config.js`; regola "come si simula" | S | sessione principale in QA | - | TODO |
+| 9 | Push dev, `qa:dev` completo, QA dal vivo solo sul nuovo | - | qa-engineer | - | TODO |
+| 10 | Rilascio prod (decisione 1) | - | release-manager + sessione principale | - | TODO |
+
+## Tabella ambiente/modulo — voce 5 (BUG-037/038)
+| Caso | dev | UAT | prod |
+|------|-----|-----|------|
+| PT | `chiudiSessione.js:149` "Sessione del ${slot.date} completata!": termine giusto, data ISO; badge `badges.config.js:19,35,43,51` "sessione/i di allenamento": accettabile | non verificato (nessun deploy UAT) | stesso codice a `f086405` finché functions non deployate (via libera) |
+| GYM (variant) | termine atteso "Allenamento" (`modules.config.js` terminologia gym): oggi "Sessione" — non verificato dal vivo (nessuna org QA GYM) | non verificato | non verificato |
+| Soccer | oggi "Sessione del 2026-11-10…" (visto dal vivo nel #21); atteso "Allenamento del 10 nov completato!…" | non verificato | invariato fino al deploy functions prod |
+| Lipedema | nessuna area cliente (`modules.config.js:93` `hasClientLogin: false`) e nessuna XP: notifica non letta da pazienti | non verificato | idem |
+
+## Tabella ambiente/modulo — voce 7 (STORY-049)
+| Caso | dev | UAT | prod |
+|------|-----|-----|------|
+| PT | hub `ClientHub.jsx:258` `label.slice(0, 3)` su mobile; vetrina `TrophiesSection.jsx:167,172` 5×68+4×16 = 404 px; `StatsSection` `components/ui/index.jsx:430` `3fr 2fr` | non verificato | prod a `f086405`: stesso codice, cambia solo col rilascio |
+| Soccer | stesso codice (componenti condivisi); vetrina visibile (`hasGamification` true, `modules.config.js:88`) | non verificato | idem |
+| GYM | stesso codice; non verificato dal vivo | non verificato | non verificato |
+| Lipedema | nessuna area cliente (`hasClientLogin: false`, `:93`): non applicabile | - | - |
+
+## Tabella ambiente/modulo — voce 10 (rilascio)
+| Layer | dev | prod |
+|-------|-----|------|
+| hosting + rules | `deploy.yml` job `deploy-dev` a ogni push su `dev` | `deploy-prod` al merge su `main` (oggi `f086405`); `IS_LIPEDEMA_SELECTABLE = isDev` (`modules.config.js:30`): Lipedema non selezionabile |
+| functions | a mano `cd functions && npm run deploy:dev` (voce 5) | a mano `npm run deploy` con via libera, **prima** del merge (BUG-037) |
+| UAT | nessun deploy UAT nel repo: non verificato | - |
 
 ---
 

@@ -19,6 +19,8 @@ Durante lo sprint, quando richiamato per un check-in:
 - Non mettere READY una voce con comportamento per ambiente (dev/UAT/prod) o per modulo senza la tabella di apertura con `file:riga` (vedi CLAUDE.md → "Voci con comportamento per ambiente o modulo"); se manca, la voce resta BACKLOG.
 - Ogni voce UI o caso `TP-` riporta la riga **"precondizione QA"**: org, utenza e dati necessari (es. primo accesso fatto, slot, notifiche, Monete) e dove li fornisce il seed (`scripts/seed-qa-orgs.mjs`) o il passo UI che li produce. Senza quella riga la voce non va READY (retro #20, AI 4).
 - Un effetto visivo dichiarato = una misura (bounding box o screenshot) allegata alla voce: senza, la voce non passa a DONE.
+- Ogni spec `qa:dev` nuova o estesa ha una voce "push intermedio su `dev` + spec lanciata una volta sull'hosting dev" **prima** della review (la suite gira solo contro l'hosting deployato): senza, la voce con la spec non va READY (retro #21, AI 2). In chiusura si cita quanti test rossi per errore di spec al primo run (obiettivo 0).
+- Ogni AC o caso `TP-` che simula rete, permessi o errori dice **come si simula** (es. blocco della richiesta a `firestore.googleapis.com` prima del caricamento) ed e' stato provato una volta prima di READY (retro #21, AI 3).
 - Segnala scope creep: se emerge lavoro non pianificato, non lasciarlo scivolare dentro lo sprint corrente — va in `docs/BACKLOG.md` per il prossimo.
 - Segnala dipendenze bloccanti (es. serve una nuova Cloud Function, serve modificare firestore.rules).
 
