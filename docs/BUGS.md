@@ -395,7 +395,7 @@ Formato:
 | Soccer | stessa frase con "Sessione" (dovrebbe essere "Allenamento") e data ISO; visto dal vivo in Home e pannello dell'allievo qa-soccer | non verificato | non verificato dal vivo |
 | GYM / Lipedema | non verificato (lipedema senza area cliente) | non verificato | non verificato |
 
-**Status:** OPEN — candidato #22 (richiede modifica e deploy delle functions, prima dev poi prod)
+**Status:** FIXED (Sprint #22; functions su rankex-dev a `002e43a95e0d0c76e64a9b43a77dddf96802720c`, prod da fare con via libera) — commit `002e43a`, ADR-021. Test che falliva prima: `functions/test/chiudiSessione.test.js` › "soccer, presente: Allenamento del 10 nov completato!" (ricevuto "Sessione del 2026-11-10 completata! …"), più GYM, scheda completata, assente e voce di log XP.
 **Reproduction steps:** da trainer, chiudere con presenza uno slot di un allievo qa-soccer → login allievo → Home › ULTIME NOTIFICHE (o pannello).
 **Expected:** testo con la terminologia del modulo ("Allenamento del 10 nov completato! …") e data leggibile.
 **Actual:** "Sessione del 2026-11-10 completata! +55 XP (streak 1)".
@@ -404,8 +404,51 @@ Formato:
 ## [BUG-038] Descrizioni dei trofei in area cliente soccer con "sessione/sessioni di allenamento"
 **Severity:** P3 (testo)
 **Modulo/Ruolo:** soccer (e GYM, non verificato), ruolo client — testi fissi nel config dei badge (`src/config/badges.config.js`), non derivati dalla terminologia.
-**Status:** OPEN — candidato #22
+**Status:** FIXED (Sprint #22) — commit `002e43a`: label e descrizioni come funzioni della terminologia (`getBadgeLabel`/`getBadgeDescription` in `badges.config.js`). Test che falliva prima: `src/__tests__/config/badges.config.test.js` › "soccer: nessun sessione/sessioni e nessun trainer" (7/7 rossi: `getBadgeLabel is not a function`). Il server non dipende dai testi (`shared/badges.js` usa solo gli id).
 **Reproduction steps:** allievo soccer → Trofei.
 **Expected:** "allenamento/allenamenti" (terminologia del modulo).
 **Actual:** "Hai completato la tua prima sessione di allenamento", "STRISCIA X5 — Hai completato 5 sessioni di allenamento".
 **Suggested fix:** descrizioni parametrizzate sulla terminologia (o funzione di render con `terminology`), come fatto in BUG-008 per le altre sezioni. **Stima: S.** Trovato nella QA dal vivo dello Sprint #21 (13/11); stessa famiglia di BUG-008.
+
+## [BUG-039] Notifiche e log scritti dalle callable con "dal trainer" fisso
+**Severity:** P3 (testo)
+**Modulo/Ruolo:** soccer, GYM, lipedema (non verificato dal vivo) — il cliente legge "trainer" invece di coach/professionista: `aggiornaProfiloCliente.js:38` ("Il tuo profilo è stato aggiornato dal trainer."), `salvaXP.js:36` (notifica "aggiunto dal trainer"), `shared/gamification.js:103` (voce di log XP "aggiunto dal trainer").
+**Status:** OPEN — da pianificare (stessa soluzione di ADR-021: aggiungere `trainer` a `shared/terminology.js` + parità)
+**Expected:** "dal coach" in soccer, "dal Personal Trainer" in GYM.
+**Actual:** "trainer" in ogni modulo. **Stima: S.** Trovato nell'inventario dello Sprint #22.
+
+## [BUG-040] Errori delle callable al trainer con "sessione/sessioni" fisso
+**Severity:** P3 (testo)
+**Modulo/Ruolo:** soccer, GYM, lipedema — trainer/org_admin: `chiudiSessione.js:63` ("Sessione già chiusa", doppio tap/retry), `aggiungiRicorrenza.js:31,34` ("Nessuna sessione nel periodo scelto", "N sessioni, massimo …"), `estendirRicorrenza.js:45` ("N sessioni future").
+**Status:** OPEN — da pianificare
+**Expected:** termine del modulo ("allenamento/i", "appuntamento/i") con il genere concordato. **Stima: S.** Trovato nell'inventario dello Sprint #22.
+
+## Inventario testi terminologia (Sprint #22)
+Testi che arrivano all'utente in `functions/src/callable`, `functions/src/shared`, `src/config/badges.config.js` (non commenti né identificatori). C = cliente/allievo, T = trainer/org_admin. 22 righe: 6 corrette (BUG-037/038), 6 su nuovi bug (BUG-039/040), 10 accettate.
+
+| file:riga | testo | chi vede | moduli | esito |
+|---|---|---|---|---|
+| chiudiSessione.js:147-149 | "Sessione del <data ISO> completata…" | C | soccer, GYM (PT: solo la data) | corretto in BUG-037 |
+| chiudiSessione.js:168 | "Sessione del <data> — assenza registrata…" | C | soccer, GYM | corretto in BUG-037 |
+| chiudiSessione.js:117 | log XP "Sessione di allenamento (streak N)" | C, T | soccer, GYM ("Allenamento di allenamento" col solo termine) | corretto in BUG-037: label = `term.session` per ogni modulo ("Sessione (streak N)" in PT, "Allenamento (streak N)" soccer/GYM). Opzione minima: il suffisso non serve, e "accettato" lasciava a soccer un "Sessione". `SESSION_LOG_PREFIX` in `badges.js` (client e server) serve solo al ripiego per clienti senza `sessionCount`, che hanno solo voci vecchie: invariato |
+| chiudiSessione.js:63 | "Sessione già chiusa" | T | soccer, GYM, lipedema | nuovo BUG-040 |
+| chiudiSessione.js:129 | "Scheda completata: <titolo> (+100 XP)" | C, T | tutti | accettato: nessun termine di modulo |
+| badges.config.js:18-55 | label "Prima Sessione", descrizioni "sessione/sessioni di allenamento" | C, T | soccer, GYM | corretto in BUG-038 |
+| badges.config.js (campione) | "del trainer" | C, T | soccer, GYM | corretto in BUG-038 (`terminology.trainer`) |
+| badges.config.js (mvp) | "migliore della sessione" | C, T | soccer, GYM | corretto in BUG-038 |
+| badges.config.js (spirito) | "spirito di gruppo" | C, T | tutti | accettato: italiano generico, non il termine gruppo/squadra del modulo |
+| aggiornaProfiloCliente.js:38 | "…aggiornato dal trainer." | C | soccer, GYM | nuovo BUG-039 |
+| salvaXP.js:36 | "…aggiunto dal trainer!" | C | soccer, GYM | nuovo BUG-039 |
+| shared/gamification.js:103 | log "+N XP aggiunto dal trainer" | C | soccer, GYM | nuovo BUG-039 |
+| aggiungiRicorrenza.js:31,34 | "Nessuna sessione…", "N sessioni, massimo…" | T | soccer, GYM, lipedema | nuovo BUG-040 |
+| estendirRicorrenza.js:45 | "N sessioni future, massimo…" | T | soccer, GYM, lipedema | nuovo BUG-040 |
+| acquistaAvatar.js:25 | "Solo il cliente può acquistare per sé stesso" | C | soccer, PT | accettato: irraggiungibile dalla UI (guardia di permesso) |
+| acquistaAvatar.js:41, aggiornaProfiloCliente.js:30, salvaBia.js:40, salvaCampionamento.js:56, salvaXP.js:27 | "Cliente non trovato" | T | soccer, GYM | accettato: id inesistente, non raggiungibile dalla UI |
+| aggiungiValutazione.js:63,67, registraInformativaPaziente.js:29, salvaBia.js:47 | "Paziente non trovato", "…per questo paziente" | T | solo lipedema | accettato: già il termine corretto |
+| salvaCampionamento.js:78 | "…categoria del cliente" | T | soccer, GYM | accettato: errore di validazione non raggiungibile dalla UI |
+| creaCliente.js:95 | "Limite clienti del piano … raggiunto" | T | soccer, GYM | accettato: la UI blocca prima (schermata di blocco) |
+| creaCliente.js:172, :224 | "…account di accesso per il cliente", "…informativa paziente" | T | soccer, GYM, lipedema | accettato: uso improprio dell'API, la UI non lo offre |
+| creaMembroTeam.js:36 | "Limite trainer del piano … raggiunto" | T (org_admin) | soccer, GYM | accettato: la UI blocca prima (MembersPage) |
+| rimuoviMembroTeam.js:28 | "Membro non trovato in questa organizzazione" | T | tutti | accettato: "membro" è il membro del team, non il cliente GYM |
+
+Fuori inventario (non toccato): fuso orario del campo `date` — vedi TD-016.

@@ -254,3 +254,9 @@ fuorviante ("Rank F · Media 0").
 **Perché:** decisione dell'utente (rischio accettato); provarlo richiede un commit con meno callable.
 **Rischio se non risolto:** un rilascio che aggiunge callable e poi va in rollback si ferma o cancella callable senza che il passo sia mai stato eseguito. Si riduce da solo al prossimo rilascio, quando esisterà un `<prev>` Node 22 con meno callable.
 **Status:** OPEN
+
+## [TD-016] Campo `date` di notifiche e log scritto senza `timeZone`
+**Dove:** `toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })` senza `timeZone` sul server (UTC): `chiudiSessione.js:50`, `shared/gamification.js:30,59,102,109,139,166`, `salvaXP.js:37`, `salvaBia.js:69`, `salvaCampionamento.js:112,133`, `aggiornaProfiloCliente.js:39`.
+**Problema:** tra 00:00 e 01:00/02:00 di Roma la data scritta è quella del giorno prima. Preesistente, trovato in ADR-021 e non corretto in BUG-037 (che formatta solo la data dello slot, con `LOCAL_TIME_ZONE`).
+**Fix possibile:** un helper con `timeZone: LOCAL_TIME_ZONE` (in `shared/terminology.js` o `timezone.js`) usato da tutte le callable; test sul confine di mezzanotte.
+**Status:** OPEN
