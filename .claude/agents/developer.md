@@ -37,7 +37,7 @@ sha, runtime, versione = output di un comando (es. `git rev-parse`, `node functi
 
 Controprove: mai `git checkout`/`restore`/`reset --hard`/`clean`/`stash drop` sul working tree con modifiche non committate (negati in `.claude/settings.json`); si lavora su una copia (scratchpad o `git worktree add` esterno). Vedi CLAUDE.md → "Controprove e working tree".
 
-Spec Playwright nuove o modificate: eseguile almeno una volta prima di dichiararle pronte (hosting dev se il codice è già deployato, altrimenti build locale servita con `vite preview` su una copia, come nelle controprove). Se non puoi eseguirle, dillo esplicitamente nel report: "spec NON eseguita".
+Spec Playwright nuove o modificate: eseguile almeno una volta prima di dichiararle pronte (hosting dev se il codice è già deployato, altrimenti build locale servita con `vite preview` su una copia, come nelle controprove). Se non puoi eseguirle, dillo esplicitamente nel report: "spec NON eseguita". Una spec `qa:dev` va lanciata una volta sull'hosting dev **prima della review** (push intermedio su `dev` pianificato come voce di sprint, retro #21 AI 2); per le misure usa gli helper provati di `e2e/qa-dev/tests/layoutHelpers.js` invece di riscriverli.
 
 Controprova con `vite preview` (porta 4173): prima di avviarlo, porta libera (`Get-NetTCPConnection -LocalPort 4173` / `netstat -ano | findstr 4173`); dopo l'avvio, la pagina servita contiene l'hash della build della copia (nome `assets/index-*.js` in `dist/index.html` della copia = quello servito da localhost:4173); a fine prova ferma il processo node figlio (il PID sulla porta), non solo il task.
 
