@@ -7,7 +7,40 @@ gli sprint più vecchi sono in `docs/SPRINT-ARCHIVE.md` (non vanno cancellati: s
 
 ## Sprint corrente
 
-Nessuno aperto: il #23 (Go-live Lipedema in prod) lo apre la sessione principale.
+# SPRINT #23 — Go-live Lipedema in prod — aperto il 2026-11-27
+
+**Goal:** Lipedema selezionabile in prod dal super_admin, provato con uno smoke test su un'org temporanea poi cancellata
+(residui = 0), e prima org Lipedema reale creata con il suo org_admin quando l'utente dà il via libera.
+
+**Decisione utente (27/11):** sblocco anche senza DPA approvato (il manager lo sta ancora visionando): STORY-029 (b)/(c)
+restano BLOCKED, rischio accettato dall'utente. La creazione dell'org reale (voce 11) ha un via libera a sé; nessun dato
+reale inserito da noi. Piano dell'org reale: pro. Backup da dichiarare: 7 giorni.
+
+**Branch:** `feature/lipedema-module`. Prod all'apertura: hosting + rules `53b5579`, functions `478a157` (codice
+`fb08a28`), 40 callable `nodejs22` (CHANGELOG `[2026.11.27]`). Non tracciati `lipidemia/`, `mobile-app/`.
+
+**Vincoli:** ogni passo su fitquest-60a09 (merge su `main`, creazione/cancellazione org) con via libera, uno per passo;
+comandi su prod mai concatenati con altri (retro #22); nessuna modifica a `firestore.rules`; niente functions in questo
+rilascio (solo hosting).
+
+## Voci dello sprint
+| # | ID | Taglia | Chi | Review | Stato |
+|---|----|--------|-----|--------|-------|
+| 6 | Sblocco `IS_LIPEDEMA_SELECTABLE = true` + test + CLAUDE.md + TP-087 aggiornato + TP-095 go-live (blocker) | S | sessione principale | /code-review medium | IN CORSO |
+| 7 | Review medium voce 6 | code-reviewer | - | - | TODO |
+| 8 | Push dev, `qa:dev` completo, passi TP-095 provati su `qa-lipedema` (rankex-dev) | - | sessione principale | - | TODO |
+| 9 | Rilascio sblocco: merge `dev → main` + push (solo hosting) | - | sessione principale | - | TODO (via libera) |
+| 10 | Smoke test prod su org temporanea `smoke-lipedema-20261127` + cancellazione + residui | - | sessione principale + utente | - | TODO (via libera) |
+| 11 | Org Lipedema reale + org_admin (nome, email da fornire) | - | sessione principale | - | TODO (via libera, dati mancanti) |
+| 12 | STORY-029 (b)/(c) in BACKLOG solo se confermati; CHANGELOG | - | sessione principale | - | TODO |
+
+## Tabella ambiente/modulo — voce 6 (sblocco)
+| Caso | dev | UAT | prod |
+|------|-----|-----|------|
+| Select modulo in NUOVA (`CreateOrgForm.jsx:97` → `getSelectableModuleOptions()`, `modules.config.js:37-40`) | oggi PT/Soccer/Lipedema (`IS_LIPEDEMA_SELECTABLE = isDev`, `:30`; `isDev` = `VITE_ENV === 'development'`, `utils/env.js:3`): invariato | oggi PT/Soccer → dopo PT/Soccer/Lipedema; nessun deploy UAT nel repo: non verificato | oggi PT/Soccer → dopo PT/Soccer/Lipedema |
+| Select modulo nel dettaglio org (`OrgDetailView.jsx:63`, con `isModuleChangeAllowed` `:62,114`) | invariato | come prod, non verificato | Lipedema offerto; cambio da/verso lipedema solo con org senza clienti (UI `:62,114` + rules `isAllowedModuleChange` `firestore.rules:80,151`) |
+| PT / Soccer / GYM / legacy null | nessun effetto (cambia solo l'opzione lipedema) | idem | idem |
+| Lipedema | org esistenti (`qa-lipedema`) invariate | - | nessuna org lipedema in prod (da confermare in Console, sola lettura) |
 
 ---
 
