@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { isDev } from '../../utils/env'
 import {
   getSelectableModuleOptions,
   IS_LIPEDEMA_SELECTABLE,
@@ -194,7 +193,7 @@ describe('isModuleChangeAllowed (ADR-015 §6)', () => {
   })
 })
 
-describe('getSelectableModuleOptions (blocco lipedema fuori da dev, Sprint #18 1d)', () => {
+describe('getSelectableModuleOptions (filtro lipedema, Sprint #18 1d; sbloccato in ogni ambiente nel #23)', () => {
   const { PERSONAL_TRAINING: PT, SOCCER_ACADEMY: SOCCER, LIPEDEMA } = MODULES
   const values = options => options.map(opt => opt.value)
 
@@ -213,9 +212,9 @@ describe('getSelectableModuleOptions (blocco lipedema fuori da dev, Sprint #18 1
       .toEqual([PT, SOCCER])
   })
 
-  it('default = ambiente corrente (test in modalità non development: lipedema escluso)', () => {
-    expect(IS_LIPEDEMA_SELECTABLE).toBe(isDev)
-    expect(values(getSelectableModuleOptions()).includes(LIPEDEMA)).toBe(isDev)
+  it('default: lipedema selezionabile in ogni ambiente (go-live Sprint #23)', () => {
+    expect(IS_LIPEDEMA_SELECTABLE).toBe(true)
+    expect(values(getSelectableModuleOptions())).toEqual([PT, SOCCER, LIPEDEMA])
   })
 })
 

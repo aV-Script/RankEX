@@ -24,10 +24,10 @@ export const MODULE_OPTIONS = [
   { value: MODULES.LIPEDEMA,          label: 'Lipedema Edition',  shortLabel: 'Lipedema' },
 ]
 
-// Lipedema è selezionabile (creazione org, cambio modulo) solo in sviluppo (rankex-dev).
-// Prod e UAT lo nascondono finché STORY-029 (DPA + informativa) non è chiusa: a quel punto
-// togliere il filtro. Blocco solo UI, le rules non lo impediscono.
-export const IS_LIPEDEMA_SELECTABLE = isDev
+// Lipedema è selezionabile (creazione org, cambio modulo) in ogni ambiente dallo Sprint #23
+// (go-live, decisione utente 27/11/2026). Per nasconderlo di nuovo fuori da dev basta
+// rimettere `isDev`: il filtro di getSelectableModuleOptions resta. Solo UI, le rules non lo regolano.
+export const IS_LIPEDEMA_SELECTABLE = true
 
 /**
  * Opzioni modulo proponibili al super_admin. Un'org già lipedema ne conserva l'opzione

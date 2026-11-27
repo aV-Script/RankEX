@@ -57,9 +57,10 @@ con terminologie, test e comportamenti UI diversi.
   facoltativa, nessun campo di gamification sul doc; il paziente non accede all'app (v1)
 - Tutto il modulo è dato sanitario (art. 9(2)(h) GDPR): l'audit `CLIENT_CREATED` non
   contiene il nome
-- Fuori da dev (prod/UAT) `lipedema` non è selezionabile da super_admin né in `CreateOrgForm` né in
-  `OrgDetailView`: `IS_LIPEDEMA_SELECTABLE` / `getSelectableModuleOptions` in `config/modules.config.js`.
-  Solo UI (le rules non lo impediscono); si toglie quando STORY-029 (DPA + informativa) è chiusa
+- `lipedema` è selezionabile da super_admin in ogni ambiente (`CreateOrgForm`, `OrgDetailView`) dal go-live
+  dello Sprint #23: `IS_LIPEDEMA_SELECTABLE = true` in `config/modules.config.js` (rimettere `isDev` per
+  nasconderlo di nuovo fuori da dev; filtro in `getSelectableModuleOptions`). Solo UI. STORY-029 (b)/(c) (DPA e
+  testo informativa) ancora aperte al momento dello sblocco: rischio accettato dall'utente (27/11/2026)
 - Cambio di `moduleType` da/verso `lipedema` bloccato se l'org ha clienti
   (`isAllowedModuleChange` in `firestore.rules` + `OrgDetailView`)
 - Informativa: `client.privacyNotice` scritto solo via `registraInformativaPaziente` (o dal
@@ -872,7 +873,7 @@ Ogni voce di sprint/BACKLOG/BUGS il cui comportamento dipende dall'ambiente o da
 | Caso | dev | UAT | prod |
 |------|-----|-----|------|
 | `ENV`/flag (`utils/env.js:1-5`; `ENV` ripiega su `import.meta.env.MODE` se `VITE_ENV` manca, riga 1) | `isDev` (3) true con `VITE_ENV=development` | `isUat` (5) true solo con `VITE_ENV=uat`; nessun deploy UAT nel repo: non verificato | `isProduction` (4) |
-| Select modulo (`config/modules.config.js:30` `IS_LIPEDEMA_SELECTABLE = isDev`, `:37-40`; usata in `CreateOrgForm.jsx:97`, `OrgDetailView.jsx:63`) | PT/Soccer/Lipedema | PT e Soccer; Lipedema solo se è già il modulo dell'org | idem UAT |
+| Select modulo (`config/modules.config.js:30` `IS_LIPEDEMA_SELECTABLE = true`, `:37-40`; usata in `CreateOrgForm.jsx:97`, `OrgDetailView.jsx:63`) | PT/Soccer/Lipedema | PT/Soccer/Lipedema (nessun deploy UAT: non verificato) | PT/Soccer/Lipedema |
 | `isAdminDomain` (`utils/env.js:13-15`) | sempre false | hostname `admin-uat.rankex.app` in lista (7): non verificato dal vivo | hostname admin |
 
 Fix di una riga / typo: esenti (vedi "Quando saltare la pipeline").
@@ -1290,8 +1291,8 @@ cd functions && npm test
   `timestamp` decrescente: cercare voci con `env: functions` successive al deploy (creazione/eliminazione
   cliente, login fallito). Solo super_admin legge: non da client.
 - Smoke test **in sola lettura** col super_admin su `rankex-admin`: login, lista org, dettaglio di una org PT e di
-  una Soccer; mai salvare. Verificare le differenze di ambiente note (es. in prod la select modulo non offre
-  Lipedema in "NUOVA" né nel dettaglio org).
+  una Soccer; mai salvare. Verificare le differenze di ambiente note (tabella in "Voci con comportamento per
+  ambiente": dallo Sprint #23 la select modulo offre Lipedema anche in prod).
 - Client con build vecchia aperta: deve comparire il banner RICARICA, entro `POLL_MS`
   (5 min, `src/hooks/useVersionCheck.js:3`) anche sulla pagina di login: attendere fino a 5 minuti.
 - Costi Firebase in Console dopo 24 ore (vedi sotto).
