@@ -1,4 +1,4 @@
-import { BADGES_MAP, BADGE_TIERS } from '../../config/badges.config'
+import { BADGES_MAP, BADGE_TIERS, getBadgeLabel } from '../../config/badges.config'
 
 // ── SVG icons map ─────────────────────────────────────────────────────────────
 
@@ -87,14 +87,16 @@ function injectKeyframe() {
  *   size      — px (default 64)
  *   animate   — bool: animazione unlock
  *   showLabel — bool: label sotto
+ *   terminology — terminologia del modulo per il nome (assente → PT)
  */
-export function BadgeMedal({ badgeId, unlocked, size = 64, animate = false, showLabel = false }) {
+export function BadgeMedal({ badgeId, unlocked, size = 64, animate = false, showLabel = false, terminology }) {
   injectKeyframe()
 
   const badge = BADGES_MAP[badgeId]
   if (!badge) return null
 
   const tier      = BADGE_TIERS[badge.tier]
+  const label     = getBadgeLabel(badge, terminology)
   const borderW   = size > 56 ? 3 : 2
   const iconScale = size / 64
 
@@ -102,8 +104,8 @@ export function BadgeMedal({ badgeId, unlocked, size = 64, animate = false, show
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
       <div
         role="img"
-        aria-label={unlocked ? `${badge.label}, tier ${tier.label}` : `${badge.label}, non sbloccato`}
-        title={unlocked ? badge.label : `${badge.label} — non sbloccato`}
+        aria-label={unlocked ? `${label}, tier ${tier.label}` : `${label}, non sbloccato`}
+        title={unlocked ? label : `${label} — non sbloccato`}
         style={{
           width:          size,
           height:         size,
@@ -143,7 +145,7 @@ export function BadgeMedal({ badgeId, unlocked, size = 64, animate = false, show
           maxWidth:      size + 16,
           lineHeight:    1.3,
         }}>
-          {badge.label}
+          {label}
         </div>
       )}
     </div>

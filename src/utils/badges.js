@@ -1,7 +1,8 @@
 // Logica auto-badge — funzioni pure, nessun side effect
 
-// Prefisso dell'action scritta da chiudiSessione (buildSessionUpdate con label
-// 'Sessione di allenamento' → "Sessione di allenamento (streak N)").
+// Prefisso delle action scritte da chiudiSessione prima di ADR-021 ("Sessione di
+// allenamento (streak N)"); oggi la label è il termine del modulo. Serve solo al
+// ripiego per i clienti senza sessionCount, che hanno solo voci vecchie.
 const SESSION_LOG_PREFIX = 'Sessione di allenamento'
 
 /**

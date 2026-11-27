@@ -36,7 +36,7 @@ export function ClientHome({
         </div>
 
         <div className="-mx-4 lg:mx-0 lg:col-start-1 lg:row-start-1 lg:row-span-2">
-          <ClientHub client={client} orgId={orgId} color={color} onTabChange={onTabChange} />
+          <ClientHub client={client} orgId={orgId} color={color} onTabChange={onTabChange} terminology={terminology} />
         </div>
 
         <div className="flex flex-col gap-3 min-w-0 lg:col-start-2 lg:row-start-2">

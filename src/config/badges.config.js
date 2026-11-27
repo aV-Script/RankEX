@@ -1,5 +1,19 @@
 // ── Badge system — fonte di verità ────────────────────────────────────────────
 // Le icone sono identificatori stringa — il rendering SVG sta in BadgeMedal.jsx
+//
+// `label` e `description` sono una stringa o una funzione `(terminology) => string`:
+// i testi che nominano sessione/trainer si risolvono sulla terminologia del modulo
+// (BUG-038). Leggerli sempre con getBadgeLabel / getBadgeDescription.
+import { bySessionGender, resolveTerminology } from './modules.config'
+
+// "della sessione" / "dell'allenamento": preposizione articolata ricavata dall'articolo
+// determinativo già giusto di `theSession` (la / l' / il)
+function ofTheSession(terminology) {
+  return terminology.theSession.replace(/^l'/, "dell'").replace(/^la /, 'della ').replace(/^il /, 'del ')
+}
+
+// "Hai completato 5 sessioni." / "Hai completato 5 allenamenti."
+const completedSessions = count => terminology => `Hai completato ${count} ${terminology.sessions.toLowerCase()}.`
 
 // Platino: bianco-argento ad alta luminosità con glow ciano residuo (non più
 // ciano pieno) — per una progressione bronzo→argento→oro→platino monotona in
@@ -15,8 +29,8 @@ export const BADGES = [
   // ── Automatici ───────────────────────────────────────────────────────────────
   {
     id:          'prima_sessione',
-    label:       'Prima Sessione',
-    description: 'Hai completato la tua prima sessione di allenamento.',
+    label:       terminology => `${bySessionGender(terminology, 'Primo', 'Prima')} ${terminology.session}`,
+    description: terminology => `Hai completato ${bySessionGender(terminology, 'il tuo primo', 'la tua prima')} ${terminology.session.toLowerCase()}.`,
     tier:        'bronze',
     type:        'auto',
     icon:        'lightning',
@@ -32,7 +46,7 @@ export const BADGES = [
   {
     id:          'striscia_5',
     label:       'Striscia x5',
-    description: 'Hai completato 5 sessioni di allenamento.',
+    description: completedSessions(5),
     tier:        'silver',
     type:        'auto',
     icon:        'flame',
@@ -40,7 +54,7 @@ export const BADGES = [
   {
     id:          'striscia_10',
     label:       'Striscia x10',
-    description: 'Hai completato 10 sessioni di allenamento.',
+    description: completedSessions(10),
     tier:        'gold',
     type:        'auto',
     icon:        'flame',
@@ -48,7 +62,7 @@ export const BADGES = [
   {
     id:          'striscia_25',
     label:       'Striscia x25',
-    description: 'Hai completato 25 sessioni di allenamento.',
+    description: completedSessions(25),
     tier:        'gold',
     type:        'auto',
     icon:        'star',
@@ -82,7 +96,7 @@ export const BADGES = [
   {
     id:          'campione',
     label:       'Campione',
-    description: 'Riconoscimento speciale del trainer.',
+    description: terminology => `Riconoscimento speciale del ${terminology.trainer.toLowerCase()}.`,
     tier:        'gold',
     type:        'manual',
     icon:        'trophy',
@@ -114,7 +128,7 @@ export const BADGES = [
   {
     id:          'mvp',
     label:       'MVP',
-    description: 'Most Valuable Player — il migliore della sessione.',
+    description: terminology => `Most Valuable Player — il migliore ${ofTheSession(terminology)}.`,
     tier:        'platinum',
     type:        'manual',
     icon:        'medal',
@@ -132,3 +146,16 @@ export const BADGES = [
 export const BADGES_MAP    = Object.fromEntries(BADGES.map(b => [b.id, b]))
 export const AUTO_BADGES   = BADGES.filter(b => b.type === 'auto')
 export const MANUAL_BADGES = BADGES.filter(b => b.type === 'manual')
+
+const resolveText = (text, terminology) =>
+  typeof text === 'function' ? text(resolveTerminology(terminology)) : text
+
+/** Nome del trofeo nella terminologia del modulo (assente → PT). */
+export function getBadgeLabel(badge, terminology) {
+  return resolveText(badge.label, terminology)
+}
+
+/** Descrizione del trofeo nella terminologia del modulo (assente → PT). */
+export function getBadgeDescription(badge, terminology) {
+  return resolveText(badge.description, terminology)
+}

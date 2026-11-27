@@ -23,7 +23,8 @@ import { requireOrgAccess }  from '../shared/auth.js'
 import { buildSessionUpdate, buildXPUpdate } from '../shared/gamification.js'
 import { PLAN_COMPLETION_XP } from '../shared/constants.js'
 import { autoBadgeFields }    from '../shared/badges.js'
-import { getOrgCapabilities } from '../shared/orgModule.js'
+import { getOrgModule }       from '../shared/orgModule.js'
+import { resolveSessionTerm, sessionCompletedMessage, sessionAbsenceMessage } from '../shared/terminology.js'
 
 const REGION = 'europe-west1'
 
@@ -48,7 +49,8 @@ export const chiudiSessione = onCall({ region: REGION }, async (request) => {
   const notifCol   = db.collection(`organizations/${orgId}/notifications`)
   const plansCol   = db.collection(`organizations/${orgId}/workoutPlans`)
   const today      = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
-  const { hasGamification } = await getOrgCapabilities(db, orgId)
+  const { capabilities: { hasGamification }, moduleType, terminologyVariant } = await getOrgModule(db, orgId)
+  const term       = resolveSessionTerm(moduleType, terminologyVariant)
 
   // Transazione, non batch: il controllo "già chiusa" deve stare nella stessa
   // unità delle scritture. Con un batch due chiamate ravvicinate (doppio tap,
@@ -114,7 +116,7 @@ export const chiudiSessione = onCall({ region: REGION }, async (request) => {
       const client = clientMap[clientId]
       if (!client) continue
 
-      const session = buildSessionUpdate(client, client.baseXP ?? 50, 'Sessione di allenamento')
+      const session = buildSessionUpdate(client, client.baseXP ?? 50, term.session)
       let update    = session.update
       let xpGain    = session.xpGain
 
@@ -144,9 +146,11 @@ export const chiudiSessione = onCall({ region: REGION }, async (request) => {
       if (client.clientAuthUid) {
         tx.set(notifCol.doc(), {
           clientId,
-          message:   planCompleted
-            ? `Sessione del ${slot.date} completata e scheda "${plan.title}" finita! +${xpGain} XP (streak ${update.sessionStreak})`
-            : `Sessione del ${slot.date} completata! +${xpGain} XP (streak ${update.sessionStreak})`,
+          message:   sessionCompletedMessage(term, slot.date, {
+            xpGain,
+            streak:    update.sessionStreak,
+            planTitle: planCompleted ? plan.title : null,
+          }),
           date:      today,
           type:      'session',
           read:      false,
@@ -165,7 +169,7 @@ export const chiudiSessione = onCall({ region: REGION }, async (request) => {
       if (client.clientAuthUid) {
         tx.set(notifCol.doc(), {
           clientId,
-          message:   `Sessione del ${slot.date} — assenza registrata. Streak azzerata.`,
+          message:   sessionAbsenceMessage(term, slot.date),
           date:      today,
           type:      'absence',
           read:      false,

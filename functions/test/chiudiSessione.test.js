@@ -143,7 +143,7 @@ describe('chiudiSessione', () => {
       await call(['a'])
       expect(plan().completedSessions).toBe(2)
       expect(plan().completedAt).toBeUndefined()
-      expect(client('a').log[0].action).toMatch(/^Sessione di allenamento/)
+      expect(client('a').log[0].action).toMatch(/^Sessione \(streak \d+\)$/)
     })
 
     it("all'ultima sessione prevista: scheda completata e bonus XP una volta sola", async () => {
@@ -152,13 +152,13 @@ describe('chiudiSessione', () => {
       expect(plan().completedSessions).toBe(3)
       expect(plan().completedAt).toBeDefined()
       expect(client('a').log[0]).toMatchObject({ action: 'Scheda completata: Forza (+100 XP)', xp: 100 })
-      expect(client('a').log[1].action).toMatch(/^Sessione di allenamento/)
+      expect(client('a').log[1].action).toMatch(/^Sessione \(streak \d+\)$/)
 
       // Una sessione dopo la fine conta, ma non ridà il bonus
       db.docs.set(SLOT, { date: '2026-10-24', status: 'planned', clientIds: ['a'] })
       await call(['a'])
       expect(plan().completedSessions).toBe(4)
-      expect(client('a').log[0].action).toMatch(/^Sessione di allenamento/)
+      expect(client('a').log[0].action).toMatch(/^Sessione \(streak \d+\)$/)
     })
 
     it('scheda senza sessioni previste: conta, mai bonus; schede archiviate e assenti non toccate', async () => {
@@ -182,6 +182,61 @@ describe('chiudiSessione', () => {
     db.docs.set(ORG, {})
     await call(['a'])
     expect(client('a')).toMatchObject({ coins: 10, sessionCount: 5 })
+  })
+
+  // ADR-021 / BUG-037: terminologia del modulo e data leggibile nelle notifiche
+  describe('notifiche con la terminologia del modulo', () => {
+    const SOCCER_ORG = { moduleType: 'soccer_academy' }
+    const messageOf  = type => [...db.docs.entries()]
+      .find(([path, doc]) => path.includes('/notifications/') && doc.type === type)?.[1].message
+
+    beforeEach(() => { db.docs.set(SLOT, { date: '2026-11-10', status: 'planned', clientIds: ['a', 'b'] }) })
+
+    it('soccer, presente: "Allenamento del 10 nov completato!", senza "Sessione" né data ISO', async () => {
+      db.docs.set(ORG, SOCCER_ORG)
+      await call(['a'])
+      const message = messageOf('session')
+      expect(message).toMatch(/^Allenamento del 10 nov completato! \+\d+ XP \(streak 3\)$/)
+      expect(message).not.toContain('Sessione')
+      expect(message).not.toContain('2026-11-10')
+    })
+
+    it('PT: "Sessione del 10 nov completata! +"; org legacy senza moduleType: idem', async () => {
+      await call(['a'])
+      expect(messageOf('session')).toMatch(/^Sessione del 10 nov completata! \+/)
+      db.docs.clear()
+      db.docs.set(ORG, {})
+      db.docs.set(SLOT, { date: '2026-11-10', status: 'planned', clientIds: ['a'] })
+      db.docs.set('organizations/org1/clients/a', { xp: 0, xpNext: 500, level: 1, log: [], coins: 0, clientAuthUid: 'uA' })
+      await call(['a'])
+      expect(messageOf('session')).toMatch(/^Sessione del 10 nov completata! \+/)
+    })
+
+    it('GYM (personal_training + variante gym): "Allenamento del 10 nov completato!"', async () => {
+      db.docs.set(ORG, { moduleType: 'personal_training', terminologyVariant: 'gym' })
+      await call(['a'])
+      expect(messageOf('session')).toMatch(/^Allenamento del 10 nov completato! \+/)
+    })
+
+    it('soccer, scheda completata: "… completato e scheda "Forza" finita! +"', async () => {
+      db.docs.set(ORG, SOCCER_ORG)
+      db.docs.set('organizations/org1/workoutPlans/p1', { clientId: 'a', status: 'active', title: 'Forza', targetSessions: 1, completedSessions: 0 })
+      await call(['a'])
+      expect(messageOf('session')).toMatch(/^Allenamento del 10 nov completato e scheda "Forza" finita! \+/)
+    })
+
+    it('soccer, assente: "Allenamento del 10 nov — assenza registrata. Streak azzerata."', async () => {
+      db.docs.set(ORG, SOCCER_ORG)
+      db.docs.set('organizations/org1/clients/b', { xp: 0, xpNext: 500, level: 1, sessionStreak: 3, log: [], coins: 0, clientAuthUid: 'uB' })
+      await call(['a'])
+      expect(messageOf('absence')).toBe('Allenamento del 10 nov — assenza registrata. Streak azzerata.')
+    })
+
+    it('soccer: la voce di log XP usa il termine del modulo, non "Sessione di allenamento"', async () => {
+      db.docs.set(ORG, SOCCER_ORG)
+      await call(['a'])
+      expect(client('a').log[0].action).toMatch(/^Allenamento \(streak \d+\)$/)
+    })
   })
 
   it('moduleType sconosciuto: rifiutata senza scrivere nulla', async () => {

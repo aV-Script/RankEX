@@ -77,7 +77,7 @@ function getShowcaseBadges(badges, showcase) {
 
 // ── ClientHub ─────────────────────────────────────────────────────────────────
 
-export function ClientHub({ client, orgId, color, onTabChange }) {
+export function ClientHub({ client, orgId, color, onTabChange, terminology }) {
   const [vpW,        setVpW]        = useState(() => window.innerWidth)
   const [hoveredIdx, setHoveredIdx] = useState(null)
 
@@ -189,7 +189,7 @@ export function ClientHub({ client, orgId, color, onTabChange }) {
               width: badgeSize, height: badgeSize,
               pointerEvents: 'none',
             }}>
-              <BadgeMedal badgeId={badgeId} unlocked size={badgeSize} />
+              <BadgeMedal badgeId={badgeId} unlocked size={badgeSize} terminology={terminology} />
             </div>
           )
         })}

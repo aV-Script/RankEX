@@ -136,6 +136,8 @@ export const TERMINOLOGY_KEYS = [
   'theGroup', 'thisGroup', 'inTheGroup', 'ofTheGroup', 'toTheGroup', 'fromTheGroup', 'toTheGroups',
 ]
 
+// `session` e `sessionGender` hanno una copia in functions/src/shared/terminology.js
+// (testi scritti dalle callable): se li cambi, aggiorna anche quella (test di parità).
 export const TERMINOLOGIES = {
   personal_training: {
     trainer:   'Trainer',
