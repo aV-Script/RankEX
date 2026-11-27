@@ -29,14 +29,14 @@ audit/side effect attesi prima del return; dati solo nelle org `qa-*` di rankex-
 ## Voci dello sprint
 | # | ID | Taglia | Chi | Review | Stato |
 |---|----|--------|-----|--------|-------|
-| 1 | AI 1: `npm run check:node-imports` in CI + pre-flight; controprova su copia di `56684a6` → exit 1, HEAD → 0 | S | developer A | AC + test verdi | IN PROGRESS |
-| 2 | AI 5: passo "porta 4173 libera + build servita = quella della copia" in `developer.md` | S | developer A | AC | IN PROGRESS |
-| 3 | AI 2: regola "spec lanciata una volta sull'hosting prima della review" (`developer.md`, `scrum-master.md`) + helper commentati in `layoutHelpers.js` | S | regola: sessione principale; helper: developer C | AC | READY |
+| 1 | AI 1: `npm run check:node-imports` in CI + pre-flight; controprova su copia di `56684a6` → exit 1, HEAD → 0 | S | developer A | AC + test verdi | DONE `2679a8c` (controprova `56684a6` exit 1 ERR_MODULE_NOT_FOUND, HEAD exit 0) |
+| 2 | AI 5: passo "porta 4173 libera + build servita = quella della copia" in `developer.md` | S | developer A | AC | DONE `2679a8c` (usato nella controprova 049: porta liberata, PID figlio sopravvissuto a TaskStop e chiuso a mano) |
+| 3 | AI 2: regola "spec lanciata una volta sull'hosting prima della review" (`developer.md`, `scrum-master.md`) + helper commentati in `layoutHelpers.js` | S | regola: sessione principale; helper: developer C | AC | DONE: regola `2050cbf` (scrum-master) + `06bd9a4` (developer); helper `7bf495c` |
 | 4 | BUG-005: tab BIA con `capability: 'hasBia'` | S | sessione principale | AC + test verdi | DONE `0ac9913` |
-| 5 | AI 4 + BUG-037 + BUG-038: inventario testi cablati → BUGS.md, fix con test che fallisce prima, deploy functions rankex-dev | M | tech-lead (approccio) → developer B | /code-review medium | IN PROGRESS (tech-lead) |
-| 6 | `aria-label` della PROSSIMA (`ClientHomeCards.jsx:89-108`, nome accessibile oggi titolo+data senza separatore) | S | developer C | AC | READY |
-| 6b | Push intermedio su `dev` (UI 049 + spec pronte) → spec lanciata una volta sull'hosting dev prima della review | - | sessione principale | - | TODO |
-| 7 | STORY-049 (AC in BACKLOG.md) + spec layout 360/1366 + seed badge | M | developer C | /code-review medium, cita esito spec 360/1366 | READY |
+| 5 | AI 4 + BUG-037 + BUG-038: inventario testi cablati → BUGS.md, fix con test che fallisce prima, deploy functions rankex-dev | M | tech-lead (approccio) → developer B | /code-review medium | CODE REVIEW: ADR-021 `9ab9f02`, fix `002e43a`, docs `02e5fab` (inventario 22 righe, BUG-039/040, TD-016); functions rankex-dev a `002e43a`, 40 callable nodejs22 |
+| 6 | `aria-label` della PROSSIMA (`ClientHomeCards.jsx:89-108`, nome accessibile oggi titolo+data senza separatore) | S | developer C | AC | CODE REVIEW `7bf495c` |
+| 6b | Push intermedio su `dev` (UI 049 + spec pronte) → spec lanciata una volta sull'hosting dev prima della review | - | sessione principale | - | DONE: push `9ab9f02`, deploy-dev run 46003020504 ok; primo run spec 26 passed / 2 failed (errore di spec AC2: 11 img) / 2 skipped (AC3, manca campionamento) |
+| 7 | STORY-049 (AC in BACKLOG.md) + spec layout 360/1366 + seed badge | M | developer C | /code-review medium, cita esito spec 360/1366 | CODE REVIEW `7bf495c` + `98406c2` (vetrina items-start: 7 px a 1366, difetto reale); controprova su copia di `06bd9a4`: AC1 FAIL 360, AC2 FAIL 360 e 1366; AC3 da misurare dopo campionamento QA |
 | 8 | AI 3: TP-094 passo errore provato → PASS o BLOCCATO con motivo in `runbook.config.js`; regola "come si simula" | S | sessione principale in QA | - | TODO |
 | 9 | Push dev, `qa:dev` completo, QA dal vivo solo sul nuovo | - | qa-engineer | - | TODO |
 | 10 | Rilascio prod (decisione 1) | - | release-manager + sessione principale | - | TODO |
