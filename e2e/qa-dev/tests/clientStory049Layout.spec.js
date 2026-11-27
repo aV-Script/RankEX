@@ -81,7 +81,9 @@ for (const viewport of VIEWPORTS) {
 
       const showcase = page.getByTestId('trophy-showcase')
       await expect(showcase, SEED_HINT).toBeVisible()
-      const medals = showcase.getByRole('img')
+      // Solo le medaglie (div role=img con aria-label "<nome>, tier <x>"): getByRole('img') conterebbe anche gli <svg>
+      // interni e l'icona pin (ruolo img implicito) → 11 invece di 5 al primo run del #22.
+      const medals = showcase.getByRole('img', { name: /, tier / })
       await expect(medals, SEED_HINT).toHaveCount(SHOWCASE_SIZE)
       await scrollToViewportCenter(showcase)
 

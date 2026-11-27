@@ -164,8 +164,9 @@ export function TrophiesSection({
               </span>
             )}
           </div>
-          {/* flex-wrap: a 360 px 5×68 + 4×16 = 404 px non entrano in una riga, vanno a capo (3+2) invece di uscire dalla card */}
-          <div className="flex flex-wrap items-center gap-4">
+          {/* flex-wrap: a 360 px 5×68 + 4×16 = 404 px non entrano in una riga, vanno a capo (3+2) invece di uscire dalla card.
+              items-start: con items-center una label su due righe abbassava la sua medaglia (7 px a 1366, spec STORY-049) */}
+          <div className="flex flex-wrap items-start gap-4">
             {Array.from({ length: MAX_SHOWCASE }).map((_, i) => {
               const id = currentShowcase[i]
               return id ? (
