@@ -1040,6 +1040,9 @@ trattare dati sanitari su pazienti reali in modo lecito.
 - **Status:** parte tecnica (a) DONE (Sprint #11, `cc42e34`) — verificata dal vivo su
   rankex-app-dev 31/10, non in prod. I requisiti non-codice (b), (c) e il privacy draft
   restano BLOCKED fuori capacità developer (proprietario utente/legale): bloccano il go-live **(b)/(c): rinviato al contratto con la prima org Lipedema** (decisione utente 12/11/2026).
+  **27/11/2026 (Sprint #23):** modulo selezionabile in prod (`924734d`) con rischio accettato dall'utente; (a) verificata
+  anche in prod nello smoke test TP-095 (informativa assente → valutazioni bloccate in UI). (b)/(c) **ancora BLOCKED**:
+  DPA e testo dell'informativa in revisione dal manager; nessuna org Lipedema reale creata (la si crea solo a DPA approvato).
 
 ### [STORY-030] Nuovo modulo a livello organizzazione + capability + terminologia
 **Come** super_admin **voglio** creare un'organizzazione con il modulo Lipedema e

@@ -18,7 +18,7 @@ Schema: data del deploy prod + etichetta; più rilasci nello stesso giorno: suff
 
 ---
 
-## [2026.11.27.2] — Sprint #23 Go-live Lipedema (sblocco del modulo in prod) — IN RILASCIO
+## [2026.11.27.2] — Sprint #23 Go-live Lipedema (sblocco del modulo in prod) — RILASCIATO
 
 Processo: `CLAUDE.md` → "Rilascio in produzione". **Solo hosting** (merge `dev → main` → `deploy.yml`): functions
 invariate, nessun deploy functions. Sprint #23, voce 9.
@@ -61,13 +61,29 @@ invariate, nessun deploy functions. Sprint #23, voce 9.
   (Zona pericolosa, con via libera).
 
 ### Da compilare durante il rilascio
-- [ ] Merge `dev -> main` + push: CI __, `deploy.yml` __ (`deploy-prod`), ora __
-- [ ] HTTP check anonimo `rankex-app` / `rankex-admin` (`version.json` nuovo, prima `{"v":1795790592944}`, CSP,
-  `X-Frame-Options`): __
-- [ ] Banner RICARICA sulla scheda `rankex-app` aperta prima del merge (build `1795790592944`), entro 5 min: __
-- [ ] Select Modulo con Lipedema su `rankex-admin` dopo il deploy (NUOVA e dettaglio org): __
-- [ ] Smoke test TP-095 in prod su org temporanea `smoke-lipedema-20261127` (creazione, paziente fittizio,
-  cancellazione, residui = 0): __
+- [x] Push docs su `dev` (`61f8d93..924734d`): CI 46050522610, `deploy.yml` 46050688111 `deploy-dev` ok (18:36:45 UTC)
+- [x] Merge `dev -> main` (fast-forward `53b5579..924734d`, push 18:34:54 UTC): CI 46050536550 ok, `deploy.yml`
+  46050713909 `deploy-prod` ok (18:36:51 UTC, checkout `924734d`), `deploy-dev` skipped. **hosting + rules prod a
+  `924734d`**; functions prod invariate a `478a157`
+- [x] HTTP check anonimo: `rankex-app` e `rankex-admin` `version.json` `{"v":1795804596665}` (prima
+  `1795790592944`), Last-Modified 18:36:44 GMT, CSP e `X-Frame-Options: DENY` presenti
+- [x] Banner RICARICA sulla scheda `rankex-app` (login) aperta prima del merge sulla build vecchia: presente alle
+  18:37:59 UTC, circa 1 minuto dopo il deploy
+- [x] Select Modulo con Lipedema su `rankex-admin` dopo il deploy: dettaglio org PT (0 clienti) e form NUOVA offrono
+  PT / Soccer / Lipedema. Nota: la scheda già aperta teneva in cache l'`index.html` vecchio fino al reload (il banner
+  RICARICA lo copre)
+- [x] Smoke test TP-095 in prod (27/11, 18:40-18:50 UTC, Chrome; login super_admin e password del trainer di prova
+  digitati dall'utente): org temporanea `smoke-lipedema-20261127-uo9gk` (free, lipedema). Passi 1-7 **PASS**:
+  1 org creata, terminologia lipedema, utilizzo 0/1 e 0/10; 2 trainer `smoke.20261127@test.rankex` aggiunto, cambio
+  password al primo login (fatto dall'utente); 3 paziente fittizio senza account e senza informativa → banner
+  "valutazioni… non si possono salvare"; 4 informativa `SMOKE-1.0` + visita 5/5 (2MWT 132 m, 30s-STS 11 rip.,
+  Handgrip D 226 · S 195 N, HHD D 310 · S 285 N, OLS D 14,1 · S 10,2 s); 5 correzione 2MWT → 162 m (la vecchia
+  ANNULLATA, "Sostituita da"), 30s-STS annullata con motivo; 6 anteprima PDF con le sole valide (30s-STS "Non ancora
+  eseguito"), nessun rank/percentile/XP (stampa non lanciata); 7 org eliminata da Zona pericolosa, sparita dalla lista
+  (2 org), sessione del trainer chiusa al reload. Log functions prod 18:40-18:50: solo I/D di aggiungiValutazione,
+  annullaValutazione, eliminaOrganizzazione, 0 errori. Passo 8 (Console: Authentication senza l'utente smoke,
+  Firestore senza `organizations/smoke-lipedema-20261127-uo9gk`, `audit_logs` senza il nome del paziente): **a cura
+  dell'utente**, nessun accesso Admin SDK a prod da qui
 
 ---
 
